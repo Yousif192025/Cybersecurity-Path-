@@ -528,50 +528,75 @@
             lettersFilterButtonsContainer.appendChild(allLink);
 
             // ----------------------------------------------------
-            // 2. إنشاء روابط ترقيم الصفحات ديناميكيًا
+            // 2. إنشاء روابط ترقيم الصفحات ديناميكيًا (شكل أفقي مع اختصارات)
             // ----------------------------------------------------
             const paginationLinksContainer = document.getElementById('paginationLinks');
             const totalPages = 37; // مثال: عدد الصفحات الكلي
-            const currentPage = 1; // مثال: الصفحة الحالية
+            let currentPage = 1; // مثال: الصفحة الحالية (يمكن تحديثها بناءً على URL أو سياق حقيقي)
 
-            // زر السابق
-            const prevItem = document.createElement('li');
-            prevItem.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
-            prevItem.innerHTML = `<a class="page-link" href="${currentPage === 1 ? '#' : `part${currentPage - 1}.html`}" tabindex="-1" aria-disabled="${currentPage === 1 ? 'true' : 'false'}"><i class="fas fa-angle-double-right"></i> السابق</a>`;
-            paginationLinksContainer.appendChild(prevItem);
-
-            // روابط الصفحات
-            for (let i = 1; i <= totalPages; i++) {
-                const pageItem = document.createElement('li');
-                pageItem.className = `page-item ${i === currentPage ? 'active' : ''}`;
-                pageItem.innerHTML = `<a class="page-link" href="part${i}.html">${i}</a>`;
-                paginationLinksContainer.appendChild(pageItem);
-
-                // لغرض العرض، سنحد من عدد الروابط الظاهرة لتجنب الفوضى
-                if (i >= 5 && i < totalPages - 1) { // عرض أول 5 صفحات وآخر صفحتين
-                    if (i === 5) { // إضافة نقاط للإشارة إلى الصفحات المحذوفة
-                        const ellipsisItem = document.createElement('li');
-                        ellipsisItem.className = 'page-item disabled';
-                        ellipsisItem.innerHTML = `<span class="page-link">...</span>`;
-                        paginationLinksContainer.appendChild(ellipsisItem);
-                    }
-                    continue;
+            // دالة لإنشاء رابط صفحة
+            function createPageLink(pageNum, text, isActive = false, isDisabled = false) {
+                const li = document.createElement('li');
+                li.className = `page-item ${isActive ? 'active' : ''} ${isDisabled ? 'disabled' : ''}`;
+                
+                const link = document.createElement('a');
+                link.className = 'page-link';
+                link.href = isDisabled ? '#' : `part${pageNum}.html`;
+                link.textContent = text;
+                if (isDisabled) {
+                    link.setAttribute('tabindex', '-1');
+                    link.setAttribute('aria-disabled', 'true');
                 }
-                if (i > 5 && i < totalPages - 1 && i !== totalPages) continue; // تخطي الصفحات الوسطى
-            }
-             // إضافة آخر صفحة إذا كانت مخفية بسبب التحديد
-             if (totalPages > 5 && currentPage < totalPages -1) {
-                const lastPageItem = document.createElement('li');
-                lastPageItem.className = `page-item ${totalPages === currentPage ? 'active' : ''}`;
-                lastPageItem.innerHTML = `<a class="page-link" href="part${totalPages}.html">${totalPages}</a>`;
-                paginationLinksContainer.appendChild(lastPageItem);
+                li.appendChild(link);
+                return li;
             }
 
-            // زر التالي
-            const nextItem = document.createElement('li');
-            nextItem.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
-            nextItem.innerHTML = `<a class="page-link" href="${currentPage === totalPages ? '#' : `part${currentPage + 1}.html`}">التالي <i class="fas fa-angle-double-left"></i></a>`;
-            paginationLinksContainer.appendChild(nextItem);
+            // زر "البداية" (<<)
+            paginationLinksContainer.appendChild(createPageLink(1, '<<', false, currentPage === 1));
+
+            // زر "السابق" (<)
+            paginationLinksContainer.appendChild(createPageLink(currentPage - 1, '<', false, currentPage === 1));
+
+            // أرقام الصفحات
+            const numLinksToShow = 5; // عدد روابط الصفحات المرئية في المنتصف
+            let startPage = Math.max(1, currentPage - Math.floor(numLinksToShow / 2));
+            let endPage = Math.min(totalPages, startPage + numLinksToShow - 1);
+
+            if (endPage - startPage + 1 < numLinksToShow) {
+                startPage = Math.max(1, endPage - numLinksToShow + 1);
+            }
+
+            // عرض الصفحة الأولى إذا لم تكن ضمن النطاق المرئي
+            if (startPage > 1) {
+                paginationLinksContainer.appendChild(createPageLink(1, '1'));
+                if (startPage > 2) { // إضافة نقاط إذا كان هناك فجوة
+                    const ellipsisItem = document.createElement('li');
+                    ellipsisItem.className = 'page-item disabled';
+                    ellipsisItem.innerHTML = `<span class="page-link">...</span>`;
+                    paginationLinksContainer.appendChild(ellipsisItem);
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                paginationLinksContainer.appendChild(createPageLink(i, i.toString(), i === currentPage));
+            }
+
+            // عرض الصفحة الأخيرة إذا لم تكن ضمن النطاق المرئي
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) { // إضافة نقاط إذا كان هناك فجوة
+                    const ellipsisItem = document.createElement('li');
+                    ellipsisItem.className = 'page-item disabled';
+                    ellipsisItem.innerHTML = `<span class="page-link">...</span>`;
+                    paginationLinksContainer.appendChild(ellipsisItem);
+                }
+                paginationLinksContainer.appendChild(createPageLink(totalPages, totalPages.toString()));
+            }
+
+            // زر "التالي" (>)
+            paginationLinksContainer.appendChild(createPageLink(currentPage + 1, '>', false, currentPage === totalPages));
+
+            // زر "النهاية" (>>)
+            paginationLinksContainer.appendChild(createPageLink(totalPages, '>>', false, currentPage === totalPages));
 
 
             // ----------------------------------------------------
@@ -580,7 +605,7 @@
             const searchInput = document.getElementById('searchInput');
             const searchBtn = document.getElementById('searchBtn');
             const searchResultsDiv = document.getElementById('searchResults');
-            const initialTermsHtml = searchResultsDiv.innerHTML; // حفظ المحتوى الأولي للمصطلحات
+            // const initialTermsHtml = searchResultsDiv.innerHTML; // حفظ المحتوى الأولي للمصطلحات
 
             function performSearch() {
                 const searchTerm = searchInput.value.trim().toLowerCase();
