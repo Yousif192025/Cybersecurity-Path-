@@ -1,340 +1,214 @@
-// بيانات المصطلحات التي ستعرض في القاموس
-const terms = [
-    {
-        term: "التصيد (Phishing)",
-        definition: "هو هجوم إلكتروني يستخدم فيه المهاجمون رسائل بريد إلكتروني أو مواقع ويب مزيفة لخداع الضحايا وإغرائهم بتقديم معلومات حساسة مثل كلمات المرور أو أرقام البطاقات الائتمانية.",
-        category: "hacking",
-        example: "رسالة بريد إلكتروني تبدو وكأنها من البنك تطلب تحديث معلومات الحساب."
-    },
-    {
-        term: "برمجية الفدية (Ransomware)",
-        definition: "هو نوع من البرمجيات الخبيثة التي تقوم بتشفير ملفات الضحية وطلب فدية مالية مقابل فك التشفير.",
-        category: "malware",
-        example: "برنامج WannaCry الذي أصاب مئات الآلاف من الأجهزة حول العالم في 2017."
-    },
-    {
-        term: "جدار الحماية (Firewall)",
-        definition: "هو نظام أمان يتحكم في حركة مرور الشبكة الواردة والصادرة بناءً على قواعد أمان محددة مسبقًا.",
-        category: "network",
-        example: "أداة تمنع الوصول غير المصرح به إلى شبكة المؤسسة من الإنترنت."
-    },
-    {
-        term: "التصيد المستهدف (Spear Phishing)",
-        definition: "هو هجوم تصيد يركز على هدف معين (فرد أو منظمة) ويستخدم معلومات شخصية لزيادة فرص النجاح.",
-        category: "hacking",
-        example: "رسالة بريد إلكتروني موجهة لمدير مالي تبدو وكأنها من الرئيس التنفيذي تطلب تحويل أموال."
-    },
-    {
-        term: "التصيد بالرمح (Whaling)",
-        definition: "هو نوع من التصيد المستهدف يستهدف كبار المسؤولين التنفيذيين أو الشخصيات المهمة في المنظمة.",
-        category: "hacking",
-        example: "هجوم يستهدف الرئيس التنفيذي للشركة بادعاء وجود مشكلة قانونية تتطلب تحويل أموال."
-    },
-    {
-        term: "هندسة اجتماعية (Social Engineering)",
-        definition: "هو تكتيك يستخدمه المهاجمون لخداع الأشخاص لكشف معلومات سرية أو القيام بأفعال معينة.",
-        category: "hacking",
-        example: "الاتصال بالضحية وادعاء أن المتصل من قسم الدعم الفني ويطلب كلمة المرور."
-    },
-    {
-        term: "برمجية خبيثة (Malware)",
-        definition: "هو مصطلح عام يشير إلى أي برنامج مصمم لإلحاق الضرر بجهاز كمبيوتر أو شبكة أو مستخدم.",
-        category: "malware",
-        example: "الفيروسات، الديدان، أحصنة طروادة، برمجيات الفدية."
-    },
-    {
-        term: "حصان طروادة (Trojan Horse)",
-        definition: "هو نوع من البرمجيات الخبيثة التي تتنكر في صورة برنامج شرعي لخداع المستخدمين لتنزيلها وتشغيلها.",
-        category: "malware",
-        example: "برنامج يبدو كبرنامج تشغيل فيديو مجاني ولكنه في الواقع يثبت برنامج تجسس على الجهاز."
-    },
-    {
-        term: "هجوم رفض الخدمة (DoS Attack)",
-        definition: "هو هجوم يهدف إلى جعل خدمة أو مورد غير متاح للمستخدمين المقصودين.",
-        category: "network",
-        example: "إغراق خادم ويب بطلبات كثيرة جدًا بحيث لا يستطيع معالجة الطلبات الشرعية."
-    },
-    {
-        term: "هجوم رفض الخدمة الموزع (DDoS Attack)",
-        definition: "هو هجوم DoS يستخدم أجهزة متعددة (غالبًا ما تكون جزءًا من شبكة من الأجهزة المخترقة تسمى البوت نت) لإغراق الهدف بحركة مرور زائفة.",
-        category: "network",
-        example: "هجوم على موقع حكومي باستخدام آلاف الأجهزة المخترقة حول العالم."
-    },
-    {
-        term: "التشفير (Encryption)",
-        definition: "هو عملية تحويل المعلومات إلى شكل غير قابل للقراءة لمنع الوصول غير المصرح به إليها.",
-        category: "encryption",
-        example: "تشفير رسائل البريد الإلكتروني باستخدام بروتوكول PGP لحماية خصوصية المراسلات."
-    },
-    {
-        term: "نفق VPN (Virtual Private Network)",
-        definition: "هو تقنية تخلق اتصالاً مشفرًا عبر شبكة عامة لتوفير اتصال آمن وخاص.",
-        category: "encryption",
-        example: "استخدام VPN عند الاتصال بشبكة واي فاي عامة لحماية البيانات من المتطفلين."
-    }
-];
+// docs/assets/js/glossary.js
 
-// أسئلة الاختبار التفاعلي
-const quizQuestions = [
-    {
-        question: "ما هو الهجوم الذي يستخدم رسائل بريد إلكتروني مزيفة لخداع الضحايا؟",
-        options: ["برمجية الفدية", "التصيد", "هجوم رفض الخدمة", "حصان طروادة"],
-        correctAnswer: 1
-    },
-    {
-        question: "أي من هذه الأنواع يصنف كبرمجية خبيثة؟",
-        options: ["جدار الحماية", "VPN", "برمجية الفدية", "التشفير"],
-        correctAnswer: 2
-    },
-    {
-        question: "ما هو الغرض من جدار الحماية؟",
-        options: [
-            "تشفير البيانات",
-            "منع الوصول غير المصرح به للشبكة",
-            "خداع المستخدمين لكشف معلومات",
-            "طلب فدية مالية"
-        ],
-        correctAnswer: 1
-    },
-    {
-        question: "ما الفرق بين هجوم DoS و DDoS؟",
-        options: [
-            "لا يوجد فرق بينهما",
-            "DoS يستهدف الأفراد بينما DDoS يستهدف المؤسسات",
-            "DoS يأتي من مصدر واحد بينما DDoS يأتي من مصادر متعددة",
-            "DoS يستخدم لسرقة البيانات بينما DDoS لشل الخدمات"
-        ],
-        correctAnswer: 2
-    }
-];
+// تتبع الصفحة الحالية (مهم للترقيم)
+let currentPage = 1;
+// العدد الإجمالي لملفات term-X.html. ✅ يجب تحديث هذا بناءً على عدد ملفاتك الفعلية.
+const totalTermFiles = 37; 
 
-// تهيئة التطبيق عند تحميل الصفحة بالكامل
-document.addEventListener('DOMContentLoaded', function() {
-    // عرض المصطلحات الافتراضية عند التحميل الأول
-    renderTerms(terms);
-    
-    // إعداد مستمعي الأحداث لأزرار فلترة الفئات
-    setupCategoryFilters();
-    
-    // إعداد مستمعي الأحداث لوظيفة البحث
-    setupSearch();
-    
-    // تهيئة وإعداد قسم الاختبار
-    setupQuiz();
-    
-    // إعداد وظائف أزرار المشاركة
-    setupShareButtons();
+// --- الوظيفة الأساسية: loadTerms (تحميل المصطلحات) ---
+function loadTerms(pageNumber, searchTerm = '', letterFilter = '') {
+    const termsContainer = $('#glossaryTermsContainer');
+    termsContainer.empty(); // مسح المصطلحات الحالية قبل تحميل مصطلحات جديدة
+
+    // بناء عنوان URL لملف المصطلحات (مثال: term-1.html، term-2.html)
+    // ✅ المسار هنا نسبي لملف glossary/index.html (الذي يستدعي هذا السكريبت)
+    const fileUrl = `term-${pageNumber}.html`; 
+
+    $.get(fileUrl)
+        .done(function(data) {
+            const tempDiv = $('<div>').html(data); // إنشاء div مؤقت لتحليل محتوى HTML
+            let terms = tempDiv.find('.ul-cards-glossary li'); // الحصول على جميع عناصر القائمة (البطاقات) من الملف المحمل
+
+            // تطبيق فلتر الحروف إذا تم اختياره
+            if (letterFilter && letterFilter !== 'الكل' && letterFilter !== '#') { // '#' للأرقام
+                terms = terms.filter(function() {
+                    const title = $(this).find('.card-title').text().trim();
+                    if (letterFilter === '#') {
+                        return !isNaN(parseInt(title.charAt(0))); 
+                    } else {
+                        return title.startsWith(letterFilter);
+                    }
+                });
+            }
+
+            // تطبيق فلتر البحث إذا تم إدخال مصطلح بحث
+            if (searchTerm) {
+                const lowerCaseSearchTerm = searchTerm.toLowerCase();
+                terms = terms.filter(function() {
+                    const termText = $(this).text().toLowerCase(); 
+                    return termText.includes(lowerCaseSearchTerm);
+                });
+            }
+
+            // إلحاق المصطلحات المفلترة أو رسالة "لا توجد نتائج"
+            if (terms.length > 0) {
+                termsContainer.append(terms);
+            } else {
+                termsContainer.append('<li class="col-md-12"><p class="card-text">لم يتم العثور على مصطلحات مطابقة للمعايير المحددة.</p></li>');
+            }
+
+            // تحديث الترقيم وعرض فلتر الحروف
+            updatePagination(pageNumber); 
+            updateLetterFilterUI(letterFilter); 
+            updatePageTitle(searchTerm, letterFilter, terms.length);
+
+        })
+        .fail(function() {
+            termsContainer.html('<li class="col-md-12"><p class="card-text">حدث خطأ أثناء تحميل المصطلحات. الرجاء المحاولة مرة أخرى لاحقًا.</p></li>');
+            updatePagination(pageNumber); 
+            updatePageTitle(searchTerm, letterFilter, 0);
+        });
+}
+
+// --- وظائف الترقيم (Pagination) ---
+
+function generatePaginationLinks() {
+    const paginationLinksContainer = $('#paginationLinks');
+    paginationLinksContainer.empty(); 
+
+    paginationLinksContainer.append(`
+        <li class="prev-page ${currentPage === 1 ? 'disabled' : ''}">
+            <a href="#" data-page="${currentPage - 1}" ${currentPage === 1 ? 'onclick="return false;"' : ''}>&laquo; السابق</a>
+        </li>
+    `);
+
+    for (let i = 1; i <= totalTermFiles; i++) {
+        paginationLinksContainer.append(`
+            <li class="${i === currentPage ? 'active' : ''}">
+                <a href="#" data-page="${i}">${i}</a>
+            </li>
+        `);
+    }
+
+    paginationLinksContainer.append(`
+        <li class="next-page ${currentPage === totalTermFiles ? 'disabled' : ''}">
+            <a href="#" data-page="${currentPage + 1}" ${currentPage === totalTermFiles ? 'onclick="return false;"' : ''}>التالي &raquo;</a>
+        </li>
+    `);
+}
+
+function updatePagination(activePage) {
+    currentPage = activePage; 
+    generatePaginationLinks(); 
+
+    $('#paginationLinks').off('click', 'a').on('click', 'a', function(e) {
+        e.preventDefault();
+        const newPage = parseInt($(this).data('page'));
+        if (!isNaN(newPage) && newPage >= 1 && newPage <= totalTermFiles) {
+            loadTerms(newPage, $('#searchInput').val(), $('.letters-filter-btn.active').data('letter'));
+        }
+    });
+}
+
+// --- وظائف فلتر الأحرف (قاموس الحروف والأرقام) ---
+
+function generateLetterFilter() {
+    const lettersFilterContainer = $('#lettersFilter');
+    lettersFilterContainer.empty(); 
+
+    const arabicLetters = ['الكل', 'أ', 'ب', 'ت', 'ث', 'ج', 'ح', 'خ', 'د', 'ذ', 'ر', 'ز', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ', 'ع', 'غ', 'ف', 'ق', 'ك', 'ل', 'م', 'ن', 'ه', 'و', 'ي', '#']; 
+
+    arabicLetters.forEach(letter => {
+        lettersFilterContainer.append(`
+            <li><a href="#" class="letters-filter-btn" data-letter="${letter}">${letter}</a></li>
+        `);
+    });
+
+    lettersFilterContainer.off('click', '.letters-filter-btn').on('click', '.letters-filter-btn', function(e) {
+        e.preventDefault();
+        const selectedLetter = $(this).data('letter');
+        $('#searchInput').val(''); 
+        loadTerms(1, '', selectedLetter); 
+    });
+}
+
+function updateLetterFilterUI(activeLetter) {
+    $('.letters-filter-btn').removeClass('active'); 
+    $(`.letters-filter-btn[data-letter="${activeLetter}"]`).addClass('active'); 
+}
+
+// --- وظيفة البحث ---
+
+function setupSearch() {
+    $('#searchBtn').on('click', function() {
+        const searchTerm = $('#searchInput').val().trim();
+        $('.letters-filter-btn').removeClass('active'); 
+        loadTerms(1, searchTerm, ''); 
+    });
+
+    $('#searchInput').on('keypress', function(e) {
+        if (e.which === 13) { 
+            $('#searchBtn').click();
+        }
+    });
+}
+
+// --- وظيفة تحديث عنوان الصفحة ---
+
+function updatePageTitle(searchTerm, letterFilter, termCount) {
+    let title = 'التعريفات الأمنية';
+    if (searchTerm) {
+        title = `نتائج البحث عن: "${searchTerm}" (${termCount} مصطلح)`;
+    } else if (letterFilter && letterFilter !== 'الكل') {
+        title = `مصطلحات تبدأ بحرف: ${letterFilter} (${termCount} مصطلح)`;
+    } else if (letterFilter === 'الكل' || (!searchTerm && !letterFilter)) {
+        title = `قاموس مصطلحات الأمن السيبراني (${termCount} مصطلح)`;
+    }
+    $('.PageTitle').text(title);
+}
+
+// --- التحميل الأولي عند جاهزية المستند ---
+
+$(document).ready(function() {
+    generateLetterFilter(); 
+    loadTerms(currentPage); 
+    setupSearch(); 
 });
 
-/**
- * دالة لإنشاء وعرض بطاقات المصطلحات في الحاوية المخصصة.
- * @param {Array<Object>} termsToRender - مصفوفة المصطلحات التي سيتم عرضها.
- */
-function renderTerms(termsToRender) {
-    const container = document.getElementById('termsContainer');
-    container.innerHTML = ''; // مسح المحتوى الحالي قبل إضافة الجديد
-
-    // إنشاء بطاقة لكل مصطلح وعرضها
-    termsToRender.forEach(term => {
-        const termCard = document.createElement('div');
-        termCard.className = 'term-card';
-        
-        termCard.innerHTML = `
-            <div class="term-header">
-                <h3>${term.term}</h3>
-                <span class="category">${getCategoryName(term.category)}</span>
-            </div>
-            <div class="term-body">
-                <p>${term.definition}</p>
-                <div class="example">
-                    <strong>مثال:</strong> ${term.example}
-                </div>
-            </div>
-        `;
-        
-        container.appendChild(termCard);
-    });
-}
-
-/**
- * دالة مساعدة لتحويل اسم الفئة الإنجليزي إلى الاسم العربي المناسب للعرض.
- * @param {string} category - اسم الفئة باللغة الإنجليزية.
- * @returns {string} - اسم الفئة باللغة العربية.
- */
-function getCategoryName(category) {
-    const categories = {
-        'hacking': 'الاختراق',
-        'malware': 'البرمجيات الخبيثة',
-        'network': 'أمن الشبكات',
-        'encryption': 'التشفير'
-    };
-    return categories[category] || 'عام'; // إرجاع "عام" إذا لم تكن الفئة معرفة
-}
-
-/**
- * إعداد وظائف الفلترة حسب الفئات عند النقر على الأزرار.
- */
-function setupCategoryFilters() {
-    const filterButtons = document.querySelectorAll('.filter-btn');
-    
-    filterButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            // إزالة فئة 'active' من جميع الأزرار ثم إضافتها للزر الحالي
-            filterButtons.forEach(btn => btn.classList.remove('active'));
-            this.classList.add('active');
-            
-            const category = this.dataset.category; // الحصول على الفئة من سمة data-category
-            
-            if (category === 'all') {
-                renderTerms(terms); // عرض جميع المصطلحات
-                return;
-            } else {
-                // تصفية المصطلحات بناءً على الفئة المختارة
-                const filteredTerms = terms.filter(term => term.category === category);
-                renderTerms(filteredTerms);
-            }
-        });
-    });
-}
-
-/**
- * إعداد وظائف البحث عن المصطلحات عند إدخال النص.
- */
-function setupSearch() {
-    const searchInput = document.getElementById('searchInput');
-    
-    searchInput.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase(); // تحويل مدخل البحث إلى حروف صغيرة للمقارنة
-        
-        if (searchTerm.trim() === '') {
-            renderTerms(terms); // عرض جميع المصطلحات إذا كان حقل البحث فارغًا
-            return;
-        }
-        
-        // تصفية المصطلحات بناءً على وجود مصطلح البحث في اسم المصطلح أو تعريفه
-        const filteredTerms = terms.filter(term => {
-            return term.term.toLowerCase().includes(searchTerm) || 
-                   term.definition.toLowerCase().includes(searchTerm);
-        });
-        
-        renderTerms(filteredTerms);
-    });
-}
-
-/**
- * إعداد منطق قسم الاختبار التفاعلي.
- */
-function setupQuiz() {
-    let currentQuestionIndex = 0; // مؤشر لتتبع السؤال الحالي
-    let score = 0; // لتتبع نتيجة المستخدم
-
-    const quizQuestionEl = document.getElementById('quizQuestion');
-    const quizOptionsEl = document.getElementById('quizOptions');
-    const quizResultEl = document.getElementById('quizResult');
-    const nextQuestionBtn = document.getElementById('nextQuestionBtn');
-
-    // عرض السؤال الأول عند تهيئة الاختبار
-    showQuestion(currentQuestionIndex);
-    
-    /**
-     * دالة لعرض سؤال معين في الاختبار.
-     * @param {number} index - فهرس السؤال لعرضه.
-     */
-    function showQuestion(index) {
-        if (index >= quizQuestions.length) {
-            // إذا انتهت جميع الأسئلة، عرض رسالة انتهاء الاختبار والنتيجة النهائية
-            quizQuestionEl.textContent = "انتهى الاختبار!";
-            quizOptionsEl.innerHTML = ""; // مسح خيارات الإجابة
-            quizResultEl.textContent = `النتيجة النهائية: ${score} من ${quizQuestions.length}`;
-            quizResultEl.className = 'quiz-result result-correct'; // إعادة ضبط الفئة للعرض الصحيح للنتيجة النهائية
-            nextQuestionBtn.style.display = 'none'; // إخفاء زر السؤال التالي
-            return;
-        }
-        
-        const question = quizQuestions[index];
-        quizQuestionEl.textContent = question.question;
-        quizOptionsEl.innerHTML = ''; // مسح الخيارات من السؤال السابق
-        quizResultEl.textContent = ''; // مسح نتيجة السؤال السابق
-        quizResultEl.className = 'quiz-result'; // إعادة ضبط الفئة للتحقق الجديد
-
-        // إنشاء خيارات الإجابة لكل سؤال
-        question.options.forEach((option, i) => {
-            const optionEl = document.createElement('div');
-            optionEl.className = 'quiz-option';
-            optionEl.textContent = option;
-            
-            // إضافة مستمع حدث للنقر على الخيار
-            optionEl.addEventListener('click', function() {
-                checkAnswer(i); // التحقق من الإجابة عند النقر
-            });
-            
-            quizOptionsEl.appendChild(optionEl);
-        });
-        nextQuestionBtn.textContent = 'السؤال التالي'; // التأكد من نص الزر
-        nextQuestionBtn.style.display = 'block'; // التأكد من أن الزر مرئي
-    }
-    
-    /**
-     * دالة للتحقق من إجابة المستخدم.
-     * @param {number} selectedIndex - فهرس الخيار الذي اختاره المستخدم.
-     */
-    function checkAnswer(selectedIndex) {
-        const question = quizQuestions[currentQuestionIndex];
-        const options = document.querySelectorAll('.quiz-option');
-        
-        // تعطيل جميع الخيارات بعد الإجابة لمنع التغيير
-        options.forEach(option => {
-            option.style.pointerEvents = 'none';
-        });
-        
-        if (selectedIndex === question.correctAnswer) {
-            options[selectedIndex].style.backgroundColor = '#2ecc71'; // لون أخضر للإجابة الصحيحة
-            quizResultEl.textContent = 'إجابة صحيحة!';
-            quizResultEl.classList.add('result-correct');
-            score++; // زيادة النتيجة
-        } else {
-            options[selectedIndex].style.backgroundColor = '#e74c3c'; // لون أحمر للإجابة الخاطئة
-            options[question.correctAnswer].style.backgroundColor = '#2ecc71'; // إظهار الإجابة الصحيحة باللون الأخضر
-            quizResultEl.textContent = 'إجابة خاطئة!';
-            quizResultEl.classList.add('result-incorrect');
+// وظائف تغيير حجم الخط (يمكن نقلها إلى main.js إذا كانت عامة للموقع)
+function increaseFontSize(event) {
+    event.preventDefault();
+    var elements = document.querySelectorAll("*");
+    var fontSize;
+    for (var i = 0; i < elements.length; i++) {
+        fontSize = parseInt(window.getComputedStyle(elements[i]).fontSize);
+        if (fontSize < 24) {
+            fontSize += 2;
+            elements[i].style.fontSize = fontSize + "px";
         }
     }
-    
-    // معالج حدث لزر "السؤال التالي"
-    nextQuestionBtn.addEventListener('click', function() {
-        currentQuestionIndex++;
-        showQuestion(currentQuestionIndex); // عرض السؤال التالي
-    });
 }
 
-/**
- * إعداد وظائف أزرار المشاركة الاجتماعية.
- */
-function setupShareButtons() {
-    const shareUrl = window.location.href; // الحصول على عنوان URL الحالي للصفحة
-    const title = 'قاموس مصطلحات الأمن السيبراني';
-    
-    document.getElementById('shareWhatsapp').addEventListener('click', function(e) {
-        e.preventDefault();
-        window.open(`https://wa.me/?text=${encodeURIComponent(title + ': ' + shareUrl)}`, '_blank');
-    });
-    
-    document.getElementById('shareTwitter').addEventListener('click', function(e) {
-        e.preventDefault();
-        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
-    });
-    
-    document.getElementById('shareFacebook').addEventListener('click', function(e) {
-        e.preventDefault();
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
-    });
-    
-    document.getElementById('shareLink').addEventListener('click', function(e) {
-        e.preventDefault();
-        navigator.clipboard.writeText(shareUrl).then(() => {
-            alert('تم نسخ الرابط إلى الحافظة!');
-        }).catch(err => {
-            console.error('فشل في نسخ الرابط: ', err);
-        });
-    });
+function decreaseFontSize(event) {
+    event.preventDefault();
+    var elements = document.querySelectorAll("*");
+    var fontSize;
+    for (var i = 0; i < elements.length; i++) {
+        fontSize = parseInt(window.getComputedStyle(elements[i]).fontSize);
+        if (fontSize > 8) {
+            fontSize -= 2;
+            elements[i].style.fontSize = fontSize + "px";
+        }
+    }
 }
+
+// سكريبت الاشتراك في النشرة الإخبارية (يمكن نقله إلى contact.js أو main.js إذا كان عامًا)
+// تأكد من أن SubscribeMailAction.php في المسار الصحيح بالنسبة لملف index.html الذي يستدعي هذا الفورم
+// إذا كان هذا الفورم في glossary/index.html، فقد تحتاج لتعديل url إلى '../blocks/SubscribeMailAction.php'
+$('form.SubScribe').on('submit', function(e) {
+    e.preventDefault();
+    $.ajax({
+        url: 'blocks/SubscribeMailAction.php', // ✅ راجع هذا المسار حسب مكان blocks/SubscribeMailAction.php
+        method: 'POST',
+        data: $(this).serialize(),
+        beforeSend: function() {
+            // ...
+        },
+        success: function(response) {
+            // ...
+        },
+        error: function(xhr, textStatus, error) {
+            // ...
+        },
+    });
+});
