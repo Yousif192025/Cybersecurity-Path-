@@ -212,3 +212,78 @@ $('form.SubScribe').on('submit', function(e) {
         },
     });
 });
+// أضف هذا الكود في ملف glossary.js أو في الجزء الخاص بالسكريبت في صفحة القاموس
+// تأكد من تشغيل هذا الكود بعد تحميل DOM بالكامل
+
+$(document).ready(function() {
+    const scrollMenu = $('#mainNavLinks');
+    const scrollLeftBtn = $('.scroll-btn-left');
+    const scrollRightBtn = $('.scroll-btn-right');
+    const navigationWrapper = $('.navigation-wrapper');
+
+    // وظيفة للتحقق مما إذا كانت هناك حاجة لأزرار التمرير
+    function checkScrollButtons() {
+        if (scrollMenu[0].scrollWidth > scrollMenu[0].clientWidth) {
+            navigationWrapper.find('.scroll-btn').addClass('active');
+        } else {
+            navigationWrapper.find('.scroll-btn').removeClass('active');
+        }
+
+        // إخفاء/إظهار زر التمرير لليسار
+        if (scrollMenu[0].scrollLeft === 0) {
+            scrollLeftBtn.removeClass('active');
+        } else {
+            scrollLeftBtn.addClass('active');
+        }
+
+        // إخفاء/إظهار زر التمرير لليمين
+        if (scrollMenu[0].scrollLeft + scrollMenu[0].clientWidth >= scrollMenu[0].scrollWidth - 5) { // -5 بكسل للتسامح
+            scrollRightBtn.removeClass('active');
+        } else {
+            scrollRightBtn.addClass('active');
+        }
+    }
+
+    // وظيفة التمرير
+    function scrollHorizontally(direction) {
+        const scrollAmount = 200; // مقدار التمرير بالبكسل
+        if (direction === 'left') {
+            scrollMenu.animate({ scrollLeft: scrollMenu.scrollLeft() - scrollAmount }, 300);
+        } else {
+            scrollMenu.animate({ scrollLeft: scrollMenu.scrollLeft() + scrollAmount }, 300);
+        }
+    }
+
+    // إضافة مستمعي الأحداث لأزرار التمرير
+    scrollLeftBtn.on('click', function() {
+        scrollHorizontally('left');
+    });
+
+    scrollRightBtn.on('click', function() {
+        scrollHorizontally('right');
+    });
+
+    // إضافة مستمع حدث للتمرير اليدوي (بواسطة المستخدم)
+    scrollMenu.on('scroll', checkScrollButtons);
+
+    // إضافة مستمع حدث لتغيير حجم النافذة (مهم للاستجابة)
+    $(window).on('resize', function() {
+        checkScrollButtons();
+    });
+
+    // تحقق عند التحميل الأولي وبعد أي تحديثات على DOM
+    checkScrollButtons();
+
+    // 🚨 ملاحظة مهمة: إذا كنت تستخدم Bootstrap's Navbar Toggler،
+    // فإن القائمة قد تكون مخفية في البداية. يجب إعادة فحص الأزرار
+    // بمجرد أن تصبح القائمة مرئية أو بعد انتهاء تأثير الانهيار.
+    // يمكن تحقيق ذلك باستخدام أحداث Bootstrap 'shown.bs.collapse'
+    $('#navbarNav').on('shown.bs.collapse', function () {
+        // عند فتح قائمة النافبار المنهارة، لا نحتاج لأزرار التمرير
+        navigationWrapper.find('.scroll-btn').removeClass('active');
+    }).on('hidden.bs.collapse', function () {
+        // عند إغلاقها، أعد فحص الحاجة لأزرار التمرير
+        checkScrollButtons();
+    });
+
+});
