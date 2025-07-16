@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>قاموس مصطلحات الأمن السيبراني | منصة الامن السيبراني</title>
+    <title>قاموس مصطلحات الأمن السيبراني | منصة الامن السيبراني   </title>
+    <title>Cybersecurity Terms Dictionary | Cybersecurity Platform</title>
     <meta name="description" content="قاموس متكامل لمصطلحات الأمن السيبراني يحتوي على تعريفات واضحة ودقيقة للمصطلحات التقنية">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -315,6 +316,7 @@
             <div class="row align-items-center">
                 <div class="col-md-8">
                     <h1><i class="fas fa-book-open"></i> قاموس مصطلحات الأمن السيبراني</h1>
+                     <h1><i class="fas fa-book-open"></i>Cybersecurity Terms Dictionary</h1>
                     <p class="lead">مرجع شامل لأبرز المصطلحات التقنية في عالم الأمن السيبراني</p>
                 </div>
                 <div class="col-md-4">
@@ -364,7 +366,7 @@
                     <div class="letters-filter">
                         <h4><i class="fas fa-filter"></i> تصفح حسب الحرف الأبجدي:</h4>
                         <div class="text-center" id="lettersFilterButtons">
-                        </div>
+                            </div>
                     </div>
 
                     <div class="search-box">
@@ -380,13 +382,13 @@
                             <span class="badge bg-primary" id="pageInfoBadge">الصفحة 1 من 37</span>
                         </div>
                         
-                        <div id="glossaryTermsContainer" class="row"> 
+                        <div id="glossaryTermsContainer">
                             </div>
                     </div>
 
                     <nav aria-label="Page navigation" class="pagination-container">
                         <ul class="pagination justify-content-center" id="paginationLinks">
-                        </ul>
+                            </ul>
                     </nav>
                 </div>
                 
@@ -474,18 +476,15 @@
         </div>
     </footer>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script> 
-    <script src="../assets/js/bootstrap.bundle.min.js"></script>
-    <script src="../assets/js/main.js"></script> 
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script> <script src="../assets/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/js/main.js"></script>
     
     <script>
-        let allTerms = []; // لـ تخزين جميع المصطلحات بعد تحميلها
         let currentPage = 1;
-        // 🚨 ملاحظة: هذا الرقم سيمثل عدد الملفات الأصلية التي ستقوم بتحميلها في البداية.
-        const totalSourceTermFiles = 37; 
+        // 🚨 هام: قم بتحديث هذا المتغير ليعكس العدد الفعلي لملفات term-X.html لديك.
+        const totalTermFiles = 37; 
         let currentSearchTerm = '';
         let currentLetterFilter = 'الكل';
-        const termsPerPage = 9; // عدد المصطلحات المعروضة في كل صفحة
 
         // --- Intersection Observer لتأثيرات البطاقات ---
         const observerOptions = {
@@ -496,36 +495,13 @@
                 if (entry.isIntersecting) {
                     entry.target.style.opacity = 1;
                     entry.target.style.transform = 'translateY(0)';
-                    observer.unobserve(entry.target); // توقف عن المراقبة بمجرد ظهور العنصر
+                } else {
+                    // عندما تخرج البطاقة من مجال الرؤية، يمكن إعادتها لحالتها الأولية لإعادة تشغيل التأثير عند العودة
+                    entry.target.style.opacity = 0;
+                    entry.target.style.transform = 'translateY(20px)';
                 }
             });
         }, observerOptions);
-
-        // --- وظيفة تحميل جميع المصطلحات من جميع الملفات ---
-        async function loadAllTerms() {
-            const fetchPromises = [];
-            for (let i = 1; i <= totalSourceTermFiles; i++) {
-                const fileUrl = `term-${i}.html`;
-                fetchPromises.push(
-                    $.get(fileUrl)
-                        .done(function(data) {
-                            const tempDiv = $('<div>').html(data);
-                            return tempDiv.find('.term-card').get(); // احصل على عناصر DOM مباشرة
-                        })
-                        .fail(function() {
-                            console.error(`فشل تحميل الملف: ${fileUrl}`);
-                            return [];
-                        })
-                );
-            }
-
-            const results = await Promise.all(fetchPromises);
-            // تجميع جميع المصطلحات من جميع النتائج
-            allTerms = [].concat(...results); 
-            console.log(`تم تحميل ${allTerms.length} مصطلحًا إجماليًا.`);
-            // بعد تحميل جميع المصطلحات، قم بتحميل الصفحة الأولى
-            loadTerms(1, '', 'الكل'); 
-        }
 
         // --- الوظيفة الأساسية: loadTerms (تحميل المصطلحات) ---
         function loadTerms(pageNumber, searchTerm = '', letterFilter = '') {
@@ -536,61 +512,69 @@
             currentLetterFilter = letterFilter;
             currentPage = pageNumber;
 
-            let filteredTerms = allTerms;
+            // بناء عنوان URL لملف المصطلحات
+            // المسار هنا نسبي لملف index.html داخل مجلد glossary
+            const fileUrl = `term-${pageNumber}.html`; 
 
-            // تطبيق فلتر الحروف الأبجدية
-            if (letterFilter && letterFilter !== 'الكل') {
-                filteredTerms = filteredTerms.filter(function(term) {
-                    const title = $(term).find('h3').text().trim();
-                    if (letterFilter === '#') {
-                        return !isNaN(parseInt(title.charAt(0)));
-                    } else {
-                        return title.startsWith(letterFilter);
+            $.get(fileUrl)
+                .done(function(data) {
+                    // نحتاج فقط لبطاقات المصطلحات من الملف المحمل
+                    const tempDiv = $('<div>').html(data); 
+                    let terms = tempDiv.find('.term-card'); 
+
+                    // تطبيق فلتر الحروف الأبجدية
+                    if (letterFilter && letterFilter !== 'الكل') {
+                        terms = terms.filter(function() {
+                            const title = $(this).find('h3').text().trim();
+                            if (letterFilter === '#') {
+                                return !isNaN(parseInt(title.charAt(0))); 
+                            } else {
+                                return title.startsWith(letterFilter);
+                            }
+                        });
                     }
+
+                    // تطبيق فلتر البحث
+                    if (searchTerm) {
+                        const lowerCaseSearchTerm = searchTerm.toLowerCase();
+                        terms = terms.filter(function() {
+                            const termText = $(this).text().toLowerCase(); 
+                            return termText.includes(lowerCaseSearchTerm);
+                        });
+                    }
+
+                    if (terms.length > 0) {
+                        termsContainer.append(terms);
+                        // إعادة تطبيق Intersection Observer على البطاقات الجديدة
+                        terms.each(function() {
+                            // إعادة تهيئة الأنماط لجعل التأثير يظهر مرة أخرى عند التحميل
+                            $(this).css({ opacity: 0, transform: 'translateY(20px)', transition: 'opacity 0.5s ease, transform 0.5s ease' });
+                            observer.observe(this);
+                        });
+                    } else {
+                        termsContainer.append('<div class="col-12"><p class="alert alert-warning text-center">لم يتم العثور على مصطلحات مطابقة للمعايير المحددة في هذه الصفحة.</p></div>');
+                    }
+
+                    updatePagination(pageNumber); 
+                    updateLetterFilterUI(letterFilter); 
+                    updatePageInfoBadge(searchTerm, letterFilter, terms.length, pageNumber);
+
+                    // التمرير لأعلى الصفحة بعد تحميل المصطلحات الجديدة
+                    $('html, body').animate({
+                        scrollTop: $('#termsDisplayArea').offset().top - 100 
+                    }, 500);
+
+                })
+                .fail(function() {
+                    termsContainer.html('<div class="col-12"><p class="alert alert-danger text-center">حدث خطأ أثناء تحميل المصطلحات. الرجاء المحاولة مرة أخرى لاحقًا.</p></div>');
+                    updatePagination(pageNumber); 
+                    updatePageInfoBadge(searchTerm, letterFilter, 0, pageNumber);
                 });
-            }
-
-            // تطبيق فلتر البحث
-            if (searchTerm) {
-                const lowerCaseSearchTerm = searchTerm.toLowerCase();
-                filteredTerms = filteredTerms.filter(function(term) {
-                    const termText = $(term).text().toLowerCase();
-                    return termText.includes(lowerCaseSearchTerm);
-                });
-            }
-
-            // حساب عدد الصفحات بناءً على المصطلحات المفلترة
-            const totalPages = Math.ceil(filteredTerms.length / termsPerPage);
-            
-            // تحديد المصطلحات للصفحة الحالية
-            const startIndex = (pageNumber - 1) * termsPerPage;
-            const endIndex = startIndex + termsPerPage;
-            const termsToDisplay = filteredTerms.slice(startIndex, endIndex);
-
-            if (termsToDisplay.length > 0) {
-                // إضافة المصطلحات إلى الحاوية
-                termsToDisplay.forEach(function(term) {
-                    const termElement = $(term).clone(); // استنساخ العنصر لتجنب تحريكه من allTerms
-                    termElement.css({ opacity: 0, transform: 'translateY(20px)', transition: 'opacity 0.5s ease, transform 0.5s ease' });
-                    termsContainer.append(termElement);
-                    observer.observe(termElement[0]); // تمرير عنصر DOM الأصلي لـ observer
-                });
-            } else {
-                termsContainer.append('<div class="col-12"><p class="alert alert-warning text-center">لم يتم العثور على مصطلحات مطابقة للمعايير المحددة.</p></div>');
-            }
-
-            updatePagination(pageNumber, totalPages); 
-            updateLetterFilterUI(letterFilter); 
-            updatePageInfoBadge(searchTerm, letterFilter, filteredTerms.length, pageNumber, totalPages);
-
-            // التمرير لأعلى الصفحة بعد تحميل المصطلحات الجديدة
-            $('html, body').animate({
-                scrollTop: $('#termsDisplayArea').offset().top - 100 
-            }, 500);
         }
 
         // --- وظائف الترقيم (Pagination) ---
-        function generatePaginationLinks(totalPages) {
+
+        function generatePaginationLinks() {
             const paginationLinksContainer = $('#paginationLinks');
             paginationLinksContainer.empty(); 
 
@@ -610,7 +594,7 @@
 
             const numLinksToShow = 5; 
             let startPage = Math.max(1, currentPage - Math.floor(numLinksToShow / 2));
-            let endPage = Math.min(totalPages, startPage + numLinksToShow - 1);
+            let endPage = Math.min(totalTermFiles, startPage + numLinksToShow - 1);
 
             if (endPage - startPage + 1 < numLinksToShow) {
                 startPage = Math.max(1, endPage - numLinksToShow + 1);
@@ -631,24 +615,24 @@
                 `);
             }
 
-            if (endPage < totalPages) {
-                if (endPage < totalPages - 1) {
+            if (endPage < totalTermFiles) {
+                if (endPage < totalTermFiles - 1) {
                     paginationLinksContainer.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
                 }
-                paginationLinksContainer.append(`<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`);
+                paginationLinksContainer.append(`<li class="page-item"><a class="page-link" href="#" data-page="${totalTermFiles}">${totalTermFiles}</a></li>`);
             }
 
             // زر "التالي" (>)
             paginationLinksContainer.append(`
-                <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-                    <a class="page-link" href="#" data-page="${currentPage + 1}" ${currentPage === totalPages ? 'tabindex="-1" aria-disabled="true"' : ''}>&rsaquo;</a>
+                <li class="page-item ${currentPage === totalTermFiles ? 'disabled' : ''}">
+                    <a class="page-link" href="#" data-page="${currentPage + 1}" ${currentPage === totalTermFiles ? 'tabindex="-1" aria-disabled="true"' : ''}>&rsaquo;</a>
                 </li>
             `);
 
             // زر "النهاية" (>>)
             paginationLinksContainer.append(`
-                <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-                    <a class="page-link" href="#" data-page="${totalPages}" ${currentPage === totalPages ? 'tabindex="-1" aria-disabled="true"' : ''}>&raquo;</a>
+                <li class="page-item ${currentPage === totalTermFiles ? 'disabled' : ''}">
+                    <a class="page-link" href="#" data-page="${totalTermFiles}" ${currentPage === totalTermFiles ? 'tabindex="-1" aria-disabled="true"' : ''}>&raquo;</a>
                 </li>
             `);
 
@@ -656,18 +640,19 @@
             paginationLinksContainer.off('click', 'a').on('click', 'a', function(e) {
                 e.preventDefault();
                 const newPage = parseInt($(this).data('page'));
-                if (!isNaN(newPage) && newPage >= 1 && newPage <= totalPages) {
+                if (!isNaN(newPage) && newPage >= 1 && newPage <= totalTermFiles) {
                     loadTerms(newPage, currentSearchTerm, currentLetterFilter);
                 }
             });
         }
 
-        function updatePagination(activePage, totalPages) {
+        function updatePagination(activePage) {
             currentPage = activePage; 
-            generatePaginationLinks(totalPages); 
+            generatePaginationLinks(); 
         }
 
         // --- وظائف فلتر الأحرف ---
+
         function generateLetterFilter() {
             const lettersFilterButtonsContainer = $('#lettersFilterButtons');
             lettersFilterButtonsContainer.empty(); 
@@ -696,6 +681,7 @@
         }
 
         // --- وظيفة البحث ---
+
         function setupSearch() {
             $('#searchBtn').on('click', function() {
                 const searchTerm = $('#searchInput').val().trim();
@@ -710,22 +696,22 @@
             });
 
             $('#searchInput').on('input', function() {
-                // إذا أصبح حقل البحث فارغاً، أعد تحميل المصطلحات بدون بحث مع الفلتر النشط حالياً
                 if ($(this).val().trim() === '') {
-                    loadTerms(1, '', currentLetterFilter); 
+                    // إذا أصبح حقل البحث فارغاً، أعد تحميل المصطلحات بدون بحث وفلتر
+                    loadTerms(1, '', 'الكل');
                 }
             });
         }
 
         // --- وظيفة تحديث معلومات الصفحة (الشارة) ---
-        function updatePageInfoBadge(searchTerm, letterFilter, totalTermsCount, currentPageNum, totalPages) {
+        function updatePageInfoBadge(searchTerm, letterFilter, termCount, currentPageNum) {
             const pageInfoBadge = $('#pageInfoBadge');
             if (searchTerm) {
-                pageInfoBadge.text(`عرض ${totalTermsCount} مصطلح (نتائج البحث عن "${searchTerm}")`);
+                pageInfoBadge.text(`عرض ${termCount} مصطلح (نتائج البحث عن "${searchTerm}")`);
             } else if (letterFilter && letterFilter !== 'الكل') {
-                pageInfoBadge.text(`عرض ${totalTermsCount} مصطلح (للحرف ${letterFilter}) - الصفحة ${currentPageNum} من ${totalPages}`);
+                pageInfoBadge.text(`عرض ${termCount} مصطلح (للحرف ${letterFilter}) - الصفحة ${currentPageNum} من ${totalTermFiles}`);
             } else {
-                pageInfoBadge.text(`الصفحة ${currentPageNum} من ${totalPages}`);
+                pageInfoBadge.text(`الصفحة ${currentPageNum} من ${totalTermFiles}`);
             }
         }
 
@@ -733,8 +719,16 @@
         $(document).ready(function() {
             generateLetterFilter(); 
             setupSearch(); 
-            loadAllTerms(); // 👈🏽 ابدأ بتحميل جميع المصطلحات أولاً
+
+            // التحقق من معلمات URL للتحميل الأولي (مثل عند المشاركة برابط لحرف معين)
+            const urlParams = new URLSearchParams(window.location.search);
+            const initialLetter = urlParams.get('letter');
+            const initialPage = parseInt(urlParams.get('page')) || 1;
+            const initialSearch = urlParams.get('search') || '';
+
+            loadTerms(initialPage, initialSearch, initialLetter || 'الكل');
         });
+
     </script>
 </body>
 </html>
