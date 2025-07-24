@@ -61,15 +61,14 @@
             border: none;
             right: 0; /* Align to the right for RTL */
             left: auto;
-            /* Ensure it floats correctly on desktop */
             position: absolute; 
-            box-shadow: var(--shadow); /* Keep shadow for desktop */
-            min-width: 10rem; /* Bootstrap default */
+            box-shadow: var(--shadow);
+            min-width: 10rem;
         }
         .dropdown-menu .dropdown-item {
             color: var(--white);
             text-align: right;
-            padding: 0.5rem 1rem; /* Bootstrap default padding */
+            padding: 0.5rem 1rem;
         }
         .dropdown-menu .dropdown-item:hover {
             background-color: #444;
@@ -321,8 +320,8 @@
             .navbar-collapse {
                 background-color: var(--dark-gray);
                 padding: 10px 0;
-                /* Allow content to expand vertically */
-                overflow: hidden; /* This should be the default for collapsing nav */
+                overflow-y: auto; /* Allow scrolling if content is too long */
+                max-height: calc(100vh - 56px); /* Adjust based on navbar height, ensures it doesn't go off-screen */
             }
             .navbar-nav {
                 padding: 0 15px;
@@ -337,30 +336,30 @@
             .navbar-nav .nav-link {
                 padding: 10px 0 !important;
             }
-            /* Reset dropdown menu for mobile to Bootstrap's default collapsing behavior */
+            
+            /* Specific adjustments for dropdown when navbar is collapsed */
             .navbar-collapse .dropdown-menu {
-                /* Remove previous overrides that forced it open */
-                position: static !important; /* Keep static so it flows within the nav-item */
-                float: none !important;      /* Keep float none */
-                width: 100%;                 /* Keep 100% width */
+                position: static !important; /* Flows within the nav-item */
+                float: none !important;
+                width: 100%;
                 margin-top: 0;
                 border-radius: 0;
                 box-shadow: none;
                 background-color: #3a3a3a; /* Slightly lighter than navbar for distinction */
-                padding-left: 20px;         /* Indent dropdown items */
+                padding-left: 20px; /* Indent dropdown items */
                 padding-right: 0;
                 border-top: 1px solid #555; /* Separator for clarity */
-                display: none; /* Crucial: ensure it's hidden by default on mobile */
-                max-height: 0; /* Ensures it collapses smoothly */
-                overflow: hidden; /* Hides content when collapsed */
-                transition: max-height 0.3s ease-out; /* Smooth transition */
+                /* Control visibility and animation via max-height */
+                display: block; /* Important for animation to work with max-height */
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.3s ease-out; /* Smooth collapse transition */
             }
 
-            /* When dropdown is open on mobile */
+            /* When the dropdown is open (Bootstrap adds 'show' to .nav-item.dropdown) */
             .navbar-collapse .nav-item.dropdown.show .dropdown-menu {
-                display: block; /* Show when 'show' class is applied by Bootstrap JS */
-                max-height: 500px; /* A large enough value to show all items. Adjust if needed. */
-                transition: max-height 0.3s ease-in; /* Smooth transition */
+                max-height: 500px; /* A value larger than the max possible height of your dropdown items */
+                transition: max-height 0.3s ease-in; /* Smooth expand transition */
             }
             
             .navbar-collapse .dropdown-menu .dropdown-item {
@@ -1043,23 +1042,19 @@
                 }
             },
             setupEventListeners() {
-                // If you have a language toggle button, attach an event listener here.
-                // const toggle = document.getElementById('langToggle');
-                // if (toggle) {
-                //     toggle.addEventListener('click', () => {
-                //         const newLang = this.currentLang === 'ar' ? 'en' : 'ar';
-                //         this.switchLanguage(newLang);
-                //     });
-                // }
                 // Close navbar on internal link click for better mobile UX
                 document.querySelectorAll('.navbar-nav a[href^="#"]').forEach(anchor => {
                     anchor.addEventListener('click', function (e) {
-                        const navbarCollapse = document.getElementById('navbarNav');
-                        if (navbarCollapse && navbarCollapse.classList.contains('show')) {
-                            const bsCollapse = new bootstrap.Collapse(navbarCollapse, {
-                                toggle: false
-                            });
-                            bsCollapse.hide();
+                        // Check if the clicked anchor is NOT a dropdown toggle
+                        // and if it's NOT inside an already open dropdown menu.
+                        if (!this.classList.contains('dropdown-toggle') && !this.closest('.dropdown-menu.show')) {
+                            const navbarCollapse = document.getElementById('navbarNav');
+                            if (navbarCollapse && navbarCollapse.classList.contains('show')) {
+                                const bsCollapse = new bootstrap.Collapse(navbarCollapse, {
+                                    toggle: false
+                                });
+                                bsCollapse.hide();
+                            }
                         }
                     });
                 });
