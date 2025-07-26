@@ -1,297 +1,85 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const quizContent = document.getElementById('quiz-content');
-    const quizHeader = document.querySelector('.quiz-header'); // تم تعديله، لا يوجد له ID
-    const quizTitleEl = document.getElementById('quiz-main-title'); // تم تعديله
-    const questionCounter = document.getElementById('question-counter');
-    const questionTextEl = document.getElementById('question-text');
-    const optionsContainer = document.getElementById('options-container');
-    const feedbackMessageEl = document.getElementById('feedback-area'); // تم تعديله
-    const nextBtn = document.getElementById('next-question-btn'); // تم تعديله
-    const finishBtn = document.getElementById('submit-quiz-btn'); // تم تعديله
-    const quizResultsContainer = document.getElementById('quiz-results'); // تم تعديله
-    const scoreDisplay = document.getElementById('score-display');
-    const totalQuestionsDisplay = document.getElementById('total-questions-display');
-    const percentageDisplay = document.getElementById('percentage-display');
-    const retakeQuizBtn = document.getElementById('retake-quiz-btn'); // تم تعديله
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="quiz-page-title">اختبار المهارات</title>
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/css/quiz.css">
+    <link rel="icon" type="image/x-icon" href="../assets/images/favicon.png">
+</head>
+<body>
+    <header class="main-header">
+        <div class="container">
+            <a href="../../index.html" class="logo">
+                <img src="../assets/images/logo.png" alt="شعار الأكاديمية">
+            </a>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="../../index.html">الرئيسية</a></li>
+                    <li><a href="../pathways/index.html">المسارات التعليمية</a></li>
+                    <li><a href="../self-tests/quiz-bank.html" class="active">اختبارات المهارات</a></li>
+                    <li><a href="../community.html">المجتمع</a></li>
+                    <li><a href="../about.html">عن الأكاديمية</a></li>
+                    <li><a href="../contact.html">اتصل بنا</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
 
-    // عناصر العداد الزمني
-    const quizTimer = document.getElementById('quiz-timer');
-    const timeLeftSpan = document.getElementById('time-left');
-    const quizLoadingMessage = document.getElementById('quiz-loading-message');
+    <main>
+        <section class="hero-section quiz-hero">
+            <div class="container">
+                <h1 id="quiz-main-title">تحميل الاختبار...</h1> 
+                <p id="quiz-description"></p>
+            </div>
+        </section>
 
-    let quizQuestions = [];
-    let currentQuestionIndex = 0;
-    let score = 0;
-    let timerInterval;
+        <section id="quiz-container" class="pathways-container quiz-section">
+            <div id="quiz-loading-message" class="loading-message">جاري تحميل الاختبار...</div>
 
-    const QUIZZES_DATA_URL = '../assets/data/digital_skills.json';
+            <div id="quiz-content" style="display: none;">
+                <div id="quiz-header" class="quiz-header">
+                    <span id="question-counter">السؤال 1 من X</span>
+                    <div id="quiz-timer">الزمن المتبقي: <span id="time-left">--:--</span></div>
+                    <h2 id="question-text">نص السؤال سيظهر هنا.</h2>
+                </div>
 
-    // قراءة متغيرات URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const quizId = urlParams.get('quizId');
-    const difficulty = urlParams.get('difficulty');
-    const qCount = parseInt(urlParams.get('qCount')) || 5; // عدد الأسئلة الافتراضي 5
-    
-    // إخفاء المحتوى الرئيسي والنتائج في البداية
-    if (quizContent) {
-        quizContent.style.display = 'none';
-    }
-    if (quizResultsContainer) {
-        quizResultsContainer.style.display = 'none';
-    }
-    
-    // تحميل بيانات الاختبارات بناءً على ID والمستوى
-    async function loadQuiz() {
-        if (quizLoadingMessage) {
-            quizLoadingMessage.style.display = 'block';
-        }
+                <div id="options-container" class="options-grid">
+                    </div>
 
-        if (!quizId || !difficulty) {
-            if (quizLoadingMessage) {
-                quizLoadingMessage.innerHTML = `<p style="color: red;">خطأ: لم يتم تحديد الاختبار أو مستوى الصعوبة.</p>`;
-            }
-            return;
-        }
+                <div id="feedback-message" class="feedback-message" style="display: none;">
+                    </div>
 
-        try {
-            const response = await fetch(QUIZZES_DATA_URL);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            const currentQuiz = data.quizzes.find(q => q.id === quizId);
+                <div class="quiz-navigation">
+                    <button id="next-btn" class="btn primary-btn">السؤال التالي</button>
+                    <button id="finish-btn" class="btn primary-btn" style="display: none;">إنهاء الاختبار</button>
+                </div>
+            </div>
 
-            if (!currentQuiz) {
-                if (quizLoadingMessage) {
-                    quizLoadingMessage.innerHTML = `<p style="color: red;">خطأ: الاختبار "${quizId}" غير موجود.</p>`;
-                }
-                return;
-            }
+            <div id="quiz-results-container" class="quiz-results" style="display: none;">
+                <h2>نتائج الاختبار</h2>
+                <p>لقد أكملت الاختبار!</p>
+                <p>درجتك: <span id="score-display">0</span> من <span id="total-questions-display">0</span></p>
+                <p id="percentage-display">نسبة النجاح: 0%</p>
+                <div id="result-message"></div>
+                <button id="retake-quiz-btn" class="btn secondary-btn">إعادة الاختبار</button>
+                <a href="quiz-bank.html" id="return-to-bank-btn" class="btn primary-btn">العودة لقائمة الاختبارات</a>
+            </div>
+        </section>
+    </main>
 
-            // التحقق من وجود أسئلة للمستوى المحدد
-            const questionsByDifficulty = currentQuiz.questions[difficulty];
-            if (!questionsByDifficulty || questionsByDifficulty.length === 0) {
-                if (quizLoadingMessage) {
-                    quizLoadingMessage.innerHTML = `<p style="color: red;">لا توجد أسئلة متاحة في مستوى "${difficulty}" لهذا الاختبار.</p>`;
-                }
-                return;
-            }
+    <footer class="main-footer">
+        <div class="container">
+            <p>&copy; 2024 Cybersecurity Pathways. جميع الحقوق محفوظة.</p>
+            <div class="social-links">
+                <a href="#"><img src="../assets/images/facebook-icon.png" alt="Facebook"></a>
+                <a href="#"><img src="../assets/images/twitter-icon.png" alt="Twitter"></a>
+                <a href="#"><img src="../assets/images/linkedin-icon.png" alt="LinkedIn"></a>
+            </div>
+        </div>
+    </footer>
 
-            if (quizTitleEl) {
-                quizTitleEl.innerText = currentQuiz.title;
-            }
-
-            // خلط الأسئلة واختيار عدد محدد منها
-            const shuffledQuestions = shuffleArray([...questionsByDifficulty]);
-            quizQuestions = shuffledQuestions.slice(0, Math.min(qCount, shuffledQuestions.length));
-
-            if (quizQuestions.length > 0) {
-                if (quizLoadingMessage) {
-                    quizLoadingMessage.style.display = 'none';
-                }
-                if (quizContent) {
-                    quizContent.style.display = 'block';
-                }
-                startTimer();
-                displayQuestion();
-            } else {
-                showResults();
-            }
-
-        } catch (error) {
-            console.error('Failed to load quizzes:', error);
-            if (quizLoadingMessage) {
-                quizLoadingMessage.innerHTML = '<p style="color: red;">حدث خطأ أثناء تحميل الاختبار. الرجاء المحاولة لاحقاً.</p>';
-            }
-        }
-    }
-
-    // عرض السؤال الحالي
-    function displayQuestion() {
-        if (currentQuestionIndex < quizQuestions.length) {
-            const currentQuestion = quizQuestions[currentQuestionIndex];
-            if (questionCounter) {
-                questionCounter.innerText = `السؤال ${currentQuestionIndex + 1} من ${quizQuestions.length}`;
-            }
-            if (questionTextEl) {
-                questionTextEl.innerText = currentQuestion.question;
-            }
-            if (optionsContainer) {
-                optionsContainer.innerHTML = '';
-            }
-            
-            const options = shuffleArray([...currentQuestion.options]);
-            
-            options.forEach((option, index) => {
-                const optionElement = document.createElement('div');
-                optionElement.className = 'option';
-                optionElement.innerHTML = `
-                    <input type="radio" name="answer" id="option${index}" value="${index}">
-                    <label for="option${index}">${option}</label>
-                `;
-                if (optionsContainer) {
-                    optionsContainer.appendChild(optionElement);
-                }
-            });
-
-            // إضافة مستمعي الأحداث للخيارات الجديدة
-            document.querySelectorAll('input[name="answer"]').forEach(input => {
-                input.addEventListener('change', (e) => {
-                    const selectedValue = parseInt(e.target.value);
-                    const isCorrect = selectedValue === currentQuestion.correctAnswerIndex;
-                    checkAnswer(isCorrect, selectedValue);
-                });
-            });
-
-            if (feedbackMessageEl) {
-                feedbackMessageEl.style.display = 'none';
-            }
-            if (nextBtn) {
-                nextBtn.style.display = 'none';
-            }
-            // إظهار زر "إنهاء" فقط في السؤال الأخير
-            if (currentQuestionIndex === quizQuestions.length - 1) {
-                if (finishBtn) {
-                    finishBtn.style.display = 'block';
-                }
-            } else {
-                if (finishBtn) {
-                    finishBtn.style.display = 'none';
-                }
-            }
-
-        } else {
-            showResults();
-        }
-    }
-
-    // التحقق من الإجابة
-    function checkAnswer(isCorrect, selectedValue) {
-        if (isCorrect) {
-            score++;
-            if (feedbackMessageEl) {
-                feedbackMessageEl.innerText = 'إجابة صحيحة!';
-                feedbackMessageEl.className = 'feedback-message correct';
-            }
-        } else {
-            if (feedbackMessageEl) {
-                feedbackMessageEl.innerText = `إجابة خاطئة. الإجابة الصحيحة هي: ${quizQuestions[currentQuestionIndex].options[quizQuestions[currentQuestionIndex].correctAnswerIndex]}`;
-                feedbackMessageEl.className = 'feedback-message wrong';
-            }
-        }
-        if (feedbackMessageEl) {
-            feedbackMessageEl.style.display = 'block';
-        }
-
-        // تعطيل الخيارات بعد الإجابة
-        document.querySelectorAll('input[name="answer"]').forEach(input => {
-            input.disabled = true;
-            if (parseInt(input.value) === selectedValue) {
-                input.parentElement.classList.add('selected-option');
-            }
-            if (parseInt(input.value) === quizQuestions[currentQuestionIndex].correctAnswerIndex) {
-                input.parentElement.classList.add('correct-answer');
-            } else if (parseInt(input.value) === selectedValue && !isCorrect) {
-                input.parentElement.classList.add('wrong-answer');
-            }
-        });
-
-        // إظهار زر التالي أو الإنهاء
-        if (currentQuestionIndex < quizQuestions.length - 1) {
-            if (nextBtn) {
-                nextBtn.style.display = 'block';
-            }
-        } else {
-            if (finishBtn) {
-                finishBtn.style.display = 'block';
-            }
-        }
-    }
-
-    // عرض النتائج النهائية
-    function showResults() {
-        if (quizContent) {
-            quizContent.style.display = 'none';
-        }
-        if (quizResultsContainer) {
-            quizResultsContainer.style.display = 'block';
-        }
-        if (scoreDisplay) {
-            scoreDisplay.innerText = score;
-        }
-        if (totalQuestionsDisplay) {
-            totalQuestionsDisplay.innerText = quizQuestions.length;
-        }
-        const percentage = (score / quizQuestions.length) * 100;
-        if (percentageDisplay) {
-            percentageDisplay.innerText = isNaN(percentage) ? 0 : percentage.toFixed(2);
-        }
-        
-        // إيقاف العداد
-        clearInterval(timerInterval);
-    }
-    
-    // بدء العداد الزمني
-    function startTimer() {
-        const totalTimeInSeconds = quizQuestions.length * 30; // 30 ثانية لكل سؤال
-        let timeRemaining = totalTimeInSeconds;
-
-        function updateTimerDisplay() {
-            const minutes = Math.floor(timeRemaining / 60);
-            const seconds = timeRemaining % 60;
-            if (timeLeftSpan) {
-                timeLeftSpan.innerText = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-            }
-        }
-        
-        updateTimerDisplay();
-
-        timerInterval = setInterval(() => {
-            timeRemaining--;
-            updateTimerDisplay();
-            if (timeRemaining <= 0) {
-                clearInterval(timerInterval);
-                alert('انتهى الوقت!');
-                showResults();
-            }
-        }, 1000);
-    }
-
-    // دالة لخلط المصفوفة
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-        return array;
-    }
-    
-    // مستمعو أحداث الأزرار
-    if (nextBtn) {
-        nextBtn.addEventListener('click', () => {
-            currentQuestionIndex++;
-            displayQuestion();
-        });
-    }
-
-    if (finishBtn) {
-        finishBtn.addEventListener('click', showResults);
-    }
-    
-    if (retakeQuizBtn) {
-        retakeQuizBtn.addEventListener('click', () => {
-            // أعد تحميل الصفحة لإعادة الاختبار
-            window.location.reload();
-        });
-    }
-    
-    // إضافة مستمع حدث لزر العودة لقائمة الاختبارات
-    const returnToBankBtn = document.querySelector('.quiz-results a.btn.primary-btn');
-    if (returnToBankBtn) {
-         returnToBankBtn.addEventListener('click', () => {
-             window.location.href = 'quiz-bank.html';
-         });
-    }
-
-    loadQuiz();
-});
+    <script src="../assets/js/quizLogic.js"></script>
+</body>
+</html>
