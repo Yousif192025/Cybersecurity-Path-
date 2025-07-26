@@ -39,6 +39,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // تحميل بيانات الاختبارات بناءً على ID والمستوى
     async function loadQuiz() {
         // <--- تم إضافة هذا السطر
+         // <--- أضف هذه الأسطر الجديدة
+    console.log('Quiz ID from URL:', quizId);
+    console.log('Difficulty from URL:', difficulty);
+    console.log('Question count from URL:', qCount);
+    // ----------------------------------------
         quizLoadingMessage.style.display = 'block';
 
         if (!quizId || !difficulty) {
