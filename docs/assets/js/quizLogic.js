@@ -31,9 +31,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const quizId = urlParams.get('quizId');
     const difficulty = urlParams.get('difficulty');
     const qCount = parseInt(urlParams.get('qCount')) || 5; // عدد الأسئلة الافتراضي 5
+    
+    // <--- تم إضافة هذا
+    quizContent.style.display = 'none';
+    quizResultsContainer.style.display = 'none';
 
     // تحميل بيانات الاختبارات بناءً على ID والمستوى
     async function loadQuiz() {
+        // <--- تم إضافة هذا السطر
+        quizLoadingMessage.style.display = 'block';
+
         if (!quizId || !difficulty) {
             quizLoadingMessage.innerHTML = `<p style="color: red;">خطأ: لم يتم تحديد الاختبار أو مستوى الصعوبة.</p>`;
             return;
