@@ -1,8 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const quizContent = document.getElementById('quiz-content');
     const quizHeader = document.getElementById('quiz-header');
-    // تم تصحيح هذا السطر ليطابق ID في ملف HTML
-    const quizTitleEl = document.getElementById('quiz-main-title'); 
+    const quizTitleEl = document.getElementById('quiz-main-title');
     const questionCounter = document.getElementById('question-counter');
     const questionTextEl = document.getElementById('question-text');
     const optionsContainer = document.getElementById('options-container');
@@ -26,13 +25,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let score = 0;
     let timerInterval;
 
-    const QUIZZES_DATA_URL = `../assets/data/${quizId}.json`;
-
     // قراءة متغيرات URL
     const urlParams = new URLSearchParams(window.location.search);
     const quizId = urlParams.get('quizId');
     const difficulty = urlParams.get('difficulty');
     const qCount = parseInt(urlParams.get('qCount')) || 5; // عدد الأسئلة الافتراضي 5
+
+    // الآن يمكننا تعريف مسار البيانات بعد تحديد quizId
+    const QUIZZES_DATA_URL = `../assets/data/${quizId}.json`;
     
     // إخفاء المحتوى الرئيسي والنتائج في البداية
     if (quizContent) {
@@ -61,14 +61,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const data = await response.json();
-            const currentQuiz = data.quizzes.find(q => q.id === quizId);
-
-            if (!currentQuiz) {
-                if (quizLoadingMessage) {
-                    quizLoadingMessage.innerHTML = `<p style="color: red;">خطأ: الاختبار "${quizId}" غير موجود.</p>`;
-                }
-                return;
-            }
+            
+            // التعديل هنا: بما أن كل ملف يمثل اختبارًا واحدًا، لا نحتاج للبحث عنه.
+            const currentQuiz = data;
 
             // التحقق من وجود أسئلة للمستوى المحدد
             const questionsByDifficulty = currentQuiz.questions[difficulty];
@@ -287,9 +282,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (returnToBankBtn) {
-         returnToBankBtn.addEventListener('click', () => {
-             window.location.href = 'quiz-bank.html';
-         });
+        returnToBankBtn.addEventListener('click', () => {
+            window.location.href = 'quiz-bank.html';
+        });
     }
 
     loadQuiz();
