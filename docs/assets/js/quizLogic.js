@@ -1,7 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     const quizContent = document.getElementById('quiz-content');
     const quizHeader = document.getElementById('quiz-header');
-    const quizTitleEl = document.getElementById('quiz-title');
+    // تم تصحيح هذا السطر ليطابق ID في ملف HTML
+    const quizTitleEl = document.getElementById('quiz-main-title'); 
     const questionCounter = document.getElementById('question-counter');
     const questionTextEl = document.getElementById('question-text');
     const optionsContainer = document.getElementById('options-container');
@@ -12,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const scoreDisplay = document.getElementById('score-display');
     const totalQuestionsDisplay = document.getElementById('total-questions-display');
     const percentageDisplay = document.getElementById('percentage-display');
+    const retakeQuizBtn = document.getElementById('retake-quiz-btn');
     const returnToBankBtn = document.getElementById('return-to-bank-btn');
     const quizLoadingMessage = document.getElementById('quiz-loading-message');
 
@@ -32,22 +34,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const difficulty = urlParams.get('difficulty');
     const qCount = parseInt(urlParams.get('qCount')) || 5; // عدد الأسئلة الافتراضي 5
     
-    // <--- تم إضافة هذا
-    quizContent.style.display = 'none';
-    quizResultsContainer.style.display = 'none';
-
+    // إخفاء المحتوى الرئيسي والنتائج في البداية
+    if (quizContent) {
+        quizContent.style.display = 'none';
+    }
+    if (quizResultsContainer) {
+        quizResultsContainer.style.display = 'none';
+    }
+    
     // تحميل بيانات الاختبارات بناءً على ID والمستوى
     async function loadQuiz() {
-        // <--- تم إضافة هذا السطر
-         // <--- أضف هذه الأسطر الجديدة
-    console.log('Quiz ID from URL:', quizId);
-    console.log('Difficulty from URL:', difficulty);
-    console.log('Question count from URL:', qCount);
-    // ----------------------------------------
-        quizLoadingMessage.style.display = 'block';
+        if (quizLoadingMessage) {
+            quizLoadingMessage.style.display = 'block';
+        }
 
         if (!quizId || !difficulty) {
-            quizLoadingMessage.innerHTML = `<p style="color: red;">خطأ: لم يتم تحديد الاختبار أو مستوى الصعوبة.</p>`;
+            if (quizLoadingMessage) {
+                quizLoadingMessage.innerHTML = `<p style="color: red;">خطأ: لم يتم تحديد الاختبار أو مستوى الصعوبة.</p>`;
+            }
             return;
         }
 
@@ -60,26 +64,36 @@ document.addEventListener('DOMContentLoaded', () => {
             const currentQuiz = data.quizzes.find(q => q.id === quizId);
 
             if (!currentQuiz) {
-                quizLoadingMessage.innerHTML = `<p style="color: red;">خطأ: الاختبار "${quizId}" غير موجود.</p>`;
+                if (quizLoadingMessage) {
+                    quizLoadingMessage.innerHTML = `<p style="color: red;">خطأ: الاختبار "${quizId}" غير موجود.</p>`;
+                }
                 return;
             }
 
             // التحقق من وجود أسئلة للمستوى المحدد
             const questionsByDifficulty = currentQuiz.questions[difficulty];
             if (!questionsByDifficulty || questionsByDifficulty.length === 0) {
-                quizLoadingMessage.innerHTML = `<p style="color: red;">لا توجد أسئلة متاحة في مستوى "${difficulty}" لهذا الاختبار.</p>`;
+                if (quizLoadingMessage) {
+                    quizLoadingMessage.innerHTML = `<p style="color: red;">لا توجد أسئلة متاحة في مستوى "${difficulty}" لهذا الاختبار.</p>`;
+                }
                 return;
             }
 
-            quizTitleEl.innerText = currentQuiz.title;
+            if (quizTitleEl) {
+                quizTitleEl.innerText = currentQuiz.title;
+            }
 
             // خلط الأسئلة واختيار عدد محدد منها
             const shuffledQuestions = shuffleArray([...questionsByDifficulty]);
             quizQuestions = shuffledQuestions.slice(0, Math.min(qCount, shuffledQuestions.length));
 
             if (quizQuestions.length > 0) {
-                quizLoadingMessage.style.display = 'none';
-                quizContent.style.display = 'block';
+                if (quizLoadingMessage) {
+                    quizLoadingMessage.style.display = 'none';
+                }
+                if (quizContent) {
+                    quizContent.style.display = 'block';
+                }
                 startTimer();
                 displayQuestion();
             } else {
@@ -88,7 +102,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error('Failed to load quizzes:', error);
-            quizLoadingMessage.innerHTML = '<p style="color: red;">حدث خطأ أثناء تحميل الاختبار. الرجاء المحاولة لاحقاً.</p>';
+            if (quizLoadingMessage) {
+                quizLoadingMessage.innerHTML = '<p style="color: red;">حدث خطأ أثناء تحميل الاختبار. الرجاء المحاولة لاحقاً.</p>';
+            }
         }
     }
 
@@ -96,9 +112,15 @@ document.addEventListener('DOMContentLoaded', () => {
     function displayQuestion() {
         if (currentQuestionIndex < quizQuestions.length) {
             const currentQuestion = quizQuestions[currentQuestionIndex];
-            questionCounter.innerText = `السؤال ${currentQuestionIndex + 1} من ${quizQuestions.length}`;
-            questionTextEl.innerText = currentQuestion.question;
-            optionsContainer.innerHTML = '';
+            if (questionCounter) {
+                questionCounter.innerText = `السؤال ${currentQuestionIndex + 1} من ${quizQuestions.length}`;
+            }
+            if (questionTextEl) {
+                questionTextEl.innerText = currentQuestion.question;
+            }
+            if (optionsContainer) {
+                optionsContainer.innerHTML = '';
+            }
             
             const options = shuffleArray([...currentQuestion.options]);
             
@@ -109,7 +131,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     <input type="radio" name="answer" id="option${index}" value="${index}">
                     <label for="option${index}">${option}</label>
                 `;
-                optionsContainer.appendChild(optionElement);
+                if (optionsContainer) {
+                    optionsContainer.appendChild(optionElement);
+                }
             });
 
             // إضافة مستمعي الأحداث للخيارات الجديدة
@@ -121,15 +145,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             });
 
-            feedbackMessageEl.style.display = 'none';
-            nextBtn.style.display = 'none';
+            if (feedbackMessageEl) {
+                feedbackMessageEl.style.display = 'none';
+            }
+            if (nextBtn) {
+                nextBtn.style.display = 'none';
+            }
             // إظهار زر "إنهاء" فقط في السؤال الأخير
             if (currentQuestionIndex === quizQuestions.length - 1) {
-                finishBtn.style.display = 'block';
+                if (finishBtn) {
+                    finishBtn.style.display = 'block';
+                }
             } else {
-                finishBtn.style.display = 'none';
+                if (finishBtn) {
+                    finishBtn.style.display = 'none';
+                }
             }
-
         } else {
             showResults();
         }
@@ -139,13 +170,19 @@ document.addEventListener('DOMContentLoaded', () => {
     function checkAnswer(isCorrect, selectedValue) {
         if (isCorrect) {
             score++;
-            feedbackMessageEl.innerText = 'إجابة صحيحة!';
-            feedbackMessageEl.className = 'feedback-message correct';
+            if (feedbackMessageEl) {
+                feedbackMessageEl.innerText = 'إجابة صحيحة!';
+                feedbackMessageEl.className = 'feedback-message correct';
+            }
         } else {
-            feedbackMessageEl.innerText = `إجابة خاطئة. الإجابة الصحيحة هي: ${quizQuestions[currentQuestionIndex].options[quizQuestions[currentQuestionIndex].correctAnswerIndex]}`;
-            feedbackMessageEl.className = 'feedback-message wrong';
+            if (feedbackMessageEl) {
+                feedbackMessageEl.innerText = `إجابة خاطئة. الإجابة الصحيحة هي: ${quizQuestions[currentQuestionIndex].options[quizQuestions[currentQuestionIndex].correctAnswerIndex]}`;
+                feedbackMessageEl.className = 'feedback-message wrong';
+            }
         }
-        feedbackMessageEl.style.display = 'block';
+        if (feedbackMessageEl) {
+            feedbackMessageEl.style.display = 'block';
+        }
 
         // تعطيل الخيارات بعد الإجابة
         document.querySelectorAll('input[name="answer"]').forEach(input => {
@@ -162,20 +199,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // إظهار زر التالي أو الإنهاء
         if (currentQuestionIndex < quizQuestions.length - 1) {
-            nextBtn.style.display = 'block';
+            if (nextBtn) {
+                nextBtn.style.display = 'block';
+            }
         } else {
-            finishBtn.style.display = 'block';
+            if (finishBtn) {
+                finishBtn.style.display = 'block';
+            }
         }
     }
 
     // عرض النتائج النهائية
     function showResults() {
-        quizContent.style.display = 'none';
-        quizResultsContainer.style.display = 'block';
-        scoreDisplay.innerText = score;
-        totalQuestionsDisplay.innerText = quizQuestions.length;
+        if (quizContent) {
+            quizContent.style.display = 'none';
+        }
+        if (quizResultsContainer) {
+            quizResultsContainer.style.display = 'block';
+        }
+        if (scoreDisplay) {
+            scoreDisplay.innerText = score;
+        }
+        if (totalQuestionsDisplay) {
+            totalQuestionsDisplay.innerText = quizQuestions.length;
+        }
         const percentage = (score / quizQuestions.length) * 100;
-        percentageDisplay.innerText = isNaN(percentage) ? 0 : percentage.toFixed(2);
+        if (percentageDisplay) {
+            percentageDisplay.innerText = isNaN(percentage) ? 0 : percentage.toFixed(2);
+        }
         
         // إيقاف العداد
         clearInterval(timerInterval);
@@ -189,7 +240,9 @@ document.addEventListener('DOMContentLoaded', () => {
         function updateTimerDisplay() {
             const minutes = Math.floor(timeRemaining / 60);
             const seconds = timeRemaining % 60;
-            timeLeftSpan.innerText = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            if (timeLeftSpan) {
+                timeLeftSpan.innerText = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            }
         }
         
         updateTimerDisplay();
@@ -215,15 +268,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // مستمعو أحداث الأزرار
-    nextBtn.addEventListener('click', () => {
-        currentQuestionIndex++;
-        displayQuestion();
-    });
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            currentQuestionIndex++;
+            displayQuestion();
+        });
+    }
 
-    finishBtn.addEventListener('click', showResults);
-    returnToBankBtn.addEventListener('click', () => {
-        window.location.href = 'quiz-bank.html';
-    });
+    if (finishBtn) {
+        finishBtn.addEventListener('click', showResults);
+    }
+    
+    if (retakeQuizBtn) {
+        retakeQuizBtn.addEventListener('click', () => {
+            // أعد تحميل الصفحة لإعادة الاختبار
+            window.location.reload();
+        });
+    }
+
+    if (returnToBankBtn) {
+         returnToBankBtn.addEventListener('click', () => {
+             window.location.href = 'quiz-bank.html';
+         });
+    }
 
     loadQuiz();
 });
