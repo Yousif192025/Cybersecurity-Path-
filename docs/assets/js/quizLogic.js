@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let score = 0;
     let timerInterval;
 
-    const QUIZZES_DATA_URL = '../assets/data/digital_skills.json';
+    const QUIZZES_DATA_URL = `../assets/data/${quizId}.json`;
 
     // قراءة متغيرات URL
     const urlParams = new URLSearchParams(window.location.search);
