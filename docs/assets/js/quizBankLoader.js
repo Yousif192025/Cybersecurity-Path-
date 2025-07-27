@@ -131,8 +131,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const qCount = parseInt(qCountInput.value) || 5;
             
             if (selectedQuizId && selectedDifficulty) {
-                // *** هذا هو السطر الذي تم تصحيحه: من digital.html إلى quiz.html ***
-                window.location.href = `quiz.html?quizId=${selectedQuizId}&difficulty=${selectedDifficulty}&qCount=${qCount}`;
+                // *** هذا هو السطر الذي تم تصحيحه: إضافة ./ قبل اسم الملف ***
+                window.location.href = `./quiz.html?quizId=${selectedQuizId}&difficulty=${selectedDifficulty}&qCount=${qCount}`;
             }
         });
     }
