@@ -108,14 +108,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // --- التعديل يبدأ من هنا ---
     difficultyButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             difficultyButtons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            selectedDifficulty = btn.dataset.level;
-            startQuizBtn.disabled = false; // Enable button after a level is selected
+            
+            // خريطة لترجمة مستوى الصعوبة من الأزرار إلى أسماء مفاتيح JSON
+            const difficultyMap = {
+                'beginner': 'easy',
+                'intermediate': 'medium',
+                'advanced': 'advanced'
+            };
+            
+            const buttonLevel = btn.dataset.level;
+            selectedDifficulty = difficultyMap[buttonLevel];
+            
+            startQuizBtn.disabled = false;
         });
     });
+    // --- التعديل ينتهي هنا ---
 
     if (startQuizBtn) {
         startQuizBtn.addEventListener('click', () => {
@@ -123,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (selectedQuizId && selectedDifficulty) {
                 // Redirect to the quiz page with the correct parameters
-                window.location.href = `digital.html?quizId=${selectedQuizId}&difficulty=${selectedDifficulty}&qCount=${qCount}`;
+                window.location.href = `quiz.html?quizId=${selectedQuizId}&difficulty=${selectedDifficulty}&qCount=${qCount}`;
             }
         });
     }
