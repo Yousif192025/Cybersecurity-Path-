@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const returnToBankBtn = document.getElementById('return-to-bank-btn');
     const quizLoadingMessage = document.getElementById('quiz-loading-message');
 
-    // عناصر العداد الزمني
     const quizTimer = document.getElementById('quiz-timer');
     const timeLeftSpan = document.getElementById('time-left');
 
@@ -25,16 +24,22 @@ document.addEventListener('DOMContentLoaded', () => {
     let score = 0;
     let timerInterval;
 
-    // قراءة متغيرات URL
     const urlParams = new URLSearchParams(window.location.search);
     const quizId = urlParams.get('quizId');
-    const difficulty = urlParams.get('difficulty');
-    const qCount = parseInt(urlParams.get('qCount')) || 5; // عدد الأسئلة الافتراضي 5
+    const difficultyParam = urlParams.get('difficulty');
+    const qCount = parseInt(urlParams.get('qCount')) || 5;
 
-    // الآن يمكننا تعريف مسار البيانات بعد تحديد quizId
+    // --- بداية التعديل: تحويل اسم مستوى الصعوبة ---
+    const difficultyMap = {
+        'beginner': 'easy',
+        'intermediate': 'medium',
+        'advanced': 'advanced'
+    };
+    const difficulty = difficultyMap[difficultyParam] || difficultyParam; // استخدم القيمة المحولة
+    // --- نهاية التعديل ---
+
     const QUIZZES_DATA_URL = `../assets/data/${quizId}.json`;
     
-    // إخفاء المحتوى الرئيسي والنتائج في البداية
     if (quizContent) {
         quizContent.style.display = 'none';
     }
@@ -42,13 +47,12 @@ document.addEventListener('DOMContentLoaded', () => {
         quizResultsContainer.style.display = 'none';
     }
     
-    // تحميل بيانات الاختبارات بناءً على ID والمستوى
     async function loadQuiz() {
         if (quizLoadingMessage) {
             quizLoadingMessage.style.display = 'block';
         }
 
-        if (!quizId || !difficulty) {
+        if (!quizId || !difficultyParam) {
             if (quizLoadingMessage) {
                 quizLoadingMessage.innerHTML = `<p style="color: red;">خطأ: لم يتم تحديد الاختبار أو مستوى الصعوبة.</p>`;
             }
@@ -62,14 +66,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const data = await response.json();
             
-            // التعديل هنا: بما أن كل ملف يمثل اختبارًا واحدًا، لا نحتاج للبحث عنه.
             const currentQuiz = data;
 
-            // التحقق من وجود أسئلة للمستوى المحدد
+            // الآن، `difficulty` تحتوي على القيمة الصحيحة (easy, medium, advanced)
             const questionsByDifficulty = currentQuiz.questions[difficulty];
+            
             if (!questionsByDifficulty || questionsByDifficulty.length === 0) {
                 if (quizLoadingMessage) {
-                    quizLoadingMessage.innerHTML = `<p style="color: red;">لا توجد أسئلة متاحة في مستوى "${difficulty}" لهذا الاختبار.</p>`;
+                    // عرض رسالة توضيحية باستخدام القيمة الأصلية من الرابط
+                    quizLoadingMessage.innerHTML = `<p style="color: red;">لا توجد أسئلة متاحة في مستوى "${difficultyParam}" لهذا الاختبار.</p>`;
                 }
                 return;
             }
@@ -78,7 +83,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 quizTitleEl.innerText = currentQuiz.title;
             }
 
-            // خلط الأسئلة واختيار عدد محدد منها
             const shuffledQuestions = shuffleArray([...questionsByDifficulty]);
             quizQuestions = shuffledQuestions.slice(0, Math.min(qCount, shuffledQuestions.length));
 
@@ -103,7 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // عرض السؤال الحالي
     function displayQuestion() {
         if (currentQuestionIndex < quizQuestions.length) {
             const currentQuestion = quizQuestions[currentQuestionIndex];
@@ -131,7 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // إضافة مستمعي الأحداث للخيارات الجديدة
             document.querySelectorAll('input[name="answer"]').forEach(input => {
                 input.addEventListener('change', (e) => {
                     const selectedValue = parseInt(e.target.value);
@@ -146,7 +148,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (nextBtn) {
                 nextBtn.style.display = 'none';
             }
-            // إظهار زر "إنهاء" فقط في السؤال الأخير
             if (currentQuestionIndex === quizQuestions.length - 1) {
                 if (finishBtn) {
                     finishBtn.style.display = 'block';
@@ -161,7 +162,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // التحقق من الإجابة
     function checkAnswer(isCorrect, selectedValue) {
         if (isCorrect) {
             score++;
@@ -179,7 +179,6 @@ document.addEventListener('DOMContentLoaded', () => {
             feedbackMessageEl.style.display = 'block';
         }
 
-        // تعطيل الخيارات بعد الإجابة
         document.querySelectorAll('input[name="answer"]').forEach(input => {
             input.disabled = true;
             if (parseInt(input.value) === selectedValue) {
@@ -192,7 +191,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // إظهار زر التالي أو الإنهاء
         if (currentQuestionIndex < quizQuestions.length - 1) {
             if (nextBtn) {
                 nextBtn.style.display = 'block';
@@ -204,7 +202,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // عرض النتائج النهائية
     function showResults() {
         if (quizContent) {
             quizContent.style.display = 'none';
@@ -223,13 +220,11 @@ document.addEventListener('DOMContentLoaded', () => {
             percentageDisplay.innerText = isNaN(percentage) ? 0 : percentage.toFixed(2);
         }
         
-        // إيقاف العداد
         clearInterval(timerInterval);
     }
     
-    // بدء العداد الزمني
     function startTimer() {
-        const totalTimeInSeconds = quizQuestions.length * 30; // 30 ثانية لكل سؤال
+        const totalTimeInSeconds = quizQuestions.length * 30;
         let timeRemaining = totalTimeInSeconds;
 
         function updateTimerDisplay() {
@@ -253,7 +248,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
     }
 
-    // دالة لخلط المصفوفة
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -262,7 +256,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return array;
     }
     
-    // مستمعو أحداث الأزرار
     if (nextBtn) {
         nextBtn.addEventListener('click', () => {
             currentQuestionIndex++;
@@ -276,7 +269,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (retakeQuizBtn) {
         retakeQuizBtn.addEventListener('click', () => {
-            // أعد تحميل الصفحة لإعادة الاختبار
             window.location.reload();
         });
     }
