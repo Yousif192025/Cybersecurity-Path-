@@ -29,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const difficultyParam = urlParams.get('difficulty');
     const qCount = parseInt(urlParams.get('qCount')) || 5;
 
-    // الخريطة الأساسية التي تترجم أسماء مستويات الصعوبة
     const difficultyMap = {
         'beginner': 'easy',
         'intermediate': 'medium',
@@ -66,7 +65,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             
             const currentQuiz = data;
-
             const questionsByDifficulty = currentQuiz.questions[difficulty];
             
             if (!questionsByDifficulty || questionsByDifficulty.length === 0) {
@@ -80,10 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 quizTitleEl.innerText = currentQuiz.title;
             }
             
-            // --- هنا يكمن التعديل: استخدام طريقة slice() لنسخ المصفوفة ---
             const shuffledQuestions = shuffleArray(questionsByDifficulty.slice());
-            // --- نهاية التعديل ---
-
             quizQuestions = shuffledQuestions.slice(0, Math.min(qCount, shuffledQuestions.length));
 
             if (quizQuestions.length > 0) {
@@ -119,16 +114,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 optionsContainer.innerHTML = '';
             }
             
-            // --- هنا يكمن التعديل: استخدام طريقة slice() لنسخ المصفوفة ---
-            const options = shuffleArray(currentQuestion.options.slice());
-            // --- نهاية التعديل ---
+            // الحل: إنشاء مصفوفة من الكائنات تحتوي على النص والمؤشر الأصلي
+            const optionsWithIndex = currentQuestion.options.map((option, index) => ({
+                text: option,
+                originalIndex: index
+            }));
+
+            // خلط المصفوفة الجديدة
+            const shuffledOptions = shuffleArray(optionsWithIndex);
             
-            options.forEach((option, index) => {
+            shuffledOptions.forEach((optionObj, index) => {
                 const optionElement = document.createElement('div');
                 optionElement.className = 'option';
                 optionElement.innerHTML = `
-                    <input type="radio" name="answer" id="option${index}" value="${index}">
-                    <label for="option${index}">${option}</label>
+                    <input type="radio" name="answer" id="option${index}" value="${optionObj.originalIndex}">
+                    <label for="option${index}">${optionObj.text}</label>
                 `;
                 if (optionsContainer) {
                     optionsContainer.appendChild(optionElement);
