@@ -152,3 +152,37 @@ const translations = {
         // ... الترجمات الإنجليزية المقابلة ...
     }
 };
+document.addEventListener("DOMContentLoaded", function () {
+    // أكورديون خارجي
+    const headers = document.querySelectorAll(".accordion-header");
+    headers.forEach(header => {
+        header.addEventListener("click", function () {
+            const body = this.nextElementSibling;
+            body.classList.toggle("open");
+            this.classList.toggle("active");
+        });
+    });
+
+    // أكورديون داخلي للأرباع
+    const quarters = document.querySelectorAll('.quarter h4');
+    quarters.forEach(quarter => {
+        quarter.addEventListener('click', function () {
+            const ul = this.nextElementSibling;
+            ul.classList.toggle('open');
+            this.classList.toggle('active'); // لإضافة/إزالة علامة الزائد/الناقص
+        });
+    });
+});
+
+// هذه الوظائف يمكن أن تبقى هنا أو تُنقل إلى ملف JavaScript مخصص إذا تم استخدامها في العديد من الصفحات
+function viewFile(url) {
+    window.open(url, '_blank');
+}
+
+function printFile(url) {
+    const printWindow = window.open(url, '_blank');
+    printWindow.onload = function () {
+        printWindow.focus();
+        printWindow.print();
+    };
+}
