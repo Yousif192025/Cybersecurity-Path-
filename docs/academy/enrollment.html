@@ -20,6 +20,7 @@
             border-radius: 10px;
             box-shadow: 0 8px 20px var(--shadow-medium);
             text-align: right; /* Ensure RTL alignment */
+            direction: rtl; /* Ensure content flows RTL */
         }
 
         .enrollment-container h2 {
@@ -43,7 +44,6 @@
         .form-group input[type="text"],
         .form-group input[type="email"],
         .form-group input[type="tel"],
-        .form-group input[type="password"],
         .form-group select,
         .form-group textarea {
             width: 100%;
@@ -81,11 +81,23 @@
         .checkbox-group input[type="checkbox"] {
             margin-right: 10px; /* Space from label for RTL */
             order: 2; /* Put checkbox on the left for RTL */
+            transform: scale(1.2); /* Make checkbox slightly larger */
         }
         .checkbox-group label {
             margin-bottom: 0;
             order: 1; /* Put label on the right for RTL */
+            color: var(--text-dark); /* Ensure label color is consistent */
         }
+
+        .checkbox-group label a {
+            color: var(--primary-blue); /* Style links within the checkbox label */
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .checkbox-group label a:hover {
+            text-decoration: underline;
+        }
+
 
         .form-submit-btn {
             display: block;
@@ -138,6 +150,19 @@
             .form-submit-btn {
                 font-size: 1.1em;
                 padding: 12px 15px;
+            }
+             .checkbox-group {
+                flex-direction: column;
+                align-items: flex-end; /* Align to the right in column layout for RTL */
+            }
+            .checkbox-group input[type="checkbox"] {
+                margin-right: 0;
+                margin-bottom: 10px; /* Add space between checkbox and label in column layout */
+                order: 1; /* Checkbox on top for column layout */
+            }
+            .checkbox-group label {
+                text-align: right;
+                order: 2; /* Label below checkbox for column layout */
             }
         }
     </style>
@@ -262,8 +287,8 @@
     <script src="../assets/js/main.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // تهيئة نظام اللغة وتفعيل قائمة الجوال وأزرار التمرير من main.js
-            // (يفترض أن main.js يقوم بـ langManager.init() وتجهيز header/footer JS)
+            // تهيئة نظام اللغة وتفعيل قائمة الجوال وأزرار التمرير تتم من main.js
+            // (يفترض أن main.js يقوم بـ langManager.init() وتجهيز header/footer JS عند تحميل DOM)
 
             const enrollmentForm = document.getElementById('enrollmentForm');
             const formMessage = document.getElementById('formMessage');
@@ -288,27 +313,30 @@
                 displayMessage('تم التسجيل بنجاح! سنتواصل معك قريبًا.', 'success');
                 enrollmentForm.reset(); // تفريغ النموذج بعد الإرسال الناجح
 
-                // في تطبيق حقيقي:
-                // fetch('/api/enroll', {
-                //     method: 'POST',
-                //     headers: {
-                //         'Content-Type': 'application/json',
-                //     },
-                //     body: JSON.stringify(data),
-                // })
-                // .then(response => response.json())
-                // .then(result => {
-                //     if (result.success) {
-                //         displayMessage('تم التسجيل بنجاح! سنتواصل معك قريبًا.', 'success');
-                //         enrollmentForm.reset();
-                //     } else {
-                //         displayMessage(result.message || 'حدث خطأ أثناء التسجيل. يرجى المحاولة مرة أخرى.', 'error');
-                //     }
-                // })
-                // .catch(error => {
-                //     console.error('Error:', error);
-                //     displayMessage('حدث خطأ في الاتصال بالخادم. يرجى المحاولة لاحقًا.', 'error');
-                // });
+                /*
+                 * في تطبيق حقيقي، ستستخدم fetch API لإرسال البيانات إلى الخادم:
+                 *
+                 * fetch('/api/enroll', {
+                 * method: 'POST',
+                 * headers: {
+                 * 'Content-Type': 'application/json',
+                 * },
+                 * body: JSON.stringify(data),
+                 * })
+                 * .then(response => response.json())
+                 * .then(result => {
+                 * if (result.success) {
+                 * displayMessage('تم التسجيل بنجاح! سنتواصل معك قريبًا.', 'success');
+                 * enrollmentForm.reset();
+                 * } else {
+                 * displayMessage(result.message || 'حدث خطأ أثناء التسجيل. يرجى المحاولة مرة أخرى.', 'error');
+                 * }
+                 * })
+                 * .catch(error => {
+                 * console.error('Error:', error);
+                 * displayMessage('حدث خطأ في الاتصال بالخادم. يرجى المحاولة لاحقًا.', 'error');
+                 * });
+                 */
             });
 
             function displayMessage(message, type) {
@@ -317,9 +345,9 @@
                 formMessage.style.display = 'block';
             }
 
-            // إضافة ترجمات خاصة بصفحة التسجيل إلى langManager في main.js
-            // (إذا لم تكن موجودة بالفعل)
-            // هذه الترجمات يجب أن تضاف إلى كائن langManager.translations.ar و langManager.translations.en في main.js
+            // إضافة ترجمات خاصة بصفحة التسجيل إلى langManager (إذا لم تكن موجودة بالفعل في main.js)
+            // يفضل أن تكون جميع الترجمات موجودة في ملف main.js لتجنب تكرار الكود وضمان تحميلها مرة واحدة.
+            // إذا كنت قد أضفت هذه الترجمات بالفعل إلى main.js كما في ردي السابق، يمكنك إزالة هذا الجزء من هنا.
             if (typeof langManager !== 'undefined' && langManager.translations) {
                 Object.assign(langManager.translations.ar, {
                     'enrollment-page-title': 'التسجيل في الدورات',
@@ -358,6 +386,8 @@
                     'course-advanced-threat-detection': 'Advanced Threat Detection'
                 });
                 langManager.applyTranslations(); // إعادة تطبيق الترجمات بعد إضافة الجديدة
+            } else {
+                console.error("Error: langManager is not defined or its translations are missing. Ensure main.js is loaded correctly and initializes langManager.");
             }
         });
     </script>
