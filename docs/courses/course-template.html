@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="course-title">تحميل المقرر</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style> @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'); body { font-family: 'Inter', sans-serif; } </style>
+</head>
+<body class="bg-gray-100 text-gray-800 p-8 flex flex-col items-center justify-center min-h-screen">
+    <div class="container mx-auto max-w-2xl bg-white p-8 rounded-xl shadow-lg text-center">
+        <a href="index.html" class="text-sky-600 hover:text-sky-800 transition-colors duration-200 mb-4 inline-block font-medium">&larr; العودة إلى الخطة الدراسية</a>
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6" id="course-name">تحميل المقرر...</h1>
+        <p class="text-lg text-gray-600 mb-8">تفاصيل المقرر والمواد المتاحة.</p>
+        <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4 sm:space-x-reverse">
+            <a id="view-file-link" href="#" target="_blank" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 shadow-md">عرض الملف</a>
+            <a id="download-file-link" href="#" download class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg transition-colors duration-200 shadow-md">تحميل الملف</a>
+        </div>
+        <div id="units-section" class="mt-8 text-left w-full hidden">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">الوحدات / المحاضرات:</h2>
+            <ul id="units-list" class="space-y-2">
+                </ul>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const courseId = urlParams.get('course');
+            const courseName = urlParams.get('name');
+            const courseFile = urlParams.get('file');
+
+            if (courseName) {
+                document.getElementById('course-title').textContent = courseName;
+                document.getElementById('course-name').textContent = courseName;
+            }
+
+            if (courseFile) {
+                const filePath = `../materials/${courseFile}`; // المسار الصحيح لملفات PDF
+                document.getElementById('view-file-link').href = filePath;
+                document.getElementById('download-file-link').href = filePath;
+            }
+
+            // هنا يمكنك إضافة منطق لجلب الوحدات الفرعية بناءً على courseId
+            // يمكنك تخزين هذه البيانات في ملف JSON منفصل أو تضمينها هنا إذا كانت قليلة
+            const unitsData = {
+                'ethical_hacking': [
+                    { name: 'الوحدة 1: مقدمة في الاختراق الأخلاقي', file: '../materials/pt_unit1.pdf' },
+                    { name: 'الوحدة 2: جمع المعلومات', file: '../materials/pt_unit2.pdf' },
+                    { name: 'الوحدة 3: مسح الشبكات', file: '../materials/pt_unit3.pdf' },
+                    // أضف المزيد من الوحدات لهذا المقرر
+                ],
+                'cyber_basics': [
+                    { name: 'الوحدة 1: مفاهيم الأمن السيبراني', file: '../materials/cb_unit1.pdf' },
+                    { name: 'الوحدة 2: أنواع الهجمات', file: '../materials/cb_unit2.pdf' },
+                    // أضف المزيد
+                ]
+                // أضف بيانات الوحدات للمقررات الأخرى هنا
+            };
+
+            if (courseId && unitsData[courseId]) {
+                const unitsList = document.getElementById('units-list');
+                unitsData[courseId].forEach(unit => {
+                    const listItem = document.createElement('li');
+                    listItem.innerHTML = `
+                        <a href="${unit.file}" target="_blank" class="text-sky-600 hover:text-sky-800 transition-colors duration-200 font-medium">
+                            ${unit.name}
+                        </a>
+                        <span class="text-gray-500 text-sm">(عرض/تحميل)</span>
+                    `;
+                    unitsList.appendChild(listItem);
+                });
+                document.getElementById('units-section').classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
