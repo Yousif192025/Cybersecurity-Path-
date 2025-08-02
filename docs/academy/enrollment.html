@@ -202,7 +202,7 @@
     <main class="container">
         <div class="enrollment-container">
             <h2 data-text="enrollment-form-title">سجل الآن وابدأ رحلتك!</h2>
-            <form id="enrollmentForm" action="https://formspree.io/f/xyzpdkjb" method="POST">
+            <form id="enrollmentForm" action="https://formspree.io/f/xyzpdkjb" method="POST" onsubmit="handleSubmit(event)">
                 <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off">
 
                 <div class="form-group">
@@ -291,53 +291,74 @@
         document.addEventListener('DOMContentLoaded', () => {
             const enrollmentForm = document.getElementById('enrollmentForm');
             const formMessage = document.getElementById('formMessage');
-            const agreeTermsCheckbox = document.getElementById('agreeTerms'); // الحصول على مربع الاختيار
+            const agreeTermsCheckbox = document.getElementById('agreeTerms');
+            const submitButton = enrollmentForm.querySelector('button[type="submit"]');
 
-            enrollmentForm.addEventListener('submit', function(event) {
-                // منع الإرسال الافتراضي للصفحة فقط للتحقق من الشروط محليًا
-                // Formspree سيتعامل مع الإرسال بعد هذا إذا كان كل شيء صحيحًا
+            // دالة لمعالجة إرسال النموذج باستخدام AJAX
+            async function handleSubmit(event) {
+                event.preventDefault(); // منع الإرسال الافتراضي للصفحة
 
-                // التحقق من الموافقة على الشروط
+                // تحقق من الموافقة على الشروط
                 if (!agreeTermsCheckbox.checked) {
-                    event.preventDefault(); // منع الإرسال
                     displayMessage('يجب الموافقة على الشروط والأحكام وسياسة الخصوصية للمتابعة.', 'error');
                     return;
                 }
 
-                // يمكنك إضافة أي تحقق إضافي هنا قبل السماح لـ Formspree بالإرسال
-                // مثال: التحقق من تنسيق البريد الإلكتروني (رغم أن input type="email" يقوم بذلك إلى حد ما)
-                // if (!validateEmail(document.getElementById('email').value)) {
-                //     event.preventDefault();
-                //     displayMessage('الرجاء إدخال بريد إلكتروني صحيح.', 'error');
-                //     return;
-                // }
+                // تعطيل الزر لمنع الإرسالات المتعددة وإظهار حالة التحميل
+                submitButton.disabled = true;
+                submitButton.textContent = 'جاري الإرسال...';
+                displayMessage('جاري إرسال طلبك...', 'info'); // رسالة مؤقتة
 
-                // بما أننا نستخدم Formspree مباشرةً عبر `action` و `method="POST"`,
-                // فإن Formspree سيتولى عملية الإرسال بمجرد أن يمر النموذج بالتحققات المحلية (مثل `required`).
-                // لن نستخدم `fetch` API هنا.
-                
-                // Formspree سيعالج الاستجابة (إعادة التوجيه إلى صفحة شكرًا لك، أو عرض رسالة نجاح/خطأ افتراضية من Formspree).
-                // لذا، الرسالة المحلية `displayMessage` قد لا تكون ظاهرة لفترة كافية أو بالشكل المتوقع.
-                // إذا كنت تريد رسالة نجاح محلية فورية قبل إعادة التوجيه من Formspree،
-                // فستحتاج إلى إعداد Formspree لإعادة التوجيه إلى نفس الصفحة (أو صفحة مخصصة)،
-                // ثم تقوم بتحليل معلمة في الـ URL (مثل `?status=success`) لعرض الرسالة.
-                // للتبسيط، في هذا الإعداد، Formspree سيتولى التأكيد.
-            });
+                const form = event.target;
+                const formData = new FormData(form);
 
-            // دالة لعرض الرسائل المحلية (إذا قررت استخدامها)
-            function displayMessage(message, type) {
-                formMessage.textContent = message;
-                formMessage.className = `form-message ${type}`;
-                formMessage.style.display = 'block';
-                // إخفاء الرسالة بعد 5 ثوانٍ (اختياري)
-                setTimeout(() => {
-                    formMessage.style.display = 'none';
-                }, 5000);
+                try {
+                    const response = await fetch(form.action, {
+                        method: form.method,
+                        body: formData,
+                        headers: {
+                            'Accept': 'application/json' // مهم جداً لـ Formspree AJAX
+                        }
+                    });
+
+                    const result = await response.json(); // Formspree سيرجع JSON
+
+                    if (response.ok) { // إذا كان status code هو 2xx (نجاح)
+                        displayMessage('تم التسجيل بنجاح! سنتواصل معك قريبًا.', 'success');
+                        enrollmentForm.reset(); // تفريغ النموذج
+                        // إعادة التوجيه بعد 3 ثوانٍ إلى نفس الصفحة
+                        setTimeout(() => {
+                            window.location.reload(); // أو window.location.href = './enrollment.html';
+                        }, 3000); // 3 ثوانٍ
+                    } else { // إذا كان هناك خطأ
+                        // Formspree قد يعيد رسائل خطأ محددة
+                        const errorMessage = result.errors ? result.errors.map(err => err.message).join(', ') : result.message;
+                        displayMessage(errorMessage || 'حدث خطأ أثناء التسجيل. يرجى المحاولة مرة أخرى.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Network or parsing error:', error);
+                    displayMessage('حدث خطأ في الاتصال بالخادم. يرجى المحاولة لاحقاً.', 'error');
+                } finally {
+                    // إعادة تفعيل الزر بعد الانتهاء (سواء نجاح أو خطأ)
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'أكمل التسجيل'; // استعادة النص الأصلي
+                }
             }
 
-            // تأكد من تهيئة langManager وتطبيق الترجمات في main.js
-            // يُفضل أن تكون جميع الترجمات في ملف main.js لتجنب التكرار وضمان التحميل الصحيح.
-            // إذا كانت هذه الترجمات موجودة بالفعل في main.js، يمكنك إزالة هذا الجزء من هنا.
+            // ربط الدالة بحدث الإرسال (تأكد من أن السطر onsubmit في الفورم يشير إلى هذه الدالة)
+            // بما أننا أضفنا onsubmit="handleSubmit(event)" في HTML، فلا نحتاج لـ addEventListener هنا مجددًا لنفس الحدث.
+            // enrollmentForm.addEventListener('submit', handleSubmit); // يمكن إزالة هذا السطر
+
+            function displayMessage(message, type) {
+                formMessage.textContent = message;
+                formMessage.className = `form-message ${type}`; // يزيل الفئات القديمة ويضيف الجديدة
+                formMessage.style.display = 'block';
+                // الرسائل المؤقتة قد تختفي إذا تم إعادة التوجيه بسرعة،
+                // لكنها مفيدة لرسائل الخطأ أو رسائل "جاري الإرسال..."
+            }
+
+            // قسم الترجمات: يفضل أن يكون في ملف main.js
+            // إذا كان موجودًا في main.js، يمكنك إزالة هذا الجزء من هنا لتجنب التكرار.
             if (typeof langManager !== 'undefined' && langManager.translations) {
                 Object.assign(langManager.translations.ar, {
                     'enrollment-page-title': 'التسجيل في الدورات',
@@ -375,7 +396,7 @@
                     'course-pentesting-beginner': 'Penetration Testing for Beginners',
                     'course-advanced-threat-detection': 'Advanced Threat Detection'
                 });
-                langManager.applyTranslations(); // إعادة تطبيق الترجمات بعد إضافة الجديدة
+                langManager.applyTranslations(); // إعادة تطبيق الترجمات
             } else {
                 console.error("Error: langManager is not defined or its translations are missing. Ensure main.js is loaded correctly and initializes langManager.");
             }
