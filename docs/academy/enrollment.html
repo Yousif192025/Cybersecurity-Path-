@@ -45,7 +45,8 @@
         .form-group input[type="email"],
         .form-group input[type="tel"],
         .form-group select,
-        .form-group textarea {
+        .form-group textarea,
+        .form-group input[type="password"] { /* إضافة password هنا */
             width: 100%;
             padding: 12px 15px;
             border: 1px solid var(--border-light);
@@ -97,7 +98,6 @@
         .checkbox-group label a:hover {
             text-decoration: underline;
         }
-
 
         .form-submit-btn {
             display: block;
@@ -151,7 +151,7 @@
                 font-size: 1.1em;
                 padding: 12px 15px;
             }
-             .checkbox-group {
+            .checkbox-group {
                 flex-direction: column;
                 align-items: flex-end; /* Align to the right in column layout for RTL */
             }
@@ -202,7 +202,9 @@
     <main class="container">
         <div class="enrollment-container">
             <h2 data-text="enrollment-form-title">سجل الآن وابدأ رحلتك!</h2>
-            <form id="enrollmentForm">
+            <form id="enrollmentForm" action="https://formspree.io/f/xyzpdkjb" method="POST">
+                <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off">
+
                 <div class="form-group">
                     <label for="fullName" data-text="full-name-label">الاسم الكامل:</label>
                     <input type="text" id="fullName" name="fullName" required>
@@ -287,67 +289,55 @@
     <script src="../assets/js/main.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // تهيئة نظام اللغة وتفعيل قائمة الجوال وأزرار التمرير تتم من main.js
-            // (يفترض أن main.js يقوم بـ langManager.init() وتجهيز header/footer JS عند تحميل DOM)
-
             const enrollmentForm = document.getElementById('enrollmentForm');
             const formMessage = document.getElementById('formMessage');
+            const agreeTermsCheckbox = document.getElementById('agreeTerms'); // الحصول على مربع الاختيار
 
             enrollmentForm.addEventListener('submit', function(event) {
-                event.preventDefault(); // منع الإرسال الافتراضي للصفحة
+                // منع الإرسال الافتراضي للصفحة فقط للتحقق من الشروط محليًا
+                // Formspree سيتعامل مع الإرسال بعد هذا إذا كان كل شيء صحيحًا
 
-                // جمع بيانات النموذج
-                const formData = new FormData(enrollmentForm);
-                const data = Object.fromEntries(formData.entries());
-
-                // يمكنك هنا إضافة تحقق من صحة البيانات (Validation)
-                if (!data.fullName || !data.email || !data.phone || !data.course || !data.agreeTerms) {
-                    displayMessage('يرجى ملء جميع الحقول المطلوبة والموافقة على الشروط.', 'error');
+                // التحقق من الموافقة على الشروط
+                if (!agreeTermsCheckbox.checked) {
+                    event.preventDefault(); // منع الإرسال
+                    displayMessage('يجب الموافقة على الشروط والأحكام وسياسة الخصوصية للمتابعة.', 'error');
                     return;
                 }
 
-                // محاكاة إرسال البيانات (في تطبيق حقيقي سترسل إلى خادم)
-                console.log('بيانات التسجيل:', data);
+                // يمكنك إضافة أي تحقق إضافي هنا قبل السماح لـ Formspree بالإرسال
+                // مثال: التحقق من تنسيق البريد الإلكتروني (رغم أن input type="email" يقوم بذلك إلى حد ما)
+                // if (!validateEmail(document.getElementById('email').value)) {
+                //     event.preventDefault();
+                //     displayMessage('الرجاء إدخال بريد إلكتروني صحيح.', 'error');
+                //     return;
+                // }
 
-                // إظهار رسالة نجاح
-                displayMessage('تم التسجيل بنجاح! سنتواصل معك قريبًا.', 'success');
-                enrollmentForm.reset(); // تفريغ النموذج بعد الإرسال الناجح
-
-                /*
-                 * في تطبيق حقيقي، ستستخدم fetch API لإرسال البيانات إلى الخادم:
-                 *
-                 * fetch('/api/enroll', {
-                 * method: 'POST',
-                 * headers: {
-                 * 'Content-Type': 'application/json',
-                 * },
-                 * body: JSON.stringify(data),
-                 * })
-                 * .then(response => response.json())
-                 * .then(result => {
-                 * if (result.success) {
-                 * displayMessage('تم التسجيل بنجاح! سنتواصل معك قريبًا.', 'success');
-                 * enrollmentForm.reset();
-                 * } else {
-                 * displayMessage(result.message || 'حدث خطأ أثناء التسجيل. يرجى المحاولة مرة أخرى.', 'error');
-                 * }
-                 * })
-                 * .catch(error => {
-                 * console.error('Error:', error);
-                 * displayMessage('حدث خطأ في الاتصال بالخادم. يرجى المحاولة لاحقًا.', 'error');
-                 * });
-                 */
+                // بما أننا نستخدم Formspree مباشرةً عبر `action` و `method="POST"`,
+                // فإن Formspree سيتولى عملية الإرسال بمجرد أن يمر النموذج بالتحققات المحلية (مثل `required`).
+                // لن نستخدم `fetch` API هنا.
+                
+                // Formspree سيعالج الاستجابة (إعادة التوجيه إلى صفحة شكرًا لك، أو عرض رسالة نجاح/خطأ افتراضية من Formspree).
+                // لذا، الرسالة المحلية `displayMessage` قد لا تكون ظاهرة لفترة كافية أو بالشكل المتوقع.
+                // إذا كنت تريد رسالة نجاح محلية فورية قبل إعادة التوجيه من Formspree،
+                // فستحتاج إلى إعداد Formspree لإعادة التوجيه إلى نفس الصفحة (أو صفحة مخصصة)،
+                // ثم تقوم بتحليل معلمة في الـ URL (مثل `?status=success`) لعرض الرسالة.
+                // للتبسيط، في هذا الإعداد، Formspree سيتولى التأكيد.
             });
 
+            // دالة لعرض الرسائل المحلية (إذا قررت استخدامها)
             function displayMessage(message, type) {
                 formMessage.textContent = message;
                 formMessage.className = `form-message ${type}`;
                 formMessage.style.display = 'block';
+                // إخفاء الرسالة بعد 5 ثوانٍ (اختياري)
+                setTimeout(() => {
+                    formMessage.style.display = 'none';
+                }, 5000);
             }
 
-            // إضافة ترجمات خاصة بصفحة التسجيل إلى langManager (إذا لم تكن موجودة بالفعل في main.js)
-            // يفضل أن تكون جميع الترجمات موجودة في ملف main.js لتجنب تكرار الكود وضمان تحميلها مرة واحدة.
-            // إذا كنت قد أضفت هذه الترجمات بالفعل إلى main.js كما في ردي السابق، يمكنك إزالة هذا الجزء من هنا.
+            // تأكد من تهيئة langManager وتطبيق الترجمات في main.js
+            // يُفضل أن تكون جميع الترجمات في ملف main.js لتجنب التكرار وضمان التحميل الصحيح.
+            // إذا كانت هذه الترجمات موجودة بالفعل في main.js، يمكنك إزالة هذا الجزء من هنا.
             if (typeof langManager !== 'undefined' && langManager.translations) {
                 Object.assign(langManager.translations.ar, {
                     'enrollment-page-title': 'التسجيل في الدورات',
