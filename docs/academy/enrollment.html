@@ -307,8 +307,6 @@
             const agreeTermsCheckbox = document.getElementById('agreeTerms');
             const submitButton = enrollmentForm.querySelector('button[type="submit"]');
 
-            // **هذا السطر هو الأهم:** ربط دالة handleSubmit بحدث الإرسال
-            // هذا يضمن أن JavaScript يعالج الإرسال بدلاً من المتصفح مباشرةً
             enrollmentForm.addEventListener('submit', handleSubmit); 
 
             let redirectTimeout; // متغير لتخزين مؤقت إعادة التوجيه
@@ -334,75 +332,67 @@
                     const response = await fetch(form.action, {
                         method: form.method,
                         body: formData,
-                        // هذا الهيدر هو المفتاح لخاصية AJAX في Formspree
                         headers: {
                             'Accept': 'application/json' 
                         }
                     });
 
-                    const result = await response.json(); // تحليل الاستجابة كـ JSON
+                    const result = await response.json(); 
 
-                    if (response.ok) { // حالة 2xx تعني نجاح الإرسال من Formspree
-                        // مسح أي مؤقت إعادة توجيه سابق إذا كان موجودًا
+                    if (response.ok) { 
                         clearTimeout(redirectTimeout); 
                         
+                        // **التعديل هنا:** تأكد من أن الرسالة تظهر وأن النموذج يختفي قبل setTimeout
                         displayMessage(
                             '**تم التسجيل بنجاح!** سنتواصل معك قريبًا.<br>' +
                             '<button id="goBackBtn">العودة إلى النموذج الآن</button>', 
                             'success'
                         );
-                        
-                        enrollmentForm.reset(); // تفريغ النموذج
-                        // إخفاء النموذج وإظهار رسالة النجاح فقط
-                        enrollmentForm.style.display = 'none'; 
+                        enrollmentForm.reset(); 
+                        enrollmentForm.style.display = 'none'; // إخفاء النموذج
 
                         // إضافة مستمع لزر العودة بعد إنشائه
                         const goBackBtn = document.getElementById('goBackBtn');
                         if (goBackBtn) {
                             goBackBtn.addEventListener('click', () => {
                                 clearTimeout(redirectTimeout); // إلغاء إعادة التوجيه التلقائي
-                                window.location.reload(); // إعادة تحميل الصفحة للعودة للنموذج
+                                window.location.reload(); 
                             });
                         }
 
-                        // إعادة التوجيه التلقائي بعد 5 ثوانٍ
+                        // **إضافة تأخير بسيط قبل إعادة التوجيه لضمان رؤية الرسالة**
                         redirectTimeout = setTimeout(() => {
-                            window.location.reload(); // إعادة تحميل الصفحة للعودة للنموذج
+                            window.location.reload(); 
                         }, 5000); // 5000 ميلي ثانية = 5 ثوانٍ
 
-                    } else { // Formspree أرسل استجابة خطأ (مثلاً، حقول ناقصة، أو مشكلة في Formspree نفسه)
+                    } else { 
                         const errorMessage = result.errors ? result.errors.map(err => err.message).join(', ') : result.message;
                         displayMessage(
                             `**حدث خطأ أثناء التسجيل:** ${errorMessage || 'يرجى المحاولة مرة أخرى.'}`, 
                             'error'
                         );
-                        // في حالة الخطأ، لا نخفي النموذج ولا نعيد التوجيه
                     }
                 } catch (error) {
-                    // هذا يلتقط أخطاء الشبكة أو مشاكل في تحليل JSON
                     console.error('Network or parsing error:', error);
                     displayMessage(
                         '**حدث خطأ في الاتصال بالخادم.** يرجى التحقق من اتصالك بالإنترنت والمحاولة لاحقًا.', 
                         'error'
                     );
                 } finally {
-                    // إعادة تفعيل زر الإرسال إذا لم تكن هناك إعادة توجيه (أي في حالة الخطأ)
-                    if (formMessage.classList.contains('error')) { // فقط إذا كانت الرسالة الظاهرة هي خطأ
+                    if (formMessage.classList.contains('error')) { 
                         submitButton.disabled = false;
-                        submitButton.textContent = 'أكمل التسجيل'; // استعادة النص الأصلي
+                        submitButton.textContent = 'أكمل التسجيل'; 
                     }
                 }
             }
 
-            // دالة عرض الرسائل
             function displayMessage(message, type) {
-                formMessage.innerHTML = message; // استخدام innerHTML للسماح بالـ HTML داخل الرسالة
-                formMessage.className = `form-message ${type}`; // تعيين الفئات لإدارة الأنماط
-                formMessage.style.display = 'block'; // إظهار الرسالة
+                formMessage.innerHTML = message; 
+                formMessage.className = `form-message ${type}`; 
+                formMessage.style.display = 'block'; 
             }
 
             // قسم الترجمات (يفضل أن يكون في main.js لتجنب التكرار)
-            // إذا كنت قد أضفت هذه الترجمات بالفعل إلى main.js، يمكنك إزالة هذا الجزء من هنا.
             if (typeof langManager !== 'undefined' && langManager.translations) {
                 Object.assign(langManager.translations.ar, {
                     'enrollment-page-title': 'التسجيل في الدورات',
