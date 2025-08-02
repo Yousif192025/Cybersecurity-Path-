@@ -125,6 +125,9 @@
             text-align: center;
             font-weight: 500;
             display: none; /* Hidden by default */
+            /* جعل الرسالة أكبر وواضحة */
+            font-size: 1.3em;
+            line-height: 1.6;
         }
 
         .form-message.success {
@@ -222,23 +225,19 @@
 
                 <div class="form-group">
                     <label for="fullName" data-text="full-name-label">الاسم الكامل:</label>
-                    <input type="text" id="fullName" name="fullName" required>
-                </div>
+                    <input type="text" id="fullName" name="fullName" required> </div>
 
                 <div class="form-group">
                     <label for="email" data-text="email-label">البريد الإلكتروني:</label>
-                    <input type="email" id="email" name="email" required>
-                </div>
+                    <input type="email" id="email" name="email" required> </div>
 
                 <div class="form-group">
                     <label for="phone" data-text="phone-label">رقم الهاتف:</label>
-                    <input type="tel" id="phone" name="phone" placeholder="مثال: 05xxxxxxx" required>
-                </div>
+                    <input type="tel" id="phone" name="phone" placeholder="مثال: 05xxxxxxx" required> </div>
 
                 <div class="form-group">
                     <label for="course" data-text="course-selection-label">اختر الدورة / المسار:</label>
-                    <select id="course" name="course" required>
-                        <option value="" data-text="select-option">-- اختر دورة --</option>
+                    <select id="course" name="course" required> <option value="" data-text="select-option">-- اختر دورة --</option>
                         <option value="info-sec-fundamentals" data-text="course-info-sec-fundamentals">أساسيات أمن المعلومات</option>
                         <option value="network-security" data-text="course-network-security">أمن الشبكات</option>
                         <option value="web-security" data-text="course-web-security">أمن تطبيقات الويب</option>
@@ -254,8 +253,7 @@
                 </div>
 
                 <div class="checkbox-group">
-                    <input type="checkbox" id="agreeTerms" name="agreeTerms" required>
-                    <label for="agreeTerms" data-text="agree-terms-label">أوافق على <a href="../terms.html">الشروط والأحكام</a> و <a href="../privacy.html">سياسة الخصوصية</a></label>
+                    <input type="checkbox" id="agreeTerms" name="agreeTerms" required> <label for="agreeTerms" data-text="agree-terms-label">أوافق على <a href="../terms.html">الشروط والأحكام</a> و <a href="../privacy.html">سياسة الخصوصية</a></label>
                 </div>
 
                 <button type="submit" class="form-submit-btn" data-text="submit-enrollment">أكمل التسجيل</button>
@@ -309,18 +307,22 @@
             const agreeTermsCheckbox = document.getElementById('agreeTerms');
             const submitButton = enrollmentForm.querySelector('button[type="submit"]');
 
-            async function handleSubmit(event) {
-                event.preventDefault(); // منع الإرسال الافتراضي
+            // متغير لتخزين مؤقت إعادة التوجيه
+            let redirectTimeout;
 
+            async function handleSubmit(event) {
+                event.preventDefault(); // منع الإرسال الافتراضي للصفحة
+
+                // تحقق من الموافقة على الشروط أولاً
                 if (!agreeTermsCheckbox.checked) {
-                    displayMessage('يجب الموافقة على الشروط والأحكام وسياسة الخصوصية للمتابعة.', 'error');
+                    displayMessage('**الرجاء الموافقة على الشروط والأحكام وسياسة الخصوصية للمتابعة.**', 'error');
                     return;
                 }
 
-                // تعطيل الزر وعرض رسالة "جاري الإرسال"
+                // تعطيل الزر ومنع الإرسالات المتعددة
                 submitButton.disabled = true;
                 submitButton.textContent = 'جاري الإرسال...';
-                displayMessage('جاري إرسال طلبك...', 'info');
+                displayMessage('**جاري إرسال طلبك، يرجى الانتظار...**', 'info');
 
                 const form = event.target;
                 const formData = new FormData(form);
@@ -329,54 +331,75 @@
                     const response = await fetch(form.action, {
                         method: form.method,
                         body: formData,
+                        // هذا الهيدر هو المفتاح لخاصية AJAX في Formspree
                         headers: {
-                            'Accept': 'application/json' // مهم جداً لـ Formspree AJAX
+                            'Accept': 'application/json' 
                         }
                     });
 
-                    const result = await response.json();
+                    const result = await response.json(); // تحليل الاستجابة كـ JSON
 
-                    if (response.ok) {
-                        displayMessage('تم التسجيل بنجاح! سنتواصل معك قريبًا.<br><button id="goBackBtn">العودة للنموذج</button>', 'success');
+                    if (response.ok) { // حالة 2xx تعني نجاح الإرسال من Formspree
+                        // مسح أي مؤقت إعادة توجيه سابق إذا كان موجودًا
+                        clearTimeout(redirectTimeout); 
+                        
+                        displayMessage(
+                            '**تم التسجيل بنجاح!** سنتواصل معك قريبًا.<br>' +
+                            '<button id="goBackBtn">العودة إلى النموذج الآن</button>', 
+                            'success'
+                        );
+                        
                         enrollmentForm.reset(); // تفريغ النموذج
-                        enrollmentForm.style.display = 'none'; // إخفاء النموذج بعد النجاح
+                        // إخفاء النموذج وإظهار رسالة النجاح فقط
+                        enrollmentForm.style.display = 'none'; 
 
-                        // إضافة مستمع لزر العودة فور إنشائه
+                        // إضافة مستمع لزر العودة بعد إنشائه
                         const goBackBtn = document.getElementById('goBackBtn');
                         if (goBackBtn) {
                             goBackBtn.addEventListener('click', () => {
+                                clearTimeout(redirectTimeout); // إلغاء إعادة التوجيه التلقائي
                                 window.location.reload(); // إعادة تحميل الصفحة للعودة للنموذج
                             });
                         }
 
                         // إعادة التوجيه التلقائي بعد 5 ثوانٍ
-                        setTimeout(() => {
-                            window.location.reload(); // أو window.location.href = './enrollment.html';
-                        }, 5000); // 5 ثوانٍ
-                    } else {
+                        redirectTimeout = setTimeout(() => {
+                            window.location.reload(); // إعادة تحميل الصفحة للعودة للنموذج
+                        }, 5000); // 5000 ميلي ثانية = 5 ثوانٍ
+
+                    } else { // Formspree أرسل استجابة خطأ (مثلاً، حقول ناقصة، أو مشكلة في Formspree نفسه)
                         const errorMessage = result.errors ? result.errors.map(err => err.message).join(', ') : result.message;
-                        displayMessage(errorMessage || 'حدث خطأ أثناء التسجيل. يرجى المحاولة مرة أخرى.', 'error');
+                        displayMessage(
+                            `**حدث خطأ أثناء التسجيل:** ${errorMessage || 'يرجى المحاولة مرة أخرى.'}`, 
+                            'error'
+                        );
+                        // في حالة الخطأ، لا نخفي النموذج ولا نعيد التوجيه
                     }
                 } catch (error) {
+                    // هذا يلتقط أخطاء الشبكة أو مشاكل في تحليل JSON
                     console.error('Network or parsing error:', error);
-                    displayMessage('حدث خطأ في الاتصال بالخادم. يرجى المحاولة لاحقاً.', 'error');
+                    displayMessage(
+                        '**حدث خطأ في الاتصال بالخادم.** يرجى التحقق من اتصالك بالإنترنت والمحاولة لاحقًا.', 
+                        'error'
+                    );
                 } finally {
-                    // إعادة تفعيل الزر واستعادة نصه الأصلي فقط إذا لم يتم إعادة توجيه الصفحة بعد
-                    // لأن إعادة التحميل ستعيد تعيين كل شيء
-                    if (formMessage.style.display !== 'none' || !response.ok) { // فقط إذا كانت رسالة خطأ أو لم يتم إخفاء الرسالة
+                    // إعادة تفعيل زر الإرسال إذا لم تكن هناك إعادة توجيه (أي في حالة الخطأ)
+                    if (formMessage.classList.contains('error')) { // فقط إذا كانت الرسالة الظاهرة هي خطأ
                         submitButton.disabled = false;
-                        submitButton.textContent = 'أكمل التسجيل';
+                        submitButton.textContent = 'أكمل التسجيل'; // استعادة النص الأصلي
                     }
                 }
             }
 
+            // دالة عرض الرسائل
             function displayMessage(message, type) {
-                formMessage.innerHTML = message; // استخدام innerHTML للسماح بالزر
-                formMessage.className = `form-message ${type}`;
-                formMessage.style.display = 'block';
+                formMessage.innerHTML = message; // استخدام innerHTML للسماح بالـ HTML داخل الرسالة
+                formMessage.className = `form-message ${type}`; // تعيين الفئات لإدارة الأنماط
+                formMessage.style.display = 'block'; // إظهار الرسالة
             }
 
-            // قسم الترجمات: يفضل أن يكون في ملف main.js
+            // قسم الترجمات (يجب أن يكون في main.js لتجنب التكرار)
+            // إذا كنت قد أضفت هذه الترجمات بالفعل إلى main.js، يمكنك إزالة هذا الجزء من هنا.
             if (typeof langManager !== 'undefined' && langManager.translations) {
                 Object.assign(langManager.translations.ar, {
                     'enrollment-page-title': 'التسجيل في الدورات',
