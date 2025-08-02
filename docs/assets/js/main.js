@@ -186,3 +186,253 @@ function printFile(url) {
         printWindow.print();
     };
 }
+
+
+// Cybersecurity-Path/assets/js/main.js
+
+// نظام اللغات
+const langManager = {
+    currentLang: 'ar',
+    translations: {
+        ar: {
+            // ترجمات عامة للموقع (من index, about, contact, etc.)
+            'platform-name': 'منصة الأمن السيبراني',
+            'home-nav': 'الرئيسية',
+            'about-nav': 'عن المنصة',
+            'learning-paths-nav': 'المسارات التعليمية',
+            'courses-nav': 'الدورات الاحترافية',
+            'enrollment-nav': 'التسجيل',
+            'student-dashboard-nav': 'لوحة الطالب',
+            'calendar-nav': 'التقويم',
+            'free-platforms-link': 'منصات مجانية',
+            'contact-us-nav': 'تواصل معنا',
+            'platform-footer': 'المنصة',
+            'about-platform-footer': 'عن المنصة',
+            'policies-footer': 'السياسات',
+            'terms-footer': 'الشروط والأحكام',
+            'privacy-footer': 'سياسة الخصوصية',
+            'contact-us-footer': 'تواصل معنا',
+            'whatsapp-number': '0502161465',
+            'support-center-footer': 'مركز الدعم والمساعدة',
+            'more-links-footer': 'روابط أخرى',
+            'news-footer': 'الأخبار',
+            'email-us-footer': 'راسلنا @',
+            'institute-link': 'المعهد الأهلي العالي للتدريب',
+            'location-footer': 'محافظة القريات-الجوف-المملكة العربية السعودية',
+            'copyright-footer': '© 2025 Yousif E.Hashim جميع الحقوق محفوظة',
+
+            // ترجمات لوحة تحكم الطالب (student-dashboard.html)
+            'student-dashboard-title': 'لوحة تحكم الطالب',
+            'welcome-heading': 'مرحبًا، ',
+            'welcome-message': 'هذه هي لوحة التحكم الخاصة بك. يمكنك متابعة تقدمك والوصول إلى الدورات والشهادات هنا.',
+            'courses-registered': 'دورات مسجلة',
+            'certificates-completed': 'شهادات مكتملة',
+            'completion-rate': 'نسبة الإنجاز',
+            'my-courses-heading': 'دوراتي',
+            'progress-label': 'نسبة التقدم',
+            'continue-course': 'متابعة الدورة',
+            'view-certificate': 'عرض الشهادة',
+
+            // ترجمات صفحة التسجيل (enrollment.html)
+            'enrollment-page-title': 'التسجيل في الدورات',
+            'enrollment-form-title': 'سجل الآن وابدأ رحلتك!',
+            'full-name-label': 'الاسم الكامل:',
+            'email-label': 'البريد الإلكتروني:',
+            'phone-label': 'رقم الهاتف:',
+            'course-selection-label': 'اختر الدورة / المسار:',
+            'select-option': '-- اختر دورة --',
+            'message-label': 'رسالة إضافية (اختياري):',
+            'agree-terms-label': 'أوافق على الشروط والأحكام و سياسة الخصوصية',
+            'submit-enrollment': 'أكمل التسجيل',
+
+            // ترجمات الدورات (مشتركة بين dashboard و enrollment)
+            'course-info-sec-fundamentals': 'أساسيات أمن المعلومات',
+            'course-network-security': 'أمن الشبكات',
+            'course-pentesting-beginner': 'اختبار اختراق للمبتدئين',
+            'course-web-security': 'أمن تطبيقات الويب',
+            'course-digital-forensics': 'التحليل الجنائي الرقمي',
+            'course-advanced-threat-detection': 'الكشف المتقدم عن التهديدات',
+
+            // ترجمات التقويم (calendar.html)
+            'calendar-page-title': 'تقويم الدورات والفعاليات',
+            'calendar-heading': 'تقويم الدورات والفعاليات',
+            'sun': 'الأحد',
+            'mon': 'الإثنين',
+            'tue': 'الثلاثاء',
+            'wed': 'الأربعاء',
+            'thu': 'الخميس',
+            'fri': 'الجمعة',
+            'sat': 'السبت',
+            'event-date-label': 'التاريخ:',
+            'event-time-label': 'الوقت:',
+            'event-description-label': 'الوصف:',
+            'event-type-label': 'النوع:',
+            'event-link-label': 'الرابط:'
+        },
+        en: {
+            // English translations
+            'platform-name': 'Cybersecurity Platform',
+            'home-nav': 'Home',
+            'about-nav': 'About Us',
+            'learning-paths-nav': 'Learning Paths',
+            'courses-nav': 'Professional Courses',
+            'enrollment-nav': 'Enrollment',
+            'student-dashboard-nav': 'Student Dashboard',
+            'calendar-nav': 'Calendar',
+            'free-platforms-link': 'Free Platforms',
+            'contact-us-nav': 'Contact Us',
+            'platform-footer': 'Platform',
+            'about-platform-footer': 'About the Platform',
+            'policies-footer': 'Policies',
+            'terms-footer': 'Terms & Conditions',
+            'privacy-footer': 'Privacy Policy',
+            'contact-us-footer': 'Contact Us',
+            'whatsapp-number': '0502161465',
+            'support-center-footer': 'Support Center',
+            'more-links-footer': 'More Links',
+            'news-footer': 'News',
+            'email-us-footer': 'Email Us @',
+            'institute-link': 'Al-Ahli Higher Institute for Training',
+            'location-footer': 'Al Qurayyat - Al Jawf - Saudi Arabia',
+            'copyright-footer': '© 2025 Yousif E.Hashim All Rights Reserved',
+
+            'student-dashboard-title': 'Student Dashboard',
+            'welcome-heading': 'Welcome, ',
+            'welcome-message': 'This is your dashboard. You can track your progress and access courses and certificates here.',
+            'courses-registered': 'Courses Registered',
+            'certificates-completed': 'Certificates Completed',
+            'completion-rate': 'Completion Rate',
+            'my-courses-heading': 'My Courses',
+            'progress-label': 'Progress',
+            'continue-course': 'Continue Course',
+            'view-certificate': 'View Certificate',
+
+            'enrollment-page-title': 'Course Enrollment',
+            'enrollment-form-title': 'Enroll Now and Start Your Journey!',
+            'full-name-label': 'Full Name:',
+            'email-label': 'Email:',
+            'phone-label': 'Phone Number:',
+            'course-selection-label': 'Select Course / Path:',
+            'select-option': '-- Select a course --',
+            'message-label': 'Additional Message (optional):',
+            'agree-terms-label': 'I agree to the Terms & Conditions and Privacy Policy',
+            'submit-enrollment': 'Complete Enrollment',
+
+            'course-info-sec-fundamentals': 'Information Security Fundamentals',
+            'course-network-security': 'Network Security',
+            'course-pentesting-beginner': 'Penetration Testing for Beginners',
+            'course-web-security': 'Web Application Security',
+            'course-digital-forensics': 'Digital Forensics',
+            'course-advanced-threat-detection': 'Advanced Threat Detection',
+
+            'calendar-page-title': 'Courses & Events Calendar',
+            'calendar-heading': 'Courses & Events Calendar',
+            'sun': 'Sun',
+            'mon': 'Mon',
+            'tue': 'Tue',
+            'wed': 'Wed',
+            'thu': 'Thu',
+            'fri': 'Fri',
+            'sat': 'Sat',
+            'event-date-label': 'Date:',
+            'event-time-label': 'Time:',
+            'event-description-label': 'Description:',
+            'event-type-label': 'Type:',
+            'event-link-label': 'Link:'
+        }
+    },
+
+    init() {
+        this.loadLanguage();
+        this.setupEventListeners();
+    },
+
+    loadLanguage() {
+        const savedLang = localStorage.getItem('cyberPathLang') || 'ar';
+        this.switchLanguage(savedLang);
+    },
+
+    switchLanguage(lang) {
+        this.currentLang = lang;
+        document.documentElement.lang = lang;
+        document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+        this.applyTranslations();
+        this.updateLangToggle();
+        localStorage.setItem('cyberPathLang', lang);
+    },
+
+    applyTranslations() {
+        document.querySelectorAll('[data-text]').forEach(el => {
+            const key = el.getAttribute('data-text');
+            if (this.translations[this.currentLang][key]) {
+                el.textContent = this.translations[this.currentLang][key];
+            } else {
+                console.warn(`Missing translation key: ${key} for language: ${this.currentLang}`);
+            }
+        });
+    },
+
+    updateLangToggle() {
+        const toggle = document.getElementById('langToggle');
+        if (toggle) {
+            toggle.textContent = this.currentLang === 'ar' ? 'EN' : 'AR';
+        }
+    },
+
+    setupEventListeners() {
+        // Toggle Mobile Menu
+        const menuToggle = document.getElementById('menu-toggle');
+        const mobileNav = document.getElementById('mobile-nav');
+        if (menuToggle && mobileNav) {
+            menuToggle.addEventListener('click', () => {
+                mobileNav.classList.toggle('active');
+            });
+            mobileNav.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileNav.classList.remove('active');
+                });
+            });
+        }
+
+        // Language Toggle Button
+        const langToggle = document.getElementById('langToggle');
+        if (langToggle) {
+            langToggle.addEventListener('click', () => {
+                const newLang = this.currentLang === 'ar' ? 'en' : 'ar';
+                this.switchLanguage(newLang);
+            });
+        }
+
+        // Scroll to Top/Bottom Buttons
+        const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+        const scrollToBottomBtn = document.getElementById('scrollToBottomBtn');
+        if (scrollToTopBtn && scrollToBottomBtn) {
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 300) {
+                    scrollToTopBtn.style.display = 'block';
+                    scrollToBottomBtn.style.display = 'block';
+                } else {
+                    scrollToTopBtn.style.display = 'none';
+                    scrollToBottomBtn.style.display = 'none';
+                }
+                if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 50) {
+                    scrollToBottomBtn.style.display = 'none';
+                } else if (window.scrollY > 300) {
+                    scrollToBottomBtn.style.display = 'block';
+                }
+            });
+
+            scrollToTopBtn.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            scrollToBottomBtn.addEventListener('click', () => {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            });
+        }
+    }
+};
+
+// Initialize the language manager when the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', () => {
+    langManager.init();
+});
