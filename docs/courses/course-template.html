@@ -3,76 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="course-title">تحميل المقرر</title>
+    <title>تفاصيل المقرر</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style> @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'); body { font-family: 'Inter', sans-serif; } </style>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .unit-card:hover .download-btn {
+            opacity: 1;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 text-gray-800 p-8 flex flex-col items-center justify-center min-h-screen">
-    <div class="container mx-auto max-w-2xl bg-white p-8 rounded-xl shadow-lg text-center">
-        <a href="index.html" class="text-sky-600 hover:text-sky-800 transition-colors duration-200 mb-4 inline-block font-medium">&larr; العودة إلى الخطة الدراسية</a>
-        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6" id="course-name">تحميل المقرر...</h1>
-        <p class="text-lg text-gray-600 mb-8">تفاصيل المقرر والمواد المتاحة.</p>
-        <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4 sm:space-x-reverse">
-            <a id="view-file-link" href="#" target="_blank" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 shadow-md">عرض الملف</a>
-            <a id="download-file-link" href="#" download class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg transition-colors duration-200 shadow-md">تحميل الملف</a>
+<body class="bg-gray-50 text-gray-800">
+    <div class="container mx-auto max-w-6xl px-4 py-8">
+        <!-- زر العودة -->
+        <a href="index.html" class="inline-flex items-center text-sky-600 hover:text-sky-800 mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+            </svg>
+            العودة إلى الخطة الدراسية
+        </a>
+
+        <!-- عنوان المقرر -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+            <div class="p-8">
+                <h1 id="course-title" class="text-3xl font-bold text-gray-900 mb-2"></h1>
+                <div id="course-description" class="text-gray-600 mb-4"></div>
+                <a id="main-download" href="#" class="inline-flex items-center px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                    تحميل المادة العلمية الرئيسية
+                </a>
+            </div>
         </div>
-        <div id="units-section" class="mt-8 text-left w-full hidden">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4">الوحدات / المحاضرات:</h2>
-            <ul id="units-list" class="space-y-2">
-                </ul>
+
+        <!-- وحدات المقرر -->
+        <div class="mb-10">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-2">الوحدات الدراسية</h2>
+            <div id="units-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </div>
+
+        <!-- الأهداف التعليمية -->
+        <div class="mb-10">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-2">الأهداف التعليمية</h2>
+            <ul id="objectives-list" class="list-disc list-inside space-y-2 bg-white p-6 rounded-lg shadow-sm"></ul>
+        </div>
+
+        <!-- متطلبات المقرر -->
+        <div class="mb-10">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-2">متطلبات المقرر</h2>
+            <div id="requirements" class="bg-white p-6 rounded-lg shadow-sm">
+                <p class="text-gray-600">لا يوجد متطلبات مسبقة لهذا المقرر</p>
+            </div>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', function() {
+            // استخراج معلمات URL
             const urlParams = new URLSearchParams(window.location.search);
             const courseId = urlParams.get('course');
             const courseName = urlParams.get('name');
             const courseFile = urlParams.get('file');
 
-            if (courseName) {
-                document.getElementById('course-title').textContent = courseName;
-                document.getElementById('course-name').textContent = courseName;
-            }
+            // تعيين بيانات المقرر (يمكن استبدالها ببيانات حقيقية من قاعدة بيانات)
+            const courseData = getCourseData(courseId);
+            
+            // تحديث عناصر الصفحة
+            document.getElementById('course-title').textContent = courseName;
+            document.getElementById('course-description').textContent = courseData.description;
+            document.getElementById('main-download').href = `../materials/${courseFile}`;
+            
+            // إضافة الأهداف التعليمية
+            const objectivesList = document.getElementById('objectives-list');
+            courseData.objectives.forEach(obj => {
+                const li = document.createElement('li');
+                li.className = 'text-gray-700';
+                li.textContent = obj;
+                objectivesList.appendChild(li);
+            });
+            
+            // إضافة الوحدات الدراسية
+            const unitsContainer = document.getElementById('units-container');
+            courseData.units.forEach((unit, index) => {
+                const unitCard = document.createElement('div');
+                unitCard.className = 'bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow unit-card';
+                unitCard.innerHTML = `
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">${unit.title}</h3>
+                        <p class="text-gray-600 mb-4">${unit.description || ''}</p>
+                        <a href="../materials/${courseId}/${unit.file}" 
+                           class="download-btn inline-flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all opacity-0 md:opacity-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                            تحميل الوحدة
+                        </a>
+                    </div>
+                `;
+                unitsContainer.appendChild(unitCard);
+            });
+        });
 
-            if (courseFile) {
-                const filePath = `../materials/${courseFile}`; // المسار الصحيح لملفات PDF
-                document.getElementById('view-file-link').href = filePath;
-                document.getElementById('download-file-link').href = filePath;
-            }
-
-            // هنا يمكنك إضافة منطق لجلب الوحدات الفرعية بناءً على courseId
-            // يمكنك تخزين هذه البيانات في ملف JSON منفصل أو تضمينها هنا إذا كانت قليلة
-            const unitsData = {
-                'ethical_hacking': [
-                    { name: 'الوحدة 1: مقدمة في الاختراق الأخلاقي', file: '../materials/pt_unit1.pdf' },
-                    { name: 'الوحدة 2: جمع المعلومات', file: '../materials/pt_unit2.pdf' },
-                    { name: 'الوحدة 3: مسح الشبكات', file: '../materials/pt_unit3.pdf' },
-                    // أضف المزيد من الوحدات لهذا المقرر
-                ],
-                'cyber_basics': [
-                    { name: 'الوحدة 1: مفاهيم الأمن السيبراني', file: '../materials/cb_unit1.pdf' },
-                    { name: 'الوحدة 2: أنواع الهجمات', file: '../materials/cb_unit2.pdf' },
-                    // أضف المزيد
-                ]
-                // أضف بيانات الوحدات للمقررات الأخرى هنا
+        // دالة مساعدة - يمكن استبدالها بطلب AJAX للخادم
+        function getCourseData(courseId) {
+            // بيانات وهمية - يجب استبدالها ببيانات حقيقية
+            const coursesDatabase = {
+                career_guidance: {
+                    description: "يهدف هذا المقرر إلى تعريف الطلاب بالمفاهيم الأساسية للتوجيه المهني وتطوير المهارات الوظيفية.",
+                    objectives: [
+                        "فهم أساسيات التخطيط الوظيفي",
+                        "تطوير مهارات البحث عن عمل",
+                        "تعلم كتابة السيرة الذاتية الاحترافية"
+                    ],
+                    units: [
+                        { title: "الوحدة 1: مقدمة في التوجيه المهني", file: "unit1.pdf" },
+                        { title: "الوحدة 2: مهارات البحث عن عمل", file: "unit2.pdf" },
+                        { title: "الوحدة 3: كتابة السيرة الذاتية", file: "unit3.pdf" }
+                    ]
+                },
+                ethical_hacking: {
+                    description: "مقدمة شاملة لمبادئ الاختراق الأخلاقي وتقنيات اختبار الاختراق.",
+                    objectives: [
+                        "فهم أساسيات الأمن السيبراني",
+                        "تعلم تقنيات اختبار الاختراق",
+                        "تطبيق أدوات الأمن السيبراني"
+                    ],
+                    units: [
+                        { title: "الوحدة 1: مقدمة في الأمن السيبراني", file: "unit1.pdf" },
+                        { title: "الوحدة 2: منهجية اختبار الاختراق", file: "unit2.pdf" },
+                        { title: "الوحدة 3: أدوات الاختراق الأخلاقي", file: "unit3.pdf" },
+                        { title: "الوحدة 4: تقارير اختبار الاختراق", file: "unit4.pdf" }
+                    ]
+                }
+                // يمكن إضافة المزيد من المقررات هنا
             };
 
-            if (courseId && unitsData[courseId]) {
-                const unitsList = document.getElementById('units-list');
-                unitsData[courseId].forEach(unit => {
-                    const listItem = document.createElement('li');
-                    listItem.innerHTML = `
-                        <a href="${unit.file}" target="_blank" class="text-sky-600 hover:text-sky-800 transition-colors duration-200 font-medium">
-                            ${unit.name}
-                        </a>
-                        <span class="text-gray-500 text-sm">(عرض/تحميل)</span>
-                    `;
-                    unitsList.appendChild(listItem);
-                });
-                document.getElementById('units-section').classList.remove('hidden');
-            }
-        });
+            return coursesDatabase[courseId] || {
+                description: "لا يوجد وصف متاح لهذا المقرر",
+                objectives: ["لا توجد أهداف محددة"],
+                units: []
+            };
+        }
     </script>
 </body>
 </html>
