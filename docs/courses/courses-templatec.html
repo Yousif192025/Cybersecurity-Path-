@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">تفاصيل المقرر</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* لإظهار زر التحميل عند التحويم على الوحدة */
+        .unit-card .download-btn {
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .unit-card:hover .download-btn {
+            opacity: 1;
+        }
+        /* دائماً مرئي على الشاشات الكبيرة */
+        @media (min-width: 768px) {
+            .unit-card .download-btn {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div class="container mx-auto max-w-6xl px-4 py-8">
+        <a href="index.html" class="inline-flex items-center text-sky-600 hover:text-sky-800 mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+            </svg>
+            العودة إلى الخطة الدراسية
+        </a>
+
+        <div class="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+            <div class="p-8">
+                <h1 id="course-title" class="text-3xl font-bold text-gray-900 mb-2"></h1>
+                <p id="course-description" class="text-gray-600 mb-4"></p>
+                <a id="main-download" href="#" class="inline-flex items-center px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                    تحميل المادة العلمية الرئيسية
+                </a>
+            </div>
+        </div>
+
+        <div class="mb-10">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-2">الوحدات الدراسية</h2>
+            <div id="units-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </div>
+
+        <div class="mb-10">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-2">الأهداف التعليمية</h2>
+            <ul id="objectives-list" class="list-disc list-inside space-y-2 bg-white p-6 rounded-lg shadow-sm"></ul>
+        </div>
+
+        <div class="mb-10">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-2">متطلبات المقرر</h2>
+            <div id="requirements" class="bg-white p-6 rounded-lg shadow-sm">
+                <p id="prerequisites-text" class="text-gray-600"></p>
+            </div>
+        </div>
+
+        <div class="mb-10">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-2">المراجع</h2>
+            <ul id="references-list" class="list-disc list-inside space-y-2 bg-white p-6 rounded-lg shadow-sm"></ul>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            // تم تغيير 'course' إلى 'courseId' ليتوافق مع المفاتيح في قاعدة البيانات
+            const courseId = urlParams.get('courseId');
+            // تم إزالة courseName و courseFile لأنهما سيتم استخراجهما من courseDatabase
+            const courseMainFile = urlParams.get('courseFile'); // يمكن الاحتفاظ بها إذا أردت تمرير اسم الملف الرئيسي بشكل منفصل
+
+            // قاعدة بيانات المقررات
+            const coursesDatabase = {
+                career_guidance: {
+                    name: 'التوجيه المهني',
+                    description: 'مقدمة في التوجيه المهني والسلوكيات المطلوبة في بيئة العمل.',
+                    objectives: [
+                        'التعرف على مبادئ السلوك المهني',
+                        'تطوير مهارات تحديد الأهداف المهنية'
+                    ],
+                    units: [
+                        { title: 'الوحدة 1: مفاهيم التوجيه المهني', file: 'unit1.pdf', description: 'تغطية المفاهيم الأساسية للتوجيه المهني وأهميته.' },
+                        { title: 'الوحدة 2: التخطيط الوظيفي والمسار المهني', file: 'unit2.pdf', description: 'تطوير استراتيجيات التخطيط للمسار الوظيفي.' }
+                    ],
+                    references: ['دليل التوجيه المهني - المؤسسة العامة للتدريب التقني'],
+                    prerequisites: []
+                },
+                technical_writing_1: {
+                    name: 'الكتابة الفنية',
+                    description: 'تعلم مهارات كتابة التقارير والمستندات الفنية بشكل احترافي.',
+                    objectives: [
+                        'كتابة تقارير فنية واضحة ودقيقة',
+                        'تنظيم المعلومات واستخدام التنسيقات المناسبة'
+                    ],
+                    units: [
+                        { title: 'الوحدة 1: المبادئ العامة للكتابة الفنية', file: 'unit1.pdf', description: 'أساسيات الكتابة التقنية والفرق بينها وبين أنواع الكتابة الأخرى.' },
+                        { title: 'الوحدة 2: هيكلة التقارير الفنية', file: 'unit2.pdf', description: 'تعلم كيفية بناء وتنسيق التقارير الفنية بشكل فعال.' }
+                    ],
+                    references: ['أساسيات الكتابة الفنية - دليل المعهد'],
+                    prerequisites: []
+                },
+                intro_computer_apps: {
+                    name: 'مقدمة تطبيقات الحاسب',
+                    description: 'مقدمة في استخدام الحاسب الآلي وبرامج الأوفيس الأساسية.',
+                    objectives: [
+                        'استخدام برامج معالجة النصوص والجداول والعروض التقديمية',
+                        'فهم أنظمة التشغيل الأساسية'
+                    ],
+                    units: [
+                        { title: 'الوحدة 1: نظام التشغيل Windows', file: 'unit1.pdf', description: 'التعرف على واجهة وميزات نظام التشغيل Windows.' },
+                        { title: 'الوحدة 2: برنامج Word وExcel وPowerPoint', file: 'unit2.pdf', description: 'تطبيق المهارات الأساسية في برامج Microsoft Office.' }
+                    ],
+                    references: ['سلسلة ميكروسوفت أوفيس التدريبية'],
+                    prerequisites: []
+                },
+                technical_writing_2: {
+                    name: 'الكتابة الفنية (2)',
+                    description: 'توسيع مهارات الكتابة الفنية لتشمل التوثيق المتقدم والعروض التقديمية.',
+                    objectives: [
+                        'صياغة الوثائق التقنية المعقدة',
+                        'عرض المعلومات التقنية بفعالية'
+                    ],
+                    units: [
+                        { title: 'الوحدة 1: التوثيق الفني المتقدم', file: 'unit1.pdf', description: 'تقنيات توثيق المشاريع والأنظمة المعقدة.' },
+                        { title: 'الوحدة 2: مهارات العرض والشرح', file: 'unit2.pdf', description: 'تحسين مهارات تقديم وعرض المعلومات التقنية.' }
+                    ],
+                    references: ['دليل التوثيق التقني - المؤسسة'],
+                    prerequisites: ['technical_writing_1'] 
+                },
+                cyber_basics: {
+                    name: 'أساسيات الأمن السيبراني',
+                    description: 'مفاهيم ومبادئ الأمن السيبراني والتهديدات الشائعة.',
+                    objectives: [
+                        'فهم مفهوم الأمن السيبراني',
+                        'تمييز أنواع التهديدات والثغرات'
+                    ],
+                    units: [
+                        { title: 'الوحدة 1: مفاهيم الأمن السيبراني', file: 'unit1.pdf', description: 'مقدمة لمفاهيم الأمن السيبراني ومكوناته الأساسية.' },
+                        { title: 'الوحدة 2: أنواع الهجمات السيبرانية', file: 'unit2.pdf', description: 'التعرف على الهجمات الشائعة وطرق عملها.' }
+                    ],
+                    references: ['مقدمة في الأمن السيبراني - هيئة الأمن السيبراني'],
+                    prerequisites: []
+                },
+                networking_basics: {
+                    name: 'مبادئ شبكات الحاسب',
+                    description: 'أساسيات شبكات الحاسب والبروتوكولات المستخدمة.',
+                    objectives: [
+                        'فهم مكونات الشبكة المحلية',
+                        'التعرف على بروتوكولات TCP/IP'
+                    ],
+                    units: [
+                        { title: 'الوحدة 1: طبقات الشبكة', file: 'unit1.pdf', description: 'فهم نموذج OSI وTCP/IP.' },
+                        { title: 'الوحدة 2: أجهزة الشبكة والبروتوكولات', file: 'unit2.pdf', description: 'التعرف على الموجهات والمحولات والبروتوكولات الأساسية.' }
+                    ],
+                    references: ['شبكات الحاسب للمبتدئين - سيسكو'],
+                    prerequisites: []
+                },
+                english_1: {
+                    name: 'لغة إنجليزية -1',
+                    description: 'أساسيات اللغة الإنجليزية العامة للمستوى المبتدئ.',
+                    objectives: [
+                        'فهم القواعد الأساسية للغة الإنجليزية',
+                        'بناء جمل بسيطة ومحادثات أساسية'
+                    ],
+                    units: [
+                        { title: 'الوحدة 1: المحادثة الأساسية', file: 'unit1.pdf', description: 'تطوير مهارات المحادثة اليومية.' },
+                        { title: 'الوحدة 2: القواعد والمفردات', file: 'unit2.pdf', description: 'تعلم القواعد النحوية والمفردات الأساسية.' }
+                    ],
+                    references: ['English for Beginners - المستوى الأول'],
+                    prerequisites: []
+                },
+                advanced_computer_apps: {
+                    name: 'تطبيقات الحاسب المتقدمة',
+                    description: 'تطبيقات متقدمة في برامج الأوفيس وقواعد البيانات.',
+                    objectives: [
+                        'استخدام دوال Excel المتقدمة',
+                        'إنشاء قواعد بيانات بسيطة'
+                    ],
+                    units: [
+                        { title: 'الوحدة 1: Excel المتقدم', file: 'unit1.pdf', description: 'العمل مع الدوال المعقدة والجداول المحورية في Excel.' },
+                        { title: 'الوحدة 2: إنشاء قاعدة بيانات', file: 'unit2.pdf', description: 'مقدمة لتصميم وإنشاء قواعد البيانات باستخدام Access أو ما شابه.' }
+                    ],
+                    references: ['دليل تطبيقات أوفيس المتقدمة'],
+                    prerequisites: ['intro_computer_apps']
+                },
+                os: {
+                    name: 'نظم التشغيل',
+                    description: 'مفاهيم نظم التشغيل وأنواعها وآلية عملها.',
+                    objectives: [
+                        'فهم بنية نظم التشغيل',
+                        'إدارة الموارد والعمليات'
+                    ],
+                    units: [
+                        { title: 'الوحدة 1: مقدمة في نظم التشغيل', file: 'unit1.pdf', description: 'التعرف على أنواع نظم التشغيل ووظائفها.' },
+                        { title: 'الوحدة 2: إدارة العمليات والذاكرة', file: 'unit2.pdf', description: 'فهم كيفية إدارة العمليات والذاكرة في أنظمة التشغيل.' }
+                    ],
+                    references: ['Operating Systems Concepts - Silberschatz'],
+                    prerequisites: []
+                },
+                english_2: {
+                    name: 'لغة إنجليزية -2',
+                    description: 'توسيع المهارات اللغوية إلى مستوى ما قبل المتوسط.',
+                    objectives: [
+                        'قراءة وفهم نصوص بسيطة',
+                        'كتابة فقرة قصيرة باللغة الإنجليزية'
+                    ],
+                    units: [
+                        { title: 'الوحدة 1: مهارات القراءة', file: 'unit1.pdf', description: 'تطوير القدرة على قراءة وفهم النصوص.' },
+                        { title: 'الوحدة 2: مهارات الكتابة', file: 'unit2.pdf', description: 'تعلم كيفية كتابة فقرات وجمل مترابطة.' }
+                    ],
+                    references: ['English for Everyday Use - المستوى الثاني'],
+                    prerequisites: ['english_1']
+                },
+                infosec_mgmt: {
+                    name: 'إدارة أمن المعلومات',
+                    description: 'مبادئ حماية المعلومات وإدارتها في المؤسسات.',
+                    objectives: [
+                        'تطبيق سياسات أمن المعلومات',
+                        'تحليل المخاطر ووضع حلول الحماية'
+                    ],
+                    units: [
+                        { title: 'الوحدة 1: سياسات أمن المعلومات', file: 'unit1.pdf', description: 'وضع وتطبيق سياسات أمن المعلومات في المؤسسات.' },
+                        { title: 'الوحدة 2: إدارة الحوادث والمخاطر', file: 'unit2.pdf', description: 'تخطيط وتنفيذ استجابات للحوادث الأمنية.' }
+                    ],
+                    references: ['ISO 27001 - أمن المعلومات'],
+                    prerequisites: ['cyber_basics']
+                },
+                programming: {
+                    name: 'برمجة الحاسب',
+                    description: 'أساسيات البرمجة باستخدام إحدى اللغات البرمجية الشائعة.',
+                    objectives: [
+                        'فهم المنطق البرمجي وبناء الخوارزميات',
+                        'كتابة برامج بسيطة بلغات C أو Python'
+                    ],
+                    units: [
+                        { title: 'الوحدة 1: أساسيات البرمجة', file: 'unit1.pdf', description: 'مقدمة للمفاهيم الأساسية للبرمجة.' },
+                        { title: 'الوحدة 2: كتابة وتنفيذ الأكواد', file: 'unit2.pdf', description: 'تطبيق عملي على كتابة وتشغيل الأكواد.' }
+                    ],
+                    references: ['Introduction to Programming - Python Basics'],
+                    prerequisites: []
+                },
+                algorithms: {
+                    name: 'الخوارزميات والمنطق',
+                    description: 'فهم التفكير المنطقي وتصميم الحلول باستخدام الخوارزميات.',
+                    objectives: [
+                        'تحليل المشكلات باستخدام المخططات',
+                        'تطبيق خطوات الحل الخوارزمي'
+                    ],
+                    units: [
+                        { title: 'الوحدة 1: الخوارزميات الأساسية', file: 'unit1.pdf', description: 'مقدمة لأنواع الخوارزميات الشائعة.' },
+                        { title: 'الوحدة 2: منطق الحل البرمجي', file: 'unit2.pdf', description: 'تطوير التفكير المنطقي لحل المشكلات البرمجية.' }
+                    ],
+                    references: ['Algorithms for Beginners'],
+                    prerequisites: ['programming']
+                },
+                professional_behavior: {
+                    name: 'السلوك الوظيفي',
+                    description: 'أخلاقيات العمل والتواصل المهني في بيئة العمل.',
+                    objectives: [
+                        'بناء علاقات مهنية ناجحة',
+                        'الالتزام بالسلوك الأخلاقي داخل المؤسسة'
+                    ],
+                    units: [
+                        { title: 'الوحدة 1: المبادئ العامة للسلوك', file: 'unit1.pdf', description: 'فهم المبادئ الأساسية للسلوك المهني.' },
+                        { title: 'الوحدة 2: العمل ضمن فريق', file: 'unit2.pdf', description: 'تطوير مهارات العمل الجماعي والتواصل الفعال.' }
+                    ],
+                    references: ['دليل السلوك الوظيفي'],
+                    prerequisites: []
+                },
+                os_security: {
+                    name: 'أمن أنظمة التشغيل',
+                    description: 'حماية أنظمة التشغيل من الاختراق والثغرات.',
+                    objectives: [
+                        'تأمين نظام Windows وLinux',
+                        'فهم Permissions والجدران النارية'
+                    ],
+                    units: [
+                        { title: 'الوحدة 1: تأمين النظام', file: 'unit1.pdf', description: 'تقنيات أساسية لتأمين أنظمة التشغيل.' },
+                        { title: 'الوحدة 2: إدارة التحديثات والجدار الناري', file: 'unit2.pdf', description: 'أهمية التحديثات وتكوين جدران الحماية.' }
+                    ],
+                    references: ['Hardening Operating Systems'],
+                    prerequisites: ['os', 'cyber_basics']
+                },
+                secure_software_dev: {
+                    name: 'تطوير البرمجيات الآمنة',
+                    description: 'كتابة برمجيات آمنة وخالية من الثغرات.',
+                    objectives: [
+                        'تطبيق مبادئ SDLC الآمن',
+                        'تحليل التهديدات ومعالجة الثغرات'
+                    ],
+                    units: [
+                        { title: 'الوحدة 1: البرمجة الآمنة', file: 'unit1.pdf', description: 'أفضل الممارسات لكتابة أكواد برمجية آمنة.' },
+                        { title: 'الوحدة 2: تحليل الثغرات الشائعة', file: 'unit2.pdf', description: 'التعرف على الثغرات الأمنية الشائعة في التطبيقات.' }
+                    ],
+                    references: ['OWASP Secure Coding Guide'],
+                    prerequisites: ['programming', 'cyber_basics']
+                },
+                english_3: {
+                    name: 'لغة إنجليزية -3',
+                    description: 'المستوى المتوسط من اللغة الإنجليزية التقنية.',
+                    objectives: [
+                        'قراءة نصوص تقنية متوسطة',
+                        'إجراء محادثات مهنية'
+                    ],
+                    units: [
+                        { title: 'الوحدة 1: اللغة التقنية', file: 'unit1.pdf', description: 'المصطلحات والمفردات المتخصصة في مجالات التقنية.' },
+                        { title: 'الوحدة 2: الرسائل والمراسلات المهنية', file: 'unit2.pdf', description: 'كتابة رسائل بريد إلكتروني ومراسلات رسمية باللغة الإنجليزية.' }
+                    ],
+                    references: ['English for IT - المستوى الثالث'],
+                    prerequisites: ['english_2']
+                },
+                learning_skills: {
+                    name: 'مهارات التعلم',
+                    description: 'استراتيجيات وتقنيات التعلم الذاتي والفعال.',
+                    objectives: [
+                        'تنظيم الوقت والتخطيط الدراسي',
+                        'تنمية مهارات التفكير والتحليل'
+                    ],
+                    units: [
+                        { title: 'الوحدة 1: استراتيجيات التعلم', file: 'unit1.pdf', description: 'تقنيات المذاكرة الفعالة والتعلم النشط.' },
+                        { title: 'الوحدة 2: مهارات التفكير', file: 'unit2.pdf', description: 'تطوير مهارات التفكير النقدي وحل المشكلات.' }
+                    ],
+                    references: ['دليل المتدرب - مهارات التعلم'],
+                    prerequisites: []
+                },
+                ethical_hacking: {
+                    name: 'الاختراق الأخلاقي وأساليب الحماية',
+                    description: 'مقدمة إلى اختبار الاختراق والأدوات المستخدمة في الحماية.',
+                    objectives: [
+                        'فهم مراحل اختبار الاختراق',
+                        'استخدام أدوات كشف الثغرات'
+                    ],
+                    units: [
+                        { title: 'الوحدة 1: مقدمة في الاختراق الأخلاقي', file: 'unit1.pdf', description: 'مفاهيم الاختراق الأخلاقي وأهميته في الأمن السيبراني.' },
+                        { title: 'الوحدة 2: أدوات Kali Linux', file: 'unit2.pdf', description: 'التطبيق العملي لأدوات اختبار الاختراق في بيئة Kali Linux.' }
+                    ],
+                    references: ['CEH - Certified Ethical Hacker Guide'],
+                    prerequisites: ['networking_basics', 'os_security']
+                },
+                network_security: {
+                    name: 'أمن الشبكات والاتصالات',
+                    description: 'حماية الشبكات من التهديدات السيبرانية.',
+                    objectives: [
+                        'تحليل بروتوكولات الحماية',
+                        'تأمين الاتصالات والبيانات'
+                    ],
+                    units: [
+                        { title: 'الوحدة 1: أمن الشبكات', file: 'unit1.pdf', description: 'مفاهيم أمان الشبكات مثل جدران الحماية وأنظمة كشف التسلل.' },
+                        { title: 'الوحدة 2: التشفير والVPN', file: 'unit2.pdf', description: 'فهم تقنيات التشفير والشبكات الافتراضية الخاصة (VPN).' }
+                    ],
+                    references: ['Network Security Essentials - William Stallings'],
+                    prerequisites: ['networking_basics', 'cyber_basics']
+                },
+                islamic_studies: {
+                    name: 'الدراسات الإسلامية',
+                    description: 'مدخل إلى القيم الإسلامية والأخلاقيات العامة.',
+                    objectives: [
+                        'فهم الأخلاق الإسلامية',
+                        'تطبيق المبادئ في الحياة اليومية'
+                    ],
+                    units: [
+                        { title: 'الوحدة 1: القيم الإسلامية', file: 'unit1.pdf', description: 'استعراض القيم الأساسية في الإسلام وتأثيرها.' },
+                        { title: 'الوحدة 2: السلوك في العمل', file: 'unit2.pdf', description: 'تطبيق الأخلاق الإسلامية في بيئة العمل.' }
+                    ],
+                    references: ['المدخل إلى الثقافة الإسلامية'],
+                    prerequisites: []
+                },
+                applied_cryptography: {
+                    name: 'التشفير التطبيقي',
+                    description: 'فهم خوارزميات التشفير وتطبيقها العملي.',
+                    objectives: [
+                        'استخدام التشفير المتماثل واللامتماثل',
+                        'تأمين البيانات باستخدام الشهادات الرقمية'
+                    ],
+                    units: [
+                        { title: 'الوحدة 1: AES وRSA', file: 'unit1.pdf', description: 'فهم خوارزميات التشفير الشائعة وتطبيقاتها.' },
+                        { title: 'الوحدة 2: التوقيع الرقمي', file: 'unit2.pdf', description: 'مفهوم التوقيع الرقمي واستخدامه في التحقق من الهوية.' }
+                    ],
+                    references: ['Applied Cryptography - Bruce Schneier'],
+                    prerequisites: ['programming', 'algorithms']
+                },
+                iot_security: {
+                    name: 'إنترنت الأشياء الآمنة',
+                    description: 'تأمين الأجهزة الذكية وتقنيات الـ IoT.',
+                    objectives: [
+                        'تحليل نقاط الضعف في الأجهزة الذكية',
+                        'تصميم حلول حماية لإنترنت الأشياء'
+                    ],
+                    units: [
+                        { title: 'الوحدة 1: مقدمة في IoT', file: 'unit1.pdf', description: 'التعرف على مفاهيم وتطبيقات إنترنت الأشياء.' },
+                        { title: 'الوحدة 2: مخاطر وحلول الحماية', file: 'unit2.pdf', description: 'تحليل التهديدات الأمنية لأجهزة IoT وطرق حمايتها.' }
+                    ],
+                    references: ['IoT Security Handbook'],
+                    prerequisites: ['networking_basics', 'cyber_basics']
+                },
+                risk_management: {
+                    name: 'إدارة المخاطر والاستجابة للحوادث',
+                    description: 'تقييم المخاطر السيبرانية وإجراءات الاستجابة.',
+                    objectives: [
+                        'تحديد وتصنيف المخاطر',
+                        'تخطيط الاستجابة للحوادث'
+                    ],
+                    units: [
+                        { title: 'الوحدة 1: تقييم وتحليل المخاطر', file: 'unit1.pdf', description: 'الأساليب المتبعة في تحديد وتحليل المخاطر الأمنية.' },
+                        { title: 'الوحدة 2: إدارة الحوادث السيبرانية', file: 'unit2.pdf', description: 'خطوات الاستجابة للحوادث الأمنية والتعافي منها.' }
+                    ],
+                    references: ['NIST Risk Management Framework'],
+                    prerequisites: ['infosec_mgmt']
+                },
+                cyber_law_ethics: {
+                    name: 'الأخلاق والقانون السيبراني',
+                    description: 'فهم الأنظمة والتشريعات المتعلقة بالأمن السيبراني.',
+                    objectives: [
+                        'التمييز بين الممارسات القانونية وغير القانونية',
+                        'تطبيق أخلاقيات التعامل الرقمي'
+                    ],
+                    units: [
+                        { title: 'الوحدة 1: الجرائم السيبرانية', file: 'unit1.pdf', description: 'أنواع الجرائم الإلكترونية والعقوبات المرتبطة بها.' },
+                        { title: 'الوحدة 2: القوانين والسياسات المحلية', file: 'unit2.pdf', description: 'استعراض التشريعات والقوانين المحلية المتعلقة بالأمن السيبراني.' }
+                    ],
+                    references: ['Cyber Law and Ethics Handbook'],
+                    prerequisites: ['cyber_basics']
+                },
+                cloud_security: {
+                    name: 'الحوسبة السحابية وأمن المحاكاة الافتراضية',
+                    description: 'تأمين بيئات الحوسبة السحابية والخوادم الافتراضية.',
+                    objectives: [
+                        'فهم نماذج الخدمات السحابية',
+                        'تطبيق تقنيات الحماية في البيئة السحابية'
+                    ],
+                    units: [
+                        { title: 'الوحدة 1: مفاهيم الحوسبة السحابية', file: 'unit1.pdf', description: 'التعرف على أنواع ومزايا وعيوب الحوسبة السحابية.' },
+                        { title: 'الوحدة 2: الحماية في بيئات VM', file: 'unit2.pdf', description: 'تأمين الأجهزة الافتراضية والبيئات السحابية.' }
+                    ],
+                    references: ['Cloud Security Alliance (CSA) Guide'],
+                    prerequisites: ['networking_basics', 'os_security']
+                },
+                advanced_web_tech: {
+                    name: 'تقنيات الإنترنت المتقدمة',
+                    description: 'بناء التطبيقات الحديثة باستخدام تقنيات الويب المتقدمة.',
+                    objectives: [
+                        'تصميم واجهات متقدمة',
+                        'استخدام JavaScript وAPIs'
+                    ],
+                    units: [
+                        { title: 'الوحدة 1: تطوير الواجهة الأمامية', file: 'unit1.pdf', description: 'بناء واجهات المستخدم التفاعلية باستخدام HTML, CSS, JavaScript.' },
+                        { title: 'الوحدة 2: ربط APIs وتطبيقات SPA', file: 'unit2.pdf', description: 'استخدام واجهات برمجة التطبيقات وتطوير تطبيقات الصفحة الواحدة.' }
+                    ],
+                    references: ['Modern Web Development Guide'],
+                    prerequisites: ['programming']
+                },
+                graduation_project: {
+                    name: 'مشروع التخرج',
+                    description: 'تنفيذ مشروع تطبيقي نهائي يدمج جميع المهارات المكتسبة.',
+                    objectives: [
+                        'تحليل وتصميم وتنفيذ مشروع أمني',
+                        'عرض النتائج بشكل مهني'
+                    ],
+                    units: [
+                        { title: 'المرحلة 1: تحديد المشروع والتخطيط', file: 'unit1.pdf', description: 'اختيار فكرة المشروع وتحديد أهدافه ونطاقه.' },
+                        { title: 'المرحلة 2: التنفيذ والتطوير', file: 'unit2.pdf', description: 'تطبيق المهارات المكتسبة في بناء المشروع.' },
+                        { title: 'المرحلة 3: التوثيق والعرض', file: 'unit3.pdf', description: 'إعداد تقارير المشروع وتقديم عرض نهائي.' }
+                    ],
+                    references: ['دليل مشروع التخرج للمؤسسة'],
+                    prerequisites: ['infosec_mgmt', 'secure_software_dev', 'ethical_hacking', 'network_security', 'applied_cryptography', 'cloud_security'] 
+                }
+            };
+            
+            const course = coursesDatabase[courseId];
+
+            if (course) {
+                document.getElementById('page-title').textContent = `${course.name} - تفاصيل المقرر`;
+                document.getElementById('course-title').textContent = course.name;
+                document.getElementById('course-description').textContent = course.description;
+                
+                // تحديث رابط تحميل المادة الرئيسية إذا كان هناك ملف رئيسي محدد
+                if (course.mainFile) { // افترض وجود خاصية mainFile في بيانات المقرر
+                    document.getElementById('main-download').href = `../materials/${courseId}/${course.mainFile}`;
+                    document.getElementById('main-download').style.display = 'inline-flex'; // تأكد من إظهار الزر
+                } else {
+                    document.getElementById('main-download').style.display = 'none'; // إخفاء الزر إذا لم يكن هناك ملف رئيسي
+                }
+
+                // إضافة الأهداف التعليمية
+                const objectivesList = document.getElementById('objectives-list');
+                objectivesList.innerHTML = ''; // مسح المحتوى القديم
+                if (course.objectives && course.objectives.length > 0) {
+                    course.objectives.forEach(obj => {
+                        const li = document.createElement('li');
+                        li.className = 'text-gray-700';
+                        li.textContent = obj;
+                        objectivesList.appendChild(li);
+                    });
+                } else {
+                    objectivesList.innerHTML = '<li class="text-gray-700">لا توجد أهداف تعليمية محددة لهذا المقرر.</li>';
+                }
+                
+                // إضافة الوحدات الدراسية
+                const unitsContainer = document.getElementById('units-container');
+                unitsContainer.innerHTML = ''; // مسح المحتوى القديم
+                if (course.units && course.units.length > 0) {
+                    course.units.forEach(unit => {
+                        const unitCard = document.createElement('div');
+                        unitCard.className = 'bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow unit-card';
+                        unitCard.innerHTML = `
+                            <div class="p-6">
+                                <h3 class="text-xl font-semibold text-gray-800 mb-2">${unit.title}</h3>
+                                <p class="text-gray-600 mb-4">${unit.description || 'لا يوجد وصف متاح لهذه الوحدة.'}</p>
+                                <a href="../materials/${courseId}/${unit.file}"
+                                   class="download-btn inline-flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    </svg>
+                                    تحميل الوحدة
+                                </a>
+                            </div>
+                        `;
+                        unitsContainer.appendChild(unitCard);
+                    });
+                } else {
+                    unitsContainer.innerHTML = '<p class="text-gray-600 bg-white p-6 rounded-lg shadow-sm">لا توجد وحدات دراسية محددة لهذا المقرر.</p>';
+                }
+
+                // إضافة المتطلبات المسبقة
+                const prerequisitesText = document.getElementById('prerequisites-text');
+                if (course.prerequisites && course.prerequisites.length > 0) {
+                    const prereqNames = course.prerequisites.map(prereqId => {
+                        const prereqCourse = coursesDatabase[prereqId];
+                        return prereqCourse ? prereqCourse.name : 'مقرر غير معروف';
+                    }).join('، ');
+                    prerequisitesText.textContent = `يتطلب هذا المقرر إكمال المقررات التالية: ${prereqNames}.`;
+                } else {
+                    prerequisitesText.textContent = 'لا يوجد متطلبات مسبقة لهذا المقرر.';
+                }
+
+                // إضافة المراجع
+                const referencesList = document.getElementById('references-list');
+                referencesList.innerHTML = ''; // مسح المحتوى القديم
+                if (course.references && course.references.length > 0) {
+                    course.references.forEach(ref => {
+                        const li = document.createElement('li');
+                        li.className = 'text-gray-700';
+                        li.textContent = ref;
+                        referencesList.appendChild(li);
+                    });
+                } else {
+                    referencesList.innerHTML = '<li class="text-gray-700">لا توجد مراجع محددة لهذا المقرر.</li>';
+                }
+
+            } else {
+                // إذا لم يتم العثور على المقرر
+                document.getElementById('page-title').textContent = 'المقرر غير موجود';
+                document.getElementById('course-title').textContent = 'المقرر غير موجود';
+                document.getElementById('course-description').textContent = 'عذراً، لم يتم العثور على تفاصيل هذا المقرر. يرجى التأكد من الرابط الصحيح.';
+                document.getElementById('main-download').style.display = 'none'; // إخفاء زر التحميل الرئيسي
+                document.getElementById('units-container').innerHTML = '<p class="text-gray-600 bg-white p-6 rounded-lg shadow-sm">لا توجد وحدات دراسية لعرضها.</p>';
+                document.getElementById('objectives-list').innerHTML = '<li class="text-gray-700">لا توجد أهداف تعليمية لعرضها.</li>';
+                document.getElementById('prerequisites-text').textContent = 'لا توجد معلومات حول المتطلبات.';
+                document.getElementById('references-list').innerHTML = '<li class="text-gray-700">لا توجد مراجع لعرضها.</li>';
+            }
+        });
+    </script>
+</body>
+</html>
