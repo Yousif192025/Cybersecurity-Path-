@@ -10,8 +10,19 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+        /* لإظهار زر التحميل عند التحويم على الوحدة */
+        .unit-card .download-btn {
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
         .unit-card:hover .download-btn {
             opacity: 1;
+        }
+        /* دائماً مرئي على الشاشات الكبيرة */
+        @media (min-width: 768px) {
+            .unit-card .download-btn {
+                opacity: 1;
+            }
         }
     </style>
 </head>
@@ -27,12 +38,12 @@
         <div class="bg-white rounded-xl shadow-md overflow-hidden mb-8">
             <div class="p-8">
                 <h1 id="course-title" class="text-3xl font-bold text-gray-900 mb-2"></h1>
-                <div id="course-description" class="text-gray-600 mb-4"></div>
+                <p id="course-description" class="text-gray-600 mb-4"></p>
                 <a id="main-download" href="#" class="inline-flex items-center px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
                     </svg>
-                    تحميل المادة العلمية الرئيسية للمقرر
+                    تحميل المادة العلمية الرئيسية
                 </a>
             </div>
         </div>
@@ -50,7 +61,7 @@
         <div class="mb-10">
             <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-2">متطلبات المقرر</h2>
             <div id="requirements" class="bg-white p-6 rounded-lg shadow-sm">
-                <p class="text-gray-600" id="prerequisites-text">لا يوجد متطلبات مسبقة لهذا المقرر</p>
+                <p id="prerequisites-text" class="text-gray-600"></p>
             </div>
         </div>
 
@@ -62,12 +73,13 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // استخراج معلمات URL
             const urlParams = new URLSearchParams(window.location.search);
-            const courseId = urlParams.get('courseId'); // تم تغيير 'course' إلى 'courseId' ليتناسب مع الهيكل
-            const courseMainFile = urlParams.get('courseFile'); // هذا سيكون الملف الرئيسي للمقرر إذا وُجد
+            // تم تغيير 'course' إلى 'courseId' ليتوافق مع المفاتيح في قاعدة البيانات
+            const courseId = urlParams.get('courseId');
+            // تم إزالة courseName و courseFile لأنهما سيتم استخراجهما من courseDatabase
+            const courseMainFile = urlParams.get('courseFile'); // يمكن الاحتفاظ بها إذا أردت تمرير اسم الملف الرئيسي بشكل منفصل
 
-            // قاعدة بيانات المقررات (تم دمجها من الملف الأول وتحديث التفاصيل)
+            // قاعدة بيانات المقررات
             const coursesDatabase = {
                 career_guidance: {
                     name: 'التوجيه المهني',
@@ -123,7 +135,7 @@
                         { title: 'الوحدة 2: مهارات العرض والشرح', file: 'unit2.pdf', description: 'تحسين مهارات تقديم وعرض المعلومات التقنية.' }
                     ],
                     references: ['دليل التوثيق التقني - المؤسسة'],
-                    prerequisites: ['technical_writing_1'] // إضافة متطلب سابق
+                    prerequisites: ['technical_writing_1'] 
                 },
                 cyber_basics: {
                     name: 'أساسيات الأمن السيبراني',
@@ -460,7 +472,7 @@
                         { title: 'المرحلة 3: التوثيق والعرض', file: 'unit3.pdf', description: 'إعداد تقارير المشروع وتقديم عرض نهائي.' }
                     ],
                     references: ['دليل مشروع التخرج للمؤسسة'],
-                    prerequisites: ['infosec_mgmt', 'secure_software_dev', 'ethical_hacking', 'network_security', 'applied_cryptography', 'cloud_security'] // أمثلة على متطلبات المشروع
+                    prerequisites: ['infosec_mgmt', 'secure_software_dev', 'ethical_hacking', 'network_security', 'applied_cryptography', 'cloud_security'] 
                 }
             };
             
@@ -471,15 +483,17 @@
                 document.getElementById('course-title').textContent = course.name;
                 document.getElementById('course-description').textContent = course.description;
                 
-                // تحديث رابط تحميل المادة الرئيسية إذا كان هناك ملف رئيسي محدد للمقرر
-                if (courseMainFile) {
-                    document.getElementById('main-download').href = `../materials/${courseId}/${courseMainFile}`;
+                // تحديث رابط تحميل المادة الرئيسية إذا كان هناك ملف رئيسي محدد
+                if (course.mainFile) { // افترض وجود خاصية mainFile في بيانات المقرر
+                    document.getElementById('main-download').href = `../materials/${courseId}/${course.mainFile}`;
+                    document.getElementById('main-download').style.display = 'inline-flex'; // تأكد من إظهار الزر
                 } else {
                     document.getElementById('main-download').style.display = 'none'; // إخفاء الزر إذا لم يكن هناك ملف رئيسي
                 }
 
                 // إضافة الأهداف التعليمية
                 const objectivesList = document.getElementById('objectives-list');
+                objectivesList.innerHTML = ''; // مسح المحتوى القديم
                 if (course.objectives && course.objectives.length > 0) {
                     course.objectives.forEach(obj => {
                         const li = document.createElement('li');
@@ -490,9 +504,10 @@
                 } else {
                     objectivesList.innerHTML = '<li class="text-gray-700">لا توجد أهداف تعليمية محددة لهذا المقرر.</li>';
                 }
-
+                
                 // إضافة الوحدات الدراسية
                 const unitsContainer = document.getElementById('units-container');
+                unitsContainer.innerHTML = ''; // مسح المحتوى القديم
                 if (course.units && course.units.length > 0) {
                     course.units.forEach(unit => {
                         const unitCard = document.createElement('div');
@@ -502,7 +517,7 @@
                                 <h3 class="text-xl font-semibold text-gray-800 mb-2">${unit.title}</h3>
                                 <p class="text-gray-600 mb-4">${unit.description || 'لا يوجد وصف متاح لهذه الوحدة.'}</p>
                                 <a href="../materials/${courseId}/${unit.file}"
-                                   class="download-btn inline-flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all opacity-0 md:opacity-100">
+                                   class="download-btn inline-flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
                                         <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
                                     </svg>
@@ -516,7 +531,7 @@
                     unitsContainer.innerHTML = '<p class="text-gray-600 bg-white p-6 rounded-lg shadow-sm">لا توجد وحدات دراسية محددة لهذا المقرر.</p>';
                 }
 
-                // إضافة متطلبات المقرر
+                // إضافة المتطلبات المسبقة
                 const prerequisitesText = document.getElementById('prerequisites-text');
                 if (course.prerequisites && course.prerequisites.length > 0) {
                     const prereqNames = course.prerequisites.map(prereqId => {
@@ -530,6 +545,7 @@
 
                 // إضافة المراجع
                 const referencesList = document.getElementById('references-list');
+                referencesList.innerHTML = ''; // مسح المحتوى القديم
                 if (course.references && course.references.length > 0) {
                     course.references.forEach(ref => {
                         const li = document.createElement('li');
@@ -542,10 +558,11 @@
                 }
 
             } else {
-                // التعامل مع حالة عدم العثور على المقرر
+                // إذا لم يتم العثور على المقرر
+                document.getElementById('page-title').textContent = 'المقرر غير موجود';
                 document.getElementById('course-title').textContent = 'المقرر غير موجود';
-                document.getElementById('course-description').textContent = 'عذراً، لم يتم العثور على تفاصيل هذا المقرر.';
-                document.getElementById('main-download').style.display = 'none';
+                document.getElementById('course-description').textContent = 'عذراً، لم يتم العثور على تفاصيل هذا المقرر. يرجى التأكد من الرابط الصحيح.';
+                document.getElementById('main-download').style.display = 'none'; // إخفاء زر التحميل الرئيسي
                 document.getElementById('units-container').innerHTML = '<p class="text-gray-600 bg-white p-6 rounded-lg shadow-sm">لا توجد وحدات دراسية لعرضها.</p>';
                 document.getElementById('objectives-list').innerHTML = '<li class="text-gray-700">لا توجد أهداف تعليمية لعرضها.</li>';
                 document.getElementById('prerequisites-text').textContent = 'لا توجد معلومات حول المتطلبات.';
