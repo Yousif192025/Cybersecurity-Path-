@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الوحدة 10: جدولة المعالجات المتعددة والمعالجة الزمنية الحقيقية | أنظمة التشغيل</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #2c3e50; /* Dark Blue/Grey */
+            --secondary-color: #3498db; /* Bright Blue */
+            --accent-color: #e74c3c; /* Red */
+            --light-bg: #f8f9fa; /* Light Grey */
+            --dark-text: #2c3e50; /* Dark Blue/Grey */
+            --light-text: #7f8c8d; /* Medium Grey */
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            line-height: 1.8;
+        }
+
+        .navbar {
+            background-color: var(--primary-color);
+        }
+
+        .sidebar {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .content-section {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .course-title {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .list-group-item.active {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        .list-group-item.active .module-link, .list-group-item.active .module-link .badge {
+            color: white;
+        }
+
+        .module-link {
+            text-decoration: none;
+            color: var(--dark-text);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .accordion-button:not(.collapsed) {
+            color: #fff;
+            background-color: var(--secondary-color);
+            box-shadow: none;
+        }
+
+        .accordion-button:not(.collapsed)::after {
+            filter: brightness(0) invert(1);
+        }
+
+        .unit-icon {
+            color: var(--secondary-color);
+            margin-left: 10px;
+        }
+
+        .unit-icon-header {
+            color: var(--primary-color);
+            margin-left: 10px;
+        }
+
+        .quiz-section, .enhancement-section, .summary-section {
+            padding: 20px;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .quiz-section {
+            background-color: #e9ecef;
+            border-left: 5px solid var(--secondary-color);
+        }
+
+        .enhancement-section {
+            background-color: #e9f5ff;
+            border-left: 5px solid #28a745;
+        }
+
+        .summary-section {
+            background-color: #f1f1f1;
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .footer {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .progress-container {
+            height: 25px;
+        }
+
+        .progress-bar {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-check:checked + .btn-outline-primary, .btn-outline-primary:hover {
+            color: white;
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        @media (max-width: 991px) {
+            .sidebar {
+                margin-top: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-desktop me-2"></i>
+                أنظمة التشغيل
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../../../pathways/tvtc-cs-security.html">
+                            <i class="fas fa-arrow-right me-1"></i>
+                            العودة إلى المقررات
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <!-- Sidebar for Units -->
+            <div class="col-lg-3">
+                <div class="sidebar p-4">
+                    <h4 class="mb-3">
+                        <i class="fas fa-stream me-2"></i>
+                        وحدات المقرر
+                    </h4>
+                    <div class="progress progress-container mb-4">
+                        <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                    </div>
+                    <div class="accordion" id="unitsAccordion">
+                        <!-- Unit 1 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingOne">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-desktop"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 1: نظرة عامة على النظام الحاسوبي</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الأولى...</p>
+                                <a href="unit-1.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 2 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingTwo">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-cogs"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 2: لمحة عن أنظمة التشغيل</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الثانية...</p>
+                                <a href="unit-2.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 3 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingThree">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-tasks"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 3: وصف وإدارة العملية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الثالثة...</p>
+                                <a href="unit-3.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 4 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingFour">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-code-branch"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 4: الخيوط (Threads)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الرابعة...</p>
+                                <a href="unit-4.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 5 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingFive">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-sync-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 5: التزامن والحصر المتبادل</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الخامسة...</p>
+                                <a href="unit-5.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 6 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingSix">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-hand-paper"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 6: الجمود (Deadlock) والمجاعة (Starvation)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseSix" class="accordion-collapse collapse" aria-labelledby="headingSix" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة السادسة...</p>
+                                <a href="unit-6.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 7 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingSeven">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-memory"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 7: إدارة الذاكرة</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseSeven" class="accordion-collapse collapse" aria-labelledby="headingSeven" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة السابعة...</p>
+                                <a href="unit-7.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 8 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingEight">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEight" aria-expanded="false" aria-controls="collapseEight">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-hdd"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 8: الذاكرة الافتراضية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseEight" class="accordion-collapse collapse" aria-labelledby="headingEight" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الثامنة...</p>
+                                <a href="unit-8.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 9 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingNine">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNine" aria-expanded="false" aria-controls="collapseNine">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-calendar-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 9: جدولة أحادية المعالج</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseNine" class="accordion-collapse collapse" aria-labelledby="headingNine" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة التاسعة...</p>
+                                <a href="unit-9.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 10 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingTen">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTen" aria-expanded="true" aria-controls="collapseTen">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-microchip"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 10: جدولة متعددة المعالجات والمعالجة الزمنية الحقيقية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseTen" class="accordion-collapse collapse show" aria-labelledby="headingTen" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-10.html#section1" class="text-decoration-none">جدولة الأنظمة متعددة المعالجات</a></li>
+                                        <li><a href="unit-10.html#section2" class="text-decoration-none">تعدد الأنوية (Multicore Scheduling)</a></li>
+                                        <li><a href="unit-10.html#section3" class="text-decoration-none">الجدولة في أنظمة الزمن الحقيقي</a></li>
+                                        <li><a href="unit-10.html#section4" class="text-decoration-none">أمثلة من أنظمة تشغيل مختلفة</a></li>
+                                        <li><a href="unit-10.html#section5" class="text-decoration-none">مقارنات بين الجدولة</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 11 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingEleven">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEleven" aria-expanded="false" aria-controls="collapseEleven">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-exchange-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 11: إدارة I/O وجدولة الأقراص</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseEleven" class="accordion-collapse collapse" aria-labelledby="headingEleven" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الحادية عشرة...</p>
+                                <a href="unit-11.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 12 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingTwelve">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwelve" aria-expanded="false" aria-controls="collapseTwelve">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-folder-open"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 12: إدارة الملفات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseTwelve" class="accordion-collapse collapse" aria-labelledby="headingTwelve" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الثانية عشرة...</p>
+                                <a href="unit-12.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 13 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingThirteen">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThirteen" aria-expanded="false" aria-controls="collapseThirteen">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-microchip"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 13: أنظمة تشغيل مدمجة</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseThirteen" class="accordion-collapse collapse" aria-labelledby="headingThirteen" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الثالثة عشرة...</p>
+                                <a href="unit-13.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 14 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingFourteen">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFourteen" aria-expanded="false" aria-controls="collapseFourteen">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-server"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 14: الآلات الافتراضية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseFourteen" class="accordion-collapse collapse" aria-labelledby="headingFourteen" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الرابعة عشرة...</p>
+                                <a href="unit-14.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 15 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingFifteen">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFifteen" aria-expanded="false" aria-controls="collapseFifteen">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-lock"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 15: أمن أنظمة التشغيل</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseFifteen" class="accordion-collapse collapse" aria-labelledby="headingFifteen" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الخامسة عشرة...</p>
+                                <a href="unit-15.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 16 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingSixteen">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSixteen" aria-expanded="false" aria-controls="collapseSixteen">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-cloud"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 16: أنظمة تشغيل السحابة وإنترنت الأشياء</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseSixteen" class="accordion-collapse collapse" aria-labelledby="headingSixteen" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة السادسة عشرة...</p>
+                                <a href="unit-16.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        <!-- Unit Summary -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingSummary">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSummary" aria-expanded="false" aria-controls="collapseSummary">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-graduation-cap"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة الختامية: ملخص المقرر</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseSummary" class="accordion-collapse collapse" aria-labelledby="headingSummary" data-bs-parent="#unitsAccordion">
+                                <p>ملخص شامل للمقرر وتوجيه مهني.</p>
+                                <a href="unit-summary.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-lg-9">
+                <div class="content-section mb-4 p-5">
+                    <h1 class="course-title">
+                        <i class="fas fa-microchip unit-icon-header"></i>
+                        الوحدة 10: جدولة المعالجات المتعددة والمعالجة الزمنية الحقيقية
+                    </h1>
+                    <span class="badge bg-secondary mb-4">Multiprocessor, Multicore, and Real-Time Scheduling</span>
+                    <p class="text-muted">
+                        📚 استنادًا إلى الفصل العاشر من كتاب: Operating Systems: Internals and Design Principles – William Stallings – الإصدار التاسع
+                    </p>
+
+                    <div class="mb-4">
+                        <h4><i class="fas fa-bullseye me-2"></i>أهداف الوحدة</h4>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check-circle text-success me-2"></i> فهم كيفية جدولة العمليات في أنظمة المعالجة المتعددة والأنوية المتعددة.</li>
+                            <li><i class="fas fa-check-circle text-success me-2"></i> التعرف على خصائص أنظمة الزمن الحقيقي ومتطلبات الجدولة فيها.</li>
+                            <li><i class="fas fa-check-circle text-success me-2"></i> مقارنة تقنيات الجدولة في أنظمة التشغيل الشائعة: Linux، Windows، Unix SVR4، FreeBSD.</li>
+                            <li><i class="fas fa-check-circle text-success me-2"></i> استيعاب التحديات والمفاضلات في بيئات الجدولة المعقدة.</li>
+                        </ul>
+                    </div>
+
+                    <hr>
+
+                    <section id="section1" class="mb-5">
+                        <h2 class="course-title">1️⃣ جدولة الأنظمة متعددة المعالجات (Multiprocessor Scheduling)</h2>
+                        <p>
+                            مع تطور البنية الحاسوبية، أصبحت معظم الأنظمة الحديثة تعتمد على أكثر من معالج مركزي واحد (CPU) أو أكثر من نواة (Core) داخل نفس المعالج. هذا التطور يطرح تحديات جديدة ومعقدة لجدولة العمليات، حيث لم يعد الهدف هو اختيار العملية التالية لمعالج واحد، بل كيفية توزيع العمل على عدة معالجات لزيادة الأداء العام للنظام.
+                        </p>
+                        <h4>🔍 التحديات الجديدة في جدولة المعالجات المتعددة:</h4>
+                        <ul>
+                            <li><strong>كيفية توزيع العمليات على المعالجات المتعددة:</strong> هل يجب أن يكون هناك طابور واحد للعمليات الجاهزة يخدمه جميع المعالجات، أم يجب أن يكون لكل معالج طابوره الخاص؟</li>
+                            <li><strong>الحفاظ على التوازن في تحميل المعالجات (Load Balancing):</strong> يجب توزيع عبء العمل بالتساوي بين جميع المعالجات لضمان عدم وجود معالج يعمل بكامل طاقته بينما آخر يكون خاملاً.</li>
+                            <li><strong>تجنب التنافس على الموارد المشتركة:</strong> في أنظمة المعالجات المتعددة، تشترك المعالجات غالبًا في الذاكرة الرئيسية، مما يتطلب آليات تزامن قوية لمنع تضارب البيانات.</li>
+                        </ul>
+
+                        <h4>📍 نوعا المعالجات في أنظمة الجدولة:</h4>
+                        <ul>
+                            <li>
+                                <strong>معالجات متماثلة (SMP - Symmetric Multiprocessing):</strong>
+                                <ul>
+                                    <li><strong>الوصف:</strong> في هذا النوع من الأنظمة، تكون جميع المعالجات متطابقة وتشارك نفس الذاكرة الرئيسية وموارد I/O. يمكن لأي معالج تنفيذ أي عملية أو خيط (Thread) متاح.</li>
+                                    <li><strong>الجدولة:</strong> عادةً ما يكون هناك طابور واحد للعمليات الجاهزة، ويسحب كل معالج العملية التالية من هذا الطابور. يتطلب هذا آليات تزامن قوية لحماية الطابور المشترك.</li>
+                                    <li><strong>المزايا:</strong> سهولة توزيع الحمل، مرونة عالية.</li>
+                                    <li><strong>العيوب:</strong> قد يحدث تنافس على الطابور المشترك، وقد يؤثر على أداء الذاكرة المخبأة (Cache Coherence) إذا انتقلت العمليات بين المعالجات بشكل متكرر.</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong>معالجات غير متماثلة (AMP - Asymmetric Multiprocessing):</strong>
+                                <ul>
+                                    <li><strong>الوصف:</strong> في هذا النوع، يكون هناك معالج رئيسي (Master Processor) مسؤول عن جميع أنشطة نظام التشغيل الحرجة، مثل إدارة البيانات، جدولة العمليات، ومعالجة I/O. المعالجات الأخرى (Slave Processors) تتبع أوامر المعالج الرئيسي وتنفذ مهام محددة.</li>
+                                    <li><strong>الجدولة:</strong> تتم الجدولة بشكل مركزي بواسطة المعالج الرئيسي.</li>
+                                    <li><strong>المزايا:</strong> أبسط في التنفيذ، لا توجد مشكلة تنافس على هياكل البيانات الحرجة.</li>
+                                    <li><strong>العيوب:</strong> المعالج الرئيسي يمثل نقطة ضعف (Single Point of Failure) وعنق الزجاجة (Bottleneck) المحتملة.</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                        <h4>📍 نماذج الجدولة في أنظمة المعالجات المتعددة:</h4>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-primary">
+                                    <tr>
+                                        <th scope="col">النموذج</th>
+                                        <th scope="col">الوصف</th>
+                                        <th scope="col">المزايا/العيوب</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Scheduler مركزي (Centralized Scheduler)</strong></td>
+                                        <td>عملية واحدة (أو معالج واحد في AMP) تنسق توزيع العمليات بين جميع المعالجات. يوجد طابور جاهز واحد.</td>
+                                        <td><strong>المزايا:</strong> سهولة تحقيق توازن الحمل. <strong>العيوب:</strong> قد يصبح عنق زجاجة، ويقلل من قابلية التوسع.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Scheduler لكل معالج (Per-Processor Scheduler)</strong></td>
+                                        <td>كل معالج يملك قائمة انتظار جاهزة وجدولة محلية خاصة به.</td>
+                                        <td><strong>المزايا:</strong> قابلية توسع عالية، تقليل التنافس على هياكل البيانات المشتركة. <strong>العيوب:</strong> صعوبة تحقيق توازن الحمل بشكل فعال، قد يؤدي إلى معالجات خاملة بينما أخرى مشغولة.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>التهجير (Migration)</strong></td>
+                                        <td>هل يمكن للعملية الانتقال من معالج لآخر أثناء تنفيذها؟</td>
+                                        <td>
+                                            <p><strong>نعم (Load Sharing):</strong> يسمح بتوزيع الحمل بشكل ديناميكي بين المعالجات. إذا كان معالج ما خاملاً ومعالج آخر مشغولاً، يمكن نقل عملية من المعالج المشغول إلى الخامل.</p>
+                                            <p><strong>لا (Processor Affinity):</strong> يعني أن العملية تميل للبقاء على نفس المعالج الذي بدأت عليه. هذا يقلل من أداء التخزين المؤقت (Cache Performance Loss) لأن بيانات العملية تبقى في ذاكرة التخزين المؤقت للمعالج، مما يسرع الوصول إليها.</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <blockquote class="blockquote bg-light p-3 border-start border-primary border-5 rounded-3">
+                            <p class="mb-0 fst-italic">
+                                <strong>🔎 Processor Affinity (تآلف المعالج):</strong> هو ميل نظام التشغيل للحفاظ على تشغيل خيط أو عملية معينة على نفس المعالج (أو النواة) قدر الإمكان. الهدف الرئيسي من هذا هو تحسين أداء الذاكرة المخبأة (Cache). عندما تعمل عملية على معالج معين، يتم تخزين جزء كبير من بياناتها وتعليماتها في ذاكرة التخزين المؤقت (Cache) الخاصة بذلك المعالج. إذا تم نقل العملية إلى معالج آخر، يجب إعادة تحميل هذه البيانات إلى ذاكرة التخزين المؤقت للمعالج الجديد، مما يؤدي إلى "فقدان أداء الذاكرة المخبأة" (Cache Performance Loss) ويُبطئ الأداء. لذلك، تسعى أنظمة التشغيل إلى تحقيق توازن بين توازن الحمل (Load Balancing) وتآلف المعالج.
+                            </p>
+                        </blockquote>
+                        <div class="alert alert-info mt-3">
+                            <p class="mb-0">
+                                <strong>📘 مرجع:</strong>
+                                <a href="https://www.redhat.com/en/topics/linux/what-is-processor-affinity" target="_blank" class="alert-link">Processor Affinity Explained – Red Hat</a>
+                            </p>
+                        </div>
+                    </section>
+
+                    <hr>
+
+                    <section id="section2" class="mb-5">
+                        <h2 class="course-title">2️⃣ تعدد الأنوية (Multicore Scheduling)</h2>
+                        <p>
+                            تُعد المعالجات متعددة الأنوية (Multicore Processors) هي السائدة حاليًا، حيث تدمج عدة أنوية معالجة (CPU Cores) على شريحة واحدة. على الرغم من أنها تشبه أنظمة المعالجات المتعددة (SMP) في وجود عدة وحدات تنفيذ، إلا أنها تختلف في أنها تشترك في بعض مستويات الذاكرة المخبأة (Cache) وبعض الموارد الأخرى داخل الشريحة.
+                        </p>
+                        <h4>🔍 التحديات الخاصة بجدولة تعدد الأنوية:</h4>
+                        <ul>
+                            <li><strong>مشكلة مشاركة موارد التخزين المؤقت (Cache Coherence):</strong> بما أن الأنوية تشترك في بعض مستويات الذاكرة المخبأة (مثل L2 أو L3 Cache)، يجب على نظام التشغيل ضمان تناسق البيانات بين الأنوية المختلفة. إذا قامت نواة بتعديل بيانات في الذاكرة المخبأة الخاصة بها، يجب أن يتم تحديث هذه البيانات في جميع الأنوية الأخرى التي قد تكون لديها نسخة قديمة.</li>
+                            <li><strong>تنسيق جدولة فعال بين النوى:</strong> يجب أن تعمل خوارزميات الجدولة على توزيع العمل بذكاء بين الأنوية، مع الأخذ في الاعتبار تآلف المعالج (Processor Affinity) لتقليل فقدان أداء الذاكرة المخبأة.</li>
+                        </ul>
+                        <p>
+                            أنظمة التشغيل الحديثة مثل Linux وWindows تقوم بتطبيق خوارزميات هجينة تراعي هذه القضايا، محاولة تحقيق أفضل توازن بين توازن الحمل وأداء الذاكرة المخبأة.
+                        </p>
+                        <h4>مثال: CFS في Linux (Completely Fair Scheduler)</h4>
+                        <ul>
+                            <li><strong>الوصف:</strong> CFS هي خوارزمية الجدولة الافتراضية في نواة Linux. إنها ليست خوارزمية تقليدية تعتمد على الطوابير أو الفترات الزمنية الثابتة، بل هي جدولة "عادل تمامًا" (Completely Fair).</li>
+                            <li><strong>كيف تعمل:</strong>
+                                <ul>
+                                    <li>تُعامل CFS جميع العمليات على أنها "أشجار حمراء سوداء" (Red-Black Tree) بناءً على وقت التنفيذ الافتراضي (Virtual Runtime) لكل عملية.</li>
+                                    <li>الهدف هو توزيع وقت المعالج بالتساوي بين جميع العمليات النشطة بناءً على "وزنها" (Niceness Value). العمليات ذات الأولوية الأعلى (Niceness الأقل) تحصل على حصة أكبر من وقت المعالج، ولكن بطريقة تضمن أن جميع العمليات تتقدم.</li>
+                                    <li>تُقلل CFS من الحاجة إلى تبديل السياق المفرط وتحاول الحفاظ على تآلف المعالج لتحسين أداء الذاكرة المخبأة.</li>
+                                </ul>
+                            </li>
+                            <li><strong>المزايا:</strong> عدالة عالية، استجابة جيدة للأنظمة التفاعلية، كفاءة في استخدام الموارد.</li>
+                        </ul>
+                        <div class="alert alert-info mt-3">
+                            <p class="mb-0">
+                                <strong>📘 قراءة موسعة:</strong>
+                                <a href="https://www.geeksforgeeks.org/linux-completely-fair-scheduler-cfs/" target="_blank" class="alert-link">Linux CFS Scheduler – GeeksforGeeks</a>
+                            </p>
+                        </div>
+                    </section>
+
+                    <hr>
+
+                    <section id="section3" class="mb-5">
+                        <h2 class="course-title">3️⃣ الجدولة في أنظمة الزمن الحقيقي (Real-Time Scheduling)</h2>
+                        <p>
+                            تختلف أنظمة الزمن الحقيقي (Real-Time Systems) بشكل كبير عن أنظمة التشغيل العامة في متطلباتها. في هذه الأنظمة، لا يكفي أن تكون النتائج صحيحة، بل يجب أن تكون صحيحة في غضون مهلة زمنية محددة بدقة.
+                        </p>
+                        <h4>📌 ما هو النظام الزمني الحقيقي؟</h4>
+                        <p>
+                            هو نظام يجب أن يستجيب للأحداث أو المدخلات ضمن زمن محدد مسبقًا بدقة صارمة. عدم الوفاء بهذه المهلة الزمنية قد يؤدي إلى فشل النظام أو عواقب وخيمة.
+                        </p>
+                        <ul>
+                            <li><strong>أمثلة على أنظمة الزمن الحقيقي:</strong>
+                                <ul>
+                                    <li><strong>أنظمة الملاحة الجوية والتحكم في الطائرات:</strong> يجب أن تستجيب الأوامر في جزء من الثانية لضمان السلامة.</li>
+                                    <li><strong>أنظمة التحكم في المصانع والروبوتات الصناعية:</strong> أي تأخير قد يؤدي إلى أخطاء في الإنتاج أو حوادث.</li>
+                                    <li><strong>أنظمة القلب الصناعي والأجهزة الطبية الحيوية:</strong> تتطلب استجابة فورية للحفاظ على حياة المريض.</li>
+                                    <li><strong>أنظمة الفرامل المانعة للانغلاق (ABS) في السيارات:</strong> يجب أن تتفاعل بسرعة فائقة لتجنب الحوادث.</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                        <h4>🧭 نوعا الجدولة الزمنية الحقيقية:</h4>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-primary">
+                                    <tr>
+                                        <th scope="col">النوع</th>
+                                        <th scope="col">الوصف</th>
+                                        <th scope="col">الأهمية</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Hard Real-Time (زمن حقيقي صارم)</strong></td>
+                                        <td>عدم الوفاء بالمهلة الزمنية المحددة يُعتبر فشلاً كارثيًا للنظام. يجب ضمان الوفاء بالمهلة بنسبة 100%.</td>
+                                        <td>يُستخدم في التطبيقات الحيوية التي تتطلب أقصى درجات الموثوقية والسلامة (مثل أنظمة التحكم في الطائرات أو المفاعلات النووية).</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Soft Real-Time (زمن حقيقي مرن)</strong></td>
+                                        <td>يمكن تجاوز المهلة الزمنية في بعض الأحيان، ولكن مع تدهور في الأداء أو جودة الخدمة. النظام لا يفشل بالكامل، ولكنه يقدم أداءً أقل من الأمثل.</td>
+                                        <td>يُستخدم في التطبيقات التي تتطلب استجابة سريعة ولكن يمكنها تحمل بعض التأخير العرضي (مثل أنظمة الوسائط المتعددة، ألعاب الفيديو).</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h4>📍 خوارزميات الجدولة الزمنية الحقيقية:</h4>
+                        <p>
+                            تختلف خوارزميات الجدولة في أنظمة الزمن الحقيقي عن الخوارزميات العامة، حيث تركز على ضمان الوفاء بالمهل الزمنية بدلاً من مجرد تحسين متوسط الأداء.
+                        </p>
+                        <ul>
+                            <li>
+                                <strong>أ. Rate Monotonic Scheduling (RMS) - جدولة المعدل الرتيب:</strong>
+                                <ul>
+                                    <li><strong>الوصف:</strong> هي خوارزمية جدولة ثابتة الأولوية (Static Priority). يتم تعيين أولوية أعلى للعمليات (المهام) التي لديها دورية (Period) أقصر. بمعنى آخر، المهمة التي يجب أن تتكرر بشكل أسرع (لها مهلة زمنية أقصر) تحصل على أولوية أعلى.</li>
+                                    <li><strong>النوع:</strong> استباقية.</li>
+                                    <li><strong>المزايا:</strong> بسيطة في التنفيذ، يمكن تحليل قابليتها للجدولة (Schedulability Analysis) لتحديد ما إذا كان النظام سيتمكن من الوفاء بجميع المهل الزمنية.</li>
+                                    <li><strong>العيوب:</strong> لا تُعد مثالية دائمًا، وقد لا تستغل المعالج بكفاءة عالية (استخدام المعالج الأقصى المضمون هو حوالي 69% لعدد كبير من المهام).</li>
+                                    <li><strong>مناسب لـ:</strong> Hard Real-Time Systems.</li>
+                                </ul>
+                                <blockquote class="blockquote bg-light p-3 border-start border-primary border-5 rounded-3">
+                                    <p class="mb-0 fst-italic">
+                                        <strong>🧪 مثال 1: جدولة RMS</strong>
+                                        <p>لنفترض العمليات التالية بخصائصها:</p>
+                                        <table class="table table-sm table-bordered">
+                                            <thead>
+                                                <tr><th>العملية</th><th>الزمن الدوري (Period - ms)</th><th>زمن التنفيذ (Execution Time - ms)</th></tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr><td>P1</td><td>10</td><td>2</td></tr>
+                                                <tr><td>P2</td><td>20</td><td>4</td></tr>
+                                                <tr><td>P3</td><td>50</td><td>5</td></tr>
+                                            </tbody>
+                                        </table>
+                                        <p><strong>الجدولة باستخدام RMS:</strong></p>
+                                        <ul>
+                                            <li>P1 لديها أقصر زمن دوري (10ms)، لذا تحصل على أعلى أولوية.</li>
+                                            <li>P2 لديها زمن دوري (20ms)، تحصل على أولوية متوسطة.</li>
+                                            <li>P3 لديها أطول زمن دوري (50ms)، تحصل على أقل أولوية.</li>
+                                        </ul>
+                                        <p>سيقوم الجادول بتنفيذ P1 أولاً، وإذا أصبحت P2 أو P3 جاهزة أثناء تنفيذ P1، فستستمر P1 لأنها ذات أولوية أعلى. إذا انتهت P1، فسيتم تنفيذ P2 (إذا كانت جاهزة) قبل P3.</p>
+                                    </p>
+                                </blockquote>
+                            </li>
+                            <li>
+                                <strong>ب. Earliest Deadline First (EDF) - أقرب موعد نهائي أولاً:</strong>
+                                <ul>
+                                    <li><strong>الوصف:</strong> هي خوارزمية جدولة ديناميكية الأولوية (Dynamic Priority). يتم تعيين الأولوية للعملية التي لديها أقرب موعد نهائي (Deadline) للتنفيذ. تتغير أولوية العمليات أثناء التنفيذ بناءً على مدى قرب موعدها النهائي.</li>
+                                    <li><strong>النوع:</strong> استباقية.</li>
+                                    <li><strong>المزايا:</strong> تُعد مثالية من حيث استغلال المعالج (يمكنها استغلال المعالج بنسبة 100% في بعض السيناريوهات).</li>
+                                    <li><strong>العيوب:</strong> أكثر تعقيدًا في التنفيذ من RMS، وقد يكون تحليل قابليتها للجدولة أصعب.</li>
+                                    <li><strong>مناسب لـ:</strong> Hard و Soft Real-Time Systems.</li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <div class="alert alert-info mt-3">
+                            <p class="mb-0">
+                                <strong>📚 للمزيد:</strong>
+                                <a href="https://www.embedded.com/rtos-scheduling-algorithms/" target="_blank" class="alert-link">RTOS Scheduling Algorithms – Embedded.com</a>
+                            </p>
+                        </div>
+                    </section>
+
+                    <hr>
+
+                    <section id="section4" class="mb-5">
+                        <h2 class="course-title">4️⃣ أمثلة من أنظمة تشغيل مختلفة</h2>
+                        <p>
+                            تُطبق أنظمة التشغيل الحديثة، سواء كانت عامة الغرض أو مخصصة للزمن الحقيقي، مجموعة متنوعة من استراتيجيات الجدولة لتلبية متطلبات بيئاتها الخاصة.
+                        </p>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-primary">
+                                    <tr>
+                                        <th scope="col">النظام</th>
+                                        <th scope="col">وصف الجدولة</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Linux</strong></td>
+                                        <td>
+                                            <p>يستخدم <strong>Completely Fair Scheduler (CFS)</strong> كجدول افتراضي للعمليات العادية، والذي يهدف إلى تحقيق العدالة في توزيع وقت المعالج.</p>
+                                            <p>يدعم Linux أيضًا <strong>جدولة الزمن الحقيقي (Real-Time Scheduling)</strong> بخيارات مثل <code>SCHED_FIFO</code> (First-In, First-Out) و <code>SCHED_RR</code> (Round Robin) للمهام ذات الأولويات الصارمة. هذه الخيارات تضمن أن المهام الزمنية الحقيقية تحصل على المعالج قبل المهام العادية.</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Windows</strong></td>
+                                        <td>
+                                            <p>يستخدم Windows نظام جدولة يعتمد على <strong>Multilevel Feedback Queues</strong> مع 32 مستوى أولوية. يُعطي أولوية أعلى للخيوط التي تقوم بعمليات I/O أو التي تفاعلت مؤخرًا مع المستخدم.</p>
+                                            <p>يدير Windows العمليات الزمنية الحقيقية من خلال مستويات أولوية حقيقية (Real-Time Priorities) التي تكون أعلى من الأولويات العادية، مما يضمن استجابة سريعة للتطبيقات الحساسة للوقت.</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Unix SVR4</strong></td>
+                                        <td>
+                                            <p>يستخدم مستويات متعددة من الأولويات (Multilevel Priority Queues). يتم تقسيم العمليات إلى فئات (مثل: زمن حقيقي، نظام، تفاعلي، دفعي) وكل فئة لها نطاق أولويات خاص بها. يتم استخدام خوارزميات مختلفة داخل كل فئة (مثل Round Robin للعمليات التفاعلية).</p>
+                                            <p>يُعطي الأولوية القصوى لعمليات الزمن الحقيقي، ثم عمليات النظام، وهكذا.</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>FreeBSD</strong></td>
+                                        <td>
+                                            <p>يعتمد على نموذج <strong>ULE Scheduler</strong> للجدولة المتعددة الأنوية. يهدف ULE إلى تحسين أداء الذاكرة المخبأة (Cache) من خلال الحفاظ على تآلف المعالج (Processor Affinity) قدر الإمكان، مع تحقيق توازن جيد في تحميل الأنوية.</p>
+                                            <p>يستخدم طوابير جاهزة لكل نواة، مع آليات سحب (Pull) للعمليات من الأنوية الأخرى إذا كانت نواة ما خاملة.</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="alert alert-info mt-3">
+                            <p class="mb-0">
+                                <strong>📘 اقرأ المزيد من المصادر الرسمية:</strong>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-link me-2"></i> <a href="https://www.kernel.org/doc/html/latest/scheduler/index.html" target="_blank" class="alert-link">Linux Kernel Docs – CFS</a></li>
+                                    <li><i class="fas fa-link me-2"></i> <a href="https://learn.microsoft.com/en-us/windows/win32/procthread/scheduling-priorities" target="_blank" class="alert-link">Microsoft Docs – Windows Scheduling Priorities</a></li>
+                                </ul>
+                            </p>
+                        </div>
+                    </section>
+
+                    <hr>
+
+                    <section id="section5" class="mb-5">
+                        <h2 class="course-title">5️⃣ مقارنات بين الجدولة</h2>
+                        <p>
+                            لفهم الفروق الدقيقة بين أنواع الجدولة المختلفة في الأنظمة الحديثة، من المفيد مقارنة جوانبها الرئيسية:
+                        </p>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-primary">
+                                    <tr>
+                                        <th scope="col">الجانب</th>
+                                        <th scope="col">جدولة SMP (المعالجات المتماثلة)</th>
+                                        <th scope="col">جدولة Multicore (تعدد الأنوية)</th>
+                                        <th scope="col">جدولة Real-Time (الزمن الحقيقي)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>عدد المعالجات/الأنوية</strong></td>
+                                        <td>معالجات متعددة منفصلة</td>
+                                        <td>أنوية متعددة داخل نفس الشريحة</td>
+                                        <td>يمكن أن تكون أحادية أو متعددة المعالجات/الأنوية</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>التحديات الرئيسية</strong></td>
+                                        <td>تحميل متوازن، تنافس على الطابور المشترك، تآلف المعالج.</td>
+                                        <td>مشاركة الذاكرة المؤقتة (Cache Coherence)، تآلف المعالج، توزيع الحمل بين الأنوية.</td>
+                                        <td>الاستجابة في وقت معين، ضمان المهل الزمنية، قابلية التنبؤ.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>الهدف الأساسي</strong></td>
+                                        <td>زيادة الإنتاجية الكلية للنظام، تقليل وقت الإنهاء.</td>
+                                        <td>تحسين الأداء الكلي للنظام مع الاستفادة من الذاكرة المخبأة المشتركة.</td>
+                                        <td>ضمان أن المهام تُنفذ في غضون مهل زمنية صارمة أو مرنة.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>مثال شائع</strong></td>
+                                        <td>خوادم الويب، قواعد البيانات الكبيرة.</td>
+                                        <td>أجهزة الكمبيوتر المكتبية والمحمولة الحديثة (معالجات Ryzen/Intel).</td>
+                                        <td>أنظمة الطيران، التحكم الصناعي، الأجهزة الطبية.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>أمثلة خوارزميات</strong></td>
+                                        <td>Round Robin (مع طابور مشترك)، SJF (مع توازن الحمل).</td>
+                                        <td>CFS (Linux)، Multilevel Feedback Queues (Windows).</td>
+                                        <td>Rate Monotonic Scheduling (RMS)، Earliest Deadline First (EDF).</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <hr>
+
+                    <section class="summary-section mb-5">
+                        <h2 class="course-title text-secondary"><i class="fas fa-info-circle me-2"></i>ملخص الوحدة</h2>
+                        <p>
+                            في هذه الوحدة، استكشفنا تعقيدات **جدولة المعالجات المتعددة (Multiprocessor Scheduling)** و**تعدد الأنوية (Multicore Scheduling)**، حيث تُصبح مهمة توزيع العمليات بين وحدات المعالجة المتعددة أمرًا حيويًا لتحقيق الأداء الأمثل. تعرفنا على أنواع المعالجات (SMP و AMP) ونماذج الجدولة المختلفة، بالإضافة إلى أهمية مفهوم **تآلف المعالج (Processor Affinity)**. كما تعمقنا في **جدولة أنظمة الزمن الحقيقي (Real-Time Scheduling)**، وفهمنا الفروق بين الأنظمة الصارمة والمرنة، واستعرضنا خوارزميات مثل RMS و EDF التي تضمن الوفاء بالمهل الزمنية. وأخيرًا، قمنا بمقارنة كيفية تطبيق هذه المفاهيم في أنظمة تشغيل رائدة مثل Linux وWindows. الفهم العميق لهذه المفاهيم يُمكن الطالب من تصميم وتحليل أنظمة حوسبة عالية الأداء أو زمنية حساسة، وهو أمر بالغ الأهمية في عالم التكنولوجيا اليوم.
+                        </p>
+                    </section>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="unit-9.html" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-right me-1"></i>
+                            الوحدة السابقة: جدولة أحادية المعالج
+                        </a>
+                        <a href="unit-11.html" class="btn btn-primary">
+                            الوحدة التالية: إدارة I/O وجدولة الأقراص
+                            <i class="fas fa-arrow-left ms-1"></i>
+                        </a>
+                    </div>
+
+                    <div class="alert alert-info mt-3">
+                        <h5 class="mb-2"><i class="fas fa-book-open me-2"></i>روابط إثرائية وموارد إضافية:</h5>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-link me-2"></i> <a href="https://www.cs.princeton.edu/courses/archive/fall09/cos318/lectures/10-multiprocessor.pdf" target="_blank" class="alert-link">Operating System Concepts – Chapter 10 Slides (PDF)</a></li>
+                            <li><i class="fas fa-link me-2"></i> <a href="https://www.youtube.com/playlist?list=PLBlnK6fEyqRh-z00-zFv10d8wLg7y0_jV" target="_blank" class="alert-link">Real-Time Systems – NPTEL Lectures (YouTube Playlist)</a></li>
+                            <li><i class="fas fa-link me-2"></i> <a href="https://www.cs.unm.edu/~dlchao/cs371/lab/linux-scheduler.html" target="_blank" class="alert-link">Linux CFS Scheduler – Interactive Simulator</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>مسار الأمن السيبراني</h5>
+                    <p>منصة تعليمية متخصصة في تقديم محتوى أكاديمي وعملي في مجال الأمن السيبراني.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>روابط سريعة</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="../index.html" class="text-white text-decoration-none">الرئيسية</a></li>
+                        <li><a href="#" class="text-white text-decoration-none">جميع المقررات</a></li>
+                        <li><a href="#" class="text-white text-decoration-none">الدعم الفني</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>تواصل معنا</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> info@cyberpath.com</li>
+                        <li><i class="fas fa-phone me-2"></i> 0502161465</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2025 مسار الأمن السيبراني. جميع الحقوق محفوظة.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-linkedin fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-youtube fa-lg"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-github fa-lg"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const completedUnits = JSON.parse(localStorage.getItem('os_completed_units')) || {};
+            const totalModules = 17; // 16 units + 1 summary unit
+            
+            function updateProgress() {
+                const completedCount = Object.keys(completedUnits).length;
+                const progressPercentage = (completedCount / totalModules) * 100;
+                const progressBar = document.querySelector('.progress-bar');
+                
+                progressBar.style.width = `${progressPercentage}%`;
+                progressBar.setAttribute('aria-valuenow', progressPercentage);
+                progressBar.textContent = `${Math.round(progressPercentage)}% مكتمل`;
+                
+                localStorage.setItem('os_completed_modules', completedCount);
+            }
+            
+            // Mark current unit (Unit 10) as completed and update progress
+            if (!completedUnits['unit10']) {
+                completedUnits['unit10'] = true;
+                localStorage.setItem('os_completed_units', JSON.stringify(completedUnits));
+                updateProgress();
+            } else {
+                updateProgress(); // Just update progress bar if already completed
+            }
+        });
+    </script>
+</body>
+</html>
