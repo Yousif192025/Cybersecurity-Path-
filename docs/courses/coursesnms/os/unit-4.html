@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الوحدة 4: الخيوط (Threads) | أنظمة التشغيل</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #2c3e50; /* Dark Blue/Grey */
+            --secondary-color: #3498db; /* Bright Blue */
+            --accent-color: #e74c3c; /* Red */
+            --light-bg: #f8f9fa; /* Light Grey */
+            --dark-text: #2c3e50; /* Dark Blue/Grey */
+            --light-text: #7f8c8d; /* Medium Grey */
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            line-height: 1.8;
+        }
+
+        .navbar {
+            background-color: var(--primary-color);
+        }
+
+        .sidebar {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .content-section {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .course-title {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .list-group-item.active {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        .list-group-item.active .module-link, .list-group-item.active .module-link .badge {
+            color: white;
+        }
+
+        .module-link {
+            text-decoration: none;
+            color: var(--dark-text);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .accordion-button:not(.collapsed) {
+            color: #fff;
+            background-color: var(--secondary-color);
+            box-shadow: none;
+        }
+
+        .accordion-button:not(.collapsed)::after {
+            filter: brightness(0) invert(1);
+        }
+
+        .unit-icon {
+            color: var(--secondary-color);
+            margin-left: 10px;
+        }
+
+        .unit-icon-header {
+            color: var(--primary-color);
+            margin-left: 10px;
+        }
+
+        .quiz-section, .enhancement-section, .summary-section {
+            padding: 20px;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .quiz-section {
+            background-color: #e9ecef;
+            border-left: 5px solid var(--secondary-color);
+        }
+
+        .enhancement-section {
+            background-color: #e9f5ff;
+            border-left: 5px solid #28a745;
+        }
+
+        .summary-section {
+            background-color: #f1f1f1;
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .footer {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .progress-container {
+            height: 25px;
+        }
+
+        .progress-bar {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-check:checked + .btn-outline-primary, .btn-outline-primary:hover {
+            color: white;
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        @media (max-width: 991px) {
+            .sidebar {
+                margin-top: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-desktop me-2"></i>
+                أنظمة التشغيل
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../../../pathways/tvtc-cs-security.html">
+                            <i class="fas fa-arrow-right me-1"></i>
+                            العودة إلى المقررات
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <!-- Sidebar for Units -->
+            <div class="col-lg-3">
+                <div class="sidebar p-4">
+                    <h4 class="mb-3">
+                        <i class="fas fa-stream me-2"></i>
+                        وحدات المقرر
+                    </h4>
+                    <div class="progress progress-container mb-4">
+                        <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                    </div>
+                    <div class="accordion" id="unitsAccordion">
+                        <!-- Unit 1 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingOne">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-desktop"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 1: نظرة عامة على النظام الحاسوبي</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الأولى...</p>
+                                <a href="unit-1.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 2 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingTwo">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-cogs"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 2: لمحة عن أنظمة التشغيل</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الثانية...</p>
+                                <a href="unit-2.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 3 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingThree">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-tasks"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 3: وصف وإدارة العملية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الثالثة...</p>
+                                <a href="unit-3.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 4 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingFour">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="true" aria-controls="collapseFour">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-code-branch"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 4: الخيوط (Threads)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseFour" class="accordion-collapse collapse show" aria-labelledby="headingFour" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-4.html#section1" class="text-decoration-none">الفرق بين العمليات والخيوط</a></li>
+                                        <li><a href="unit-4.html#section2" class="text-decoration-none">أنواع الخيوط</a></li>
+                                        <li><a href="unit-4.html#section3" class="text-decoration-none">المعالجة متعددة النوى والخيوط</a></li>
+                                        <li><a href="unit-4.html#section4" class="text-decoration-none">إدارة الخيوط في أنظمة التشغيل</a></li>
+                                        <li><a href="unit-4.html#section5" class="text-decoration-none">فوائد الخيوط وأمثلة عملية</a></li>
+                                        <li><a href="unit-4.html#section6" class="text-decoration-none">التحديات والمخاطر</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 5 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingFive">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-sync-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 5: التزامن والحصر المتبادل</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الخامسة...</p>
+                                <a href="unit-5.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 6 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingSix">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-hand-paper"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 6: الجمود (Deadlock) والمجاعة (Starvation)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseSix" class="accordion-collapse collapse" aria-labelledby="headingSix" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة السادسة...</p>
+                                <a href="unit-6.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 7 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingSeven">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-memory"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 7: إدارة الذاكرة</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseSeven" class="accordion-collapse collapse" aria-labelledby="headingSeven" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة السابعة...</p>
+                                <a href="unit-7.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 8 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingEight">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEight" aria-expanded="false" aria-controls="collapseEight">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-hdd"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 8: الذاكرة الافتراضية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseEight" class="accordion-collapse collapse" aria-labelledby="headingEight" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الثامنة...</p>
+                                <a href="unit-8.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 9 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingNine">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNine" aria-expanded="false" aria-controls="collapseNine">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-calendar-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 9: جدولة أحادية المعالج</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseNine" class="accordion-collapse collapse" aria-labelledby="headingNine" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة التاسعة...</p>
+                                <a href="unit-9.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 10 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingTen">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTen" aria-expanded="false" aria-controls="collapseTen">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-microchip"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 10: جدولة متعددة المعالجات والمعالجة الزمنية الحقيقية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseTen" class="accordion-collapse collapse" aria-labelledby="headingTen" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة العاشرة...</p>
+                                <a href="unit-10.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 11 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingEleven">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEleven" aria-expanded="false" aria-controls="collapseEleven">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-exchange-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 11: إدارة I/O وجدولة الأقراص</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseEleven" class="accordion-collapse collapse" aria-labelledby="headingEleven" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الحادية عشرة...</p>
+                                <a href="unit-11.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 12 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingTwelve">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwelve" aria-expanded="false" aria-controls="collapseTwelve">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-folder-open"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 12: إدارة الملفات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseTwelve" class="accordion-collapse collapse" aria-labelledby="headingTwelve" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الثانية عشرة...</p>
+                                <a href="unit-12.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 13 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingThirteen">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThirteen" aria-expanded="false" aria-controls="collapseThirteen">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-microchip"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 13: أنظمة تشغيل مدمجة</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseThirteen" class="accordion-collapse collapse" aria-labelledby="headingThirteen" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الثالثة عشرة...</p>
+                                <a href="unit-13.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 14 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingFourteen">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFourteen" aria-expanded="false" aria-controls="collapseFourteen">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-server"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 14: الآلات الافتراضية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseFourteen" class="accordion-collapse collapse" aria-labelledby="headingFourteen" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الرابعة عشرة...</p>
+                                <a href="unit-14.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 15 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingFifteen">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFifteen" aria-expanded="false" aria-controls="collapseFifteen">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-lock"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 15: أمن أنظمة التشغيل</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseFifteen" class="accordion-collapse collapse" aria-labelledby="headingFifteen" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الخامسة عشرة...</p>
+                                <a href="unit-15.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 16 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingSixteen">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSixteen" aria-expanded="false" aria-controls="collapseSixteen">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-cloud"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 16: أنظمة تشغيل السحابة وإنترنت الأشياء</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseSixteen" class="accordion-collapse collapse" aria-labelledby="headingSixteen" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة السادسة عشرة...</p>
+                                <a href="unit-16.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        <!-- Unit Summary -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingSummary">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSummary" aria-expanded="false" aria-controls="collapseSummary">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-graduation-cap"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة الختامية: ملخص المقرر</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseSummary" class="accordion-collapse collapse" aria-labelledby="headingSummary" data-bs-parent="#unitsAccordion">
+                                <p>ملخص شامل للمقرر وتوجيه مهني.</p>
+                                <a href="unit-summary.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-lg-9">
+                <div class="content-section mb-4 p-5">
+                    <h1 class="course-title">
+                        <i class="fas fa-code-branch unit-icon-header"></i>
+                        الوحدة 4: الخيوط (Threads)
+                    </h1>
+                    <span class="badge bg-secondary mb-4">Threads and Multithreading in Operating Systems</span>
+                    <p class="text-muted">
+                        📚 مستندة إلى الفصل الرابع من كتاب: Operating Systems: Internals and Design Principles – William Stallings – الإصدار التاسع
+                    </p>
+
+                    <div class="mb-4">
+                        <h4><i class="fas fa-bullseye me-2"></i>أهداف الوحدة</h4>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check-circle text-success me-2"></i> التمييز بين العمليات والخيوط.</li>
+                            <li><i class="fas fa-check-circle text-success me-2"></i> فهم أنواع الخيوط (مستوى المستخدم والنواة).</li>
+                            <li><i class="fas fa-check-circle text-success me-2"></i> استيعاب أهمية المعالجة المتزامنة (Multithreading).</li>
+                            <li><i class="fas fa-check-circle text-success me-2"></i> التعرف على آليات إدارة الخيوط في أنظمة Windows، Linux، Solaris، Android، وmacOS.</li>
+                        </ul>
+                    </div>
+
+                    <hr>
+
+                    <section id="section1" class="mb-5">
+                        <h2 class="course-title">1️⃣ الفرق بين العمليات والخيوط</h2>
+                        <p>
+                            لفهم الخيوط (Threads)، من الضروري أولاً التمييز بينها وبين العمليات (Processes):
+                        </p>
+                        <ul>
+                            <li><strong>🔹 العملية (Process):</strong> هي كيان مستقل بذاته، يمتلك مساحة عنوان خاصة به (ذاكرة خاصة)، وسجلاته الخاصة، وموارده الخاصة (مثل الملفات المفتوحة وأجهزة الإدخال/الإخراج). إذا توقفت عملية، فإنها لا تؤثر عادةً على العمليات الأخرى.</li>
+                            <li><strong>🔹 الخيط (Thread):</strong> هو وحدة تنفيذ خفيفة (lightweight process) داخل العملية الواحدة. الخيوط التي تنتمي لنفس العملية تشترك في نفس مساحة العنوان (الذاكرة)، ونفس الملفات المفتوحة، ونفس الموارد. ومع ذلك، يمتلك كل خيط مؤشر تنفيذ خاص به (Program Counter)، وسجلاته الخاصة، ومكدس (Stack) خاص به.</li>
+                        </ul>
+                        <h4>🔸 أهمية الخيوط:</h4>
+                        <p>
+                            تتيح الخيوط تنفيذ عدة مهام في وقت واحد داخل نفس العملية، مما يزيد من الكفاءة والأداء، خاصة في التطبيقات الحديثة مثل:
+                        </p>
+                        <ul>
+                            <li><strong>المتصفحات:</strong> يمكن لخيط واحد أن يعرض الصفحة، بينما خيط آخر يحمل الصور، وثالث يشغل مقاطع الفيديو.</li>
+                            <li><strong>الألعاب:</strong> خيط للرسومات، خيط للذكاء الاصطناعي، خيط لإدارة المدخلات.</li>
+                            <li><strong>أنظمة التشغيل نفسها:</strong> تستخدم الخيوط لإدارة المهام الداخلية بكفاءة.</li>
+                        </ul>
+                        <div class="alert alert-info mt-3">
+                            <p class="mb-0">
+                                <strong>🔗 مصدر خارجي:</strong>
+                                <a href="https://www.geeksforgeeks.org/difference-between-process-and-thread/" target="_blank" class="alert-link">شرح مبسط للخيوط – GeeksForGeeks</a>
+                            </p>
+                        </div>
+                    </section>
+
+                    <hr>
+
+                    <section id="section2" class="mb-5">
+                        <h2 class="course-title">2️⃣ أنواع الخيوط</h2>
+                        <p>
+                            يمكن تصنيف الخيوط بناءً على كيفية إدارتها بواسطة نظام التشغيل:
+                        </p>
+                        <h4>🔹 خيوط مستوى المستخدم (User-Level Threads - ULT):</h4>
+                        <ul>
+                            <li><strong>الإدارة:</strong> تتم إدارتها بالكامل بواسطة مكتبات خاصة على مستوى المستخدم (User Space)، ولا يراها نظام التشغيل (Kernel) بشكل مباشر.</li>
+                            <li><strong>المزايا:</strong> سريعة في الإنشاء والتبديل لأنها لا تتطلب تدخل النواة.</li>
+                            <li><strong>العيوب:</strong> إذا قام خيط واحد بعملية إدخال/إخراج (I/O) تحظره، فستتوقف جميع الخيوط الأخرى في نفس العملية، لأن النواة لا تعرف بوجود خيوط متعددة داخل العملية.</li>
+                        </ul>
+                        <h4>🔹 خيوط مستوى النواة (Kernel-Level Threads - KLT):</h4>
+                        <ul>
+                            <li><strong>الإدارة:</strong> يديرها نظام التشغيل نفسه بشكل مباشر. يكون لكل خيط دعم كامل من النظام ويمكن جدولته بشكل مستقل على المعالج.</li>
+                            <li><strong>المزايا:</strong> إذا قام خيط واحد بعملية I/O تحظره، يمكن للنواة جدولة خيط آخر من نفس العملية أو من عملية أخرى. يمكنها الاستفادة من المعالجات متعددة النوى بشكل أفضل.</li>
+                            <li><strong>العيوب:</strong> أبطأ في الإنشاء والتبديل لأنها تتطلب تدخل النواة (System Calls).</li>
+                        </ul>
+                        <h4>🔹 النموذج الهجين (Hybrid Model):</h4>
+                        <ul>
+                            <li>تستخدمه بعض الأنظمة الحديثة (مثل Windows وLinux) ويجمع بين مزايا الخيوط في النواة والمستخدم. يتم ربط عدد معين من خيوط المستخدم بعدد أقل من خيوط النواة.</li>
+                        </ul>
+                        <blockquote class="blockquote bg-light p-3 border-start border-primary border-5 rounded-3">
+                            <p class="mb-0 fst-italic">
+                                <strong>🔸 مثال توضيحي:</strong> في تطبيق محرر نصوص متقدم، يمكن أن يكون هناك خيط مخصص لواجهة المستخدم (لضمان استجابة التطبيق)، وخيط آخر يعمل في الخلفية للحفظ التلقائي، وخيط ثالث للتدقيق الإملائي. كل هذه الخيوط تعمل ضمن نفس العملية، وتشارك نفس البيانات، ولكنها تؤدي مهامها بشكل متزامن.
+                            </p>
+                        </blockquote>
+                        <div class="alert alert-info mt-3">
+                            <p class="mb-0">
+                                <strong>🔗 مصدر خارجي:</strong>
+                                <a href="https://www.tutorialspoint.com/operating_system/os_user_kernel_threads.htm" target="_blank" class="alert-link">User vs Kernel Threads – TutorialsPoint</a>
+                            </p>
+                        </div>
+                    </section>
+
+                    <hr>
+
+                    <section id="section3" class="mb-5">
+                        <h2 class="course-title">3️⃣ المعالجة المتعددة النوى والخيوط</h2>
+                        <p>
+                            لقد أحدثت المعالجات الحديثة ذات النوى المتعددة ثورة في كيفية تنفيذ البرامج، وأصبحت الخيوط المتعددة (Multithreading) هي المفتاح للاستفادة القصوى من هذه البنية:
+                        </p>
+                        <ul>
+                            <li><strong>🔹 النوى المتعددة (Multicore):</strong> توفر المعالجات الحديثة عدة نوى معالجة (Physical Cores) على شريحة واحدة. كل نواة قادرة على تنفيذ التعليمات بشكل مستقل. هذا يتيح تنفيذ عدة خيوط في وقت متزامن **فعليًا** (True Parallelism).</li>
+                            <li><strong>🔹 الخيوط المتعددة (Multithreading):</strong> هي تقنية تسمح بتقسيم عبء العمل داخل برنامج واحد عبر عدة خيوط. هذه الخيوط يمكن أن تعمل على نفس النواة (عبر تبديل سياقي سريع) أو على نوى مختلفة في المعالجات متعددة النوى.</li>
+                        </ul>
+                        <h4>🔸 أهمية ذلك:</h4>
+                        <p>
+                            تؤدي هذه التركيبة إلى أداء أفضل بشكل ملحوظ في التطبيقات الكثيفة بالحسابات، مثل:
+                        </p>
+                        <ul>
+                            <li>البرمجة والتجميع (Compiling Code).</li>
+                            <li>تحرير الفيديو والتصيير (Video Editing and Rendering).</li>
+                            <li>خوادم قواعد البيانات وخوادم الويب التي تتعامل مع طلبات متعددة في نفس الوقت.</li>
+                        </ul>
+                        <h4>🔸 تقنية SMT (Simultaneous Multithreading):</h4>
+                        <p>
+                            تُعرف تجاريًا باسم <strong>Hyper-Threading</strong> لدى Intel. تسمح هذه التقنية للنواة الواحدة بتنفيذ أكثر من خيط (عادةً خيطين) في نفس الوقت بشكل شبه متزامن، وذلك من خلال استخدام موارد النواة بشكل أكثر كفاءة (مثل وحدات التنفيذ التي قد تكون خاملة). هذا يزيد من كفاءة النواة الواحدة ويحسن الأداء العام.
+                        </p>
+                        <div class="alert alert-info mt-3">
+                            <p class="mb-0">
+                                <strong>🔗 مصدر خارجي:</strong>
+                                <a href="https://www.intel.com/content/www/us/en/gaming/resources/hyper-threading.html" target="_blank" class="alert-link">Understanding Multithreading – Intel</a>
+                            </p>
+                        </div>
+                    </section>
+
+                    <hr>
+
+                    <section id="section4" class="mb-5">
+                        <h2 class="course-title">4️⃣ إدارة الخيوط في أنظمة التشغيل</h2>
+                        <p>
+                            تختلف آليات إدارة الخيوط بين أنظمة التشغيل الشائعة، ولكن الهدف واحد: توفير بيئة فعالة ومستقرة لتشغيل التطبيقات متعددة الخيوط.
+                        </p>
+                        <h4>🔹 Windows:</h4>
+                        <ul>
+                            <li>يستخدم Windows نموذج "خيط لكل كائن" (one-thread-per-object)، حيث يتم تمثيل كل خيط ككائن مستقل داخل النواة.</li>
+                            <li>يوفر واجهات برمجة تطبيقات (API) غنية مثل <code>CreateThread()</code> لإنشاء الخيوط و<code>WaitForSingleObject()</code> لانتظار انتهاء خيط معين.</li>
+                        </ul>
+                        <h4>🔹 Linux:</h4>
+                        <ul>
+                            <li>يستخدم Linux مكتبة <strong>pthread (POSIX Threads)</strong>، وهي معيار شائع لإدارة الخيوط في أنظمة UNIX-like.</li>
+                            <li>يتم إنشاء الخيوط باستخدام دالة <code>pthread_create()</code>. في Linux، يُعامل كل خيط كـ "عملية خفيفة" (lightweight process) أو "مهمة" (task) داخل النواة، مما يوفر مرونة عالية.</li>
+                        </ul>
+                        <h4>🔹 Solaris:</h4>
+                        <ul>
+                            <li>يدعم Solaris نماذج متعددة لإدارة الخيوط، بما في ذلك نموذج M:N (عدة خيوط مستخدم على عدد أقل من خيوط النواة)، مما يوفر توازنًا بين الأداء والمرونة.</li>
+                        </ul>
+                        <h4>🔹 Android:</h4>
+                        <ul>
+                            <li>بما أن Android مبني على Linux Kernel، فإنه يستخدم مفاهيم الخيوط الأساسية في Linux.</li>
+                            <li>يعتمد المطورون على خيوط Java (مثل <code>Thread</code> class) وإطار عمل <code>AsyncTask</code> لتنفيذ العمليات في الخلفية وتجنب تجميد واجهة المستخدم الرئيسية.</li>
+                        </ul>
+                        <h4>🔹 macOS:</h4>
+                        <ul>
+                            <li>يستخدم macOS نظام <strong>Grand Central Dispatch (GCD)</strong> كواجهة رئيسية لإدارة المهام المتوازية.</li>
+                            <li>يسمح GCD للمطورين بتحديد المهام التي يجب تنفيذها، ويقوم النظام تلقائيًا بتوزيع هذه المهام على الخيوط المتاحة في الخلفية دون الحاجة لإدارة الخيوط يدويًا.</li>
+                        </ul>
+                        <div class="alert alert-info mt-3">
+                            <p class="mb-0">
+                                <strong>🔗 مصادر خارجية:</strong>
+                                <a href="https://www.tldp.org/HOWTO/html_single/POSIX-Threads-Programming-HOWTO/" target="_blank" class="alert-link">POSIX Threads Tutorial – The Linux Documentation Project</a>
+                                <br>
+                                <a href="https://developer.apple.com/library/archive/documentation/General/Conceptual/ConcurrencyProgrammingGuide/Introduction/Introduction.html" target="_blank" class="alert-link">Grand Central Dispatch Overview – Apple Developer</a>
+                            </p>
+                        </div>
+                    </section>
+                    
+                    <hr>
+
+                    <section id="section5" class="mb-5">
+                        <h2 class="course-title">5️⃣ فوائد الخيوط وأمثلة عملية</h2>
+                        <p>
+                            توفر الخيوط العديد من المزايا التي تجعلها ضرورية في تطوير التطبيقات الحديثة:
+                        </p>
+                        <ul>
+                            <li><strong>زيادة الكفاءة:</strong> تستهلك الخيوط موارد أقل في الإنشاء والتبديل السياقي مقارنة بالعمليات المستقلة، مما يجعلها أكثر كفاءة في استخدام موارد النظام.</li>
+                            <li><strong>استجابة أعلى:</strong> في تطبيقات واجهة المستخدم الرسومية (GUI)، يمكن تشغيل العمليات الطويلة في خيط منفصل، مما يضمن بقاء الواجهة الرئيسية مستجيبة لأوامر المستخدم.</li>
+                            <li><strong>قابلية التوسع (Scalability):</strong> تطبيقات الخوادم والويب الحديثة تعتمد بشكل كبير على الخيوط المتعددة للتعامل مع عدد كبير من الطلبات المتزامنة بكفاءة.</li>
+                            <li><strong>مشاركة الموارد:</strong> بما أن الخيوط داخل نفس العملية تشترك في نفس مساحة الذاكرة، فإن مشاركة البيانات بينها تكون أسهل وأسرع بكثير من التواصل بين العمليات المنفصلة.</li>
+                        </ul>
+                        <h4>🔸 أمثلة تطبيقية:</h4>
+                        <ul>
+                            <li><strong>خادم ويب (Web Server):</strong> عندما يتلقى خادم الويب طلبًا من عميل، يمكنه معالجة هذا الطلب في خيط مستقل. هذا يسمح للخادم بالتعامل مع مئات أو آلاف الطلبات المتزامنة دون تأخير.</li>
+                            <li><strong>متصفح الإنترنت:</strong> يمكن أن يكون هناك خيط منفصل لعرض واجهة المستخدم، وخيط آخر لتحميل الصور ومقاطع الفيديو، وخيط ثالث لتشغيل سكربتات JavaScript، مما يوفر تجربة تصفح سلسة.</li>
+                            <li><strong>برامج تحرير الفيديو:</strong> يمكن لخيط واحد أن يعالج الواجهة، بينما تقوم خيوط أخرى بتصيير (Rendering) المشاهد أو تطبيق المؤثرات في الخلفية.</li>
+                        </ul>
+                    </section>
+
+                    <hr>
+
+                    <section id="section6" class="mb-5">
+                        <h2 class="course-title">6️⃣ التحديات والمخاطر</h2>
+                        <p>
+                            على الرغم من فوائدها، فإن استخدام الخيوط المتعددة يأتي مع تحديات ومخاطر يجب إدارتها بعناية:
+                        </p>
+                        <ul>
+                            <li><strong>مشاركة الموارد (Shared Resources):</strong> بما أن الخيوط تشترك في نفس مساحة الذاكرة، فإن الوصول المتزامن لنفس البيانات من قبل خيوط متعددة قد يؤدي إلى مشاكل مثل <strong>حالات السباق (Race Conditions)</strong>، حيث تعتمد نتيجة العملية على الترتيب الذي يتم به تنفيذ الخيوط، مما يؤدي إلى نتائج غير متوقعة أو خاطئة.</li>
+                            <li><strong>التزامن (Synchronization):</strong> ضرورة استخدام أدوات التزامن لضمان الوصول الآمن والمنظم إلى الموارد المشتركة. تشمل هذه الأدوات:
+                                <ul>
+                                    <li><strong>الأقفال (Locks / Mutexes):</strong> تسمح لخيط واحد فقط بالوصول إلى مورد معين في وقت واحد.</li>
+                                    <li><strong>السيموفور (Semaphores):</strong> آليات أكثر عمومية للتحكم في الوصول إلى عدد محدود من الموارد.</li>
+                                    <li><strong>المراقبات (Monitors):</strong> هياكل برمجية توفر آليات تزامن أكثر تعقيدًا.</li>
+                                </ul>
+                            </li>
+                            <li><strong>الجمود (Deadlock):</strong> حالة تحدث عندما تنتظر عمليتان أو أكثر بعضها البعض للحصول على مورد، مما يؤدي إلى توقف جميع العمليات المعنية بشكل دائم.</li>
+                            <li><strong>الإفراط في إنشاء الخيوط (Thread Exhaustion):</strong> إنشاء عدد كبير جدًا من الخيوط قد يؤدي إلى إرهاق النظام بسبب الحمل الزائد للتبديل السياقي وإدارة الخيوط، مما يقلل من الأداء بدلاً من تحسينه.</li>
+                        </ul>
+                        <div class="alert alert-info mt-3">
+                            <p class="mb-0">
+                                <strong>🔗 مصدر خارجي:</strong>
+                                <a href="https://www.studytonight.com/operating-system/thread-synchronization" target="_blank" class="alert-link">Thread Synchronization Concepts – StudyTonight</a>
+                            </p>
+                        </div>
+                    </section>
+
+                    <hr>
+
+                    <section class="summary-section mb-5">
+                        <h2 class="course-title text-secondary"><i class="fas fa-info-circle me-2"></i>ملخص الوحدة</h2>
+                        <p>
+                            في هذه الوحدة، استكشفنا مفهوم **الخيوط (Threads)** كعنصر أساسي في أنظمة التشغيل الحديثة، وفهمنا الفرق الجوهري بينها وبين العمليات. تعلمنا عن **أنواع الخيوط** المختلفة (مستوى المستخدم والنواة) وكيف تدعم **المعالجات متعددة النوى** تنفيذ الخيوط المتعددة. كما تعرفنا على **آليات إدارة الخيوط** في أنظمة التشغيل الشائعة مثل Windows، Linux، Solaris، Android، وmacOS، وسلطنا الضوء على **فوائد الخيوط** في تحسين الأداء والاستجابة. وأخيرًا، ناقشنا **التحديات والمخاطر** المرتبطة باستخدام الخيوط، مثل مشاكل التزامن وحالات السباق. فهم هذه المفاهيم ضروري لبناء تطبيقات فعالة ومستقرة في بيئات التشغيل المتوازية.
+                        </p>
+                    </section>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="unit-3.html" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-right me-1"></i>
+                            الوحدة السابقة: وصف وإدارة العملية
+                        </a>
+                        <a href="unit-5.html" class="btn btn-primary">
+                            الوحدة التالية: التزامن والحصر المتبادل
+                            <i class="fas fa-arrow-left ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>مسار الأمن السيبراني</h5>
+                    <p>منصة تعليمية متخصصة في تقديم محتوى أكاديمي وعملي في مجال الأمن السيبراني.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>روابط سريعة</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="../index.html" class="text-white text-decoration-none">الرئيسية</a></li>
+                        <li><a href="#" class="text-white text-decoration-none">جميع المقررات</a></li>
+                        <li><a href="#" class="text-white text-decoration-none">الدعم الفني</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>تواصل معنا</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> info@cyberpath.com</li>
+                        <li><i class="fas fa-phone me-2"></i> 0502161465</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2025 مسار الأمن السيبراني. جميع الحقوق محفوظة.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-linkedin fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-youtube fa-lg"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-github fa-lg"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const completedUnits = JSON.parse(localStorage.getItem('os_completed_units')) || {};
+            const totalModules = 17; // 16 units + 1 summary unit
+            
+            function updateProgress() {
+                const completedCount = Object.keys(completedUnits).length;
+                const progressPercentage = (completedCount / totalModules) * 100;
+                const progressBar = document.querySelector('.progress-bar');
+                
+                progressBar.style.width = `${progressPercentage}%`;
+                progressBar.setAttribute('aria-valuenow', progressPercentage);
+                progressBar.textContent = `${Math.round(progressPercentage)}% مكتمل`;
+                
+                localStorage.setItem('os_completed_modules', completedCount);
+            }
+            
+            // Mark current unit (Unit 4) as completed and update progress
+            if (!completedUnits['unit4']) {
+                completedUnits['unit4'] = true;
+                localStorage.setItem('os_completed_units', JSON.stringify(completedUnits));
+                updateProgress();
+            } else {
+                updateProgress(); // Just update progress bar if already completed
+            }
+        });
+    </script>
+</body>
+</html>
