@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الوحدة 5: التزامن والحصر المتبادل | أنظمة التشغيل</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #2c3e50; /* Dark Blue/Grey */
+            --secondary-color: #3498db; /* Bright Blue */
+            --accent-color: #e74c3c; /* Red */
+            --light-bg: #f8f9fa; /* Light Grey */
+            --dark-text: #2c3e50; /* Dark Blue/Grey */
+            --light-text: #7f8c8d; /* Medium Grey */
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            line-height: 1.8;
+        }
+
+        .navbar {
+            background-color: var(--primary-color);
+        }
+
+        .sidebar {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .content-section {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .course-title {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .list-group-item.active {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        .list-group-item.active .module-link, .list-group-item.active .module-link .badge {
+            color: white;
+        }
+
+        .module-link {
+            text-decoration: none;
+            color: var(--dark-text);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .accordion-button:not(.collapsed) {
+            color: #fff;
+            background-color: var(--secondary-color);
+            box-shadow: none;
+        }
+
+        .accordion-button:not(.collapsed)::after {
+            filter: brightness(0) invert(1);
+        }
+
+        .unit-icon {
+            color: var(--secondary-color);
+            margin-left: 10px;
+        }
+
+        .unit-icon-header {
+            color: var(--primary-color);
+            margin-left: 10px;
+        }
+
+        .quiz-section, .enhancement-section, .summary-section {
+            padding: 20px;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .quiz-section {
+            background-color: #e9ecef;
+            border-left: 5px solid var(--secondary-color);
+        }
+
+        .enhancement-section {
+            background-color: #e9f5ff;
+            border-left: 5px solid #28a745;
+        }
+
+        .summary-section {
+            background-color: #f1f1f1;
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .footer {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .progress-container {
+            height: 25px;
+        }
+
+        .progress-bar {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-check:checked + .btn-outline-primary, .btn-outline-primary:hover {
+            color: white;
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        @media (max-width: 991px) {
+            .sidebar {
+                margin-top: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-desktop me-2"></i>
+                أنظمة التشغيل
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../../../pathways/tvtc-cs-security.html">
+                            <i class="fas fa-arrow-right me-1"></i>
+                            العودة إلى المقررات
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <!-- Sidebar for Units -->
+            <div class="col-lg-3">
+                <div class="sidebar p-4">
+                    <h4 class="mb-3">
+                        <i class="fas fa-stream me-2"></i>
+                        وحدات المقرر
+                    </h4>
+                    <div class="progress progress-container mb-4">
+                        <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                    </div>
+                    <div class="accordion" id="unitsAccordion">
+                        <!-- Unit 1 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingOne">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-desktop"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 1: نظرة عامة على النظام الحاسوبي</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الأولى...</p>
+                                <a href="unit-1.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 2 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingTwo">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-cogs"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 2: لمحة عن أنظمة التشغيل</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الثانية...</p>
+                                <a href="unit-2.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 3 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingThree">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-tasks"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 3: وصف وإدارة العملية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الثالثة...</p>
+                                <a href="unit-3.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 4 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingFour">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-code-branch"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 4: الخيوط (Threads)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الرابعة...</p>
+                                <a href="unit-4.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 5 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingFive">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="true" aria-controls="collapseFive">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-sync-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 5: التزامن والحصر المتبادل</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseFive" class="accordion-collapse collapse show" aria-labelledby="headingFive" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-5.html#section1" class="text-decoration-none">مبدأ التزامن</a></li>
+                                        <li><a href="unit-5.html#section2" class="text-decoration-none">الحصر المتبادل</a></li>
+                                        <li><a href="unit-5.html#section3" class="text-decoration-none">الدعم العتادي للتزامن</a></li>
+                                        <li><a href="unit-5.html#section4" class="text-decoration-none">السيموفور (Semaphore)</a></li>
+                                        <li><a href="unit-5.html#section5" class="text-decoration-none">المراقبات (Monitors)</a></li>
+                                        <li><a href="unit-5.html#section6" class="text-decoration-none">تمرير الرسائل</a></li>
+                                        <li><a href="unit-5.html#section7" class="text-decoration-none">مشكلة القراء والكتاب</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 6 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingSix">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-hand-paper"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 6: الجمود (Deadlock) والمجاعة (Starvation)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseSix" class="accordion-collapse collapse" aria-labelledby="headingSix" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة السادسة...</p>
+                                <a href="unit-6.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 7 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingSeven">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-memory"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 7: إدارة الذاكرة</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseSeven" class="accordion-collapse collapse" aria-labelledby="headingSeven" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة السابعة...</p>
+                                <a href="unit-7.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 8 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingEight">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEight" aria-expanded="false" aria-controls="collapseEight">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-hdd"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 8: الذاكرة الافتراضية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseEight" class="accordion-collapse collapse" aria-labelledby="headingEight" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الثامنة...</p>
+                                <a href="unit-8.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 9 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingNine">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNine" aria-expanded="false" aria-controls="collapseNine">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-calendar-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 9: جدولة أحادية المعالج</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseNine" class="accordion-collapse collapse" aria-labelledby="headingNine" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة التاسعة...</p>
+                                <a href="unit-9.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 10 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingTen">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTen" aria-expanded="false" aria-controls="collapseTen">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-microchip"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 10: جدولة متعددة المعالجات والمعالجة الزمنية الحقيقية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseTen" class="accordion-collapse collapse" aria-labelledby="headingTen" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة العاشرة...</p>
+                                <a href="unit-10.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 11 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingEleven">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEleven" aria-expanded="false" aria-controls="collapseEleven">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-exchange-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 11: إدارة I/O وجدولة الأقراص</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseEleven" class="accordion-collapse collapse" aria-labelledby="headingEleven" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الحادية عشرة...</p>
+                                <a href="unit-11.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 12 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingTwelve">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwelve" aria-expanded="false" aria-controls="collapseTwelve">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-folder-open"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 12: إدارة الملفات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseTwelve" class="accordion-collapse collapse" aria-labelledby="headingTwelve" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الثانية عشرة...</p>
+                                <a href="unit-12.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 13 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingThirteen">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThirteen" aria-expanded="false" aria-controls="collapseThirteen">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-microchip"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 13: أنظمة تشغيل مدمجة</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseThirteen" class="accordion-collapse collapse" aria-labelledby="headingThirteen" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الثالثة عشرة...</p>
+                                <a href="unit-13.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 14 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingFourteen">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFourteen" aria-expanded="false" aria-controls="collapseFourteen">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-server"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 14: الآلات الافتراضية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseFourteen" class="accordion-collapse collapse" aria-labelledby="headingFourteen" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الرابعة عشرة...</p>
+                                <a href="unit-14.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 15 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingFifteen">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFifteen" aria-expanded="false" aria-controls="collapseFifteen">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-lock"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 15: أمن أنظمة التشغيل</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseFifteen" class="accordion-collapse collapse" aria-labelledby="headingFifteen" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة الخامسة عشرة...</p>
+                                <a href="unit-15.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                        <!-- Unit 16 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingSixteen">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSixteen" aria-expanded="false" aria-controls="collapseSixteen">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-cloud"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 16: أنظمة تشغيل السحابة وإنترنت الأشياء</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseSixteen" class="accordion-collapse collapse" aria-labelledby="headingSixteen" data-bs-parent="#unitsAccordion">
+                                <p>محتوى الوحدة السادسة عشرة...</p>
+                                <a href="unit-16.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        <!-- Unit Summary -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingSummary">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSummary" aria-expanded="false" aria-controls="collapseSummary">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-graduation-cap"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة الختامية: ملخص المقرر</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseSummary" class="accordion-collapse collapse" aria-labelledby="headingSummary" data-bs-parent="#unitsAccordion">
+                                <p>ملخص شامل للمقرر وتوجيه مهني.</p>
+                                <a href="unit-summary.html" class="btn btn-sm btn-outline-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-lg-9">
+                <div class="content-section mb-4 p-5">
+                    <h1 class="course-title">
+                        <i class="fas fa-sync-alt unit-icon-header"></i>
+                        الوحدة 5: التزامن والحصر المتبادل
+                    </h1>
+                    <span class="badge bg-secondary mb-4">Concurrency: Mutual Exclusion and Synchronization</span>
+                    <p class="text-muted">
+                        📚 استنادًا إلى الفصل الخامس من كتاب: Operating Systems: Internals and Design Principles – William Stallings – الإصدار التاسع
+                    </p>
+
+                    <div class="mb-4">
+                        <h4><i class="fas fa-bullseye me-2"></i>أهداف الوحدة</h4>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check-circle text-success me-2"></i> فهم أساسيات التزامن بين العمليات والخيوط.</li>
+                            <li><i class="fas fa-check-circle text-success me-2"></i> إدراك أهمية الحصر المتبادل (Mutual Exclusion).</li>
+                            <li><i class="fas fa-check-circle text-success me-2"></i> استخدام أدوات التزامن مثل Semaphores وMonitors.</li>
+                            <li><i class="fas fa-check-circle text-success me-2"></i> معرفة كيفية تمرير الرسائل بين العمليات.</li>
+                            <li><i class="fas fa-check-circle text-success me-2"></i> تطبيق مفاهيم التزامن لحل مشكلات مشهورة مثل: القراء والكتاب (Readers-Writers).</li>
+                        </ul>
+                    </div>
+
+                    <hr>
+
+                    <section id="section1" class="mb-5">
+                        <h2 class="course-title">1️⃣ مبدأ التزامن في أنظمة التشغيل</h2>
+                        <h4>🔹 التزامن (Concurrency):</h4>
+                        <p>
+                            يشير التزامن إلى قدرة نظام التشغيل على تنفيذ أكثر من عملية أو خيط في نفس الوقت (ظاهريًا على معالج واحد، أو فعليًا على معالجات متعددة/أنوية)، مع ضمان سلامة البيانات المشتركة وتجنب التداخلات غير المرغوبة.
+                        </p>
+                        <h4>🔸 أهمية التزامن:</h4>
+                        <ul>
+                            <li><strong>تحسين الأداء:</strong> من خلال تنفيذ المهام المتزامنة، يمكن للنظام إنجاز المزيد من العمل في فترة زمنية أقصر.</li>
+                            <li><strong>دعم التطبيقات المعقدة:</strong> يسمح بتطوير تطبيقات متعددة المهام مثل خوادم الويب، محررات النصوص التي تحفظ تلقائيًا، والألعاب التي تعالج رسومات ومدخلات متعددة في وقت واحد.</li>
+                            <li><strong>استخدام فعال للموارد:</strong> يتيح استغلال موارد المعالج بشكل أفضل، خاصة في أوقات انتظار الإدخال/الإخراج.</li>
+                        </ul>
+                        <h4>🔸 المشكلة:</h4>
+                        <p>
+                            عندما تشارك العمليات أو الخيوط نفس البيانات أو الموارد (مثل متغيرات مشتركة، ملفات، أو أجهزة)، قد تحدث تناقضات أو أخطاء إذا لم يتم التحكم في الوصول إليها بشكل صحيح.
+                        </p>
+                        <blockquote class="blockquote bg-light p-3 border-start border-primary border-5 rounded-3">
+                            <p class="mb-0 fst-italic">
+                                <strong>📌 مثال:</strong> تخيل أن عمليتين تحاولان تحديث رصيد حساب بنكي في نفس الوقت. إذا قرأت العملية الأولى الرصيد (1000 ريال)، ثم قرأت العملية الثانية نفس الرصيد (1000 ريال)، ثم أضافت الأولى 100 ريال (لتصبح 1100)، ثم أضافت الثانية 50 ريال (لتصبح 1050)، فإن النتيجة النهائية ستكون 1050 بدلاً من 1150، بسبب فقدان تحديث العملية الأولى. هذه تُعرف بـ "حالة السباق" (Race Condition).
+                            </p>
+                        </blockquote>
+                    </section>
+
+                    <hr>
+
+                    <section id="section2" class="mb-5">
+                        <h2 class="course-title">2️⃣ الحصر المتبادل (Mutual Exclusion)</h2>
+                        <h4>🔹 التعريف:</h4>
+                        <p>
+                            الحصر المتبادل هو مفهوم أساسي في التزامن يضمن عدم تنفيذ أكثر من خيط أو عملية لنفس **القسم الحرج (Critical Section)** في نفس الوقت.
+                        </p>
+                        <h4>🔹 القسم الحرج (Critical Section):</h4>
+                        <p>
+                            هو جزء من الكود يتعامل مع مورد مشترك (مثل متغير مشترك، قائمة بيانات، ملف، أو جهاز إدخال/إخراج). يجب حماية هذا القسم لضمان أن عملية واحدة فقط يمكنها الوصول إليه في أي لحظة.
+                        </p>
+                        <h4>الحلول البرمجية المبكرة للحصر المتبادل:</h4>
+                        <ul>
+                            <li><strong>Peterson’s Algorithm:</strong> خوارزمية برمجية كلاسيكية لحل مشكلة الحصر المتبادل في بيئة تتكون من خيطين فقط. تضمن هذه الخوارزمية الحصر المتبادل، وتجنب الجمود (Deadlock)، وتجنب المجاعة (Starvation).</li>
+                            <li><strong>Dekker’s Algorithm:</strong> حل أقدم من Peterson's Algorithm، يعتمد أيضًا على البرمجيات لحل مشكلة الحصر المتبادل لخيطين.</li>
+                        </ul>
+                        <div class="alert alert-info mt-3">
+                            <p class="mb-0">
+                                <strong>🔗 مصدر خارجي:</strong>
+                                <a href="https://www.geeksforgeeks.org/peterson-algorithm-in-process-synchronization/" target="_blank" class="alert-link">Peterson’s Algorithm – GeeksForGeeks</a>
+                            </p>
+                        </div>
+                    </section>
+
+                    <hr>
+
+                    <section id="section3" class="mb-5">
+                        <h2 class="course-title">3️⃣ الدعم العتادي للتزامن</h2>
+                        <p>
+                            للتغلب على تعقيدات الحلول البرمجية البحتة وضمان الحصر المتبادل بكفاءة عالية، توفر المعالجات الحديثة أوامر خاصة (تعليمات عتادية) تسمح بإجراء عمليات ذرية (Atomic Operations).
+                        </p>
+                        <h4>🔹 العمليات الذرية (Atomic Operations):</h4>
+                        <p>
+                            هي عمليات لا يمكن مقاطعتها أو إيقافها بمجرد بدئها. يتم تنفيذها كوحدة واحدة لا تتجزأ، مما يضمن عدم حدوث تداخلات أو حالات سباق.
+                        </p>
+                        <h4>🔸 أمثلة على تعليمات الدعم العتادي:</h4>
+                        <ul>
+                            <li><strong>Test and Set (اختبار وتعيين):</strong> هذه التعليمة تقوم بعمليتين (اختبار قيمة ذاكرة وتعيينها إلى قيمة جديدة) كعملية ذرية واحدة. تُستخدم عادةً لتنفيذ الأقفال (Locks).</li>
+                            <li><strong>Compare and Swap (قارن وبدّل):</strong> تقارن قيمة في الذاكرة بقيمة متوقعة. إذا كانت متطابقة، يتم استبدالها بقيمة جديدة. تتم العملية بأكملها كعملية ذرية.</li>
+                            <li><strong>Exchange Instruction (تعليمة التبادل):</strong> تبادل محتويات سجل (Register) مع محتويات موقع في الذاكرة كعملية ذرية.</li>
+                        </ul>
+                        <blockquote class="blockquote bg-light p-3 border-start border-primary border-5 rounded-3">
+                            <p class="mb-0 fst-italic">
+                                <strong>📘 مثال على Atomic Instruction:</strong> تخيل أن لديك عدادًا مشتركًا. إذا قام خيطان بزيادة العداد في نفس الوقت، بدون عملية ذرية، قد تحدث مشكلة (Race Condition). باستخدام تعليمة ذرية، يضمن المعالج أن عملية القراءة والزيادة والكتابة تتم كوحدة واحدة دون مقاطعة، مما يضمن سلامة العداد.
+                            </p>
+                        </blockquote>
+                    </section>
+
+                    <hr>
+
+                    <section id="section4" class="mb-5">
+                        <h2 class="course-title">4️⃣ السيموفور (Semaphore)</h2>
+                        <p>
+                            <strong>السيموفور (Semaphore)</strong> هو أداة تزامن قوية ومرنة، تُستخدم للتحكم في الوصول إلى الموارد المشتركة بين العمليات أو الخيوط. يمكن اعتبارها عدادًا أو إشارة تُستخدم لضبط عدد العمليات التي يمكنها الوصول إلى مورد معين في وقت واحد.
+                        </p>
+                        <h4>🔸 تتكون السيموفور من عمليتين أساسيتين (تُنفذان بشكل ذري):</h4>
+                        <ul>
+                            <li><strong><code>wait(S)</code> أو <code>P(S)</code> (Proberen - "اختبار"):</strong>
+                                <ul>
+                                    <li>تخفض قيمة السيموفور <code>S</code> بمقدار 1.</li>
+                                    <li>إذا كانت قيمة <code>S</code> سالبة بعد التخفيض، فهذا يعني أن المورد غير متاح، وتُوضع العملية في قائمة انتظار حتى يصبح المورد متاحًا.</li>
+                                </ul>
+                            </li>
+                            <li><strong><code>signal(S)</code> أو <code>V(S)</code> (Verhogen - "زيادة"):</strong>
+                                <ul>
+                                    <li>ترفع قيمة السيموفور <code>S</code> بمقدار 1.</li>
+                                    <li>إذا كانت هناك عمليات تنتظر على هذا السيموفور، يتم إيقاظ واحدة منها (إطلاق سراحها) لتتمكن من الوصول إلى المورد.</li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <h4>🔸 أنواع السيموفور:</h4>
+                        <ul>
+                            <li><strong>Binary Semaphore (السيموفور الثنائي):</strong> قيمته تكون 0 أو 1 فقط. يعمل بشكل مشابه للقفل (Mutex)، حيث يسمح لعملية واحدة فقط بالوصول إلى القسم الحرج في وقت واحد.</li>
+                            <li><strong>Counting Semaphore (السيموفور العدّاد):</strong> يمكن أن يأخذ أي قيمة صحيحة غير سالبة. يُستخدم للتحكم في الوصول إلى موارد متعددة النسخ (مثل عدد معين من الطابعات المتاحة).</li>
+                        </ul>
+                        <blockquote class="blockquote bg-light p-3 border-start border-primary border-5 rounded-3">
+                            <p class="mb-0 fst-italic">
+                                <strong>📌 مثال:</strong> تخيل قاعة اجتماعات بها 10 مقاعد. يمكن استخدام Counting Semaphore بقيمة ابتدائية 10. كلما دخل شخص، يتم <code>wait()</code>، وكلما خرج شخص، يتم <code>signal()</code>. إذا امتلأت القاعة (القيمة صفر)، ينتظر الأشخاص الجدد حتى يخرج أحدهم.
+                            </p>
+                        </blockquote>
+                        <div class="alert alert-info mt-3">
+                            <p class="mb-0">
+                                <strong>🔗 مصدر خارجي:</strong>
+                                <a href="https://www.tutorialspoint.com/operating_system/os_semaphores.htm" target="_blank" class="alert-link">Semaphore Tutorial – TutorialsPoint</a>
+                            </p>
+                        </div>
+                    </section>
+
+                    <hr>
+
+                    <section id="section5" class="mb-5">
+                        <h2 class="course-title">5️⃣ المراقبات (Monitors)</h2>
+                        <p>
+                            <strong>المراقبات (Monitors)</strong> هي آلية تزامن برمجية عالية المستوى، توفر طريقة منظمة وآمنة للتحكم في الوصول إلى البيانات المشتركة بين الخيوط أو العمليات. تُبسّط المراقبات عملية التزامن بشكل كبير مقارنة بالسيموفور، حيث أنها تُخفي تعقيدات آليات الحصر المتبادل عن المبرمج.
+                        </p>
+                        <h4>🔸 تتكون المراقبة عادةً من:</h4>
+                        <ul>
+                            <li><strong>متغيرات الحالة (Shared Variables):</strong> البيانات التي تحتاج إلى حماية من الوصول المتزامن.</li>
+                            <li><strong>إجراءات محمية (Protected Procedures):</strong> مجموعة من الدوال أو الإجراءات التي يمكنها الوصول إلى متغيرات الحالة. يضمن نظام المراقبة أن خيطًا واحدًا فقط يمكنه تنفيذ أحد هذه الإجراءات في أي لحظة.</li>
+                            <li><strong>بنية تنظيم تلقائية للتزامن:</strong> المراقبة نفسها تتولى مهمة الحصر المتبادل تلقائيًا، بالإضافة إلى توفير آليات لانتظار وإيقاظ الخيوط (مثل متغيرات الشرط - Condition Variables).</li>
+                        </ul>
+                        <blockquote class="blockquote bg-light p-3 border-start border-primary border-5 rounded-3">
+                            <p class="mb-0 fst-italic">
+                                <strong>📌 مميزات المراقبات:</strong>
+                                <ul>
+                                    <li><strong>تمنع التداخل التلقائي:</strong> المبرمج لا يحتاج للقلق بشأن وضع الأقفال يدويًا، فالمراقبة تضمن ذلك.</li>
+                                    <li><strong>أسهل في الاستخدام:</strong> تقلل من الأخطاء الشائعة في التزامن مثل الجمود أو حالات السباق.</li>
+                                    <li>تُستخدم بشكل واسع في لغات البرمجة الحديثة مثل Java (عبر الكلمة المفتاحية <code>synchronized</code> وكائنات <code>Object.wait()</code>/<code>notify()</code>) وC# (عبر الكلمة المفتاحية <code>lock</code> وكائن <code>Monitor</code>).</li>
+                                </ul>
+                            </p>
+                        </blockquote>
+                        <div class="alert alert-info mt-3">
+                            <p class="mb-0">
+                                <strong>🔗 مصدر خارجي:</strong>
+                                <a href="https://www.baeldung.com/java-thread-monitors" target="_blank" class="alert-link">Monitors in Java – Baeldung</a>
+                            </p>
+                        </div>
+                    </section>
+
+                    <hr>
+
+                    <section id="section6" class="mb-5">
+                        <h2 class="course-title">6️⃣ تمرير الرسائل (Message Passing)</h2>
+                        <p>
+                            <strong>تمرير الرسائل (Message Passing)</strong> هي آلية للتواصل والتزامن بين العمليات، تُستخدم بشكل خاص في الأنظمة التي لا تشارك الذاكرة بين العمليات (مثل الأنظمة الموزعة أو النوى المصغرة). بدلاً من الوصول المباشر إلى الذاكرة المشتركة، تتواصل العمليات عن طريق إرسال واستقبال رسائل.
+                        </p>
+                        <h4>🔸 الشكل العام لعمليات تمرير الرسائل:</h4>
+                        <ul>
+                            <li><strong><code>send(destination, message)</code>:</strong> لإرسال رسالة إلى عملية مستهدفة.</li>
+                            <li><strong><code>receive(source, message)</code>:</strong> لاستقبال رسالة من عملية معينة أو من أي عملية.</li>
+                        </ul>
+                        <h4>🔸 مميزات تمرير الرسائل:</h4>
+                        <ul>
+                            <li><strong>مناسبة للأنظمة الموزعة:</strong> حيث تكون العمليات على أجهزة مختلفة ولا تشترك في ذاكرة مادية.</li>
+                            <li><strong>تقلل من خطر التداخل في الذاكرة:</strong> لأن العمليات لا تشارك الذاكرة مباشرة، مما يقلل من مشاكل التزامن المعقدة.</li>
+                            <li><strong>عزل أفضل:</strong> توفر عزلاً أقوى بين العمليات، مما يزيد من أمان النظام.</li>
+                        </ul>
+                        <blockquote class="blockquote bg-light p-3 border-start border-primary border-5 rounded-3">
+                            <p class="mb-0 fst-italic">
+                                <strong>📌 استخدام في الأنظمة المضمنة والمايكروكرنل:</strong> تُستخدم آليات تمرير الرسائل بشكل مكثف في أنظمة التشغيل ذات النواة المصغرة (Microkernels) مثل Minix، حيث تتواصل مكونات نظام التشغيل (التي تعمل كعمليات منفصلة) مع بعضها البعض عبر الرسائل.
+                            </p>
+                        </blockquote>
+                    </section>
+
+                    <hr>
+
+                    <section id="section7" class="mb-5">
+                        <h2 class="course-title">7️⃣ مشكلة القراء والكتاب (Readers-Writers Problem)</h2>
+                        <p>
+                            مشكلة القراء والكتاب هي مشكلة كلاسيكية في التزامن تُستخدم لشرح تحديات إدارة الوصول المتزامن إلى مورد مشترك.
+                        </p>
+                        <h4>🔹 الوصف:</h4>
+                        <p>
+                            لدينا مجموعة من العمليات (أو الخيوط) التي ترغب في الوصول إلى قاعدة بيانات أو ملف مشترك. تنقسم هذه العمليات إلى نوعين:
+                        </p>
+                        <ul>
+                            <li><strong>القراء (Readers):</strong> يمكنهم قراءة البيانات. يمكن لعدة قراء الوصول إلى البيانات في نفس الوقت (التزامن مسموح).</li>
+                            <li><strong>الكتاب (Writers):</strong> يمكنهم تعديل البيانات. يجب أن يكون الكاتب الوحيد الذي يصل إلى البيانات في أي وقت؛ لا يمكن لأي قارئ أو كاتب آخر الوصول أثناء عملية الكتابة.</li>
+                        </ul>
+                        <h4>🔸 الحل:</h4>
+                        <p>
+                            يتطلب حل هذه المشكلة تطبيق قواعد الحصر المتبادل بذكاء:
+                        </p>
+                        <ul>
+                            <li>السماح لعدة قراء بالدخول إلى القسم الحرج معًا.</li>
+                            <li>منع أي كاتب من الدخول إذا كان هناك قارئ واحد على الأقل موجودًا.</li>
+                            <li>تأمين الحصر المتبادل بين الكتاب (أي لا يمكن لكاتبين الكتابة في نفس الوقت).</li>
+                            <li>ضمان عدم حدوث مجاعة (Starvation)، أي عدم حرمان القراء أو الكتاب من الوصول إلى الأبد.</li>
+                        </ul>
+                        <blockquote class="blockquote bg-light p-3 border-start border-primary border-5 rounded-3">
+                            <p class="mb-0 fst-italic">
+                                <strong>📘 يتم استخدام Semaphores</strong> (أو Monitors) بشكل شائع لحل مشكلة القراء والكتاب، حيث يتم استخدام سيموفور للتحكم في الوصول للكتاب، وسيموفور آخر لإدارة عدد القراء النشطين.
+                            </p>
+                        </blockquote>
+                    </section>
+
+                    <hr>
+
+                    <section class="summary-section mb-5">
+                        <h2 class="course-title text-secondary"><i class="fas fa-info-circle me-2"></i>ملخص الوحدة</h2>
+                        <p>
+                            في هذه الوحدة، استكشفنا بعمق مفهوم **التزامن (Concurrency)** وأهميته في أنظمة التشغيل الحديثة، وتعرفنا على التحديات التي يفرضها، خاصة **حالات السباق**. تعلمنا عن مفهوم **الحصر المتبادل (Mutual Exclusion)** كحل لهذه التحديات، وكيف يتم دعمه من خلال **التعليمات العتادية الذرية**. ثم غصنا في أدوات التزامن البرمجية الأكثر شيوعًا: **السيموفور (Semaphores)** بأنواعها المختلفة و**المراقبات (Monitors)** كآلية عالية المستوى. كما تعرفنا على **تمرير الرسائل (Message Passing)** كبديل لمشاركة الذاكرة، وأخيرًا، طبقنا هذه المفاهيم على **مشكلة القراء والكتاب** الكلاسيكية. فهم هذه الآليات ضروري لبناء أنظمة برمجية قوية وموثوقة في بيئات متعددة المهام.
+                        </p>
+                    </section>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="unit-4.html" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-right me-1"></i>
+                            الوحدة السابقة: الخيوط (Threads)
+                        </a>
+                        <a href="unit-6.html" class="btn btn-primary">
+                            الوحدة التالية: الجمود (Deadlock) والمجاعة (Starvation)
+                            <i class="fas fa-arrow-left ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>مسار الأمن السيبراني</h5>
+                    <p>منصة تعليمية متخصصة في تقديم محتوى أكاديمي وعملي في مجال الأمن السيبراني.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>روابط سريعة</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="../index.html" class="text-white text-decoration-none">الرئيسية</a></li>
+                        <li><a href="#" class="text-white text-decoration-none">جميع المقررات</a></li>
+                        <li><a href="#" class="text-white text-decoration-none">الدعم الفني</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>تواصل معنا</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> info@cyberpath.com</li>
+                        <li><i class="fas fa-phone me-2"></i> 0502161465</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2025 مسار الأمن السيبراني. جميع الحقوق محفوظة.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-linkedin fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-youtube fa-lg"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-github fa-lg"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const completedUnits = JSON.parse(localStorage.getItem('os_completed_units')) || {};
+            const totalModules = 17; // 16 units + 1 summary unit
+            
+            function updateProgress() {
+                const completedCount = Object.keys(completedUnits).length;
+                const progressPercentage = (completedCount / totalModules) * 100;
+                const progressBar = document.querySelector('.progress-bar');
+                
+                progressBar.style.width = `${progressPercentage}%`;
+                progressBar.setAttribute('aria-valuenow', progressPercentage);
+                progressBar.textContent = `${Math.round(progressPercentage)}% مكتمل`;
+                
+                localStorage.setItem('os_completed_modules', completedCount);
+            }
+            
+            // Mark current unit (Unit 5) as completed and update progress
+            if (!completedUnits['unit5']) {
+                completedUnits['unit5'] = true;
+                localStorage.setItem('os_completed_units', JSON.stringify(completedUnits));
+                updateProgress();
+            } else {
+                updateProgress(); // Just update progress bar if already completed
+            }
+        });
+    </script>
+</body>
+</html>
