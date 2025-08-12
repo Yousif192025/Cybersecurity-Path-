@@ -1,1 +1,934 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الوحدة 3: أساسيات التشفير في التطبيقات | منصة الأمن السيبراني</title>
+    <!-- تضمين Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- تضمين Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- تضمين Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- تضمين خط Tajawal من Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* تعريف المتغيرات لألوان موحدة */
+        :root {
+            --primary-color: #2c3e50; /* لون أزرق داكن/رمادي */
+            --secondary-color: #3498db; /* لون أزرق فاتح */
+            --accent-color: #e74c3c; /* لون أحمر/برتقالي لـ "تحذير" أو "خطر" */
+            --light-bg: #f8f9fa; /* خلفية فاتحة جدًا للجسم */
+            --dark-text: #2c3e50; /* لون نص داكن */
+            --light-text: #7f8c8d; /* لون نص فاتح (رمادي) */
+            --warning-color: #d68910; /* لون برتقالي للتحذيرات والعناوين المميزة */
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--light-bg); /* خلفية فاتحة */
+            color: var(--dark-text); /* لون نص داكن */
+            line-height: 1.8;
+            direction: rtl; /* تأكيد الاتجاه من اليمين لليسار */
+            text-align: right; /* محاذاة النص لليمين افتراضيا */
+        }
+
+        .navbar {
+            background-color: var(--primary-color);
+        }
+        .navbar-brand {
+            color: white !important; /* لون أبيض للشعار في شريط التنقل */
+        }
+        .btn-outline-light {
+            border-color: rgba(255, 255, 255, 0.7) !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .btn-outline-light:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .course-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 1rem 1rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .course-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-right: 4px solid var(--secondary-color); /* شريط جانبي بلون ثانوي */
+            padding: 2rem; /* تباعد داخلي للبطاقات */
+        }
+
+        .course-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .course-title-section {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .module-icon {
+            width: 50px;
+            height: 50px;
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 1rem;
+            flex-shrink: 0;
+            font-size: 1.25rem;
+        }
+        .sidebar .module-icon { /* Specific styling for sidebar icons */
+            width: 40px; /* Slightly smaller for sidebar */
+            height: 40px;
+            font-size: 1rem;
+            margin-left: 10px; /* Adjust margin for sidebar */
+        }
+
+        .progress-container { /* Styling for sidebar progress bar */
+            height: 25px;
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-bar { /* Styling for sidebar progress bar */
+            background-color: var(--secondary-color);
+        }
+
+        .accordion-button:not(.collapsed) {
+            background-color: var(--secondary-color); /* Active accordion button background */
+            color: #fff; /* Active accordion button text color */
+            box-shadow: none;
+        }
+        .accordion-button:not(.collapsed) .module-icon { /* Active accordion button icon */
+            background-color: var(--primary-color); /* Darker background for icon when active */
+        }
+        .accordion-button:not(.collapsed)::after {
+            filter: brightness(0) invert(1); /* Invert arrow color for dark background */
+        }
+
+        .accordion-button {
+            border-radius: 0.5rem !important; /* للحفاظ على حدود مستديرة للأزرار */
+        }
+        .accordion-item {
+            margin-bottom: 0.5rem; /* مسافة بين عناصر الأكورديون */
+            border-radius: 0.75rem;
+            border: 1px solid rgba(0, 0, 0, 0.125); /* حدود للأكورديون */
+            overflow: hidden; /* لمنع تجاوز المحتوى للحواف المستديرة */
+        }
+        .accordion-body ul {
+            padding-right: 0; /* إزالة التباعد الافتراضي لقائمة الروابط الداخلية */
+        }
+        .accordion-body ul li a {
+            padding: 0.25rem 0.5rem;
+            display: block;
+            border-radius: 0.25rem;
+            color: var(--dark-text);
+        }
+        .accordion-body ul li a:hover,
+        .accordion-body ul li a.active-link { /* Active link in sidebar */
+            background-color: #e9f5ff;
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+        .accordion-body .btn-primary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .accordion-body .btn-primary:hover {
+            background-color: #2874ad;
+            border-color: #2874ad;
+        }
+
+        .sidebar { /* Styling for the sidebar container */
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            color: var(--dark-text); /* Ensure text is readable */
+        }
+        .sidebar h4 {
+            color: var(--primary-color); /* Sidebar heading color */
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* تنسيقات الفوتر */
+        footer {
+            background-color: var(--primary-color) !important;
+            color: white;
+            padding: 2.5rem 0;
+        }
+        footer h5 {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        footer .list-unstyled li a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        footer .list-unstyled li a:hover {
+            color: var(--secondary-color);
+        }
+        footer .fab, footer .fas { /* تطبيق اللون الأبيض على أيقونات الفوتر */
+            color: white;
+            transition: color 0.2s;
+        }
+        footer .fab:hover, footer .fas:hover {
+            color: var(--secondary-color);
+        }
+
+        /* Unit-specific content styling */
+        h2.unit-section-title { /* For general description, learning objectives, etc. */
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+        }
+        h3.sub-topic-title { /* For topic headings like "3.1 تعريف أمن التطبيقات" */
+            color: var(--primary-color);
+            border-bottom: 1px dashed var(--light-text);
+            padding-bottom: 0.3rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.75rem;
+        }
+        ul {
+            padding-right: 25px; /* Adjust default list padding */
+        }
+        ul.no-bullet {
+            list-style: none;
+            padding-right: 0;
+        }
+        ul li {
+            margin-bottom: 0.5rem;
+        }
+        .list-icon {
+            margin-left: 10px;
+            color: var(--secondary-color); /* Default icon color */
+        }
+        /* Specific icon colors based on content type for clarity */
+        .objectives-list .list-icon { color: #28a745; } /* Green for checkmarks */
+        .methods-list .list-icon { color: #17a2b8; } /* Teal/Cyan for methods */
+        .outcomes-list .list-icon { color: #ffc107; } /* Yellow/Orange for stars */
+        .topic-icon { /* Icons within the main topics like for Tools/Concepts */
+            color: var(--secondary-color);
+            margin-left: 10px;
+        }
+        .alert-info-custom {
+            background-color: #e9ecef; /* Light grey/blue background */
+            border-left: 5px solid var(--secondary-color);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        .alert-info-custom i {
+            color: var(--secondary-color);
+            margin-right: 0.5rem;
+        }
+
+        /* Styling for Example/Note boxes */
+        .example-box, .note-box {
+            background-color: #e9ecef; /* Light grey background */
+            border-right: 5px solid var(--secondary-color); /* Blue border */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        .example-box i, .note-box i {
+            color: var(--secondary-color); /* Blue icon color */
+            margin-left: 0.5rem;
+        }
+        .example-box ul, .note-box ul {
+            list-style: none; /* Remove default bullets */
+            padding-right: 0;
+        }
+        .example-box ul li::before, .note-box ul li::before {
+            content: "\f058"; /* Font Awesome check-circle icon */
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            color: var(--secondary-color);
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+            margin-right: 0.5em;
+        }
+
+        /* Buttons for Unit Navigation */
+        .unit-nav-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: bold;
+            transition: background-color 0.2s, transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+        }
+        .unit-nav-btn:hover {
+            background-color: #2874ad;
+            color: white;
+            transform: translateY(-2px);
+        }
+        .unit-nav-btn .fa-arrow-left { /* Left arrow for "Next Unit" button */
+            margin-right: 0;
+            margin-left: 8px;
+        }
+        .unit-nav-btn .fa-arrow-right { /* Right arrow for "Back to Index" button */
+            margin-right: 8px;
+            margin-left: 0;
+        }
+
+        /* Styling for code blocks */
+        pre {
+            background-color: #e9ecef;
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto; /* Enable horizontal scrolling for long lines */
+            direction: ltr; /* Ensure code direction is LTR */
+            text-align: left; /* Ensure text alignment is left for code */
+        }
+        code {
+            font-family: 'Consolas', 'Monaco', 'Lucida Console', monospace;
+            font-size: 0.9rem;
+            color: var(--dark-text);
+        }
+        pre code {
+            display: block; /* Ensures code block takes full width */
+        }
+
+
+        /* Responsive adjustments */
+        @media (max-width: 991px) { /* Changed breakpoint to align with col-lg- */
+            .sidebar {
+                margin-top: 1rem;
+                margin-bottom: 1rem; /* Added margin for better spacing on smaller screens */
+            }
+            .course-header {
+                padding: 2rem 0;
+            }
+            .course-card {
+                padding: 1.5rem;
+            }
+            h1.display-4 {
+                font-size: 2.2rem;
+            }
+            h2.unit-section-title {
+                font-size: 1.75rem;
+            }
+            h3.sub-topic-title {
+                font-size: 1.5rem;
+            }
+            .unit-nav-btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+            .d-flex.justify-content-between.mt-4 {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <!-- شريط التنقل -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--primary-color);">
+        <div class="container">
+            <a class="navbar-brand" href="../../../index.html">منصة الأمن السيبراني</a>
+            <a href="../../index.html" class="btn btn-outline-light">العودة إلى المقررات</a>
+        </div>
+    </nav>
+
+    <!-- رأس الوحدة -->
+    <header class="course-header text-center">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-3">الوحدة 3: أساسيات التشفير في التطبيقات</h1>
+            <p class="lead">فهم مبادئ التشفير وتطبيقاته لضمان سرية وسلامة البيانات في برمجياتك.</p>
+        </div>
+    </header>
+
+    <div class="container-fluid py-5">
+        <div class="row">
+            <!-- Sidebar for Units Navigation -->
+            <div class="col-lg-3">
+                <div class="sidebar p-4">
+                    <h4 class="mb-3">
+                        <i class="fas fa-stream me-2"></i>
+                        وحدات المقرر
+                    </h4>
+                    <div class="progress progress-container mb-4">
+                        <div class="progress-bar" role="progressbar" style="width: 33.33%;" aria-valuenow="33.33" aria-valuemin="0" aria-valuemax="100">33% مكتمل</div>
+                    </div>
+                    <div class="accordion" id="unitsAccordion">
+                        <!-- Unit 1 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAppSecUnit1">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAppSecUnit1" aria-expanded="false" aria-controls="collapseAppSecUnit1">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-book-open"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 1: مقدمة في أمن التطبيقات والبرمجيات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseAppSecUnit1" class="accordion-collapse collapse" aria-labelledby="headingAppSecUnit1" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-1.html#general-description" class="text-decoration-none">1. الوصف العام</a></li>
+                                        <li><a href="unit-1.html#learning-objectives" class="text-decoration-none">2. الأهداف التعليمية</a></li>
+                                        <li><a href="unit-1.html#topics" class="text-decoration-none">3. محاور الوحدة ومحتواها</a></li>
+                                        <li><a href="unit-1.html#teaching-methods" class="text-decoration-none">4. أسلوب عرض الوحدة</a></li>
+                                        <li><a href="unit-1.html#learning-outcomes" class="text-decoration-none">5. مخرجات التعلم</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 2 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAppSecUnit2">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAppSecUnit2" aria-expanded="false" aria-controls="collapseAppSecUnit2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-cogs"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 2: دورة حياة تطوير البرمجيات الآمن (Secure SDLC)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseAppSecUnit2" class="accordion-collapse collapse" aria-labelledby="headingAppSecUnit2" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-2.html#general-description" class="text-decoration-none">1. الوصف العام للوحدة</a></li>
+                                        <li><a href="unit-2.html#learning-objectives" class="text-decoration-none">2. الأهداف التعليمية للوحدة</a></li>
+                                        <li><a href="unit-2.html#topics-detail" class="text-decoration-none">3. المحاور وشرحها بالتفصيل</a></li>
+                                        <li><a href="unit-2.html#resources" class="text-decoration-none">4. مصادر تعليمية وروابط مفيدة</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 3 (Active Unit) -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAppSecUnit3">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAppSecUnit3" aria-expanded="true" aria-controls="collapseAppSecUnit3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-lock"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 3: أساسيات التشفير في التطبيقات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseAppSecUnit3" class="accordion-collapse collapse show" aria-labelledby="headingAppSecUnit3" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="#general-description" class="text-decoration-none active-link">1. الوصف العام للوحدة</a></li>
+                                        <li><a href="#learning-objectives" class="text-decoration-none">2. الأهداف التعليمية للوحدة</a></li>
+                                        <li><a href="#topics-detail" class="text-decoration-none">3. محاور الوحدة ومحتواها</a></li>
+                                        <li><a href="#resources" class="text-decoration-none">4. مصادر تعليمية وروابط مفيدة</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 4 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAppSecUnit4">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAppSecUnit4" aria-expanded="false" aria-controls="collapseAppSecUnit4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-bug"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 4: ثغرات OWASP Top 10</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseAppSecUnit4" class="accordion-collapse collapse" aria-labelledby="headingAppSecUnit4" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>محتوى الوحدة الرابعة...</p>
+                                    <a href="unit-4.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 5 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAppSecUnit5">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAppSecUnit5" aria-expanded="false" aria-controls="collapseAppSecUnit5">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-shield-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 5: اختبار اختراق التطبيقات (Web & Mobile)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseAppSecUnit5" class="accordion-collapse collapse" aria-labelledby="headingAppSecUnit5" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>محتوى الوحدة الخامسة...</p>
+                                    <a href="unit-5.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 6 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAppSecUnit6">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAppSecUnit6" aria-expanded="false" aria-controls="collapseAppSecUnit6">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-code"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 6: تحليل وفحص الكود (Code Review)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseAppSecUnit6" class="accordion-collapse collapse" aria-labelledby="headingAppSecUnit6" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>محتوى الوحدة السادسة...</p>
+                                    <a href="unit-6.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 7 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAppSecUnit7">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAppSecUnit7" aria-expanded="false" aria-controls="collapseAppSecUnit7">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-share-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 7: حماية واجهات البرمجة (API Security)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseAppSecUnit7" class="accordion-collapse collapse" aria-labelledby="headingAppSecUnit7" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>محتوى الوحدة السابعة...</p>
+                                    <a href="unit-7.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 8 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAppSecUnit8">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAppSecUnit8" aria-expanded="false" aria-controls="collapseAppSecUnit8">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-cloud"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 8: أمان التطبيقات السحابية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseAppSecUnit8" class="accordion-collapse collapse" aria-labelledby="headingAppSecUnit8" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>محتوى الوحدة الثامنة...</p>
+                                    <a href="unit-8.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 9 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAppSecUnit9">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAppSecUnit9" aria-expanded="false" aria-controls="collapseAppSecUnit9">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-project-diagram"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 9: الوحدة الختامية – مشروع تطبيقي</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseAppSecUnit9" class="accordion-collapse collapse" aria-labelledby="headingAppSecUnit9" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>محتوى الوحدة الختامية...</p>
+                                    <a href="unit-9.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-lg-9">
+                <div class="content-section mb-4 p-5">
+                    <h2 class="unit-section-title" id="general-description">1. الوصف العام للوحدة</h2>
+                    <p>
+                        تركز هذه الوحدة على فهم مبادئ <strong>التشفير (Cryptography)</strong> وكيفية تطبيقه داخل البرمجيات لضمان سرية البيانات وسلامتها ومنع التلاعب أو الوصول غير المصرح به.
+                    </p>
+                    <p>
+                        سيتعلم المتدرب الفرق بين أنواع التشفير، ومتى نستخدم كل نوع، بالإضافة إلى الممارسات الصحيحة لإدارة المفاتيح، وتجنب الأخطاء الشائعة التي قد تؤدي إلى كسر الحماية.
+                    </p>
+                </div>
+
+                <!-- الأهداف التعليمية -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="learning-objectives">2. الأهداف التعليمية للوحدة</h2>
+                    <p>بنهاية هذه الوحدة سيكون المتدرب قادرًا على:</p>
+                    <ul class="no-bullet objectives-list">
+                        <li><i class="fas fa-check-circle list-icon"></i> شرح مفهوم التشفير ودوره في حماية التطبيقات.</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> التمييز بين التشفير المتماثل (Symmetric) وغير المتماثل (Asymmetric).</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> تطبيق مفاهيم التشفير في حماية البيانات أثناء النقل والتخزين.</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> فهم إدارة المفاتيح وأفضل الممارسات الأمنية.</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> استخدام مكتبات التشفير الشائعة بشكل آمن في التطبيقات.</li>
+                    </ul>
+                </div>
+
+                <!-- المحاور وشرحها بالتفصيل -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="topics-detail">3. محاور الوحدة ومحتواها</h2>
+
+                    <h3 class="sub-topic-title">3.1 مقدمة في التشفير</h3>
+                    <p>
+                        <strong>التعريف:</strong> التشفير هو عملية تحويل البيانات من صيغة مفهومة (Plaintext) إلى صيغة غير مفهومة (Ciphertext) باستخدام خوارزمية ومفتاح.
+                    </p>
+                    <p><strong>الأهداف الأساسية للتشفير:</strong></p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-lock topic-icon"></i> <strong>السرية (Confidentiality)</strong> – منع الوصول غير المصرح به.</li>
+                        <li class="content-list-item"><i class="fas fa-check-double topic-icon"></i> <strong>السلامة (Integrity)</strong> – منع التلاعب بالبيانات.</li>
+                        <li class="content-list-item"><i class="fas fa-user-check topic-icon"></i> <strong>المصادقة (Authentication)</strong> – التأكد من هوية الأطراف.</li>
+                        <li class="content-list-item"><i class="fas fa-ban topic-icon"></i> <strong>عدم الإنكار (Non-repudiation)</strong> – منع المرسل من إنكار إرساله للمعلومة.</li>
+                    </ul>
+
+                    <h3 class="sub-topic-title">3.2 أنواع التشفير</h3>
+                    <h4 class="mt-3">أ) التشفير المتماثل (Symmetric Encryption)</h4>
+                    <p>
+                        <strong>الوصف:</strong> نفس المفتاح يُستخدم للتشفير وفك التشفير.
+                    </p>
+                    <p><strong>أمثلة على الخوارزميات:</strong></p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-key topic-icon"></i> <strong>AES (Advanced Encryption Standard)</strong> – معيار قوي وحديث.</li>
+                        <li class="content-list-item"><i class="fas fa-key topic-icon"></i> <strong>3DES (Triple Data Encryption Standard)</strong> – أقل أمانًا اليوم.</li>
+                    </ul>
+                    <p><strong>مميزات:</strong></p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-bolt topic-icon"></i> سريع وفعال مع البيانات الكبيرة.</li>
+                    </ul>
+                    <p><strong>عيوب:</strong></p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-users-slash topic-icon"></i> صعوبة توزيع وإدارة المفاتيح.</li>
+                    </ul>
+                    <div class="example-box">
+                        <p><i class="fas fa-code me-2"></i> <strong>مثال برمجي بلغة Python باستخدام AES:</strong></p>
+                        <pre><code>
+from cryptography.fernet import Fernet
+
+# Function to generate a key
+def generate_key():
+    return Fernet.generate_key()
+
+# Function to encrypt a message
+def encrypt_message(message, key):
+    f = Fernet(key)
+    encrypted_message = f.encrypt(message.encode())
+    return encrypted_message
+
+# Function to decrypt a message
+def decrypt_message(encrypted_message, key):
+    f = Fernet(key)
+    decrypted_message = f.decrypt(encrypted_message).decode()
+    return decrypted_message
+
+# Example Usage
+key = generate_key()
+print(f"Generated Key: {key.decode()}")
+
+original_message = "This is a secret message."
+encrypted = encrypt_message(original_message, key)
+print(f"Encrypted Message: {encrypted.decode()}")
+
+decrypted = decrypt_message(encrypted, key)
+print(f"Decrypted Message: {decrypted}")
+
+# Note: In a real application, the key should be securely stored and managed,
+# and not hardcoded or transmitted insecurely.
+                        </code></pre>
+                    </div>
+
+                    <h4 class="mt-3">ب) التشفير غير المتماثل (Asymmetric Encryption - Public-Key Cryptography)</h4>
+                    <p>
+                        <strong>الوصف:</strong> يستخدم زوجًا من المفاتيح: مفتاح عام (Public Key) للتشفير، ومفتاح خاص (Private Key) لفك التشفير.
+                    </p>
+                    <p><strong>أمثلة على الخوارزميات:</strong></p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-key topic-icon"></i> <strong>RSA:</strong> الأكثر شيوعاً، يُستخدم لتبادل المفاتيح وتوقيع الرسائل.</li>
+                        <li class="content-list-item"><i class="fas fa-key topic-icon"></i> <strong>ECC (Elliptic Curve Cryptography):</strong> يقدم نفس مستوى الأمان بمفاتيح أقصر.</li>
+                    </ul>
+                    <p><strong>مميزات:</strong></p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-share-alt topic-icon"></i> يحل مشكلة توزيع المفاتيح في التشفير المتماثل.</li>
+                        <li class="content-list-item"><i class="fas fa-signature topic-icon"></i> يُستخدم للتوقيعات الرقمية (Digital Signatures) والمصادقة.</li>
+                    </ul>
+                    <p><strong>عيوب:</strong></p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-hourglass-half topic-icon"></i> أبطأ بكثير من التشفير المتماثل، غير مناسب لتشفير كميات كبيرة من البيانات.</li>
+                    </ul>
+                    <div class="example-box">
+                        <p><i class="fas fa-code me-2"></i> <strong>مثال برمجي بلغة Python باستخدام RSA:</strong></p>
+                        <pre><code>
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import serialization
+
+# Generate RSA key pair
+private_key = rsa.generate_private_key(
+    public_exponent=65537,
+    key_size=2048,
+)
+public_key = private_key.public_key()
+
+# Convert keys to PEM format for storage/sharing (optional, but good practice)
+pem_private = private_key.private_bytes(
+    encoding=serialization.Encoding.PEM,
+    format=serialization.PrivateFormat.PKCS8,
+    encryption_algorithm=serialization.NoEncryption()
+)
+pem_public = public_key.public_bytes(
+    encoding=serialization.Encoding.PEM,
+    format=serialization.PublicFormat.SubjectPublicKeyInfo
+)
+
+print(f"Private Key (PEM):\n{pem_private.decode()}")
+print(f"Public Key (PEM):\n{pem_public.decode()}")
+
+# Message to encrypt
+message = b"This is a secret message for RSA." # Must be bytes for encryption
+
+# Encrypt the message using the public key
+encrypted_message = public_key.encrypt(
+    message,
+    padding.OAEP(
+        mgf=padding.MGF1(algorithm=hashes.SHA256()),
+        algorithm=hashes.SHA256(),
+        label=None
+    )
+)
+print(f"Encrypted Message: {encrypted_message.hex()}")
+
+# Decrypt the message using the private key
+decrypted_message = private_key.decrypt(
+    encrypted_message,
+    padding.OAEP(
+        mgf=padding.MGF1(algorithm=hashes.SHA256()),
+        algorithm=hashes.SHA256(),
+        label=None
+    )
+)
+print(f"Decrypted Message: {decrypted_message.decode()}")
+                        </code></pre>
+                    </div>
+
+                    <h4 class="mt-3">ج) دوال التجزئة (Hashing Functions)</h4>
+                    <p>
+                        <strong>الوصف:</strong> تحول أي بيانات إلى "بصمة" ذات طول ثابت (Hash Value). لا يمكن عكسها لاستعادة البيانات الأصلية.
+                    </p>
+                    <p><strong>أمثلة على الخوارزميات:</strong></p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-fingerprint topic-icon"></i> <strong>SHA-256 (Secure Hash Algorithm):</strong> يُستخدم للتحقق من سلامة البيانات وسلامة كلمات المرور.</li>
+                        <li class="content-list-item"><i class="fas fa-fingerprint topic-icon"></i> <strong>MD5:</strong> قديم وضعيف أمنيًا، لا يُنصح باستخدامه.</li>
+                    </ul>
+                    <p><strong>مميزات:</strong></p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-check-circle topic-icon"></i> تستخدم للتحقق من سلامة البيانات (Integrity).</li>
+                        <li class="content-list-item"><i class="fas fa-lock topic-icon"></i> تخزين كلمات المرور بشكل آمن (لا تُخزن الكلمة نفسها، بل الـ Hash الخاص بها).</li>
+                    </ul>
+                    <p><strong>عيوب:</strong></p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-exclamation-triangle topic-icon"></i> لا توفر السرية (Confidentiality).</li>
+                        <li class="content-list-item"><i class="fas fa-lightbulb topic-icon"></i> عرضة لهجمات القواميس (Dictionary Attacks) إذا لم يتم استخدام "الملح" (Salt).</li>
+                    </ul>
+                    <div class="example-box">
+                        <p><i class="fas fa-code me-2"></i> <strong>مثال برمجي بلغة Python باستخدام SHA-256:</strong></p>
+                        <pre><code>
+import hashlib
+
+def hash_data(data):
+    # Ensure data is bytes
+    data_bytes = data.encode('utf-8')
+    # Create a SHA-256 hash object
+    sha256_hash = hashlib.sha256()
+    # Update the hash object with the data
+    sha256_hash.update(data_bytes)
+    # Get the hexadecimal representation of the hash
+    return sha256_hash.hexdigest()
+
+# Example Usage for data integrity
+file_content = "This is the content of my important file."
+file_hash = hash_data(file_content)
+print(f"File Content Hash: {file_hash}")
+
+# Simulate tampering
+tampered_content = "This is the content of my important file. (tampered)"
+tampered_hash = hash_data(tampered_content)
+print(f"Tampered Content Hash: {tampered_hash}")
+
+if file_hash != tampered_hash:
+    print("Integrity check failed: Data has been tampered with!")
+else:
+    print("Integrity check passed: Data is intact.")
+
+# Example Usage for password storage with salt (simplified)
+def hash_password(password, salt):
+    salted_password = password + salt
+    return hashlib.sha256(salted_password.encode('utf-8')).hexdigest()
+
+user_password = "MySuperSecurePassword123"
+# Salt should be unique and randomly generated for each user and stored with the hash
+password_salt = "randomsalt123" 
+hashed_pw = hash_password(user_password, password_salt)
+print(f"\nHashed Password: {hashed_pw}")
+                        </code></pre>
+                    </div>
+
+                    <h3 class="sub-topic-title">3.3 إدارة المفاتيح (Key Management)</h3>
+                    <p>
+                        إدارة المفاتيح هي عملية حيوية لضمان أمان التشفير. تتضمن:
+                    </p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-key topic-icon"></i> <strong>توليد المفاتيح:</strong> استخدام مصادر عشوائية قوية لتوليد مفاتيح يصعب تخمينها.</li>
+                        <li class="content-list-item"><i class="fas fa-save topic-icon"></i> <strong>تخزين المفاتيح:</strong>
+                            <ul>
+                                <li><strong>Hardware Security Modules (HSM):</strong> أجهزة مخصصة لتخزين المفاتيح بشكل آمن.</li>
+                                <li><strong>Key Management Systems (KMS):</strong> أنظمة برمجية لإدارة المفاتيح عبر دورة حياتها.</li>
+                                <li>تجنب تخزين المفاتيح في الكود المصدري أو ملفات غير مشفرة.</li>
+                            </ul>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-exchange-alt topic-icon"></i> <strong>تبادل المفاتيح:</strong> استخدام بروتوكولات آمنة مثل Diffie-Hellman أو RSA لتبادل المفاتيح المتماثلة.</li>
+                        <li class="content-list-item"><i class="fas fa-redo-alt topic-icon"></i> <strong>تدوير المفاتيح (Key Rotation):</strong> تغيير المفاتيح بانتظام لتقليل نافذة التعرض في حال اختراق المفتاح.</li>
+                        <li class="content-list-item"><i class="fas fa-eraser topic-icon"></i> <strong>إتلاف المفاتيح (Key Destruction):</strong> مسح المفاتيح بشكل آمن عند انتهاء صلاحيتها أو عدم الحاجة إليها.</li>
+                    </ul>
+                    <div class="note-box">
+                        <p><i class="fas fa-lightbulb me-2"></i> <strong>ملاحظة:</strong> أمان نظام التشفير يعتمد بشكل كبير على أمان المفاتيح. مفتاح ضعيف أو مُدار بشكل سيء يجعل أقوى الخوارزميات عديمة الفائدة.</p>
+                    </div>
+
+                    <h3 class="sub-topic-title">3.4 أخطاء التشفير الشائعة</h3>
+                    <p>
+                        تجنب هذه الأخطاء لضمان فعالية التشفير في تطبيقاتك:
+                    </p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-times-circle topic-icon" style="color: var(--accent-color);"></i> <strong>اختيار خوارزميات ضعيفة:</strong> استخدام خوارزميات قديمة مثل MD5 أو SHA-1 أو 3DES للتشفير الجديد.</li>
+                        <li class="content-list-item"><i class="fas fa-times-circle topic-icon" style="color: var(--accent-color);"></i> <strong>استخدام مفاتيح ثابتة أو ضعيفة:</strong> استخدام مفاتيح مشفرة ثابتة أو قابلة للتخمين بسهولة.</li>
+                        <li class="content-list-item"><i class="fas fa-times-circle topic-icon" style="color: var(--accent-color);"></i> <strong>سوء إدارة المفاتيح:</strong> تخزين المفاتيح في الكود، أو إرسالها بشكل غير آمن.</li>
+                        <li class="content-list-item"><i class="fas fa-times-circle topic-icon" style="color: var(--accent-color);"></i> <strong>تطبيق "الأمن بالغموض" (Security by Obscurity):</strong> الاعتماد على إخفاء الكود أو الخوارزمية بدلاً من قوة التشفير الفعلية.</li>
+                        <li class="content-list-item"><i class="fas fa-times-circle topic-icon" style="color: var(--accent-color);"></i> <strong>عدم استخدام "الملح" (Salt) مع دوال التجزئة:</strong> يجعل كلمات المرور المخزنة عرضة لهجمات جداول قوس قزح (Rainbow Table Attacks).</li>
+                    </ul>
+                </div>
+
+                <!-- مصادر تعليمية وروابط مفيدة -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="resources">4. مصادر تعليمية وروابط مفيدة</h2>
+                    <h5>📚 مقالات ودلائل</h5>
+                    <ul class="no-bullet">
+                        <li><i class="fas fa-file-alt list-icon"></i> <a href="https://owasp.org/www-community/cryptographic_failures" target="_blank" style="color: var(--dark-text); text-decoration: none;">OWASP Cryptographic Failures</a></li>
+                        <li><i class="fas fa-file-alt list-icon"></i> <a href="https://cryptography.io/en/latest/" target="_blank" style="color: var(--dark-text); text-decoration: none;">Python Cryptography Library Documentation</a></li>
+                    </ul>
+                    <h5>🎥 فيديوهات تعليمية</h5>
+                    <ul class="no-bullet">
+                        <li><i class="fas fa-video list-icon"></i> <a href="https://www.youtube.com/watch?v=M0S8L5j-oG0" target="_blank" style="color: var(--dark-text); text-decoration: none;">Cryptography Explained (Computerphile)</a></li>
+                        <li><i class="fas fa-video list-icon"></i> <a href="https://www.youtube.com/watch?v=sa5W-K-rL3I" target="_blank" style="color: var(--dark-text); text-decoration: none;">Symmetric vs Asymmetric Encryption</a></li>
+                        <li><i class="fas fa-video list-icon"></i> <a href="https://www.youtube.com/watch?v=s5tN4y5s-pI" target="_blank" style="color: var(--dark-text); text-decoration: none;">Hashing Algorithms Explained</a></li>
+                    </ul>
+                    <h5>🛠 أدوات عملية</h5>
+                    <ul class="no-bullet">
+                        <li><i class="fas fa-tools list-icon"></i> <a href="https://cryptography.io/en/latest/fernet/" target="_blank" style="color: var(--dark-text); text-decoration: none;">Fernet (for AES in Python)</a></li>
+                        <li><i class="fas fa-tools list-icon"></i> <a href="https://www.pycryptodome.org/en/latest/" target="_blank" style="color: var(--dark-text); text-decoration: none;">PyCryptodome (Python Crypto Library)</a></li>
+                    </ul>
+                    <h5>📺 قنوات يوتيوب موصى بها</h5>
+                    <ul class="no-bullet">
+                        <li><i class="fab fa-youtube list-icon"></i> <a href="https://www.youtube.com/user/Computerphile" target="_blank" style="color: var(--dark-text); text-decoration: none;">Computerphile</a></li>
+                        <li><i class="fab fa-youtube list-icon"></i> <a href="https://www.youtube.com/c/freecodecamp" target="_blank" style="color: var(--dark-text); text-decoration: none;">freeCodeCamp.org (Security Playlists)</a></li>
+                    </ul>
+                </div>
+                
+                <!-- أزرار التنقل -->
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="unit-2.html" class="btn unit-nav-btn"><i class="fas fa-arrow-right"></i> الوحدة السابقة</a>
+                    <a href="../../../materials/unit-3-crypto.pdf" target="_blank" class="btn unit-nav-btn"><i class="fas fa-file-pdf"></i> عرض / تحميل مادة الوحدة</a>
+                    <a href="unit-4.html" class="btn unit-nav-btn text-end">الوحدة التالية <i class="fas fa-arrow-left"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- الفوتر -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>مسار الأمن السيبراني</h5>
+                    <p>منصة تعليمية متخصصة في تقديم محتوى أكاديمي وعملي في مجال الأمن السيبراني.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>روابط سريعة</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="../../../index.html" class="text-white">الرئيسية</a></li>
+                        <li><a href="../../index.html" class="text-white">جميع المقررات</a></li>
+                        <li><a href="#" class="text-white">الدعم الفني</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>تواصل معنا</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> info@cyberpath.com</li>
+                        <li><i class="fas fa-phone me-2"></i> 0502161465</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2025 مسار الأمن السيبراني. جميع الحقوق محفوظة.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-linkedin fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-youtube fa-lg"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-github fa-lg"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- تضمين Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
 
