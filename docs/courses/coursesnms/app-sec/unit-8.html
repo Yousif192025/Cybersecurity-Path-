@@ -1,1 +1,809 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الوحدة 8: مفاهيم أمن الشبكات II | منصة الأمن السيبراني</title>
+    <!-- تضمين Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- تضمين Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- تضمين Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- تضمين خط Tajawal من Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* تعريف المتغيرات لألوان موحدة */
+        :root {
+            --primary-color: #2c3e50; /* لون أزرق داكن/رمادي */
+            --secondary-color: #3498db; /* لون أزرق فاتح */
+            --accent-color: #e74c3c; /* لون أحمر/برتقالي لـ "تحذير" أو "خطر" */
+            --light-bg: #f8f9fa; /* خلفية فاتحة جدًا للجسم */
+            --dark-text: #2c3e50; /* لون نص داكن */
+            --light-text: #7f8c8d; /* لون نص فاتح (رمادي) */
+            --warning-color: #d68910; /* لون برتقالي للتحذيرات والعناوين المميزة */
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--light-bg); /* خلفية فاتحة */
+            color: var(--dark-text); /* لون نص داكن */
+            line-height: 1.8;
+            direction: rtl; /* تأكيد الاتجاه من اليمين لليسار */
+            text-align: right; /* محاذاة النص لليمين افتراضيا */
+        }
+
+        .navbar {
+            background-color: var(--primary-color);
+        }
+        .navbar-brand {
+            color: white !important; /* لون أبيض للشعار في شريط التنقل */
+        }
+        .btn-outline-light {
+            border-color: rgba(255, 255, 255, 0.7) !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .btn-outline-light:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .course-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 1rem 1rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .course-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-right: 4px solid var(--secondary-color); /* شريط جانبي بلون ثانوي */
+            padding: 2rem; /* تباعد داخلي للبطاقات */
+        }
+
+        .course-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .course-title-section {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .module-icon {
+            width: 50px;
+            height: 50px;
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 1rem;
+            flex-shrink: 0;
+            font-size: 1.25rem;
+        }
+        .sidebar .module-icon { /* Specific styling for sidebar icons */
+            width: 40px; /* Slightly smaller for sidebar */
+            height: 40px;
+            font-size: 1rem;
+            margin-left: 10px; /* Adjust margin for sidebar */
+        }
+
+        .progress-container { /* Styling for sidebar progress bar */
+            height: 25px;
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-bar { /* Styling for sidebar progress bar */
+            background-color: var(--secondary-color);
+        }
+
+        .accordion-button:not(.collapsed) {
+            background-color: var(--secondary-color); /* Active accordion button background */
+            color: #fff; /* Active accordion button text color */
+            box-shadow: none;
+        }
+        .accordion-button:not(.collapsed) .module-icon { /* Active accordion button icon */
+            background-color: var(--primary-color); /* Darker background for icon when active */
+        }
+        .accordion-button:not(.collapsed)::after {
+            filter: brightness(0) invert(1); /* Invert arrow color for dark background */
+        }
+
+        .accordion-button {
+            border-radius: 0.5rem !important; /* للحفاظ على حدود مستديرة للأزرار */
+        }
+        .accordion-item {
+            margin-bottom: 0.5rem; /* مسافة بين عناصر الأكورديون */
+            border-radius: 0.75rem;
+            border: 1px solid rgba(0, 0, 0, 0.125); /* حدود للأكورديون */
+            overflow: hidden; /* لمنع تجاوز المحتوى للحواف المستديرة */
+        }
+        .accordion-body ul {
+            padding-right: 0; /* إزالة التباعد الافتراضي لقائمة الروابط الداخلية */
+        }
+        .accordion-body ul li a {
+            padding: 0.25rem 0.5rem;
+            display: block;
+            border-radius: 0.25rem;
+            color: var(--dark-text);
+        }
+        .accordion-body ul li a:hover,
+        .accordion-body ul li a.active-link { /* Active link in sidebar */
+            background-color: #e9f5ff;
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+        .accordion-body .btn-primary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .accordion-body .btn-primary:hover {
+            background-color: #2874ad;
+            border-color: #2874ad;
+        }
+
+        .sidebar { /* Styling for the sidebar container */
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            color: var(--dark-text); /* Ensure text is readable */
+        }
+        .sidebar h4 {
+            color: var(--primary-color); /* Sidebar heading color */
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* تنسيقات الفوتر */
+        footer {
+            background-color: var(--primary-color) !important;
+            color: white;
+            padding: 2.5rem 0;
+        }
+        footer h5 {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        footer .list-unstyled li a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        footer .list-unstyled li a:hover {
+            color: var(--secondary-color);
+        }
+        footer .fab, footer .fas { /* تطبيق اللون الأبيض على أيقونات الفوتر */
+            color: white;
+            transition: color 0.2s;
+        }
+        footer .fab:hover, footer .fas:hover {
+            color: var(--secondary-color);
+        }
+
+        /* Unit-specific content styling */
+        h2.unit-section-title { /* For general description, learning objectives, etc. */
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+        }
+        h3.sub-topic-title { /* For topic headings like "3.1 تعريف أمن التطبيقات" */
+            color: var(--primary-color);
+            border-bottom: 1px dashed var(--light-text);
+            padding-bottom: 0.3rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.75rem;
+        }
+        h4.inner-sub-topic { /* For sub-headings within OWASP items */
+            color: var(--dark-text);
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 1.25rem;
+        }
+        ul {
+            padding-right: 25px; /* Adjust default list padding */
+        }
+        ul.no-bullet {
+            list-style: none;
+            padding-right: 0;
+        }
+        ul li {
+            margin-bottom: 0.5rem;
+        }
+        .list-icon {
+            margin-left: 10px;
+            color: var(--secondary-color); /* Default icon color */
+        }
+        /* Specific icon colors based on content type for clarity */
+        .objectives-list .list-icon { color: #28a745; } /* Green for checkmarks */
+        .methods-list .list-icon { color: #17a2b8; } /* Teal/Cyan for methods */
+        .outcomes-list .list-icon { color: #ffc107; } /* Yellow/Orange for stars */
+        .topic-icon { /* Icons within the main topics like for Tools/Concepts */
+            color: var(--secondary-color);
+            margin-left: 10px;
+        }
+        .alert-info-custom {
+            background-color: #e9ecef; /* Light grey/blue background */
+            border-left: 5px solid var(--secondary-color);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        .alert-info-custom i {
+            color: var(--secondary-color);
+            margin-right: 0.5rem;
+        }
+
+        /* Styling for Example/Note boxes */
+        .example-box, .note-box {
+            background-color: #e9ecef; /* Light grey background */
+            border-right: 5px solid var(--secondary-color); /* Blue border */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        .example-box i, .note-box i {
+            color: var(--secondary-color); /* Blue icon color */
+            margin-left: 0.5rem;
+        }
+        .example-box ul, .note-box ul {
+            list-style: none; /* Remove default bullets */
+            padding-right: 0;
+        }
+        .example-box ul li::before, .note-box ul li::before {
+            content: "\f058"; /* Font Awesome check-circle icon */
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            color: var(--secondary-color);
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+            margin-right: 0.5em;
+        }
+
+        /* Buttons for Unit Navigation */
+        .unit-nav-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: bold;
+            transition: background-color 0.2s, transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+        }
+        .unit-nav-btn:hover {
+            background-color: #2874ad;
+            color: white;
+            transform: translateY(-2px);
+        }
+        .unit-nav-btn .fa-arrow-left { /* Left arrow for "Next Unit" button */
+            margin-right: 0;
+            margin-left: 8px;
+        }
+        .unit-nav-btn .fa-arrow-right { /* Right arrow for "Back to Index" button */
+            margin-right: 8px;
+            margin-left: 0;
+        }
+
+        /* Styling for code blocks */
+        pre {
+            background-color: #e9ecef;
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto; /* Enable horizontal scrolling for long lines */
+            direction: ltr; /* Ensure code direction is LTR */
+            text-align: left; /* Ensure text alignment is left for code */
+        }
+        code {
+            font-family: 'Consolas', 'Monaco', 'Lucida Console', monospace;
+            font-size: 0.9rem;
+            color: var(--dark-text);
+        }
+        pre code {
+            display: block; /* Ensures code block takes full width */
+        }
+
+
+        /* Responsive adjustments */
+        @media (max-width: 991px) { /* Changed breakpoint to align with col-lg- */
+            .sidebar {
+                margin-top: 1rem;
+                margin-bottom: 1rem; /* Added margin for better spacing on smaller screens */
+            }
+            .course-header {
+                padding: 2rem 0;
+            }
+            .course-card {
+                padding: 1.5rem;
+            }
+            h1.display-4 {
+                font-size: 2.2rem;
+            }
+            h2.unit-section-title {
+                font-size: 1.75rem;
+            }
+            h3.sub-topic-title {
+                font-size: 1.5rem;
+            }
+            .unit-nav-btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+            .d-flex.justify-content-between.mt-4 {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <!-- شريط التنقل -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--primary-color);">
+        <div class="container">
+            <a class="navbar-brand" href="../../../index.html">منصة الأمن السيبراني</a>
+            <a href="../../index.html" class="btn btn-outline-light">العودة إلى المقررات</a>
+        </div>
+    </nav>
+
+    <!-- رأس الوحدة -->
+    <header class="course-header text-center">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-3">الوحدة 8: مفاهيم أمن الشبكات II</h1>
+            <p class="lead">طبقات TCP، بروتوكول SSL/TLS، بروتوكول IPsec، وأمن الشبكات اللاسلكية.</p>
+        </div>
+    </header>
+
+    <div class="container-fluid py-5">
+        <div class="row">
+            <!-- Sidebar for Units Navigation -->
+            <div class="col-lg-3">
+                <div class="sidebar p-4">
+                    <h4 class="mb-3">
+                        <i class="fas fa-stream me-2"></i>
+                        وحدات المقرر
+                    </h4>
+                    <div class="progress progress-container mb-4">
+                        <div class="progress-bar" role="progressbar" style="width: 88.88%;" aria-valuenow="88.88" aria-valuemin="0" aria-valuemax="100">88% مكتمل</div>
+                    </div>
+                    <div class="accordion" id="unitsAccordion">
+                        <!-- Unit 1 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAppSecUnit1">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAppSecUnit1" aria-expanded="false" aria-controls="collapseAppSecUnit1">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-book-open"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 1: مقدمة في أمن التطبيقات والبرمجيات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseAppSecUnit1" class="accordion-collapse collapse" aria-labelledby="headingAppSecUnit1" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-1.html#general-description" class="text-decoration-none">1. الوصف العام</a></li>
+                                        <li><a href="unit-1.html#learning-objectives" class="text-decoration-none">2. الأهداف التعليمية</a></li>
+                                        <li><a href="unit-1.html#topics" class="text-decoration-none">3. محاور الوحدة ومحتواها</a></li>
+                                        <li><a href="unit-1.html#teaching-methods" class="text-decoration-none">4. أسلوب عرض الوحدة</a></li>
+                                        <li><a href="unit-1.html#learning-outcomes" class="text-decoration-none">5. مخرجات التعلم</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 2 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAppSecUnit2">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAppSecUnit2" aria-expanded="false" aria-controls="collapseAppSecUnit2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-cogs"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 2: دورة حياة تطوير البرمجيات الآمن (Secure SDLC)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseAppSecUnit2" class="accordion-collapse collapse" aria-labelledby="headingAppSecUnit2" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-2.html#general-description" class="text-decoration-none">1. الوصف العام للوحدة</a></li>
+                                        <li><a href="unit-2.html#learning-objectives" class="text-decoration-none">2. الأهداف التعليمية للوحدة</a></li>
+                                        <li><a href="unit-2.html#topics-detail" class="text-decoration-none">3. المحاور وشرحها بالتفصيل</a></li>
+                                        <li><a href="unit-2.html#resources" class="text-decoration-none">4. مصادر تعليمية وروابط مفيدة</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 3 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAppSecUnit3">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAppSecUnit3" aria-expanded="false" aria-controls="collapseAppSecUnit3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-lock"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 3: أساسيات التشفير في التطبيقات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseAppSecUnit3" class="accordion-collapse collapse" aria-labelledby="headingAppSecUnit3" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-3.html#general-description" class="text-decoration-none">1. الوصف العام للوحدة</a></li>
+                                        <li><a href="unit-3.html#learning-objectives" class="text-decoration-none">2. الأهداف التعليمية للوحدة</a></li>
+                                        <li><a href="unit-3.html#topics-detail" class="text-decoration-none">3. محاور الوحدة ومحتواها</a></li>
+                                        <li><a href="unit-3.html#resources" class="text-decoration-none">4. مصادر تعليمية وروابط مفيدة</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 4 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAppSecUnit4">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAppSecUnit4" aria-expanded="false" aria-controls="collapseAppSecUnit4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-bug"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 4: ثغرات OWASP Top 10</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseAppSecUnit4" class="accordion-collapse collapse" aria-labelledby="headingAppSecUnit4" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-4.html#general-description" class="text-decoration-none">1. الوصف العام</a></li>
+                                        <li><a href="unit-4.html#learning-objectives" class="text-decoration-none">2. أهداف الوحدة</a></li>
+                                        <li><a href="unit-4.html#owasp-top10-detail" class="text-decoration-none">3. قائمة OWASP Top-10</a></li>
+                                        <li><a href="unit-4.html#tools-testing" class="text-decoration-none">4. أدوات الاكتشاف والاختبار</a></li>
+                                        <li><a href="unit-4.html#code-examples" class="text-decoration-none">5. أمثلة كود وتصحيحات</a></li>
+                                        <li><a href="unit-4.html#labs-projects" class="text-decoration-none">6. تمارين ومشاريع مختبرية</a></li>
+                                        <li><a href="unit-4.html#resources" class="text-decoration-none">7. موارد ومراجع مفيدة</a></li>
+                                        <li><a href="unit-4.html#assessment" class="text-decoration-none">8. مقترح تقييم ومخرجات الوحدة</a></li>
+                                        <li><a href="unit-4.html#ethical-notes" class="text-decoration-none">9. ملاحظات أمنية وأخلاقية</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 5 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAppSecUnit5">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAppSecUnit5" aria-expanded="false" aria-controls="collapseAppSecUnit5">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-shield-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 5: اختبار اختراق التطبيقات (Web & Mobile)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseAppSecUnit5" class="accordion-collapse collapse" aria-labelledby="headingAppSecUnit5" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-5.html#general-description" class="text-decoration-none">1. الوصف العام</a></li>
+                                        <li><a href="unit-5.html#learning-objectives" class="text-decoration-none">2. الأهداف التعليمية</a></li>
+                                        <li><a href="unit-5.html#pentest-methodology" class="text-decoration-none">3. منهجية اختبار الاختراق</a></li>
+                                        <li><a href="unit-5.html#web-vs-mobile" class="text-decoration-none">4. فرق Web vs Mobile</a></li>
+                                        <li><a href="unit-5.html#key-tools" class="text-decoration-none">5. أدوات رئيسية</a></li>
+                                        <li><a href="unit-5.html#practical-examples" class="text-decoration-none">6. أمثلة عملية</a></li>
+                                        <li><a href="unit-5.html#labs-projects" class="text-decoration-none">7. تمارين ومشاريع مختبرية</a></li>
+                                        <li><a href="unit-5.html#report-template" class="text-decoration-none">8. نموذج تقرير مختصر</a></li>
+                                        <li><a href="unit-5.html#assessment" class="text-decoration-none">9. تقييم الوحدة</a></li>
+                                        <li><a href="unit-5.html#resources" class="text-decoration-none">10. مصادر وروابط إثرائية</a></li>
+                                        <li><a href="unit-5.html#ethical-legal" class="text-decoration-none">11. اعتبارات أخلاقية وقانونية</a></li>
+                                        <li><a href="unit-5.html#time-estimation" class="text-decoration-none">12. تقدير زمني مقترح</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 6 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingRedTeamUnit6">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRedTeamUnit6" aria-expanded="false" aria-controls="collapseRedTeamUnit6">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-hammer"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 6: اختراق التطبيقات (Application Exploitation)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseRedTeamUnit6" class="accordion-collapse collapse" aria-labelledby="headingRedTeamUnit6" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-6.html#general-description" class="text-decoration-none">1. الوصف العام</a></li>
+                                        <li><a href="unit-6.html#learning-objectives" class="text-decoration-none">2. أهداف التعلم</a></li>
+                                        <li><a href="unit-6.html#main-topics" class="text-decoration-none">3. المحاور الأساسية للوحدة</a></li>
+                                        <li><a href="unit-6.html#practical-example" class="text-decoration-none">4. مثال تطبيقي</a></li>
+                                        <li><a href="unit-6.html#unit-exercises" class="text-decoration-none">5. تمارين الوحدة</a></li>
+                                        <li><a href="unit-6.html#additional-resources" class="text-decoration-none">6. مصادر إضافية</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 7 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAppSecUnit7">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAppSecUnit7" aria-expanded="false" aria-controls="collapseAppSecUnit7">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-share-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 7: مفاهيم أمن الشبكات – الجزء الأول</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseAppSecUnit7" class="accordion-collapse collapse" aria-labelledby="headingAppSecUnit7" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-7.html#introduction" class="text-decoration-none">1. مقدمة</a></li>
+                                        <li><a href="unit-7.html#learning-objectives" class="text-decoration-none">2. أهداف التعلم</a></li>
+                                        <li><a href="unit-7.html#core-concepts" class="text-decoration-none">3. المفاهيم الأساسية</a></li>
+                                        <li><a href="unit-7.html#practical-examples" class="text-decoration-none">4. أمثلة تطبيقية في بيئة الشبكات</a></li>
+                                        <li><a href="unit-7.html#practical-activities" class="text-decoration-none">5. أنشطة عملية</a></li>
+                                        <li><a href="unit-7.html#key-terms" class="text-decoration-none">6. مصطلحات أساسية</a></li>
+                                        <li><a href="unit-7.html#review-questions" class="text-decoration-none">7. أسئلة للمراجعة</a></li>
+                                        <li><a href="unit-7.html#references" class="text-decoration-none">8. مراجع مقترحة</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 8 (Active Unit) -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAppSecUnit8">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAppSecUnit8" aria-expanded="true" aria-controls="collapseAppSecUnit8">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-cloud"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 8: مفاهيم أمن الشبكات II</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseAppSecUnit8" class="accordion-collapse collapse show" aria-labelledby="headingAppSecUnit8" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="#introduction" class="text-decoration-none active-link">1. مقدمة</a></li>
+                                        <li><a href="#learning-objectives" class="text-decoration-none">2. الأهداف التعليمية</a></li>
+                                        <li><a href="#detailed-content" class="text-decoration-none">3. المحتوى التفصيلي</a>
+                                            <ul class="list-unstyled ms-3">
+                                                <li><a href="#tcp-layers" class="text-decoration-none">3.1 طبقات TCP</a></li>
+                                                <li><a href="#ssl-tls" class="text-decoration-none">3.2 بروتوكول SSL/TLS</a></li>
+                                                <li><a href="#ipsec" class="text-decoration-none">3.3 بروتوكول IPsec</a></li>
+                                                <li><a href="#wireless-security" class="text-decoration-none">3.4 أمن الشبكات اللاسلكية</a></li>
+                                            </ul>
+                                        </li>
+                                        <li><a href="#practical-examples" class="text-decoration-none">4. أمثلة تطبيقية</a></li>
+                                        <li><a href="#conclusion" class="text-decoration-none">5. الخلاصة</a></li>
+                                        <li><a href="#review-questions" class="text-decoration-none">6. أسئلة للمراجعة</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 9 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAppSecUnit9">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAppSecUnit9" aria-expanded="false" aria-controls="collapseAppSecUnit9">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-project-diagram"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 9: الوحدة الختامية – مشروع تطبيقي</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseAppSecUnit9" class="accordion-collapse collapse" aria-labelledby="headingAppSecUnit9" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>محتوى الوحدة الختامية...</p>
+                                    <a href="unit-9.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-lg-9">
+                <div class="content-section mb-4 p-5">
+                    <h2 class="unit-section-title" id="introduction">1. مقدمة</h2>
+                    <p>
+                        في هذه الوحدة سنستكمل المفاهيم الأساسية لأمن الشبكات من خلال التعمق في البروتوكولات وتقنيات الأمان التي تحمي البيانات أثناء انتقالها. سنغطي بروتوكولات <strong>TCP</strong>، <strong>SSL/TLS</strong>، <strong>IPsec</strong>، بالإضافة إلى آليات تأمين الشبكات اللاسلكية.
+                    </p>
+                </div>
+
+                <!-- الأهداف التعليمية -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="learning-objectives">2. الأهداف التعليمية</h2>
+                    <p>بنهاية هذه الوحدة، سيكون الطالب قادرًا على:</p>
+                    <ul class="no-bullet objectives-list">
+                        <li><i class="fas fa-check-circle list-icon"></i> فهم طبقات TCP في نموذج الاتصال وكيفية تأمينها.</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> شرح كيفية عمل بروتوكول SSL/TLS في حماية البيانات.</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> وصف دور بروتوكول IPsec في تأمين الاتصال عبر الشبكات.</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> التعرف على التهديدات التي تواجه الشبكات اللاسلكية وطرق حمايتها.</li>
+                    </ul>
+                </div>
+
+                <!-- المحتوى التفصيلي -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="detailed-content">3. المحتوى التفصيلي</h2>
+
+                    <h3 class="sub-topic-title" id="tcp-layers">3.1 طبقات TCP</h3>
+                    <p>
+                        <strong>التعريف:</strong> TCP (Transmission Control Protocol) هو بروتوكول مسؤول عن ضمان تسليم البيانات بدقة بين الأجهزة.
+                    </p>
+                    <h4 class="inner-sub-topic">مزايا الأمان:</h4>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-redo-alt topic-icon"></i> إعادة الإرسال في حالة فقدان الحزم.</li>
+                        <li class="content-list-item"><i class="fas fa-exchange-alt topic-icon"></i> التحكم في تدفق البيانات.</li>
+                    </ul>
+                    <p>
+                        لكنّه لا يقدم تشفيرًا افتراضيًا، لذا يحتاج إلى بروتوكولات أمان إضافية.
+                    </p>
+
+                    <h3 class="sub-topic-title" id="ssl-tls">3.2 بروتوكول SSL/TLS</h3>
+                    <p>
+                        <strong>التعريف:</strong> SSL (Secure Sockets Layer) وTLS (Transport Layer Security) هما بروتوكولات توفر قناة اتصال آمنة عبر الإنترنت.
+                    </p>
+                    <h4 class="inner-sub-topic">آلية العمل:</h4>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-handshake topic-icon"></i> المصافحة (Handshake) لتبادل المفاتيح.</li>
+                        <li class="content-list-item"><i class="fas fa-lock topic-icon"></i> التشفير المتماثل لتأمين البيانات.</li>
+                        <li class="content-list-item"><i class="fas fa-certificate topic-icon"></i> التحقق من الهوية باستخدام الشهادات الرقمية.</li>
+                    </ul>
+                    <h4 class="inner-sub-topic">الاستخدامات:</h4>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-globe topic-icon"></i> تأمين مواقع الويب (HTTPS)، البريد الإلكتروني، وخدمات الرسائل.</li>
+                    </ul>
+
+                    <h3 class="sub-topic-title" id="ipsec">3.3 بروتوكول IPsec</h3>
+                    <p>
+                        <strong>التعريف:</strong> IPsec (Internet Protocol Security) هو مجموعة من البروتوكولات التي توفر التشفير والمصادقة لحزم البيانات على مستوى IP.
+                    </p>
+                    <h4 class="inner-sub-topic">الوضعيات:</h4>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-truck-loading topic-icon"></i> <strong>Transport Mode:</strong> حماية محتوى البيانات فقط.</li>
+                        <li class="content-list-item"><i class="fas fa-tunnel topic-icon"></i> <strong>Tunnel Mode:</strong> حماية البيانات والرؤوس معًا.</li>
+                    </ul>
+                    <h4 class="inner-sub-topic">الاستخدامات:</h4>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-network-wired topic-icon"></i> تأمين شبكات VPN، وحماية الاتصالات بين الفروع.</li>
+                    </ul>
+
+                    <h3 class="sub-topic-title" id="wireless-security">3.4 أمن الشبكات اللاسلكية</h3>
+                    <h4 class="inner-sub-topic">المخاطر الشائعة:</h4>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-ear-listen topic-icon"></i> التنصت (Eavesdropping).</li>
+                        <li class="content-list-item"><i class="fas fa-mask topic-icon"></i> انتحال الهوية (Rogue AP).</li>
+                        <li class="content-list-item"><i class="fas fa-slash topic-icon"></i> هجمات الحرمان من الخدمة (DoS).</li>
+                    </ul>
+                    <h4 class="inner-sub-topic">تقنيات الحماية:</h4>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-wifi topic-icon"></i> استخدام تشفير WPA3.</li>
+                        <li class="content-list-item"><i class="fas fa-key topic-icon"></i> إعداد كلمات مرور قوية لنقاط الوصول.</li>
+                        <li class="content-list-item"><i class="fas fa-filter topic-icon"></i> تفعيل تصفية عناوين MAC.</li>
+                        <li class="content-list-item"><i class="fas fa-eye-slash topic-icon"></i> تعطيل البث التلقائي لـ SSID.</li>
+                    </ul>
+                </div>
+
+                <!-- أمثلة تطبيقية -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="practical-examples">4. أمثلة تطبيقية</h2>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-network-wired topic-icon"></i> تحليل اتصال HTTPS باستخدام أداة Wireshark وملاحظة تبادل الشهادات.</li>
+                        <li class="content-list-item"><i class="fas fa-vpn topic-icon"></i> إعداد شبكة VPN باستخدام IPsec في بيئة مختبرية.</li>
+                        <li class="content-list-item"><i class="fas fa-wifi topic-icon"></i> اختبار أمان شبكة لاسلكية بكلمة مرور ضعيفة مقارنةً بأخرى قوية.</li>
+                    </ul>
+                </div>
+
+                <!-- الخلاصة -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="conclusion">5. الخلاصة</h2>
+                    <p>
+                        تأمين البيانات أثناء انتقالها عبر الشبكة يتطلب الجمع بين عدة بروتوكولات وتقنيات، مثل SSL/TLS وIPsec، بالإضافة إلى الالتزام بأفضل الممارسات لأمن الشبكات اللاسلكية.
+                    </p>
+                </div>
+
+                <!-- أسئلة للمراجعة -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="review-questions">6. أسئلة للمراجعة</h2>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-question-circle topic-icon"></i> ما الفرق بين SSL وTLS؟</li>
+                        <li class="content-list-item"><i class="fas fa-question-circle topic-icon"></i> متى يفضل استخدام IPsec بنمط Tunnel Mode؟</li>
+                        <li class="content-list-item"><i class="fas fa-question-circle topic-icon"></i> ما هي أبرز التهديدات التي تواجه الشبكات اللاسلكية؟</li>
+                        <li class="content-list-item"><i class="fas fa-question-circle topic-icon"></i> كيف يضمن TCP تسليم البيانات بشكل صحيح؟</li>
+                    </ul>
+                </div>
+                
+                <!-- أزرار التنقل -->
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="unit-7.html" class="btn unit-nav-btn"><i class="fas fa-arrow-right"></i> الوحدة السابقة</a>
+                    <a href="../../../materials/unit-8-network-security-part2.pdf" target="_blank" class="btn unit-nav-btn"><i class="fas fa-file-pdf"></i> عرض / تحميل مادة الوحدة</a>
+                    <a href="unit-9.html" class="btn unit-nav-btn text-end">الوحدة التالية <i class="fas fa-arrow-left"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- الفوتر -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>مسار الأمن السيبراني</h5>
+                    <p>منصة تعليمية متخصصة في تقديم محتوى أكاديمي وعملي في مجال الأمن السيبراني.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>روابط سريعة</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="../../../index.html" class="text-white">الرئيسية</a></li>
+                        <li><a href="../../index.html" class="text-white">جميع المقررات</a></li>
+                        <li><a href="#" class="text-white">الدعم الفني</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>تواصل معنا</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> info@cyberpath.com</li>
+                        <li><i class="fas fa-phone me-2"></i> 0502161465</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2025 مسار الأمن السيبراني. جميع الحقوق محفوظة.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-linkedin fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-youtube fa-lg"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-github fa-lg"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- تضمين Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
 
