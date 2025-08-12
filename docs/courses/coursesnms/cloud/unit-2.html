@@ -1,1 +1,947 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الوحدة 2: المحاكاة الافتراضية في الحوسبة السحابية | مسار الأمن السيبراني</title>
+    <!-- تضمين Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- تضمين Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- تضمين Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- تضمين خط Tajawal من Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* تعريف المتغيرات لألوان موحدة */
+        :root {
+            --primary-color: #2c3e50; /* لون أزرق داكن/رمادي */
+            --secondary-color: #3498db; /* لون أزرق فاتح */
+            --accent-color: #e74c3c; /* لون أحمر/برتقالي لـ "تحذير" أو "خطر" */
+            --light-bg: #f8f9fa; /* خلفية فاتحة جدًا للجسم */
+            --dark-text: #2c3e50; /* لون نص داكن */
+            --light-text: #7f8c8d; /* لون نص فاتح (رمادي) */
+            --warning-color: #d68910; /* لون برتقالي للتحذيرات والعناوين المميزة */
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--light-bg); /* خلفية فاتحة */
+            color: var(--dark-text); /* لون نص داكن */
+            line-height: 1.8;
+            direction: rtl; /* تأكيد الاتجاه من اليمين لليسار */
+            text-align: right; /* محاذاة النص لليمين افتراضيا */
+        }
+
+        .navbar {
+            background-color: var(--primary-color);
+        }
+        .navbar-brand {
+            color: white !important; /* لون أبيض للشعار في شريط التنقل */
+        }
+        .btn-outline-light {
+            border-color: rgba(255, 255, 255, 0.7) !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .btn-outline-light:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .course-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 1rem 1rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .course-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-right: 4px solid var(--secondary-color); /* شريط جانبي بلون ثانوي */
+            padding: 2rem; /* تباعد داخلي للبطاقات */
+        }
+
+        .course-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .course-title-section {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .module-icon {
+            width: 50px;
+            height: 50px;
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 1rem;
+            flex-shrink: 0;
+            font-size: 1.25rem;
+        }
+        .sidebar .module-icon { /* Specific styling for sidebar icons */
+            width: 40px; /* Slightly smaller for sidebar */
+            height: 40px;
+            font-size: 1rem;
+            margin-left: 10px; /* Adjust margin for sidebar */
+        }
+
+        .progress-container { /* Styling for sidebar progress bar */
+            height: 25px;
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-bar { /* Styling for sidebar progress bar */
+            background-color: var(--secondary-color);
+        }
+
+        .accordion-button:not(.collapsed) {
+            background-color: var(--secondary-color); /* Active accordion button background */
+            color: #fff; /* Active accordion button text color */
+            box-shadow: none;
+        }
+        .accordion-button:not(.collapsed) .module-icon { /* Active accordion button icon */
+            background-color: var(--primary-color); /* Darker background for icon when active */
+        }
+        .accordion-button:not(.collapsed)::after {
+            filter: brightness(0) invert(1); /* Invert arrow color for dark background */
+        }
+
+        .accordion-button {
+            border-radius: 0.5rem !important; /* للحفاظ على حدود مستديرة للأزرار */
+        }
+        .accordion-item {
+            margin-bottom: 0.5rem; /* مسافة بين عناصر الأكورديون */
+            border-radius: 0.75rem;
+            border: 1px solid rgba(0, 0, 0, 0.125); /* حدود للأكورديون */
+            overflow: hidden; /* لمنع تجاوز المحتوى للحواف المستديرة */
+        }
+        .accordion-body ul {
+            padding-right: 0; /* إزالة التباعد الافتراضي لقائمة الروابط الداخلية */
+        }
+        .accordion-body ul li a {
+            padding: 0.25rem 0.5rem;
+            display: block;
+            border-radius: 0.25rem;
+            color: var(--dark-text);
+        }
+        .accordion-body ul li a:hover,
+        .accordion-body ul li a.active-link { /* Active link in sidebar */
+            background-color: #e9f5ff;
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+        .accordion-body .btn-primary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .accordion-body .btn-primary:hover {
+            background-color: #2874ad;
+            border-color: #2874ad;
+        }
+
+        .sidebar { /* Styling for the sidebar container */
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            color: var(--dark-text); /* Ensure text is readable */
+        }
+        .sidebar h4 {
+            color: var(--primary-color); /* Sidebar heading color */
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* تنسيقات الفوتر */
+        footer {
+            background-color: var(--primary-color) !important;
+            color: white;
+            padding: 2.5rem 0;
+        }
+        footer h5 {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        footer .list-unstyled li a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        footer .list-unstyled li a:hover {
+            color: var(--secondary-color);
+        }
+        footer .fab, footer .fas { /* تطبيق اللون الأبيض على أيقونات الفوتر */
+            color: white;
+            transition: color 0.2s;
+        }
+        footer .fab:hover, footer .fas:hover {
+            color: var(--secondary-color);
+        }
+
+        /* Unit-specific content styling */
+        h2.unit-section-title { /* For general description, learning objectives, etc. */
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+        }
+        h3.sub-topic-title { /* For topic headings like "3.1 تعريف أمن التطبيقات" */
+            color: var(--primary-color);
+            border-bottom: 1px dashed var(--light-text);
+            padding-bottom: 0.3rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.75rem;
+        }
+        h4.inner-sub-topic { /* For sub-headings within OWASP items */
+            color: var(--dark-text);
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 1.25rem;
+        }
+        ul {
+            padding-right: 25px; /* Adjust default list padding */
+        }
+        ul.no-bullet {
+            list-style: none;
+            padding-right: 0;
+        }
+        ul li {
+            margin-bottom: 0.5rem;
+        }
+        .list-icon {
+            margin-left: 10px;
+            color: var(--secondary-color); /* Default icon color */
+        }
+        /* Specific icon colors based on content type for clarity */
+        .objectives-list .list-icon { color: #28a745; } /* Green for checkmarks */
+        .methods-list .list-icon { color: #17a2b8; } /* Teal/Cyan for methods */
+        .outcomes-list .list-icon { color: #ffc107; } /* Yellow/Orange for stars */
+        .topic-icon { /* Icons within the main topics like for Tools/Concepts */
+            color: var(--secondary-color);
+            margin-left: 10px;
+        }
+        .alert-info-custom {
+            background-color: #e9ecef; /* Light grey/blue background */
+            border-left: 5px solid var(--secondary-color);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        .alert-info-custom i {
+            color: var(--secondary-color);
+            margin-right: 0.5rem;
+        }
+
+        /* Styling for Example/Note boxes */
+        .example-box, .note-box {
+            background-color: #e9ecef; /* Light grey background */
+            border-right: 5px solid var(--secondary-color); /* Blue border */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        .example-box i, .note-box i {
+            color: var(--secondary-color); /* Blue icon color */
+            margin-left: 0.5rem;
+        }
+        .example-box ul, .note-box ul {
+            list-style: none; /* Remove default bullets */
+            padding-right: 0;
+        }
+        .example-box ul li::before, .note-box ul li::before {
+            content: "\f058"; /* Font Awesome check-circle icon */
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            color: var(--secondary-color);
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+            margin-right: 0.5em;
+        }
+        /* Styling for tables */
+        table {
+            width: 100%;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+            border-collapse: collapse;
+        }
+        table th,
+        table td {
+            padding: 0.75rem;
+            vertical-align: top;
+            border: 1px solid #dee2e6;
+            text-align: right; /* Align text to right for RTL */
+        }
+        table thead th {
+            vertical-align: bottom;
+            border-bottom: 2px solid #dee2e6;
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        table tbody + tbody {
+            border-top: 2px solid #dee2e6;
+        }
+
+        /* Buttons for Unit Navigation */
+        .unit-nav-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: bold;
+            transition: background-color 0.2s, transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+        }
+        .unit-nav-btn:hover {
+            background-color: #2874ad;
+            color: white;
+            transform: translateY(-2px);
+        }
+        .unit-nav-btn .fa-arrow-left { /* Left arrow for "Next Unit" button */
+            margin-right: 0;
+            margin-left: 8px;
+        }
+        .unit-nav-btn .fa-arrow-right { /* Right arrow for "Back to Index" button */
+            margin-right: 8px;
+            margin-left: 0;
+        }
+
+        /* Styling for code blocks */
+        pre {
+            background-color: #e9ecef;
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto; /* Enable horizontal scrolling for long lines */
+            direction: ltr; /* Ensure code direction is LTR */
+            text-align: left; /* Ensure text alignment is left for code */
+        }
+        code {
+            font-family: 'Consolas', 'Monaco', 'Lucida Console', monospace;
+            font-size: 0.9rem;
+            color: var(--dark-text);
+        }
+        pre code {
+            display: block; /* Ensures code block takes full width */
+        }
+
+
+        /* Responsive adjustments */
+        @media (max-width: 991px) { /* Changed breakpoint to align with col-lg- */
+            .sidebar {
+                margin-top: 1rem;
+                margin-bottom: 1rem; /* Added margin for better spacing on smaller screens */
+            }
+            .course-header {
+                padding: 2rem 0;
+            }
+            .course-card {
+                padding: 1.5rem;
+            }
+            h1.display-4 {
+                font-size: 2.2rem;
+            }
+            h2.unit-section-title {
+                font-size: 1.75rem;
+            }
+            h3.sub-topic-title {
+                font-size: 1.5rem;
+            }
+            .unit-nav-btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+            .d-flex.justify-content-between.mt-4 {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <!-- شريط التنقل -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--primary-color);">
+        <div class="container">
+            <a class="navbar-brand" href="../../../index.html">مسار الأمن السيبراني</a>
+            <a href="../../index.html" class="btn btn-outline-light">العودة إلى المقررات</a>
+        </div>
+    </nav>
+
+    <!-- رأس الوحدة -->
+    <header class="course-header text-center">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-3">الوحدة 2: المحاكاة الافتراضية في الحوسبة السحابية</h1>
+            <p class="lead">استكشاف تقنيات المحاكاة الافتراضية ودورها في تأمين البيئات السحابية.</p>
+        </div>
+    </header>
+
+    <div class="container-fluid py-5">
+        <div class="row">
+            <!-- Sidebar for Units Navigation -->
+            <div class="col-lg-3">
+                <div class="sidebar p-4">
+                    <h4 class="mb-3">
+                        <i class="fas fa-stream me-2"></i>
+                        وحدات المقرر
+                    </h4>
+                    <div class="progress progress-container mb-4">
+                        <div class="progress-bar" role="progressbar" style="width: 20%;" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">20% مكتمل</div>
+                    </div>
+                    <div class="accordion" id="unitsAccordion">
+                        <!-- Unit 1 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingCloudSecUnit1">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCloudSecUnit1" aria-expanded="false" aria-controls="collapseCloudSecUnit1">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-cloud"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 1: مقدمة في أمن التطبيقات السحابية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseCloudSecUnit1" class="accordion-collapse collapse" aria-labelledby="headingCloudSecUnit1" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-1.html#general-description" class="text-decoration-none">1. الوصف العام للوحدة</a></li>
+                                        <li><a href="unit-1.html#learning-objectives" class="text-decoration-none">2. الأهداف التعليمية</a></li>
+                                        <li><a href="unit-1.html#detailed-content" class="text-decoration-none">3. محتويات الوحدة بالتفصيل</a>
+                                            <ul class="list-unstyled ms-3">
+                                                <li><a href="unit-1.html#cloud-computing-concept" class="text-decoration-none">3.1 مفهوم الحوسبة السحابية</a></li>
+                                                <li><a href="unit-1.html#cloud-essential-characteristics" class="text-decoration-none">3.2 الخصائص الأساسية للسحابة</a></li>
+                                                <li><a href="unit-1.html#shared-responsibility-model" class="text-decoration-none">3.3 نموذج مشاركة المسؤولية</a></li>
+                                                <li><a href="unit-1.html#traditional-vs-cloud-security" class="text-decoration-none">3.4 الفرق بين الأمن التقليدي والسحابي</a></li>
+                                                <li><a href="unit-1.html#cloud-security-challenges" class="text-decoration-none">3.5 التحديات الأمنية في السحابة</a></li>
+                                                <li><a href="unit-1.html#enhancing-cloud-security" class="text-decoration-none">3.6 تعزيز الأمن السحابي</a></li>
+                                            </ul>
+                                        </li>
+                                        <li><a href="unit-1.html#practical-examples" class="text-decoration-none">4. أمثلة تطبيقية</a></li>
+                                        <li><a href="unit-1.html#activities-exercises" class="text-decoration-none">5. أنشطة وتمارين</a></li>
+                                        <li><a href="unit-1.html#additional-resources" class="text-decoration-none">6. موارد إضافية</a></li>
+                                        <li><a href="unit-1.html#assessment" class="text-decoration-none">7. التقييم</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 2 (Active Unit) -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingCloudSecUnit2">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCloudSecUnit2" aria-expanded="true" aria-controls="collapseCloudSecUnit2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-server"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 2: المحاكاة الافتراضية في الحوسبة السحابية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseCloudSecUnit2" class="accordion-collapse collapse show" aria-labelledby="headingCloudSecUnit2" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="#general-description" class="text-decoration-none active-link">1. الوصف العام للوحدة</a></li>
+                                        <li><a href="#learning-objectives" class="text-decoration-none">2. الأهداف التعليمية</a></li>
+                                        <li><a href="#detailed-content" class="text-decoration-none">3. محتويات الوحدة بالتفصيل</a>
+                                            <ul class="list-unstyled ms-3">
+                                                <li><a href="#virtualization-basic-concepts" class="text-decoration-none">3.1 المفاهيم الأساسية للمحاكاة الافتراضية</a></li>
+                                                <li><a href="#virtualization-types" class="text-decoration-none">3.2 أنواع المحاكاة الافتراضية</a></li>
+                                                <li><a href="#virtualization-architecture-components" class="text-decoration-none">3.3 مكونات بنية المحاكاة الافتراضية</a></li>
+                                                <li><a href="#virtualization-management-tools" class="text-decoration-none">3.4 أدوات إدارة البنية التحتية الافتراضية</a></li>
+                                                <li><a href="#virtualization-security-threats" class="text-decoration-none">3.5 التهديدات الأمنية الخاصة بالمحاكاة الافتراضية</a></li>
+                                                <li><a href="#virtualization-security-best-practices" class="text-decoration-none">3.6 أفضل الممارسات الأمنية</a></li>
+                                            </ul>
+                                        </li>
+                                        <li><a href="#practical-examples" class="text-decoration-none">4. أمثلة تطبيقية</a></li>
+                                        <li><a href="#interactive-activities" class="text-decoration-none">5. أنشطة تفاعلية مقترحة</a></li>
+                                        <li><a href="#enrichment-resources" class="text-decoration-none">6. موارد إثرائية وروابط مفيدة</a></li>
+                                        <li><a href="#assessment" class="text-decoration-none">7. التقييم</a></li>
+                                        <li><a href="#emerging-technologies" class="text-decoration-none">8. ملحق: التقنيات الناشئة في الحوسبة السحابية</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 3 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingCloudSecUnit3">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCloudSecUnit3" aria-expanded="false" aria-controls="collapseCloudSecUnit3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-shield-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 3: التهديدات السحابية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseCloudSecUnit3" class="accordion-collapse collapse" aria-labelledby="headingCloudSecUnit3" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>أنواع التهديدات الأمنية في البيئات السحابية ونقاط الضعف الشائعة.</p>
+                                    <a href="unit-3.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 4 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingCloudSecUnit4">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCloudSecUnit4" aria-expanded="false" aria-controls="collapseCloudSecUnit4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-bug"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 4: هجمات الحوسبة السحابية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseCloudSecUnit4" class="accordion-collapse collapse" aria-labelledby="headingCloudSecUnit4" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>أنواع الهجمات على الأنظمة السحابية وطرق تنفيذها.</p>
+                                    <a href="unit-4.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 5 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingCloudSecUnit5">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCloudSecUnit5" aria-expanded="false" aria-controls="collapseCloudSecUnit5">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-lock"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 5: الأمن السحابي</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseCloudSecUnit5" class="accordion-collapse collapse" aria-labelledby="headingCloudSecUnit5" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>استراتيجيات وأساليب تأمين البيئات السحابية.</p>
+                                    <a href="unit-5.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 6 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingCloudSecUnit6">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCloudSecUnit6" aria-expanded="false" aria-controls="collapseCloudSecUnit6">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-tools"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 6: أدوات الأمن السحابي</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseCloudSecUnit6" class="accordion-collapse collapse" aria-labelledby="headingCloudSecUnit6" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>أدوات عملية لمراقبة وحماية البنية التحتية السحابية.</p>
+                                    <a href="unit-6.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 7 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingCloudSecUnit7">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCloudSecUnit7" aria-expanded="false" aria-controls="collapseCloudSecUnit7">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-shield-virus"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 7: اختبار اختراق السحابة</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseCloudSecUnit7" class="accordion-collapse collapse" aria-labelledby="headingCloudSecUnit7" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>تقنيات وأدوات اختبار اختراق البيئات السحابية.</p>
+                                    <a href="unit-7.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 8 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingCloudSecUnit8">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCloudSecUnit8" aria-expanded="false" aria-controls="collapseCloudSecUnit8">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-file-contract"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 8: اتفاقيات مستوى الخدمة</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseCloudSecUnit8" class="accordion-collapse collapse" aria-labelledby="headingCloudSecUnit8" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>فهم وتقييم اتفاقيات مستوى الخدمة (SLAs) في الحوسبة السحابية.</p>
+                                    <a href="unit-8.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 9 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingCloudSecUnit9">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCloudSecUnit9" aria-expanded="false" aria-controls="collapseCloudSecUnit9">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-search"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 9: التدقيق في السحابة</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseCloudSecUnit9" class="accordion-collapse collapse" aria-labelledby="headingCloudSecUnit9" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>معايير وأساليب تدقيق الأمن والامتثال في البيئات السحابية.</p>
+                                    <a href="unit-9.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 10 (Summary Unit) -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingCloudSecSummary">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCloudSecSummary" aria-expanded="false" aria-controls="collapseCloudSecSummary">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-award"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة الختامية: ملخص المقرر</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseCloudSecSummary" class="accordion-collapse collapse" aria-labelledby="headingCloudSecSummary" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>مراجعة شاملة للمفاهيم الرئيسية وتوجيهات للتعلم المستمر.</p>
+                                    <a href="unit-summary.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-lg-9">
+                <div class="content-section mb-4 p-5">
+                    <h2 class="unit-section-title" id="general-description">1. الوصف العام للوحدة</h2>
+                    <p>
+                        تستكشف هذه الوحدة تقنية <strong>المحاكاة الافتراضية (Virtualization)</strong> كأساس للبنية التحتية السحابية الحديثة، مع التركيز على:
+                    </p>
+                    <ul class="no-bullet">
+                        <li><i class="fas fa-check-circle list-icon"></i> دور المحاكاة في تمكين المرونة، العزل الأمني، وكفاءة استخدام الموارد في البيئات السحابية.</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> الفروقات الجوهرية بين <strong>الآلات الافتراضية (VMs)</strong>، <strong>الحاويات (Containers)</strong>، وتقنيات الحوسبة الناشئة مثل <strong>Serverless</strong>.</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> المخاطر الأمنية الخاصة ببيئات المحاكاة الافتراضية وكيفية تأمينها باستخدام أفضل الممارسات.</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> دراسة حالات واقعية لهجمات اختراق استهدفت <strong>Hypervisor</strong> أو الحاويات، وتأثير ذلك على أمان التطبيقات السحابية.</li>
+                    </ul>
+                </div>
+
+                <!-- الأهداف التعليمية -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="learning-objectives">2. الأهداف التعليمية</h2>
+                    <p>بنهاية هذه الوحدة، سيكون المتدرب قادرًا على:</p>
+                    <ul class="no-bullet objectives-list">
+                        <li><i class="fas fa-check-circle list-icon"></i> شرح أنواع المحاكاة الافتراضية: <strong>Full Virtualization</strong>، <strong>Para-Virtualization</strong>، <strong>Containers</strong>، وتحديد مواقف استخدامها المناسبة.</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> تحليل مكونات بنية المحاكاة، بما في ذلك <strong>Hypervisor</strong>، <strong>VMM (Virtual Machine Monitor)</strong>، وفرق الأدوار بين <strong>Host OS</strong> و <strong>Guest OS</strong>.</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> تقييم الأدوات الشائعة لإدارة البنية التحتية الافتراضية مثل <strong>VMware vSphere</strong> و <strong>Kubernetes</strong>.</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> تحديد التهديدات الأمنية الخاصة بـ <strong>Hypervisor</strong> و <strong>Containers</strong> مثل <strong>Hypervisor Escape</strong> و <strong>Container Breakout</strong>.</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> تطبيق ضوابط أمنية متقدمة مثل تقسيم الشبكات <strong>(Network Segmentation)</strong>، تقوية الأنظمة <strong>(Hardening)</strong>، وحماية وقت التشغيل <strong>(Runtime Protection)</strong>.</li>
+                    </ul>
+                </div>
+
+                <!-- محتويات الوحدة بالتفصيل -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="detailed-content">3. محتويات الوحدة بالتفصيل</h2>
+
+                    <h3 class="sub-topic-title" id="virtualization-basic-concepts">3.1 المفاهيم الأساسية للمحاكاة الافتراضية</h3>
+                    <h4 class="inner-sub-topic">تعريف المحاكاة الافتراضية:</h4>
+                    <p>
+                        تقنية لإنشاء موارد منطقية (مثل سيرفرات، أنظمة تشغيل، شبكات) معزولة تعمل فوق العتاد المادي الفعلي. تُمكن من تشغيل أنظمة تشغيل متعددة في نفس الوقت على جهاز مادي واحد.
+                    </p>
+                    <h4 class="inner-sub-topic">الفرق بين المحاكاة الافتراضية والتجريد (Abstraction):</h4>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-compress-arrows-alt topic-icon"></i> <strong>المحاكاة الافتراضية (Virtualization):</strong> تُنشئ نسخًا كاملة من أنظمة التشغيل (VMs)، كل منها يعمل كنظام مستقل بذاته مع عزل كامل للعتاد الافتراضي.</li>
+                        <li class="content-list-item"><i class="fas fa-layer-group topic-icon"></i> <strong>التجريد (Abstraction):</strong> يشارك الموارد بين التطبيقات أو الحاويات بدون محاكاة نظام تشغيل كامل، ويركز على فصل التطبيق عن البنية التحتية الأساسية.</li>
+                    </ul>
+
+                    <h3 class="sub-topic-title" id="virtualization-types">3.2 أنواع المحاكاة الافتراضية</h3>
+                    <p>تختلف أنواع المحاكاة بناءً على مستوى العزل والأداء:</p>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>النوع</th>
+                                <th>الميزات</th>
+                                <th>أمثلة</th>
+                                <th>الاستخدام في السحابة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Full Virtualization<br>(المحاكاة الكاملة)</strong></td>
+                                <td>محاكاة كاملة للعتاد؛ لا يحتاج تعديل نظام تشغيل الضيف (Guest OS)؛ عزل عالي.</td>
+                                <td>VMware ESXi, Microsoft Hyper-V, Oracle VirtualBox</td>
+                                <td>أساسي في بيئات <strong>IaaS</strong> (البنية التحتية كخدمة)، حيث يُوفر للمستأجرين تحكمًا كاملاً في أنظمة التشغيل الخاصة بهم.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Para-Virtualization<br>(المحاكاة شبه الافتراضية)</strong></td>
+                                <td>يتطلب تعديلًا في نظام تشغيل الضيف (Guest OS) لتحسين الأداء من خلال التفاعل المباشر مع Hypervisor.</td>
+                                <td>Xen (مع نظام تشغيل ضيف معدّل)</td>
+                                <td>يُستخدم لتحسين الأداء على مستوى الموارد في بعض سيناريوهات السحابة، ولكنه أقل شيوعًا من المحاكاة الكاملة الآن.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Containers<br>(الحاويات)</strong></td>
+                                <td>عزل التطبيقات دون محاكاة نظام تشغيل كامل؛ تشارك نواة نظام التشغيل المضيف؛ خفيف الوزن وسريع الإطلاق.</td>
+                                <td>Docker, LXC</td>
+                                <td>مفتاح في تطبيقات <strong>Microservices</strong> و <strong>PaaS</strong> (المنصة كخدمة) لسهولة النشر والتوسع.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Serverless<br>(الحوسبة بدون خادم)</strong></td>
+                                <td>تشغيل أكواد وظائف فردية (Functions) بدون إدارة بنية تحتية؛ تتم إدارة الموارد بالكامل بواسطة المزود.</td>
+                                <td>AWS Lambda, Azure Functions, Google Cloud Functions</td>
+                                <td>أحدث نماذج الحوسبة السحابية، يركز على تنفيذ الكود والاستجابة للأحداث، مع عزل قوي يوفره المزود.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3 class="sub-topic-title" id="virtualization-architecture-components">3.3 مكونات بنية المحاكاة الافتراضية</h3>
+                    <h4 class="inner-sub-topic">Hypervisor (مُشرف الآلات الافتراضية):</h4>
+                    <p>
+                        الطبقة البرمجية الأساسية التي تُنشئ وتُدير الآلات الافتراضية.
+                    </p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-microchip topic-icon"></i> <strong>النوع 1 (Bare-metal):</strong> يعمل مباشرة على العتاد المادي للخادم دون الحاجة لنظام تشغيل مضيف، مما يوفر أداءً وأمانًا أعلى. أمثلة: <strong>VMware ESXi</strong>، <strong>Microsoft Hyper-V</strong>.</li>
+                        <li class="content-list-item"><i class="fas fa-desktop topic-icon"></i> <strong>النوع 2 (Hosted):</strong> يعمل كتطبيق فوق نظام تشغيل مضيف (Host OS) عادي (مثل Windows أو Linux)، مما يجعله أقل أمانًا وأداءً ولكنه أسهل في الإعداد. أمثلة: Oracle VirtualBox، VMware Workstation.</li>
+                    </ul>
+                    <h4 class="inner-sub-topic">Virtual Machine Monitor (VMM):</h4>
+                    <p>
+                        مصطلح يُستخدم أحيانًا بالتبادل مع Hypervisor، ولكنه يشير بشكل أكثر تحديدًا إلى المكون الذي يراقب ويُدير الآلات الافتراضية ويوزع الموارد بينها.
+                    </p>
+                    <h4 class="inner-sub-topic">Host OS و Guest OS:</h4>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-server topic-icon"></i> <strong>Host OS (نظام التشغيل المضيف):</strong> نظام التشغيل الذي يُثبت عليه الـHypervisor من النوع 2 (مثل Windows أو Linux). لا يوجد Host OS مباشر في النوع 1.</li>
+                        <li class="content-list-item"><i class="fas fa-laptop topic-icon"></i> <strong>Guest OS (نظام تشغيل الضيف):</strong> نظام التشغيل الذي يعمل داخل كل آلة افتراضية. يمكن أن يكون أي نظام تشغيل مدعومًا.</li>
+                    </ul>
+                    <h4 class="inner-sub-topic">إدارة الموارد في البيئات الافتراضية:</h4>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-arrows-alt topic-icon"></i> <strong>vMotion (Live Migration):</strong> تقنية تُمكن من نقل الآلات الافتراضية بين الخوادم المادية بدون توقف الخدمة، وهي ميزة أساسية للمرونة والتوافر العالي، ولكنها قد تحمل <strong>مخاطر أمنية مصاحبة</strong> إذا لم يتم تأمين قنوات النقل.</li>
+                        <li class="content-list-item"><i class="fas fa-memory topic-icon"></i> <strong>العزل في الذاكرة (Memory Isolation):</strong> يتم عزل ذاكرة كل VM لضمان عدم تداخل البيانات. تقنيات مثل Memory Deduplication (إزالة تكرار الذاكرة) يمكن أن تحسن الكفاءة ولكن يجب <strong>مراعاة تأثيرها على الأمان</strong>، حيث قد تُستخدم في هجمات Side-channel.</li>
+                    </ul>
+
+                    <h3 class="sub-topic-title" id="virtualization-management-tools">3.4 أدوات إدارة البنية التحتية الافتراضية</h3>
+                    <h4 class="inner-sub-topic">لإدارة الآلات الافتراضية (VMs):</h4>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-cogs topic-icon"></i> <strong>VMware vSphere:</strong> منصة رائدة وشاملة لإدارة موارد السحابة الافتراضية، مزودة بأدوات أمان متقدمة مثل vShield (أو NSX حاليًا) لتأمين الشبكة الافتراضية.</li>
+                        <li class="content-list-item"><i class="fas fa-cogs topic-icon"></i> <strong>Proxmox VE:</strong> حل مفتوح المصدر ومجاني لإدارة البيئات الافتراضية باستخدام KVM و LXC.</li>
+                        <li class="content-list-item"><i class="fas fa-cogs topic-icon"></i> <strong>OpenStack:</strong> منصة سحابية مفتوحة المصدر تُستخدم لبناء وإدارة السحابات الخاصة والعامة.</li>
+                    </ul>
+                    <h4 class="inner-sub-topic">لإدارة الحاويات (Containers):</h4>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-cubes topic-icon"></i> <strong>Kubernetes:</strong> أداة مفتوحة المصدر رائدة لإدارة وتنسيق الحاويات على نطاق واسع، تُسهل نشر وتوسيع وإدارة التطبيقات المعتمدة على الحاويات.</li>
+                        <li class="content-list-item"><i class="fas fa-shield-alt topic-icon"></i> <strong>أدوات أمان مرافقة (للحاويات):</strong> مثل <strong>Falco</strong> (للكشف عن السلوكيات غير الطبيعية في وقت التشغيل) و <strong>Aqua Security</strong> (لمسح الصور وحماية وقت التشغيل)، إضافة إلى <strong>Pod Security Policies</strong> (سياسات أمان Pod) في Kubernetes لتقييد صلاحيات الحاويات.</li>
+                    </ul>
+
+                    <h3 class="sub-topic-title" id="virtualization-security-threats">3.5 التهديدات الأمنية الخاصة بالمحاكاة الافتراضية</h3>
+                    <p>نظرًا لطبقة التجريد، تُقدم المحاكاة الافتراضية تهديدات أمنية فريدة:</p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-exclamation-triangle topic-icon" style="color: var(--accent-color);"></i> <strong>Hypervisor Escape (الهروب من المُشرف الافتراضي):</strong>
+                            <p>هجوم حرج يُمكن فيه لمهاجم داخل آلة افتراضية <strong>الخروج من عزلة الـVM والولوج إلى النظام المضيف (Hypervisor)</strong> أو آلات افتراضية أخرى. يعتبر هذا أخطر التهديدات، لأنه يمنح المهاجم السيطرة الكاملة على البنية التحتية الافتراضية.
+                            <br>مثال: هجوم <strong>Blue Pill</strong> (هجوم مفهوم إثبات الوجود) الذي أظهر إمكانية اختراق Hypervisor.</p>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-skull-crossbones topic-icon" style="color: var(--accent-color);"></i> <strong>Container Breakout (اختراق الحاوية):</strong>
+                            <p>تجاوز عزلة الحاوية للوصول إلى نظام التشغيل المضيف (Host OS) الذي تُشغل عليه الحاويات. يحدث غالبًا بسبب ضعف تكوينات الأمان في الحاوية أو ثغرات في نواة نظام التشغيل المضيف المشتركة.</p>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-sitemap topic-icon" style="color: var(--accent-color);"></i> <strong>VM Sprawl (انتشار الآلات الافتراضية):</strong>
+                            <p>زيادة عدد الآلات الافتراضية غير المُدارة أو المهملة، مما يوسع سطح الهجوم ويزيد من صعوبة تتبع الثغرات وتطبيق التصحيحات الأمنية.</p>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-user-secret topic-icon" style="color: var(--accent-color);"></i> <strong>Side-Channel Attacks (هجمات القناة الجانبية):</strong>
+                            <p>استغلال مشاركة الموارد (كالذاكرة والمعالج) بين VMs أو الحاويات على نفس العتاد المادي للحصول على معلومات سرية.
+                            <br>أمثلة: ثغرات <strong>Spectre</strong> و <strong>Meltdown</strong> التي استغلت ضعفًا في تنفيذ المعالجات الحديثة لاستنتاج بيانات من الذاكرة المعزولة.</p>
+                        </li>
+                    </ul>
+
+                    <h3 class="sub-topic-title" id="virtualization-security-best-practices">3.6 أفضل الممارسات الأمنية</h3>
+                    <h4 class="inner-sub-topic">تأمين Hypervisor:</h4>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-power-off topic-icon"></i> تعطيل الوظائف والخدمات غير الضرورية (مثل USB Passthrough) على الـHypervisor لتقليل سطح الهجوم.</li>
+                        <li class="content-list-item"><i class="fas fa-sync-alt topic-icon"></i> تحديث برمجيات الـHypervisor باستمرار وتثبيت التصحيحات الأمنية فور صدورها.</li>
+                        <li class="content-list-item"><i class="fas fa-eye topic-icon"></i> تفعيل المراقبة المستمرة لسجلات الـHypervisor والشبكة للكشف عن النشاطات المشبوهة.</li>
+                        <li class="content-list-item"><i class="fas fa-hard-hat topic-icon"></i> <strong>تقوية الأنظمة (Hardening):</strong> تطبيق تكوينات أمنية صارمة على الـHypervisor ونظام التشغيل المضيف (إذا كان من النوع 2).</li>
+                    </ul>
+                    <h4 class="inner-sub-topic">تأمين الحاويات:</h4>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-file-invoice topic-icon"></i> استخدام أنظمة ملفات للقراءة فقط (Read-only Filesystems) داخل الحاويات لتقليل مخاطر التعديل غير المصرح به.</li>
+                        <li class="content-list-item"><i class="fas fa-user-minus topic-icon"></i> تطبيق مبدأ أقل الامتيازات (Least Privilege) للمستخدمين والعمليات داخل الحاويات وفي إعدادات <strong>Kubernetes</strong>.</li>
+                        <li class="content-list-item"><i class="fas fa-scan topic-icon"></i> فحص صور الحاويات <strong>(Image Scanning)</strong> بحثًا عن الثغرات الأمنية والمكونات الضعيفة قبل نشرها، باستخدام أدوات مثل <strong>Trivy</strong> أو <strong>Clair</strong>.</li>
+                        <li class="content-list-item"><i class="fas fa-terminal topic-icon"></i> <strong>حماية وقت التشغيل (Runtime Protection):</strong> مراقبة سلوك الحاويات في الوقت الفعلي للكشف عن الأنشطة الشاذة أو الضارة.</li>
+                    </ul>
+                    <h4 class="inner-sub-topic">مراقبة النشاط العام:</h4>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-chart-area topic-icon"></i> استخدام أدوات متقدمة مثل <strong>Sysdig Secure</strong>، <strong>Prisma Cloud</strong>، و<strong>Tetragon</strong> لمراقبة أمان الحاويات والأنظمة الافتراضية بشكل شامل.</li>
+                        <li class="content-list-item"><i class="fas fa-network-wired topic-icon"></i> <strong>تقسيم الشبكات (Network Segmentation):</strong> عزل الآلات الافتراضية والحاويات عن بعضها البعض وعن الشبكة المضيفة لتقليل انتشار الهجمات.</li>
+                    </ul>
+                </div>
+
+                <!-- أمثلة تطبيقية -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="practical-examples">4. أمثلة تطبيقية</h2>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-layer-group topic-icon"></i> <strong>تأمين Hyper-V (مثال على النوع الأول من Hypervisor):</strong>
+                            <ul>
+                                <li>تفعيل <strong>Shielded VMs (الآلات الافتراضية المحمية)</strong> في Windows Server لزيادة حماية الآلات الافتراضية من الهجمات التي تستهدف الـHypervisor أو مسؤولي النظام غير الموثوق بهم.</li>
+                                <li>تكوين قواعد جدار الحماية (Firewall Rules) على مستوى الـHypervisor لتقييد الوصول إلى واجهات الإدارة.</li>
+                            </ul>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-cubes topic-icon"></i> <strong>أمان Kubernetes:</strong>
+                            <ul>
+                                <li>إنشاء <strong>سياسات شبكة (Network Policies)</strong> لعزل الـPods (وحدات الحاويات) داخل Kubernetes، مما يحد من الاتصالات غير المصرح بها بينها.</li>
+                                <li>تنفيذ عملية <strong>فحص الصور البرمجية (Image Scanning)</strong> كجزء من مسار CI/CD لضمان خلو الحاويات من الثغرات الأمنية المعروفة قبل نشرها.</li>
+                                <li>استخدام <strong>Pod Security Standards</strong> لفرض معايير أمنية محددة على الـPods.</li>
+                            </ul>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-book-open topic-icon"></i> <strong>دراسة حالة (VMware vSphere):</strong>
+                            <p>تحليل ثغرة <strong>CVE-2021-21972</strong> في VMware vSphere، وهي ثغرة حرجة في مكون vCenter Server التي استُغلت للوصول غير المصرح به.
+                            <br><strong>التوضيح:</strong> كيف سمحت هذه الثغرة للمهاجم بتنفيذ تعليمات برمجية عن بُعد على الخادم، مما قد يؤدي إلى اختراق الـHypervisor. يتم توضيح <strong>خطوات التصحيح</strong> الموصى بها من VMware لمنع الاستغلال المستقبلي.</p>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- أنشطة تفاعلية مقترحة -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="interactive-activities">5. أنشطة تفاعلية مقترحة</h2>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-laptop-code topic-icon"></i> <strong>نشاط 1:</strong> معمل افتراضي باستخدام <strong>Kali Linux</strong> لمحاكاة هجوم <strong>Container Breakout</strong> على بيئة Docker محلية (مثال: استخدام ثغرة معروفة في نواة لينكس أو تكوين خاطئ للحاوية). الهدف: فهم آليات اختراق الحاويات وأهمية العزل.</li>
+                        <li class="content-list-item"><i class="fas fa-flask topic-icon"></i> <strong>نشاط 2:</strong> تكوين سياسات أمان <strong>(Security Policies)</strong> في بيئة <strong>Kubernetes</strong> تجريبية (مثل Minikube) لمنع التصعيد الامتيازي <strong>(Privilege Escalation)</strong> لـPods معينة. الهدف: تطبيق عملي لمبدأ أقل الامتيازات في الحاويات.</li>
+                        <li class="content-list-item"><i class="fas fa-chart-bar topic-icon"></i> <strong>نشاط 3:</strong> تحليل سجلات <strong>(Logs)</strong> نظام <strong>vSphere</strong> (أو أي منصة افتراضية أخرى) لاكتشاف نشاط غير معتاد (مثل تسجيلات دخول متعددة فاشلة، أو تغييرات في تكوينات VMs) وإعداد تقرير أمني بالنتائج والتوصيات. الهدف: تطوير مهارات المراقبة والتحليل الأمني.</li>
+                    </ul>
+                </div>
+
+                <!-- موارد إثرائية وروابط مفيدة -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="enrichment-resources">6. موارد إثرائية وروابط مفيدة</h2>
+                    <h4 class="inner-sub-topic">وثائق ومواقع رسمية:</h4>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-book-open topic-icon"></i> <strong>VMware Virtualization Basics:</strong> موارد تعليمية حول أساسيات المحاكاة الافتراضية من VMware.</li>
+                        <li class="content-list-item"><i class="fas fa-book-open topic-icon"></i> <strong>Microsoft Hyper-V Documentation:</strong> وثائق رسمية من مايكروسوفت حول Hyper-V وأمنه.</li>
+                        <li class="content-list-item"><i class="fas fa-book-open topic-icon"></i> <strong>Docker Security Best Practices:</strong> إرشادات أمنية لتأمين بيئات Docker.</li>
+                        <li class="content-list-item"><i class="fas fa-book-open topic-icon"></i> <strong>Kubernetes Official Documentation:</strong> وثائق شاملة حول Kubernetes، بما في ذلك أقسام الأمان.</li>
+                    </ul>
+                    <h4 class="inner-sub-topic">تقارير ومعايير:</h4>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-file-alt topic-icon"></i> <strong>NIST SP 800-190: Application Container Security Guide:</strong> دليل شامل من NIST حول أمان حاويات التطبيقات.</li>
+                    </ul>
+                    <h4 class="inner-sub-topic">قنوات ومصادر تعليمية:</h4>
+                    <ul>
+                        <li class="content-list-item"><i class="fab fa-youtube topic-icon"></i> <strong>قنوات YouTube تعليمية:</strong> ابحث عن "Virtualization and Cloud Security Tutorials" للحصول على شروحات عملية.</li>
+                        <li class="content-list-item"><i class="fas fa-globe topic-icon"></i> <strong>مدونات أمنية متخصصة:</strong> تابع المدونات التي تركز على أمان السحابة والمحاكاة الافتراضية.</li>
+                    </ul>
+                </div>
+
+                <!-- التقييم -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="assessment">7. التقييم</h2>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-clipboard-check topic-icon"></i> <strong>اختبار قصير:</strong> أسئلة متعددة الخيارات وأسئلة قصيرة حول أنواع المحاكاة، مكونات Hypervisor، والتهديدات الأمنية للحاويات والآلات الافتراضية.</li>
+                        <li class="content-list-item"><i class="fas fa-project-diagram topic-icon"></i> <strong>مشروع عملي:</strong> يُطلب من المتدربين اكتشاف ثغرة في إعداد خاطئ لآلة افتراضية على VirtualBox أو بيئة محاكاة مشابهة، وتقديم تقرير يوضح الثغرة وخطوات استغلالها وتوصيات التصحيح. يمكن أن يشمل أيضًا تكوين بيئة Kubernetes بسيطة وتطبيق سياسات أمان عليها.</li>
+                    </ul>
+                </div>
+
+                <!-- ملحق: التقنيات الناشئة في الحوسبة السحابية -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="emerging-technologies">8. ملحق: التقنيات الناشئة في الحوسبة السحابية</h2>
+                    <p>مع تطور الحوسبة السحابية، تظهر تقنيات جديدة تعزز الأمان والأداء:</p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-microchip topic-icon"></i> <strong>MicroVMs (الآلات الافتراضية المصغرة):</strong> مثل <strong>Firecracker</strong> في AWS Lambda. تُستخدم لتوفير بيئات افتراضية خفيفة الوزن وسريعة الإطلاق، توفر عزلًا أفضل من الحاويات التقليدية مع أداء محسّن، وتُعد أساسًا لخدمات Serverless الآمنة.</li>
+                        <li class="content-list-item"><i class="fas fa-lock-open topic-icon"></i> <strong>Confidential Computing (الحوسبة السرية):</strong> تقنيات لحماية البيانات <strong>أثناء المعالجة (in-use)</strong>، وليس فقط أثناء النقل أو التخزين. تستخدم عتادًا آمنًا (مثل <strong>Intel SGX</strong> و AMD SEV) لإنشاء بيئات تنفيذ موثوقة (Trusted Execution Environments - TEEs) حيث لا يمكن حتى لمزود السحابة الوصول إلى البيانات المعالجة.</li>
+                    </ul>
+                </div>
+                
+                <!-- أزرار التنقل -->
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="unit-1.html" class="btn unit-nav-btn"><i class="fas fa-arrow-right"></i> الوحدة السابقة</a>
+                    <a href="../../../materials/cloud-sec/unit-2-virtualization.pdf" target="_blank" class="btn unit-nav-btn"><i class="fas fa-file-pdf"></i> عرض / تحميل مادة الوحدة</a>
+                    <a href="unit-3.html" class="btn unit-nav-btn text-end">الوحدة التالية <i class="fas fa-arrow-left"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- الفوتر -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>مسار الأمن السيبراني</h5>
+                    <p>منصة تعليمية متخصصة في تقديم محتوى أكاديمي وعملي في مجال الأمن السيبراني.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>روابط سريعة</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="../../../index.html" class="text-white">الرئيسية</a></li>
+                        <li><a href="../../index.html" class="text-white">جميع المقررات</a></li>
+                        <li><a href="#" class="text-white">الدعم الفني</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>تواصل معنا</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> info@cyberpath.com</li>
+                        <li><i class="fas fa-phone me-2"></i> 0502161465</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2025 مسار الأمن السيبراني. جميع الحقوق محفوظة.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-linkedin fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-youtube fa-lg"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-github fa-lg"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- تضمين Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
 
