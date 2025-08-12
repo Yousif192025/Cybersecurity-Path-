@@ -1,1 +1,933 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الوحدة 4: ثغرات OWASP Top 10 | منصة الأمن السيبراني</title>
+    <!-- تضمين Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- تضمين Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- تضمين Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- تضمين خط Tajawal من Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* تعريف المتغيرات لألوان موحدة */
+        :root {
+            --primary-color: #2c3e50; /* لون أزرق داكن/رمادي */
+            --secondary-color: #3498db; /* لون أزرق فاتح */
+            --accent-color: #e74c3c; /* لون أحمر/برتقالي لـ "تحذير" أو "خطر" */
+            --light-bg: #f8f9fa; /* خلفية فاتحة جدًا للجسم */
+            --dark-text: #2c3e50; /* لون نص داكن */
+            --light-text: #7f8c8d; /* لون نص فاتح (رمادي) */
+            --warning-color: #d68910; /* لون برتقالي للتحذيرات والعناوين المميزة */
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--light-bg); /* خلفية فاتحة */
+            color: var(--dark-text); /* لون نص داكن */
+            line-height: 1.8;
+            direction: rtl; /* تأكيد الاتجاه من اليمين لليسار */
+            text-align: right; /* محاذاة النص لليمين افتراضيا */
+        }
+
+        .navbar {
+            background-color: var(--primary-color);
+        }
+        .navbar-brand {
+            color: white !important; /* لون أبيض للشعار في شريط التنقل */
+        }
+        .btn-outline-light {
+            border-color: rgba(255, 255, 255, 0.7) !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .btn-outline-light:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .course-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 1rem 1rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .course-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-right: 4px solid var(--secondary-color); /* شريط جانبي بلون ثانوي */
+            padding: 2rem; /* تباعد داخلي للبطاقات */
+        }
+
+        .course-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .course-title-section {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .module-icon {
+            width: 50px;
+            height: 50px;
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 1rem;
+            flex-shrink: 0;
+            font-size: 1.25rem;
+        }
+        .sidebar .module-icon { /* Specific styling for sidebar icons */
+            width: 40px; /* Slightly smaller for sidebar */
+            height: 40px;
+            font-size: 1rem;
+            margin-left: 10px; /* Adjust margin for sidebar */
+        }
+
+        .progress-container { /* Styling for sidebar progress bar */
+            height: 25px;
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-bar { /* Styling for sidebar progress bar */
+            background-color: var(--secondary-color);
+        }
+
+        .accordion-button:not(.collapsed) {
+            background-color: var(--secondary-color); /* Active accordion button background */
+            color: #fff; /* Active accordion button text color */
+            box-shadow: none;
+        }
+        .accordion-button:not(.collapsed) .module-icon { /* Active accordion button icon */
+            background-color: var(--primary-color); /* Darker background for icon when active */
+        }
+        .accordion-button:not(.collapsed)::after {
+            filter: brightness(0) invert(1); /* Invert arrow color for dark background */
+        }
+
+        .accordion-button {
+            border-radius: 0.5rem !important; /* للحفاظ على حدود مستديرة للأزرار */
+        }
+        .accordion-item {
+            margin-bottom: 0.5rem; /* مسافة بين عناصر الأكورديون */
+            border-radius: 0.75rem;
+            border: 1px solid rgba(0, 0, 0, 0.125); /* حدود للأكورديون */
+            overflow: hidden; /* لمنع تجاوز المحتوى للحواف المستديرة */
+        }
+        .accordion-body ul {
+            padding-right: 0; /* إزالة التباعد الافتراضي لقائمة الروابط الداخلية */
+        }
+        .accordion-body ul li a {
+            padding: 0.25rem 0.5rem;
+            display: block;
+            border-radius: 0.25rem;
+            color: var(--dark-text);
+        }
+        .accordion-body ul li a:hover,
+        .accordion-body ul li a.active-link { /* Active link in sidebar */
+            background-color: #e9f5ff;
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+        .accordion-body .btn-primary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .accordion-body .btn-primary:hover {
+            background-color: #2874ad;
+            border-color: #2874ad;
+        }
+
+        .sidebar { /* Styling for the sidebar container */
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            color: var(--dark-text); /* Ensure text is readable */
+        }
+        .sidebar h4 {
+            color: var(--primary-color); /* Sidebar heading color */
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* تنسيقات الفوتر */
+        footer {
+            background-color: var(--primary-color) !important;
+            color: white;
+            padding: 2.5rem 0;
+        }
+        footer h5 {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        footer .list-unstyled li a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        footer .list-unstyled li a:hover {
+            color: var(--secondary-color);
+        }
+        footer .fab, footer .fas { /* تطبيق اللون الأبيض على أيقونات الفوتر */
+            color: white;
+            transition: color 0.2s;
+        }
+        footer .fab:hover, footer .fas:hover {
+            color: var(--secondary-color);
+        }
+
+        /* Unit-specific content styling */
+        h2.unit-section-title { /* For general description, learning objectives, etc. */
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+        }
+        h3.sub-topic-title { /* For topic headings like "3.1 تعريف أمن التطبيقات" */
+            color: var(--primary-color);
+            border-bottom: 1px dashed var(--light-text);
+            padding-bottom: 0.3rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.75rem;
+        }
+        h4.inner-sub-topic { /* For sub-headings within OWASP items */
+            color: var(--dark-text);
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 1.25rem;
+        }
+        ul {
+            padding-right: 25px; /* Adjust default list padding */
+        }
+        ul.no-bullet {
+            list-style: none;
+            padding-right: 0;
+        }
+        ul li {
+            margin-bottom: 0.5rem;
+        }
+        .list-icon {
+            margin-left: 10px;
+            color: var(--secondary-color); /* Default icon color */
+        }
+        /* Specific icon colors based on content type for clarity */
+        .objectives-list .list-icon { color: #28a745; } /* Green for checkmarks */
+        .methods-list .list-icon { color: #17a2b8; } /* Teal/Cyan for methods */
+        .outcomes-list .list-icon { color: #ffc107; } /* Yellow/Orange for stars */
+        .topic-icon { /* Icons within the main topics like for Tools/Concepts */
+            color: var(--secondary-color);
+            margin-left: 10px;
+        }
+        .alert-info-custom {
+            background-color: #e9ecef; /* Light grey/blue background */
+            border-left: 5px solid var(--secondary-color);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        .alert-info-custom i {
+            color: var(--secondary-color);
+            margin-right: 0.5rem;
+        }
+
+        /* Styling for Example/Note boxes */
+        .example-box, .note-box {
+            background-color: #e9ecef; /* Light grey background */
+            border-right: 5px solid var(--secondary-color); /* Blue border */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        .example-box i, .note-box i {
+            color: var(--secondary-color); /* Blue icon color */
+            margin-left: 0.5rem;
+        }
+        .example-box ul, .note-box ul {
+            list-style: none; /* Remove default bullets */
+            padding-right: 0;
+        }
+        .example-box ul li::before, .note-box ul li::before {
+            content: "\f058"; /* Font Awesome check-circle icon */
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            color: var(--secondary-color);
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+            margin-right: 0.5em;
+        }
+
+        /* Buttons for Unit Navigation */
+        .unit-nav-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: bold;
+            transition: background-color 0.2s, transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+        }
+        .unit-nav-btn:hover {
+            background-color: #2874ad;
+            color: white;
+            transform: translateY(-2px);
+        }
+        .unit-nav-btn .fa-arrow-left { /* Left arrow for "Next Unit" button */
+            margin-right: 0;
+            margin-left: 8px;
+        }
+        .unit-nav-btn .fa-arrow-right { /* Right arrow for "Back to Index" button */
+            margin-right: 8px;
+            margin-left: 0;
+        }
+
+        /* Styling for code blocks */
+        pre {
+            background-color: #e9ecef;
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto; /* Enable horizontal scrolling for long lines */
+            direction: ltr; /* Ensure code direction is LTR */
+            text-align: left; /* Ensure text alignment is left for code */
+        }
+        code {
+            font-family: 'Consolas', 'Monaco', 'Lucida Console', monospace;
+            font-size: 0.9rem;
+            color: var(--dark-text);
+        }
+        pre code {
+            display: block; /* Ensures code block takes full width */
+        }
+
+
+        /* Responsive adjustments */
+        @media (max-width: 991px) { /* Changed breakpoint to align with col-lg- */
+            .sidebar {
+                margin-top: 1rem;
+                margin-bottom: 1rem; /* Added margin for better spacing on smaller screens */
+            }
+            .course-header {
+                padding: 2rem 0;
+            }
+            .course-card {
+                padding: 1.5rem;
+            }
+            h1.display-4 {
+                font-size: 2.2rem;
+            }
+            h2.unit-section-title {
+                font-size: 1.75rem;
+            }
+            h3.sub-topic-title {
+                font-size: 1.5rem;
+            }
+            .unit-nav-btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+            .d-flex.justify-content-between.mt-4 {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <!-- شريط التنقل -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--primary-color);">
+        <div class="container">
+            <a class="navbar-brand" href="../../../index.html">منصة الأمن السيبراني</a>
+            <a href="../../index.html" class="btn btn-outline-light">العودة إلى المقررات</a>
+        </div>
+    </nav>
+
+    <!-- رأس الوحدة -->
+    <header class="course-header text-center">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-3">الوحدة 4: ثغرات OWASP Top 10 (وتطبيقات عملية للحماية)</h1>
+            <p class="lead">تعرف على أخطر الثغرات الأمنية في تطبيقات الويب وكيفية حمايتها.</p>
+        </div>
+    </header>
+
+    <div class="container-fluid py-5">
+        <div class="row">
+            <!-- Sidebar for Units Navigation -->
+            <div class="col-lg-3">
+                <div class="sidebar p-4">
+                    <h4 class="mb-3">
+                        <i class="fas fa-stream me-2"></i>
+                        وحدات المقرر
+                    </h4>
+                    <div class="progress progress-container mb-4">
+                        <div class="progress-bar" role="progressbar" style="width: 44.44%;" aria-valuenow="44.44" aria-valuemin="0" aria-valuemax="100">44% مكتمل</div>
+                    </div>
+                    <div class="accordion" id="unitsAccordion">
+                        <!-- Unit 1 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAppSecUnit1">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAppSecUnit1" aria-expanded="false" aria-controls="collapseAppSecUnit1">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-book-open"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 1: مقدمة في أمن التطبيقات والبرمجيات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseAppSecUnit1" class="accordion-collapse collapse" aria-labelledby="headingAppSecUnit1" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-1.html#general-description" class="text-decoration-none">1. الوصف العام</a></li>
+                                        <li><a href="unit-1.html#learning-objectives" class="text-decoration-none">2. الأهداف التعليمية</a></li>
+                                        <li><a href="unit-1.html#topics" class="text-decoration-none">3. محاور الوحدة ومحتواها</a></li>
+                                        <li><a href="unit-1.html#teaching-methods" class="text-decoration-none">4. أسلوب عرض الوحدة</a></li>
+                                        <li><a href="unit-1.html#learning-outcomes" class="text-decoration-none">5. مخرجات التعلم</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 2 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAppSecUnit2">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAppSecUnit2" aria-expanded="false" aria-controls="collapseAppSecUnit2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-cogs"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 2: دورة حياة تطوير البرمجيات الآمن (Secure SDLC)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseAppSecUnit2" class="accordion-collapse collapse" aria-labelledby="headingAppSecUnit2" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-2.html#general-description" class="text-decoration-none">1. الوصف العام للوحدة</a></li>
+                                        <li><a href="unit-2.html#learning-objectives" class="text-decoration-none">2. الأهداف التعليمية للوحدة</a></li>
+                                        <li><a href="unit-2.html#topics-detail" class="text-decoration-none">3. المحاور وشرحها بالتفصيل</a></li>
+                                        <li><a href="unit-2.html#resources" class="text-decoration-none">4. مصادر تعليمية وروابط مفيدة</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 3 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAppSecUnit3">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAppSecUnit3" aria-expanded="false" aria-controls="collapseAppSecUnit3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-lock"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 3: أساسيات التشفير في التطبيقات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseAppSecUnit3" class="accordion-collapse collapse" aria-labelledby="headingAppSecUnit3" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-3.html#general-description" class="text-decoration-none">1. الوصف العام للوحدة</a></li>
+                                        <li><a href="unit-3.html#learning-objectives" class="text-decoration-none">2. الأهداف التعليمية للوحدة</a></li>
+                                        <li><a href="unit-3.html#topics-detail" class="text-decoration-none">3. محاور الوحدة ومحتواها</a></li>
+                                        <li><a href="unit-3.html#resources" class="text-decoration-none">4. مصادر تعليمية وروابط مفيدة</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 4 (Active Unit) -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAppSecUnit4">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAppSecUnit4" aria-expanded="true" aria-controls="collapseAppSecUnit4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-bug"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 4: ثغرات OWASP Top 10</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseAppSecUnit4" class="accordion-collapse collapse show" aria-labelledby="headingAppSecUnit4" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="#general-description" class="text-decoration-none active-link">1. الوصف العام</a></li>
+                                        <li><a href="#learning-objectives" class="text-decoration-none">2. أهداف الوحدة</a></li>
+                                        <li><a href="#owasp-top10-detail" class="text-decoration-none">3. قائمة OWASP Top-10</a>
+                                            <ul class="list-unstyled ms-3">
+                                                <li><a href="#a01-broken-access-control" class="text-decoration-none">A01 — Broken Access Control</a></li>
+                                                <li><a href="#a02-cryptographic-failures" class="text-decoration-none">A02 — Cryptographic Failures</a></li>
+                                                <li><a href="#a03-injection" class="text-decoration-none">A03 — Injection</a></li>
+                                                <li><a href="#a04-insecure-design" class="text-decoration-none">A04 — Insecure Design</a></li>
+                                                <li><a href="#a05-security-misconfiguration" class="text-decoration-none">A05 — Security Misconfiguration</a></li>
+                                                <li><a href="#a06-vulnerable-components" class="text-decoration-none">A06 — Vulnerable and Outdated Components</a></li>
+                                                <li><a href="#a07-auth-failures" class="text-decoration-none">A07 — Identification & Authentication Failures</a></li>
+                                                <li><a href="#a08-data-integrity" class="text-decoration-none">A08 — Software and Data Integrity Failures</a></li>
+                                                <li><a href="#a09-logging-monitoring" class="text-decoration-none">A09 — Security Logging & Monitoring Failures</a></li>
+                                                <li><a href="#a10-ssrf" class="text-decoration-none">A10 — Server-Side Request Forgery (SSRF)</a></li>
+                                            </ul>
+                                        </li>
+                                        <li><a href="#tools-testing" class="text-decoration-none">4. أدوات الاكتشاف والاختبار</a></li>
+                                        <li><a href="#code-examples" class="text-decoration-none">5. أمثلة كود وتصحيحات</a></li>
+                                        <li><a href="#labs-projects" class="text-decoration-none">6. تمارين ومشاريع مختبرية</a></li>
+                                        <li><a href="#resources" class="text-decoration-none">7. موارد ومراجع مفيدة</a></li>
+                                        <li><a href="#assessment" class="text-decoration-none">8. مقترح تقييم ومخرجات الوحدة</a></li>
+                                        <li><a href="#ethical-notes" class="text-decoration-none">9. ملاحظات أمنية وأخلاقية</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 5 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAppSecUnit5">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAppSecUnit5" aria-expanded="false" aria-controls="collapseAppSecUnit5">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-shield-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 5: اختبار اختراق التطبيقات (Web & Mobile)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseAppSecUnit5" class="accordion-collapse collapse" aria-labelledby="headingAppSecUnit5" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>محتوى الوحدة الخامسة...</p>
+                                    <a href="unit-5.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 6 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAppSecUnit6">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAppSecUnit6" aria-expanded="false" aria-controls="collapseAppSecUnit6">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-code"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 6: تحليل وفحص الكود (Code Review)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseAppSecUnit6" class="accordion-collapse collapse" aria-labelledby="headingAppSecUnit6" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>محتوى الوحدة السادسة...</p>
+                                    <a href="unit-6.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 7 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAppSecUnit7">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAppSecUnit7" aria-expanded="false" aria-controls="collapseAppSecUnit7">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-share-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 7: حماية واجهات البرمجة (API Security)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseAppSecUnit7" class="accordion-collapse collapse" aria-labelledby="headingAppSecUnit7" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>محتوى الوحدة السابعة...</p>
+                                    <a href="unit-7.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 8 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAppSecUnit8">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAppSecUnit8" aria-expanded="false" aria-controls="collapseAppSecUnit8">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-cloud"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 8: أمان التطبيقات السحابية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseAppSecUnit8" class="accordion-collapse collapse" aria-labelledby="headingAppSecUnit8" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>محتوى الوحدة الثامنة...</p>
+                                    <a href="unit-8.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 9 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAppSecUnit9">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAppSecUnit9" aria-expanded="false" aria-controls="collapseAppSecUnit9">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-project-diagram"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 9: الوحدة الختامية – مشروع تطبيقي</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseAppSecUnit9" class="accordion-collapse collapse" aria-labelledby="headingAppSecUnit9" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>محتوى الوحدة الختامية...</p>
+                                    <a href="unit-9.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-lg-9">
+                <div class="content-section mb-4 p-5">
+                    <h2 class="unit-section-title" id="general-description">1. الوصف العام</h2>
+                    <p>
+                        تركّز هذه الوحدة على أهمّ فئات الثغرات التي تصنّفها مبادرة OWASP كأخطر مشكلات تطبيقات الويب (OWASP Top 10). سنتعرف على كل فئة — الجذر التقني للمشكلة، أمثلة واقعية ومبسطة، كيفية اكتشافها باستخدام أدوات وفحصٍ آلي ويدويّ، وكيفية إصلاحها وتضمين الحماية في دورة تطوير البرمجيات. مصدر التعريفات والإرشادات العملية الأساسي: OWASP Top-10 وCheat-Sheets وWSTG.
+                    </p>
+                </div>
+
+                <!-- أهداف الوحدة -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="learning-objectives">2. أهداف الوحدة</h2>
+                    <p>بعد إتمام الوحدة يتوقع أن يكون المتدرّب قادرًا على:</p>
+                    <ul class="no-bullet objectives-list">
+                        <li><i class="fas fa-check-circle list-icon"></i> تفسير كل فئة من OWASP Top-10 (2021) وفهم السبب الجذري لكل ضعف.</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> استخدام أدوات لاكتشاف الثغرات (DAST/SAST/IAST) وبيئات مختبرية (Juice Shop, DVWA).</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> كتابة أمثلة تصحيحية (secure-by-design) في الكود لتفادي الثغرات الشائعة.</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> إعداد تقرير فني يشمل طريقة الاكتشاف، دليل الاستغلال (باختبار قانوني في مختبر)، وخطة التخفيف.</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> اقتراح تحسّينات في SDLC (سياسات، اختبارات، مراجعات) لمنع تكرارها.</li>
+                    </ul>
+                </div>
+
+                <!-- قائمة OWASP Top-10 -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="owasp-top10-detail">3. قائمة OWASP Top-10 (مختصرة، مع تفصيل لكل بند)</h2>
+                    <p class="alert-info-custom"><i class="fas fa-info-circle me-2"></i> <strong>ملاحظة:</strong> OWASP Top-10 (2021) هو مرجعيّة مخصّصة للوعي ولتوجيه المطورين ومدققي الأمان — راجع الصفحة الرسمية للمزيد من التفصيل: <a href="https://owasp.org/www-project-top-10/" target="_blank" style="color: var(--dark-text); text-decoration: none;">OWASP Top 10 Official Page</a>.</p>
+
+                    <h3 class="sub-topic-title" id="a01-broken-access-control">A01 — Broken Access Control (كسور التحكم في الوصول)</h3>
+                    <p>
+                        <strong>ما هي؟</strong> فشل في فرض سياسات التفويض (authorization) يسمح لمهاجم بالوصول أو تعديل موارد ليس لديه صلاحية لها. <a href="https://owasp.org/www-project-top-10/2021/A01_2021-Broken_Access_Control/" target="_blank" style="color: var(--secondary-color); text-decoration: none;">OWASP Link</a>
+                    </p>
+                    <p>
+                        <strong>كيف تحدث؟</strong> أمثلة: اعتراض معرّفات موارد (IDs) وتغييرها (IDOR)، إبقاء واجهات إدارية مكشوفة، عدم التحقق من العلاقة بين المستخدم والموارد.
+                    </p>
+                    <div class="example-box">
+                        <p><i class="fas fa-lightbulb me-2"></i> <strong>مثال بسيط (IDOR):</strong></p>
+                        <pre><code>
+GET /invoices/view?id=123
+                        </code></pre>
+                        <p>إذا سمح التطبيق لأي مستخدم بقراءة أي id دون فحص علاقته بالمستخدم، فمهاجم يغير id إلى 124 ويطلع على فواتير مستخدم آخر.</p>
+                    </div>
+                    <p>
+                        <strong>الاكتشاف:</strong> اختبار يدوي (تفكير هجومي)، فحص endpoints باستخدام Burp / ZAP، فحص قواعد الوصول في الكود ومراجعات Authorization. <a href="https://portswigger.net/web-security/access-control" target="_blank" style="color: var(--secondary-color); text-decoration: none;">PortSwigger</a> | <a href="https://owasp.org/www-project-web-security-testing-guide/v4/4_Access_Control_Testing" target="_blank" style="color: var(--secondary-color); text-decoration: none;">OWASP WSTG</a>
+                    </p>
+                    <p>
+                        <strong>التصحيح / الحماية:</strong>
+                    </p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-check-circle topic-icon"></i> لا تعتمد على القيم التي يقدّمها المستخدم لتقرير التفويض — تحقق دائمًا على الخادم (server-side) أن المستخدم مخوّل للمورد.</li>
+                        <li class="content-list-item"><i class="fas fa-check-circle topic-icon"></i> طبّق مبدأ Least Privilege واحتفظ بخريطة صلاحيات مركزية. استخدم Access-Control lists أو نماذج Roles/Claims مع تحقق دائم. راجع دليل Access Control Cheat Sheet: <a href="https://cheatsheetseries.owasp.org/cheatsheets/Access_Control_Cheat_Sheet.html" target="_blank" style="color: var(--secondary-color); text-decoration: none;">OWASP Cheat Sheet Series</a>.</li>
+                    </ul>
+
+                    <h3 class="sub-topic-title" id="a02-cryptographic-failures">A02 — Cryptographic Failures (سوء استخدام/فشل التشفير)</h3>
+                    <p>
+                        <strong>ما هي؟</strong> استخدام تشفير ضعيف، عدم تشفير بيانات حساسة، إدارة مفاتيح سيئة، أو استخدام تجزئات/خوارزميات مهترئة. <a href="https://owasp.org/www-project-top-10/2021/A02_2021-Cryptographic_Failures/" target="_blank" style="color: var(--secondary-color); text-decoration: none;">OWASP Link</a>
+                    </p>
+                    <p>
+                        <strong>أمثلة شائعة:</strong> تخزين كلمات المرور بنص واضح، استخدام MD5/SHA1 كـ password hashing، تخزين مفاتيح في الكود.
+                    </p>
+                    <p>
+                        <strong>المثال & الحل:</strong> استخدم تجزئة آمنة مع salt مثل bcrypt/Argon2 لحفظ كلمات المرور؛ لا تستخدم تشفير قابل للعكس لتخزين كلمات المرور. استخدم خدمات إدارة مفاتيح (KMS) بدلًا من متغيّرات بيئة مكشوفة. راجع Cryptographic Storage Cheat Sheet: <a href="https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html" target="_blank" style="color: var(--secondary-color); text-decoration: none;">OWASP Cheat Sheet Series</a>
+                    </p>
+                    <p>
+                        <strong>أداة التحقق:</strong> مراجعة الكود (SAST) للتأكد من خلو المشروع من استخدامات خوارزميات/نماذج ضعيفة.
+                    </p>
+
+                    <h3 class="sub-topic-title" id="a03-injection">A03 — Injection (حقن: SQL, OS, LDAP, NoSQL, …)</h3>
+                    <p>
+                        <strong>ما هي؟</strong> إدخال بيانات من المستخدم تُعامل كأوامر/استعلامات مما يسمح للمهاجم بحقن استعلامات أو أوامر ضارة. <a href="https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html" target="_blank" style="color: var(--secondary-color); text-decoration: none;">OWASP Cheat Sheet Series</a>
+                    </p>
+                    <div class="example-box">
+                        <p><i class="fas fa-lightbulb me-2"></i> <strong>مثال تعليقي لنمط SQL-i:</strong></p>
+                        <p>مدخل: <code style="direction: ltr;">username = ' OR '1'='1</code> يؤدي لتجاوز التحقق إذا استُخدمت عبارات سلسلة مباشرة.</p>
+                        <p>Payload بسيط: <code style="direction: ltr;">'; DROP TABLE users; --</code> (لأغراض تعليمية داخل بيئة مختبرية فقط).</p>
+                    </div>
+                    <p>
+                        <strong>الاكتشاف:</strong> أدوات مثل sqlmap وDAST (Burp / ZAP) تكشف نقاط الإدخال الضعيفة. <a href="https://sqlmap.org/" target="_blank" style="color: var(--secondary-color); text-decoration: none;">sqlmap.org</a> | <a href="https://portswigger.net/" target="_blank" style="color: var(--secondary-color); text-decoration: none;">PortSwigger</a>
+                    </p>
+                    <p>
+                        <strong>الحماية:</strong>
+                    </p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-check-circle topic-icon"></i> استخدم استعلامات مُهيأة (prepared statements) أو ORM التي تُعالِج المعاملات بأمان.</li>
+                        <li class="content-list-item"><i class="fas fa-check-circle topic-icon"></i> تحقق من صحة المدخلات (whitelisting) بدلًا من محاولات تنظيف (blacklisting). راجع SQL Injection Prevention Cheat Sheet: <a href="https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html" target="_blank" style="color: var(--secondary-color); text-decoration: none;">OWASP Cheat Sheet Series</a></li>
+                    </ul>
+                    <div class="example-box">
+                        <p><i class="fas fa-code me-2"></i> <strong>مثال كود (Python + SQLite — parameterized):</strong></p>
+                        <pre><code class="language-python">
+# خطأ: تجميع سلسلة
+# cursor.execute(f"SELECT * FROM users WHERE username='{u}' AND pass='{p}'")
+
+# صحيح: parameterized
+cursor.execute("SELECT * FROM users WHERE username=? AND pass=?", (u, p))
+                        </code></pre>
+                    </div>
+
+                    <h3 class="sub-topic-title" id="a04-insecure-design">A04 — Insecure Design (تصميم غير آمن)</h3>
+                    <p>
+                        <strong>ما هي؟</strong> ضعف في مستوى التصميم المعماري والتخطيط الأمني (absence of secure design patterns, threat-modeling). <a href="https://owasp.org/www-project-top-10/2021/A04_2021-Insecure_Design/" target="_blank" style="color: var(--secondary-color); text-decoration: none;">OWASP Link</a>
+                    </p>
+                    <p>
+                        <strong>الأسباب:</strong> غياب نمذجة التهديد (Threat Modeling)، متطلبات أمنية غير واضحة، اعتماد كبير على مكونات خارجية دون تقييم.
+                    </p>
+                    <p>
+                        <strong>المعالجة:</strong> إدراج Threat Modeling في المراحل المبكرة، تبنّي أنماط Secure Design (defense-in-depth، least-privilege) وASVS/architecture reviews. راجع WSTG وممارسات التصميم الآمن: <a href="https://owasp.org/www-project-web-security-testing-guide/v4/4_Design_and_Architecture_Testing" target="_blank" style="color: var(--secondary-color); text-decoration: none;">OWASP WSTG - Design</a>.
+                    </p>
+
+                    <h3 class="sub-topic-title" id="a05-security-misconfiguration">A05 — Security Misconfiguration (تهيئة/إعداد خاطئ)</h3>
+                    <p>
+                        <strong>ما هي؟</strong> إعدادات غير مُحكَمَة عبر الخادم/التطبيق/قاعدة البيانات/السحابة (المخلفات الافتراضية، أخطاء في الCORS، رؤوس الأمان مفقودة). <a href="https://owasp.org/www-project-top-10/2021/A05_2021-Security_Misconfiguration/" target="_blank" style="color: var(--secondary-color); text-decoration: none;">OWASP Link</a>
+                    </p>
+                    <p>
+                        <strong>أمثلة:</strong> صفحات الخطأ التي تُظهر Stack Traces، لوحات إدارة مكشوفة، إعدادات TLS غير صحيحة، سياسات CORS ممتدة.
+                    </p>
+                    <p>
+                        <strong>الحماية:</strong> تشديد الإعدادات (Harden images, remove default accounts), ضبط رؤوس الأمان (HSTS, X-Content-Type-Options, X-Frame-Options, CSP)، واختبارات المزامنة مع CI/CD. راجع HTTP Headers Cheat Sheet: <a href="https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html" target="_blank" style="color: var(--secondary-color); text-decoration: none;">OWASP Cheat Sheet Series</a>.
+                    </p>
+
+                    <h3 class="sub-topic-title" id="a06-vulnerable-components">A06 — Vulnerable and Outdated Components</h3>
+                    <p>
+                        <strong>ما هي؟</strong> استخدام مكتبات أو خدمات قديمة بها ثغرات (مثل مكتبة JS قديمة أو صورة حاوية غير محدثة). <a href="https://owasp.org/www-project-top-10/2021/A06_2021-Vulnerable_and_Outdated_Components/" target="_blank" style="color: var(--secondary-color); text-decoration: none;">OWASP Link</a>
+                    </p>
+                    <p>
+                        <strong>مخاطر:</strong> مهاجمون يستغلون ثغرات في المكتبات للوصول أو تنفيذ تعليمات عن بُعد.
+                    </p>
+                    <p>
+                        <strong>الإجراءات:</strong> سياسة تحديث دوري، استخدام SCA (Software Composition Analysis) مثل <a href="https://owasp.org/www-project-dependency-check/" target="_blank" style="color: var(--secondary-color); text-decoration: none;">OWASP Dependency-Check</a> أو أدوات سحابية لفحص الـ dependencies.
+                    </p>
+
+                    <h3 class="sub-topic-title" id="a07-auth-failures">A07 — Identification & Authentication Failures (فشل التعرّف والمصادقة)</h3>
+                    <p>
+                        <strong>ما هي؟</strong> ضعف في آليات تسجيل الدخول، إدارة الجلسات (sessions) أو تنفيذ سيء للمصادقة (مثل كلمات مرور ضعيفة، عدم وجود حماية ضد credential stuffing). <a href="https://owasp.org/www-project-top-10/2021/A07_2021-Identification_and_Authentication_Failures/" target="_blank" style="color: var(--secondary-color); text-decoration: none;">OWASP Link</a>
+                    </p>
+                    <p>
+                        <strong>الحماية:</strong> تطبيق مصادقة متعددة العوامل (MFA)، حماية ضد credential-stuffing (rate-limiting, IP-reputation)، استخدام جلسات آمنة (Secure, HttpOnly, SameSite cookies) ومراجعة سياسات "reset password". راجع Authentication Cheat Sheet وCredential Stuffing Prevention: <a href="https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html" target="_blank" style="color: var(--secondary-color); text-decoration: none;">OWASP Authentication Cheat Sheet</a> | <a href="https://cheatsheetseries.owasp.org/cheatsheets/Credential_Stuffing_Prevention_Cheat_Sheet.html" target="_blank" style="color: var(--secondary-color); text-decoration: none;">OWASP Credential Stuffing Prevention</a>.
+                    </p>
+
+                    <h3 class="sub-topic-title" id="a08-data-integrity">A08 — Software and Data Integrity Failures</h3>
+                    <p>
+                        <strong>ما هي؟</strong> فشل ضمان سلامة البرامج/المكونات أثناء التحديث أو تحميل المكونات من مصادر لا تُظهر سلامتها (مثال: تحميل حزم npm بدون تحقق من التوقيع). <a href="https://owasp.org/www-project-top-10/2021/A08_2021-Software_and_Data_Integrity_Failures/" target="_blank" style="color: var(--secondary-color); text-decoration: none;">OWASP Link</a>
+                    </p>
+                    <p>
+                        <strong>التعويض:</strong> التحقق من التواقيع الرقمية، استخدام SLSA, التحقق من checksums والتوقيع عند تحديث الحزم، استخدام سياسة عدم السماح لتنفيذ ملفات غير موثوقة.
+                    </p>
+
+                    <h3 class="sub-topic-title" id="a09-logging-monitoring">A09 — Security Logging & Monitoring Failures</h3>
+                    <p>
+                        <strong>ما هي؟</strong> غياب سجلات كافية أو مراقبة تؤدي لتأخر اكتشاف الحوادث أو عدم وجود بيانات لعبور التحقيق (forensics). <a href="https://owasp.org/www-project-top-10/2021/A09_2021-Security_Logging_and_Monitoring_Failures/" target="_blank" style="color: var(--secondary-color); text-decoration: none;">OWASP Link</a>
+                    </p>
+                    <p>
+                        <strong>ما يجب تطبيقه:</strong> سجلات مركزية (SIEM)، رصد محاولات الاستغلال والـAlerts، retention مناسب للسجلات، واختبارات كشف التسلل. راجع WSTG للاختبارات المنهجية: <a href="https://owasp.org/www-project-web-security-testing-guide/v4/4_Configuration_and_Deployment_Management_Testing#logging-and-monitoring" target="_blank" style="color: var(--secondary-color); text-decoration: none;">OWASP WSTG - Logging and Monitoring</a>.
+                    </p>
+
+                    <h3 class="sub-topic-title" id="a10-ssrf">A10 — Server-Side Request Forgery (SSRF)</h3>
+                    <p>
+                        <strong>ما هي؟</strong> التطبيق يقوم بطلبات HTTP مُنشأة بواسطة مدخلات المستخدم إلى موارد داخلية/خارجية دون تحقق، ما يتيح الوصول إلى شبكات داخلية أو خدمات حساسة. <a href="https://owasp.org/www-project-top-10/2021/A10_2021-Server-Side_Request_Forgery_%28SSRF%29/" target="_blank" style="color: var(--secondary-color); text-decoration: none;">OWASP Link</a>
+                    </p>
+                    <div class="example-box">
+                        <p><i class="fas fa-lightbulb me-2"></i> <strong>مثال:</strong> واجهة تحميل عنوان URL تعرض محتوى خارجي، مهاجم يقدم <code style="direction: ltr;">http://169.254.169.254/latest/meta-data/</code> للوصول إلى بيانات instance metadata في بيئات السحابة.</p>
+                    </div>
+                    <p>
+                        <strong>الحماية:</strong> تقييد الوجهات المسموح بها (allowlist), التحقق من URLs، منع الشبكات الداخلية في الطلبات الصادرة، واستخدام WAF/Proxy لحماية هذا النوع من الطلبات.
+                    </p>
+                </div>
+
+                <!-- أدوات الاكتشاف والاختبار المقترحة (عمليًّا) -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="tools-testing">4. أدوات الاكتشاف والاختبار المقترحة (عمليًّا)</h2>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-hammer topic-icon"></i> <strong>Burp Suite (Community / Pro):</strong> اعتراض/تغيير الطلبات، فحص أوتوماتيكي وتدقيق يدوي. <a href="https://portswigger.net/burp" target="_blank" style="color: var(--secondary-color); text-decoration: none;">PortSwigger</a></li>
+                        <li class="content-list-item"><i class="fas fa-hammer topic-icon"></i> <strong>OWASP ZAP:</strong> بديل مفتوح المصدر للفحص الديناميكي. <a href="https://www.zaproxy.org/" target="_blank" style="color: var(--secondary-color); text-decoration: none;">OWASP ZAP</a></li>
+                        <li class="content-list-item"><i class="fas fa-hammer topic-icon"></i> <strong>sqlmap:</strong> لأتمتة كشف واستغلال SQL-i (في بيئة مختبرية مرخّصة فقط). <a href="http://sqlmap.org/" target="_blank" style="color: var(--secondary-color); text-decoration: none;">sqlmap.org</a></li>
+                        <li class="content-list-item"><i class="fas fa-hammer topic-icon"></i> <strong>SAST & SCA:</strong> SonarQube, <a href="https://owasp.org/www-project-dependency-check/" target="_blank" style="color: var(--secondary-color); text-decoration: none;">Dependency-Check</a>، Checkmarx (لمراجعة الكود والمكونات).</li>
+                        <li class="content-list-item"><i class="fas fa-vial topic-icon"></i> <strong>بيئات مختبرية آمنة:</strong> <a href="https://owasp.org/www-project-juice-shop/" target="_blank" style="color: var(--secondary-color); text-decoration: none;">OWASP Juice Shop</a>, <a href="https://github.com/digininja/DVWA" target="_blank" style="color: var(--secondary-color); text-decoration: none;">DVWA</a>, <a href="https://owasp.org/www-project-webgoat/" target="_blank" style="color: var(--secondary-color); text-decoration: none;">WebGoat</a> — لتمارين محاكاة الاستغلال ثم الإصلاح.</li>
+                    </ul>
+                </div>
+
+                <!-- أمثلة كود وتصحيحات نموذجية -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="code-examples">5. أمثلة كود وتصحيحات نموذجية (مختصرة)</h2>
+
+                    <h4 class="inner-sub-topic">5.1 منع SQL Injection (PHP PDO — مثال صالح)</h4>
+                    <pre><code class="language-php">
+// ضع مدخلات المستخدم في prepared statement
+$stmt = $pdo->prepare('SELECT * FROM users WHERE email = :email');
+$stmt->execute(['email' => $user_input_email]);
+$user = $stmt->fetch();
+                    </code></pre>
+
+                    <h4 class="inner-sub-topic">5.2 منع XSS (إخراج HTML مُرمّز — PHP)</h4>
+                    <pre><code class="language-php">
+// عند عرض قيمة في HTML
+echo htmlspecialchars($user_input, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                    </code></pre>
+                    <p>
+                        (بالإضافة إلى استخدام <a href="https://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html" target="_blank" style="color: var(--secondary-color); text-decoration: none;">Content Security Policy</a> على مستوى الرأسّات للحد من تحميل السكربتات غير الموثوقة). راجع XSS Prevention Cheat Sheet: <a href="https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html" target="_blank" style="color: var(--secondary-color); text-decoration: none;">OWASP XSS Prevention Cheat Sheet</a>.
+                    </p>
+
+                    <h4 class="inner-sub-topic">5.3 التحقق من التفويض (مثال خادمي - Python)</h4>
+                    <pre><code class="language-python">
+# تحقق أن 'resource.owner_id' == current_user.id قبل الارجاع/التعديل
+if resource.owner_id != current_user.id:
+    abort(403) # Forbidden
+                    </code></pre>
+                </div>
+
+                <!-- تمارين ومشاريع مختبرية مقترحة -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="labs-projects">6. تمارين ومشاريع مختبرية مقترحة</h2>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-flask topic-icon"></i> <strong>تمرين 1 — تقييم OWASP Juice Shop:</strong> نفّذ دورة كاملة لاكتشاف 10 تحديات متعلّقة بالـTop10، وثّق خطوات الاكتشاف وكيفيّة التصحيح. (<a href="https://owasp.org/www-project-juice-shop/" target="_blank" style="color: var(--secondary-color); text-decoration: none;">Juice Shop</a> يُغطّي معظم الثغرات).</li>
+                        <li class="content-list-item"><i class="fas fa-flask topic-icon"></i> <strong>تمرين 2 — DVWA / WebGoat:</strong> افحص صفحة تحتوي SQL-i وXSS على مستويات صعوبة مختلفة، ثم صحّح الكود. <a href="https://github.com/digininja/DVWA" target="_blank" style="color: var(--secondary-color); text-decoration: none;">DVWA GitHub</a> | <a href="https://owasp.org/www-project-webgoat/" target="_blank" style="color: var(--secondary-color); text-decoration: none;">WebGoat</a></li>
+                        <li class="content-list-item"><i class="fas fa-file-invoice topic-icon"></i> <strong>تمرين 3 — تقرير إصلاح (Remediation Report):</strong> اختر ثلاث ثغرات واقعية، حرّر تقريرًا يصف: الاكتشاف، درجة الخطورة (مثلاً CVSS)، خطوات الإصلاح، تقدير الجهد.</li>
+                    </ul>
+                </div>
+
+                <!-- موارد ومراجع مفيدة -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="resources">7. موارد ومراجع مفيدة (مباشرة)</h2>
+                    <h5>📚 مقالات ودلائل</h5>
+                    <ul class="no-bullet">
+                        <li><i class="fas fa-file-alt list-icon"></i> <a href="https://owasp.org/www-project-top-10/" target="_blank" style="color: var(--dark-text); text-decoration: none;">OWASP Top 10 (الصفحة الرسمية)</a></li>
+                        <li><i class="fas fa-file-alt list-icon"></i> <a href="https://owasp.org/www-project-web-security-testing-guide/" target="_blank" style="color: var(--dark-text); text-decoration: none;">OWASP Web Security Testing Guide (WSTG)</a> — إطار عمل لفحص أمان الويب.</li>
+                        <li><i class="fas fa-file-alt list-icon"></i> <a href="https://cheatsheetseries.owasp.org/" target="_blank" style="color: var(--dark-text); text-decoration: none;">OWASP Cheat Sheet Series</a> (رابط عام وفهرس الربط مع الـTop-10).</li>
+                        <li><i class="fas fa-file-alt list-icon"></i> <a href="https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html" target="_blank" style="color: var(--dark-text); text-decoration: none;">SQL Injection Prevention Cheat Sheet</a>.</li>
+                        <li><i class="fas fa-file-alt list-icon"></i> <a href="https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html" target="_blank" style="color: var(--dark-text); text-decoration: none;">XSS Prevention Cheat Sheet</a>.</li>
+                    </ul>
+                    <h5>🛠 أدوات عملية</h5>
+                    <ul class="no-bullet">
+                        <li><i class="fas fa-tools list-icon"></i> <a href="https://owasp.org/www-project-juice-shop/" target="_blank" style="color: var(--dark-text); text-decoration: none;">OWASP Juice Shop</a> (بيئة مختبرية تضُمّ تحديات).</li>
+                        <li><i class="fas fa-tools list-icon"></i> <a href="https://portswigger.net/burp" target="_blank" style="color: var(--dark-text); text-decoration: none;">Burp Suite (PortSwigger)</a> و<a href="http://sqlmap.org/" target="_blank" style="color: var(--dark-text); text-decoration: none;">sqlmap</a> للاختبارات العملية.</li>
+                    </ul>
+                </div>
+
+                <!-- مقترح تقييم ومخرجات الوحدة -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="assessment">8. مقترح تقييم ومخرجات الوحدة (خريطة التقييم)</h2>
+                    <ul class="no-bullet outcomes-list">
+                        <li><i class="fas fa-star list-icon"></i> <strong>مهمة عملية (60%):</strong> تنفيذ تمرين على Juice Shop أو DVWA، تقرير تقني (اكتشاف + PoC مختصر داخل مختبر قانوني + remediation).</li>
+                        <li><i class="fas fa-star list-icon"></i> <strong>واجب نظري (25%):</strong> سؤال/إجابة عن كل 10 فئات (تعريف + طرق الحماية).</li>
+                        <li><i class="fas fa-star list-icon"></i> <strong>مشاركة صفية وشفهي (10%):</strong> مناقشة حالة واقعية ودروس مستفادة.</li>
+                        <li><i class="fas fa-star list-icon"></i> <strong>سلوك الأمان الأخلاقي (5%):</strong> الالتزام بسياسة الأخلاقيات عند إجراء اختبارات على بيئات غير مرخصة.</li>
+                    </ul>
+                </div>
+
+                <!-- ملاحظات أمنية وأخلاقية -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="ethical-notes">9. ملاحظات أمنية وأخلاقية (هامة — اقرأها قبل أي تمرين)</h2>
+                    <ul class="no-bullet">
+                        <li class="content-list-item"><i class="fas fa-exclamation-triangle topic-icon" style="color: var(--accent-color);"></i> جميع تقنيات الاكتشاف والاستغلال التي تُمارَس في المقرر يجب أن تُطبق فقط داخل بيئات مرخّصة ومحمية (مختبراتك المحلية، Juice Shop، DVWA، أو بيئات خاصة مُعدّة للتجربة). لا تستخدمها ضد مواقع أو أنظمة في العالم الحقيقي دون تفويض كتابي وصريح.</li>
+                        <li class="content-list-item"><i class="fas fa-exclamation-triangle topic-icon" style="color: var(--accent-color);"></i> توثّق دائمًا النتائج واطّلع على سياسات المؤسسة قبل أي اختبار.</li>
+                    </ul>
+                </div>
+
+                <!-- خاتمة قصيرة -->
+                <div class="course-card">
+                    <h2 class="unit-section-title">خاتمة الوحدة</h2>
+                    <p>
+                        الوحدة الرابعة هي قلب الجانب العملي في أمن التطبيقات: فهم هذه الفئات (OWASP Top-10) وتمارين التطبيقية عليها تمنح المتدرب قدرة فعلية على اكتشاف المخاطر وإصلاحها ورفع مستوى الأمان داخل دورة حياة تطوير البرمجيات. ابدأ بالمفاهيم ثم انتقل للتمارين العملية في Juice Shop/DVWA مع أدوات مثل Burp وZAP، ودوّن دائمًا خطواتك وطرق إصلاحك لكتابة تقرير احترافي.
+                    </p>
+                </div>
+                
+                <!-- أزرار التنقل -->
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="unit-3.html" class="btn unit-nav-btn"><i class="fas fa-arrow-right"></i> الوحدة السابقة</a>
+                    <a href="../../../materials/unit-4-owasp.pdf" target="_blank" class="btn unit-nav-btn"><i class="fas fa-file-pdf"></i> عرض / تحميل مادة الوحدة</a>
+                    <a href="unit-5.html" class="btn unit-nav-btn text-end">الوحدة التالية <i class="fas fa-arrow-left"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- الفوتر -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>مسار الأمن السيبراني</h5>
+                    <p>منصة تعليمية متخصصة في تقديم محتوى أكاديمي وعملي في مجال الأمن السيبراني.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>روابط سريعة</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="../../../index.html" class="text-white">الرئيسية</a></li>
+                        <li><a href="../../index.html" class="text-white">جميع المقررات</a></li>
+                        <li><a href="#" class="text-white">الدعم الفني</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>تواصل معنا</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> info@cyberpath.com</li>
+                        <li><i class="fas fa-phone me-2"></i> 0502161465</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2025 مسار الأمن السيبراني. جميع الحقوق محفوظة.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-linkedin fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-youtube fa-lg"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-github fa-lg"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- تضمين Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
 
