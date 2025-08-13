@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الوحدة 12: SQL – لغة الاستعلامات الهيكلية | تصميم قواعد البيانات</title>
+    <!-- تضمين Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- تضمين Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- تضمين خط Tajawal من Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* تعريف المتغيرات لألوان موحدة */
+        :root {
+            --primary-color: #2c3e50; /* لون أزرق داكن/رمادي */
+            --secondary-color: #4CAF50; /* لون أخضر للمقرر الجديد */
+            --accent-color: #e74c3c; /* لون أحمر/برتقالي لـ "تحذير" أو "خطر" */
+            --light-bg: #f8f9fa; /* خلفية فاتحة جدًا للجسم */
+            --dark-text: #2c3e50; /* لون نص داكن */
+            --light-text: #7f8c8d; /* لون نص فاتح (رمادي) */
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--light-bg); /* خلفية فاتحة */
+            color: var(--dark-text); /* لون نص داكن */
+            line-height: 1.8;
+            direction: rtl; /* تأكيد الاتجاه من اليمين لليسار */
+            text-align: right; /* محاذاة النص لليمين افتراضيا */
+        }
+
+        .navbar {
+            background-color: var(--primary-color);
+        }
+        .navbar-brand {
+            color: white !important; /* لون أبيض للشعار في شريط التنقل */
+        }
+        .btn-outline-light {
+            border-color: rgba(255, 255, 255, 0.7) !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .btn-outline-light:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .course-header {
+            background: linear-gradient(135deg, #4CAF50, #8BC34A); /* تدرج أخضر لمقرر قواعد البيانات */
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 1rem 1rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .course-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-right: 4px solid var(--secondary-color); /* شريط جانبي بلون ثانوي أخضر */
+            padding: 2rem; /* تباعد داخلي للبطاقات */
+        }
+
+        .course-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .course-title-section {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .module-icon {
+            width: 50px;
+            height: 50px;
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 1rem;
+            flex-shrink: 0;
+            font-size: 1.25rem;
+        }
+        .sidebar .module-icon { /* تنسيق محدد لأيقونات الشريط الجانبي */
+            width: 40px; /* أصغر قليلاً للشريط الجانبي */
+            height: 40px;
+            font-size: 1rem;
+            margin-left: 10px; /* ضبط الهامش للشريط الجانبي */
+        }
+
+        .progress-container { /* تنسيق شريط التقدم في الشريط الجانبي */
+            height: 25px;
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-bar { /* تنسيق شريط التقدم في الشريط الجانبي */
+            background-color: var(--secondary-color);
+        }
+
+        .accordion-button:not(.collapsed) {
+            background-color: #e6ffe6; /* خلفية زر الأكورديون النشط (أخضر فاتح) */
+            color: var(--primary-color); /* لون نص زر الأكورديون النشط */
+            box-shadow: none;
+        }
+        .accordion-button:not(.collapsed) .module-icon { /* أيقونة زر الأكورديون النشط */
+            background-color: var(--primary-color); /* خلفية داكنة للأيقونة عندما تكون نشطة */
+        }
+        .accordion-button:not(.collapsed)::after {
+            filter: brightness(0) invert(1); /* عكس لون السهم للخلفية الداكنة */
+        }
+
+        .accordion-button {
+            border-radius: 0.5rem !important; /* للحفاظ على حدود مستديرة للأزرار */
+        }
+        .accordion-item {
+            margin-bottom: 0.5rem; /* مسافة بين عناصر الأكورديون */
+            border-radius: 0.75rem;
+            border: 1px solid rgba(0, 0, 0, 0.125); /* حدود للأكورديون */
+            overflow: hidden; /* لمنع تجاوز المحتوى للحواف المستديرة */
+        }
+        .accordion-body ul {
+            padding-right: 0; /* إزالة التباعد الافتراضي لقائمة الروابط الداخلية */
+        }
+        .accordion-body ul li a {
+            padding: 0.25rem 0.5rem;
+            display: block;
+            border-radius: 0.25rem;
+            color: var(--dark-text);
+        }
+        .accordion-body ul li a:hover,
+        .accordion-body ul li a.active-link { /* رابط نشط في الشريط الجانبي */
+            background-color: #e6ffe6;
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+        .accordion-body .btn-primary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .accordion-body .btn-primary:hover {
+            background-color: #388E3C; /* لون أخضر أغمق عند التحويم */
+            border-color: #388E3C;
+        }
+
+        .sidebar { /* تنسيق حاوية الشريط الجانبي */
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            color: var(--dark-text); /* التأكد من قابلية قراءة النص */
+        }
+        .sidebar h4 {
+            color: var(--primary-color); /* لون عنوان الشريط الجانبي */
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* تنسيقات الفوتر */
+        footer {
+            background-color: var(--primary-color) !important;
+            color: white;
+            padding: 2.5rem 0;
+        }
+        footer h5 {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        footer .list-unstyled li a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        footer .list-unstyled li a:hover {
+            color: var(--secondary-color);
+        }
+        footer .fab, footer .fas { /* تطبيق اللون الأبيض على أيقونات الفوتر */
+            color: white;
+            transition: color 0.2s;
+        }
+        footer .fab:hover, footer .fas:hover {
+            color: var(--secondary-color);
+        }
+
+        /* تنسيقات محتوى الوحدة المحددة */
+        h2.unit-section-title { /* للعناوين العامة، أهداف التعلم، إلخ. */
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+        }
+        h3.sub-topic-title { /* لعناوين المواضيع الفرعية مثل "3.1 تعريف أمن التطبيقات" */
+            color: var(--primary-color);
+            border-bottom: 1px dashed var(--light-text);
+            padding-bottom: 0.3rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.75rem;
+        }
+        h4.inner-sub-topic { /* للعناوين الفرعية داخل عناصر OWASP */
+            color: var(--dark-text);
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 1.25rem;
+        }
+        ul {
+            padding-right: 25px; /* ضبط تباعد القائمة الافتراضي */
+        }
+        ul.no-bullet {
+            list-style: none;
+            padding-right: 0;
+        }
+        ul li {
+            margin-bottom: 0.5rem;
+        }
+        .list-icon {
+            margin-left: 10px;
+            color: var(--secondary-color); /* لون الأيقونة الافتراضي */
+        }
+        /* ألوان أيقونات محددة بناءً على نوع المحتوى من أجل الوضوح */
+        .objectives-list .list-icon { color: #28a745; } /* أخضر لعلامات الصح */
+        .methods-list .list-icon { color: #17a2b8; } /* أزرق مخضر/سماوي للطرق */
+        .outcomes-list .list-icon { color: #ffc107; } /* أصفر/برتقالي للنجوم */
+        .topic-icon { /* الأيقونات داخل المواضيع الرئيسية مثل الأدوات/المفاهيم */
+            color: var(--secondary-color);
+            margin-left: 10px;
+        }
+        .alert-info-custom {
+            background-color: #e9ecef; /* خلفية رمادية فاتحة/زرقاء */
+            border-left: 5px solid var(--secondary-color);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        .alert-info-custom i {
+            color: var(--secondary-color);
+            margin-right: 0.5rem;
+        }
+
+        /* تنسيق مربعات الأمثلة/الملاحظات */
+        .example-box, .note-box {
+            background-color: #e9ecef; /* خلفية رمادية فاتحة */
+            border-right: 5px solid var(--secondary-color); /* حدود زرقاء */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        .example-box i, .note-box i {
+            color: var(--secondary-color); /* لون أيقونة أزرق */
+            margin-left: 0.5rem;
+        }
+        .example-box ul, .note-box ul {
+            list-style: none; /* إزالة النقاط الافتراضية */
+            padding-right: 0;
+        }
+        .example-box ul li::before, .note-box ul li::before {
+            content: "\f058"; /* أيقونة Font Awesome check-circle */
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            color: var(--secondary-color);
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+            margin-right: 0.5em;
+        }
+        /* تنسيق الجداول */
+        table {
+            width: 100%;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+            border-collapse: collapse;
+        }
+        table th,
+        table td {
+            padding: 0.75rem;
+            vertical-align: top;
+            border: 1px solid #dee2e6;
+            text-align: right; /* محاذاة النص لليمين لـ RTL */
+        }
+        table thead th {
+            vertical-align: bottom;
+            border-bottom: 2px solid #dee2e6;
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        table tbody + tbody {
+            border-top: 2px solid #dee2e6;
+        }
+
+        /* أزرار التنقل بين الوحدات */
+        .unit-nav-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: bold;
+            transition: background-color 0.2s, transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+        }
+        .unit-nav-btn:hover {
+            background-color: #388E3C; /* لون أخضر أغمق عند التحويم */
+            color: white;
+            transform: translateY(-2px);
+        }
+        .unit-nav-btn .fa-arrow-left { /* سهم يسار لزر "الوحدة التالية" */
+            margin-right: 0;
+            margin-left: 8px;
+        }
+        .unit-nav-btn .fa-arrow-right { /* سهم يمين لزر "العودة للفهرس" أو "الوحدة السابقة" */
+            margin-right: 8px;
+            margin-left: 0;
+        }
+
+        /* تنسيق كتل الكود */
+        pre {
+            background-color: #e9ecef;
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto; /* تمكين التمرير الأفقي للأسطر الطويلة */
+            direction: ltr; /* التأكد من أن اتجاه الكود هو LTR */
+            text-align: left; /* التأكد من أن محاذاة النص هي لليسار للكود */
+        }
+        code {
+            font-family: 'Consolas', 'Monaco', 'Lucida Console', monospace;
+            font-size: 0.9rem;
+            color: var(--dark-text);
+        }
+        pre code {
+            display: block; /* التأكد من أن كتلة الكود تأخذ عرضًا كاملاً */
+        }
+
+
+        /* تعديلات الاستجابة */
+        @media (max-width: 991px) { /* نقطة توقف تتوافق مع col-lg- */
+            .sidebar {
+                margin-top: 1rem;
+                margin-bottom: 1rem; /* إضافة هامش لتحسين التباعد على الشاشات الأصغر */
+            }
+            .course-header {
+                padding: 2rem 0;
+            }
+            .course-card {
+                padding: 1.5rem;
+            }
+            h1.display-4 {
+                font-size: 2.2rem;
+            }
+            h2.unit-section-title {
+                font-size: 1.75rem;
+            }
+            h3.sub-topic-title {
+                font-size: 1.5rem;
+            }
+            .unit-nav-btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+            .d-flex.justify-content-between.mt-4 {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <!-- شريط التنقل العلوي -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--primary-color);">
+        <div class="container">
+            <a class="navbar-brand" href="../../../index.html">مسار الأمن السيبراني</a>
+            <a href="../index.html" class="btn btn-outline-light">العودة إلى المقررات</a>
+        </div>
+    </nav>
+
+    <!-- رأس الوحدة -->
+    <header class="course-header text-center">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-3">الوحدة 12: SQL – لغة الاستعلامات الهيكلية</h1>
+            <p class="lead">تهدف هذه الوحدة إلى تمكين الطلاب من فهم لغة SQL، وكيفية إنشاء قواعد البيانات والجداول، إضافة القيود، وإنشاء أنواع بيانات خاصة بالمستخدم.</p>
+        </div>
+    </header>
+
+    <div class="container-fluid py-5">
+        <div class="row">
+            <!-- الشريط الجانبي لتنقل الوحدات -->
+            <div class="col-lg-3">
+                <div class="sidebar p-4">
+                    <h4 class="mb-3">
+                        <i class="fas fa-stream me-2"></i>
+                        وحدات المقرر
+                    </h4>
+                    <div class="progress progress-container mb-4">
+                        <div class="progress-bar" role="progressbar" style="width: 85.71%;" aria-valuenow="85.71" aria-valuemin="0" aria-valuemax="100">86% مكتمل</div>
+                    </div>
+                    <div class="accordion" id="unitsAccordion">
+                        <!-- الوحدة التمهيدية -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingIntro">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseIntro" aria-expanded="false" aria-controls="collapseIntro">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-book-open"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">تمهيد – مقدمة إلى تصميم قواعد البيانات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseIntro" class="accordion-collapse collapse" aria-labelledby="headingIntro" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>مقدمة شاملة عن مجال قواعد البيانات، أهميتها، ومكوناتها الأساسية.</p>
+                                    <a href="index.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 1 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit1">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit1" aria-expanded="false" aria-controls="collapseUnit1">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-history"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 1: ما قبل ظهور أنظمة قواعد البيانات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit1" class="accordion-collapse collapse" aria-labelledby="headingUnit1" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>استعراض تاريخي للنظام القائم على الملفات وعيوبه، تمهيدًا لظهور قواعد البيانات.</p>
+                                    <a href="unit-1.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 2 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit2">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit2" aria-expanded="false" aria-controls="collapseUnit2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-lightbulb"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 2: مفاهيم قواعد البيانات الأساسية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit2" class="accordion-collapse collapse" aria-labelledby="headingUnit2" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>تعريف قاعدة البيانات، خصائصها، أنواع مستخدميها، وأنظمة إدارة قواعد البيانات (DBMS).</p>
+                                    <a href="unit-2.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 3 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit3">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit3" aria-expanded="false" aria-controls="collapseUnit3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-cogs"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 3: خصائص قواعد البيانات والمزايا التي تقدمها</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit3" class="accordion-collapse collapse" aria-labelledby="headingUnit3" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>استكشاف الخصائص المتقدمة لقواعد البيانات وكيف تدعم واجهات عرض متعددة للبيانات.</p>
+                                    <a href="unit-3.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 4 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit4">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit4" aria-expanded="false" aria-controls="collapseUnit4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-sitemap"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 4: نمذجة البيانات وأنواعها</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit4" class="accordion-collapse collapse" aria-labelledby="headingUnit4" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>تعريف بنماذج البيانات، مستويات التجريد، وتخطيطات قواعد البيانات (Schemas).</p>
+                                    <a href="unit-4.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 5 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit5">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit5" aria-expanded="false" aria-controls="collapseUnit5">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-table"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 5: نموذج البيانات العلائقية (RDM)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit5" class="accordion-collapse collapse" aria-labelledby="headingUnit5" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>المفاهيم الأساسية للنموذج العلائقي، خصائص الجداول، وتمثيل البيانات.</p>
+                                    <a href="unit-5.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 6 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit6">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit6" aria-expanded="false" aria-controls="collapseUnit6">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-project-diagram"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 6: نموذج الكيان والعلاقة (ER)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit6" class="accordion-collapse collapse" aria-labelledby="headingUnit6" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>فهم الكيانات، العلاقات، السمات، والمفاتيح في نمذجة ER.</p>
+                                    <a href="unit-6.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 7 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit7">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit7" aria-expanded="false" aria-controls="collapseUnit7">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-gavel"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 7: قواعد السلامة وقيودها لضمان سلامة البيانات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit7" class="accordion-collapse collapse" aria-labelledby="headingUnit7" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>تعلم عن سلامة النطاق، قيود المؤسسة، وقواعد العمل لضمان جودة البيانات.</p>
+                                    <a href="unit-7.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 8 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit8">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit8" aria-expanded="false" aria-controls="collapseUnit8">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-pencil-ruler"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 8: نمذجة الكيان العلاقي عند تصميم قواعد البيانات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit8" class="accordion-collapse collapse" aria-labelledby="headingUnit8" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>التصميم العلاقي وتجنب الحالات الشاذة مثل حالات الإدخال والتحديث والحذف الشاذة.</p>
+                                    <a href="unit-8.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 9 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit9">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit9" aria-expanded="false" aria-controls="collapseUnit9">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-link"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 9: الاعتماديات الوظيفية (Functional Dependencies)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit9" class="accordion-collapse collapse" aria-labelledby="headingUnit9" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>قواعد الاعتماديات الوظيفية وقواعد الاستدلال ومخططات الاعتمادية.</p>
+                                    <a href="unit-9.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 10 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit10">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit10" aria-expanded="false" aria-controls="collapseUnit10">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-compress-arrows-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 10: فهم عملية التوحيد (Normalization)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit10" class="accordion-collapse collapse" aria-labelledby="headingUnit10" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>مفهوم التوحيد، النماذج الموحدة (1NF, 2NF, 3NF, BCNF)، وتأثيرها على تصميم قواعد البيانات.</p>
+                                    <a href="unit-10.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 11 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit11">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit11" aria-expanded="false" aria-controls="collapseUnit11">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-code-branch"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 11: عملية تطوير قواعد البيانات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit11" class="accordion-collapse collapse" aria-labelledby="headingUnit11" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>دورة حياة تطوير قواعد البيانات (Database Life Cycle)، وخطوات جمع المتطلبات والتصميم والتطبيق.</p>
+                                    <a href="unit-11.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 12 (الوحدة النشطة) -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit12">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit12" aria-expanded="true" aria-controls="collapseUnit12">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-file-code"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 12: لغة الاستعلامات الهيكلية (SQL)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit12" class="accordion-collapse collapse show" aria-labelledby="headingUnit12" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="#unit-objective" class="text-decoration-none active-link">الهدف من الوحدة</a></li>
+                                        <li><a href="#create-database" class="text-decoration-none">12.1 إنشاء قاعدة بيانات (Create Database)</a></li>
+                                        <li><a href="#table-constraints" class="text-decoration-none">12.2 قيود الجدول (Table Constraints)</a></li>
+                                        <li><a href="#user-defined-types" class="text-decoration-none">12.3 الأنواع التي يُعرفها المستخدم (User Defined Types)</a></li>
+                                        <li><a href="#key-terms" class="text-decoration-none">12.4 مصطلحات أساسية</a></li>
+                                        <li><a href="#suggested-exercises" class="text-decoration-none">12.5 تمارين مقترحة</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 13 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit13">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThirteen" aria-expanded="false" aria-controls="collapseThirteen">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-edit"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 13: لغة معالجة البيانات (DML)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseThirteen" class="accordion-collapse collapse" aria-labelledby="headingUnit13" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>تعلم كيفية استعلام، إدخال، تحديث، وحذف البيانات باستخدام تعليمات DML، والدوال المدمجة، وضم الجداول.</p>
+                                    <a href="unit-13.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 14 (الملحقات العملية) -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit14">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit14" aria-expanded="false" aria-controls="collapseUnit14">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-award"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 14: الملحقات العملية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit14" class="accordion-collapse collapse" aria-labelledby="headingUnit14" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>ملحق يضم أمثلة عملية وتطبيقات لتصميم قواعد البيانات وحلول لتمارين SQL.</p>
+                                    <a href="unit-summary.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- منطقة المحتوى الرئيسية -->
+            <div class="col-lg-9">
+                <div class="course-card p-5 mb-4">
+                    <h2 class="unit-section-title" id="unit-objective">الهدف من الوحدة</h2>
+                    <p>
+                        تهدف هذه الوحدة إلى تمكين الطلاب من فهم لغة <strong>SQL</strong>، وكيفية إنشاء قواعد البيانات والجداول، إضافة القيود، وإنشاء أنواع بيانات خاصة بالمستخدم.
+                    </p>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="create-database">12.1 إنشاء قاعدة بيانات (Create Database)</h2>
+                    <p>
+                        تُعد عملية إنشاء قاعدة البيانات الخطوة الأولى في بناء أي نظام يعتمد على قواعد البيانات. يتم ذلك باستخدام أمر بسيط في SQL.
+                    </p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-database topic-icon"></i> <strong>التعريف:</strong>
+                            <p>
+                                <code>CREATE DATABASE</code> هو أمر في لغة تعريف البيانات (DDL) ضمن SQL، يُستخدم لإنشاء قاعدة بيانات جديدة في نظام إدارة قواعد البيانات (DBMS). تُشكل قاعدة البيانات الجديدة حاوية منطقية للجداول، وجهات العرض، والإجراءات، وغيرها من كائنات قاعدة البيانات.
+                            </p>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-code topic-icon"></i> <strong>الصياغة الأساسية:</strong>
+                            <pre><code class="language-sql">
+CREATE DATABASE database_name;
+                            </code></pre>
+                            <p>استبدل <code>database_name</code> بالاسم الذي ترغب في إطلاقه على قاعدة البيانات.</p>
+                        </li>
+                    </ul>
+                    <div class="example-box">
+                        <i class="fas fa-laptop-code"></i> <strong>مثال عملي:</strong>
+                        <pre><code class="language-sql">
+CREATE DATABASE UniversityDB;
+                        </code></pre>
+                        <p>يُنشئ هذا الأمر قاعدة بيانات جديدة باسم <code>UniversityDB</code>. بعد إنشائها، يمكنك البدء بإنشاء الجداول والكائنات الأخرى داخلها.</p>
+                        <h4 class="inner-sub-topic">خيارات إضافية:</h4>
+                        <p>يمكنك تحديد خصائص إضافية لقاعدة البيانات مثل مجموعة الأحرف (Character Set) وطريقة الفرز (Collation) لضمان التعامل الصحيح مع البيانات بلغات مختلفة (خاصة العربية).</p>
+                        <pre><code class="language-sql">
+CREATE DATABASE UniversityDB
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_general_ci;
+                        </code></pre>
+                        <p>تحدد هذه الخيارات أن قاعدة البيانات ستدعم ترميز UTF-8 (بما في ذلك الأحرف العربية والرموز التعبيرية) وأن الفرز سيتم بطريقة عامة وغير حساسة لحالة الأحرف.</p>
+                        <p>لمزيد من المعلومات حول <code>CREATE DATABASE</code>، يمكنك زيارة: <a href="https://www.w3schools.com/sql/sql_create_db.asp" target="_blank">SQL CREATE DATABASE – W3Schools</a></p>
+                    </div>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="table-constraints">12.2 قيود الجدول (Table Constraints)</h2>
+                    <p>
+                        <strong>قيود الجدول (Table Constraints)</strong> هي قواعد جوهرية تُطبق على أعمدة الجداول لفرض سلامة البيانات (Data Integrity) وضمان دقتها واتساقها. إنها تمنع إدخال بيانات غير صالحة أو غير متناسقة.
+                    </p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-gavel topic-icon"></i> <strong>التعريف:</strong>
+                            <p>
+                                هي قواعد تُفرض على أعمدة الجداول أو على الجدول بأكمله (قيود على مستوى الجدول) لضمان صحة البيانات، فرادتها، وتناسق العلاقات بين الجداول.
+                            </p>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-shield-alt topic-icon"></i> <strong>أهم أنواع القيود:</strong>
+                            <ul class="no-bullet">
+                                <li><i class="fas fa-key list-icon"></i> <strong>PRIMARY KEY – المفتاح الرئيسي:</strong>
+                                    <p>
+                                        يُحدد عمودًا (أو مجموعة أعمدة) يُميز كل سجل بشكل فريد داخل الجدول. لا يمكن أن يحتوي على قيم مكررة أو قيم <code>NULL</code>. كل جدول يجب أن يحتوي على مفتاح رئيسي واحد فقط.
+                                    </p>
+                                    <pre><code class="language-sql">
+CREATE TABLE Students (
+    StudentID INT PRIMARY KEY, -- StudentID هو المفتاح الرئيسي
+    Name VARCHAR(100)
+);
+                                    </code></pre>
+                                    <pre><code class="language-sql">
+-- مثال على مفتاح رئيسي مركب
+CREATE TABLE Enrollment (
+    StudentID INT,
+    CourseID INT,
+    EnrollmentDate DATE,
+    PRIMARY KEY (StudentID, CourseID) -- المفتاح الرئيسي هو تركيبة من StudentID و CourseID
+);
+                                    </code></pre>
+                                </li>
+                                <li><i class="fas fa-link list-icon"></i> <strong>FOREIGN KEY – المفتاح الخارجي:</strong>
+                                    <p>
+                                        يُستخدم لربط جدول بآخر، ويُنشئ علاقة بينهما. يُشير المفتاح الخارجي في جدول (الجدول الفرعي/الابن) إلى المفتاح الرئيسي (أو مفتاح فريد) في جدول آخر (الجدول الرئيسي/الأب). يضمن التكامل المرجعي.
+                                    </p>
+                                    <pre><code class="language-sql">
+CREATE TABLE Enrollments (
+    EnrollmentID INT PRIMARY KEY,
+    StudentID INT,
+    CourseID INT,
+    Grade CHAR(1),
+    FOREIGN KEY (StudentID) REFERENCES Students(StudentID), -- StudentID هنا هو مفتاح خارجي يشير إلى جدول Students
+    FOREIGN KEY (CourseID) REFERENCES Courses(CourseID)     -- CourseID هنا هو مفتاح خارجي يشير إلى جدول Courses
+);
+                                    </code></pre>
+                                </li>
+                                <li><i class="fas fa-star-of-life list-icon"></i> <strong>UNIQUE – فريد:</strong>
+                                    <p>
+                                        يضمن أن جميع القيم في عمود معين (أو مجموعة أعمدة) فريدة، أي لا تتكرر. يمكن أن يحتوي على قيمة <code>NULL</code> واحدة. يمكن أن يكون للجدول عدة قيود <code>UNIQUE</code>.
+                                    </p>
+                                    <pre><code class="language-sql">
+CREATE TABLE Employees (
+    EmployeeID INT PRIMARY KEY,
+    Email VARCHAR(100) UNIQUE, -- لا يمكن تكرار عنوان البريد الإلكتروني
+    PhoneNumber VARCHAR(20) UNIQUE
+);
+                                    </code></pre>
+                                </li>
+                                <li><i class="fas fa-times-circle list-icon"></i> <strong>NOT NULL – غير فارغ:</strong>
+                                    <p>
+                                        يُجبر العمود على احتواء قيمة. لا يمكن ترك هذا الحقل فارغًا (<code>NULL</code>).
+                                    </p>
+                                    <pre><code class="language-sql">
+CREATE TABLE Courses (
+    CourseID INT PRIMARY KEY,
+    CourseName VARCHAR(100) NOT NULL, -- اسم المقرر يجب ألا يكون فارغاً
+    Credits INT
+);
+                                    </code></pre>
+                                </li>
+                                <li><i class="fas fa-check-square list-icon"></i> <strong>CHECK – شرطي:</strong>
+                                    <p>
+                                        يُستخدم لفرض شرط معين على قيم البيانات في عمود واحد أو أكثر. إذا لم يتحقق الشرط، يتم رفض إدخال البيانات.
+                                    </p>
+                                    <pre><code class="language-sql">
+CREATE TABLE Products (
+    ProductID INT PRIMARY KEY,
+    ProductName VARCHAR(100),
+    Price DECIMAL(10,2) CHECK (Price > 0), -- السعر يجب أن يكون أكبر من صفر
+    StockQuantity INT CHECK (StockQuantity >= 0) -- الكمية يجب أن تكون موجبة أو صفر
+);
+                                    </code></pre>
+                                </li>
+                                <li><i class="fas fa-thumbtack list-icon"></i> <strong>DEFAULT – افتراضي:</strong>
+                                    <p>
+                                        يُحدد قيمة افتراضية لعمود إذا لم تُقدم قيمة صراحةً عند إدراج صف جديد.
+                                    </p>
+                                    <pre><code class="language-sql">
+CREATE TABLE Orders (
+    OrderID INT PRIMARY KEY AUTO_INCREMENT,
+    OrderDate DATE DEFAULT CURRENT_DATE, -- القيمة الافتراضية هي تاريخ اليوم
+    OrderStatus VARCHAR(50) DEFAULT 'Pending' -- القيمة الافتراضية للحالة هي 'معلق'
+);
+                                    </code></pre>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <p>لمزيد من التفاصيل حول قيود SQL، يمكنك زيارة: <a href="https://www.tutorialspoint.com/sql/sql_constraints.htm" target="_blank">SQL Constraints – Tutorialspoint</a></p>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="user-defined-types">12.3 الأنواع التي يُعرفها المستخدم (User Defined Types – UDT)</h2>
+                    <p>
+                        بالإضافة إلى أنواع البيانات المدمجة في SQL (مثل INT, VARCHAR, DATE)، تسمح بعض أنظمة إدارة قواعد البيانات بإنشاء <strong>أنواع بيانات مُعرفة من قبل المستخدم (User Defined Types - UDTs)</strong>.
+                    </p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-tools topic-icon"></i> <strong>التعريف:</strong>
+                            <p>
+                                نوع بيانات خاص تُنشئه لتحديد شكل بيانات معين يمكن استخدامه في أعمدة متعددة عبر جداول مختلفة. يتيح لك فرض قواعد عمل محددة على البيانات وتوحيد تعريفها.
+                            </p>
+                            <p>
+                                <strong>ملاحظة:</strong> دعم UDT يختلف بين أنظمة DBMS. بعضها يوفر دعماً كاملاً (مثل SQL Server، Oracle مع أنواع معقدة)، بينما البعض الآخر (مثل MySQL) قد يقتصر على تعريف "Domains" أو "Aliases" لأنواع بيانات موجودة. المثال أدناه يُوضح المفهوم وقد تختلف صياغته الدقيقة بناءً على الـ DBMS.
+                            </p>
+                        </li>
+                    </ul>
+                    <div class="example-box">
+                        <i class="fas fa-mobile-alt"></i> <strong>مثال عملي (مفهومي، قد تختلف الصياغة الدقيقة حسب DBMS):</strong>
+                        <p>تخيل أنك تريد تعريف نوع بيانات خاص لأرقام الهواتف، يتكون من نص لا يتجاوز 15 حرفًا. يمكنك إنشاء UDT لذلك:</p>
+                        <pre><code class="language-sql">
+-- هذه الصياغة قد تختلف حسب DBMS (مثال لـ SQL Server / Oracle)
+CREATE TYPE PhoneNumber FROM VARCHAR(15); 
+
+-- استخدام النوع المعرّف من قبل المستخدم في جدول
+CREATE TABLE Contacts (
+    ContactID INT PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL,
+    Phone PhoneNumber -- استخدام نوع البيانات المخصص
+);
+
+-- مثال آخر: تعريف نوع لرمز بريدي مع تحقق
+CREATE TYPE ZipCode_UDT FROM CHAR(5) NOT NULL CHECK (LEN(Value) = 5);
+
+CREATE TABLE Addresses (
+    AddressID INT PRIMARY KEY,
+    Street VARCHAR(255),
+    City VARCHAR(100),
+    ZipCode ZipCode_UDT -- استخدام نوع الرمز البريدي المخصص
+);
+                        </code></pre>
+                        <p>يتيح UDT توحيد نوع البيانات في أكثر من جدول مع إمكانية تضمين قيود التحقق (<code>CHECK</code>) أو غيرها من الخصائص مباشرة ضمن تعريف النوع نفسه، مما يضمن اتساق البيانات عبر قاعدة البيانات.</p>
+                        <p>لمزيد من المعلومات حول UDTs (قد تختلف الأمثلة حسب DBMS)، يمكنك زيارة: <a href="https://www.geeksforgeeks.org/user-defined-types-in-sql/" target="_blank">User Defined Types in SQL – GeeksforGeeks</a></p>
+                    </div>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="key-terms">12.4 مصطلحات أساسية (Key Terms)</h2>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>المصطلح (الإنجليزية)</th>
+                                <th>المصطلح (العربية)</th>
+                                <th>التعريف</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>SQL (Structured Query Language)</strong></td>
+                                <td>لغة الاستعلامات الهيكلية</td>
+                                <td>لغة قياسية تُستخدم لإدارة ومعالجة قواعد البيانات العلائقية.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>DDL (Data Definition Language)</strong></td>
+                                <td>لغة تعريف البيانات</td>
+                                <td>جزء من SQL يُستخدم لتعريف أو تعديل هيكل قاعدة البيانات (مثل CREATE, ALTER, DROP).</td>
+                            </tr>
+                            <tr>
+                                <td><strong>CREATE DATABASE</strong></td>
+                                <td>إنشاء قاعدة بيانات</td>
+                                <td>أمر SQL DDL لإنشاء قاعدة بيانات جديدة.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>CHARACTER SET</strong></td>
+                                <td>مجموعة الأحرف / الترميز</td>
+                                <td>مجموعة من الأحرف والرموز التي يمكن تخزينها في قاعدة البيانات أو العمود.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>COLLATE</strong></td>
+                                <td>طريقة الفرز / الترتيب</td>
+                                <td>قاعدة تُحدد كيفية مقارنة وفرز البيانات النصية (مثل حساسية حالة الأحرف).</td>
+                            </tr>
+                            <tr>
+                                <td><strong>TABLE CONSTRAINTS</strong></td>
+                                <td>قيود الجدول</td>
+                                <td>قواعد تُفرض على أعمدة أو جداول لضمان صحة وسلامة البيانات.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>PRIMARY KEY</strong></td>
+                                <td>المفتاح الرئيسي</td>
+                                <td>قيد يُحدد عمودًا (أو مجموعة أعمدة) يُميز كل سجل بشكل فريد في الجدول.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>FOREIGN KEY</strong></td>
+                                <td>المفتاح الخارجي</td>
+                                <td>قيد يُستخدم لربط جدولين من خلال الإشارة إلى المفتاح الرئيسي في جدول آخر.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>UNIQUE</strong></td>
+                                <td>فريد</td>
+                                <td>قيد يضمن أن جميع القيم في العمود المحدد فريدة ولا تتكرر.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>NOT NULL</strong></td>
+                                <td>غير فارغ</td>
+                                <td>قيد يضمن أن العمود لا يمكن أن يحتوي على قيمة فارغة (NULL).</td>
+                            </tr>
+                            <tr>
+                                <td><strong>CHECK</strong></td>
+                                <td>شرطي / تحقق</td>
+                                <td>قيد يفرض شرطًا محددًا على القيم التي يمكن إدخالها في العمود.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>DEFAULT</strong></td>
+                                <td>افتراضي</td>
+                                <td>قيد يُحدد قيمة افتراضية لعمود في حال عدم تقديم قيمة عند الإدخال.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>User Defined Types (UDT)</strong></td>
+                                <td>أنواع مُعرفة من قبل المستخدم</td>
+                                <td>نوع بيانات خاص يُنشئه المستخدم لتعريف شكل بيانات معين، يمكن استخدامه في أعمدة متعددة.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="course-card p-5 mb-4">
+                    <h2 class="unit-section-title" id="unit-summary">ملخص الوحدة</h2>
+                    <ul class="no-bullet">
+                        <li><i class="fas fa-star list-icon"></i> <strong>SQL (لغة الاستعلامات الهيكلية)</strong> هي اللغة القياسية لإدارة قواعد البيانات.</li>
+                        <li><i class="fas fa-star list-icon"></i> تُستخدم أوامر <strong>DDL (لغة تعريف البيانات)</strong> مثل <code>CREATE DATABASE</code> لإنشاء هياكل قواعد البيانات والجداول.</li>
+                        <li><i class="fas fa-star list-icon"></i> <strong>قيود الجدول (Table Constraints)</strong> مثل <code>PRIMARY KEY</code>، <code>FOREIGN KEY</code>، <code>UNIQUE</code>، <code>NOT NULL</code>، <code>CHECK</code>، و<code>DEFAULT</code> ضرورية لضمان <strong>سلامة البيانات</strong>.</li>
+                        <li><i class="fas fa-star list-icon"></i> تسمح بعض أنظمة DBMS بإنشاء <strong>أنواع بيانات مُعرفة من قبل المستخدم (UDT)</strong> لتعزيز توحيد البيانات.</li>
+                    </ul>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="suggested-exercises">12.5 تمارين مقترحة (Suggested Exercises)</h2>
+                    <p>اختبر فهمك لمفاهيم هذه الوحدة بالإجابة على الأسئلة التالية (تذكر أن الصياغة قد تختلف قليلاً حسب نظام إدارة قواعد البيانات الذي تستخدمه):</p>
+                    <ol>
+                        <li>أنشئ <strong>قاعدة بيانات جديدة</strong> باسم <code>CompanyDB</code>. تأكد من تحديد <code>CHARACTER SET</code> و<code>COLLATE</code> مناسبين لدعم اللغة العربية (مثل <code>utf8mb4</code> و <code>utf8mb4_general_ci</code>).</li>
+                        <li>صمم <strong>جدولًا للموظفين</strong> باسم <code>Employees</code> يحتوي على الأعمدة التالية، مع تطبيق القيود المناسبة:
+                            <ul>
+                                <li><code>EmployeeID</code>: رقم صحيح، مفتاح رئيسي.</li>
+                                <li><code>FirstName</code>: نص، لا يمكن أن يكون فارغًا.</li>
+                                <li><code>LastName</code>: نص، لا يمكن أن يكون فارغًا.</li>
+                                <li><code>Email</code>: نص، يجب أن يكون فريدًا.</li>
+                                <li><code>Salary</code>: رقم عشري، لا يمكن أن يكون فارغًا، ويجب أن يكون أكبر من 0.</li>
+                                <li><code>HireDate</code>: تاريخ، القيمة الافتراضية هي تاريخ اليوم.</li>
+                            </ul>
+                            اكتب استعلام <code>CREATE TABLE</code> كاملاً لهذا الجدول.
+                        </li>
+                        <li>صمم <strong>جدولًا للعملاء</strong> باسم <code>Customers</code> (بـ <code>CustomerID</code> كمفتاح رئيسي، <code>CustomerName</code>، و<code>Phone</code>). ثم صمم <strong>جدولًا للطلبات</strong> باسم <code>Orders</code> يحتوي على الأعمدة: <code>OrderID</code> (PK)، <code>OrderDate</code>، و<code>CustomerID</code>.
+                            <br>تأكد من <strong>ربط عمود <code>CustomerID</code> في جدول <code>Orders</code> بالمفتاح الرئيسي لجدول <code>Customers</code></strong> باستخدام قيد المفتاح الخارجي.</li>
+                        <li>في نظام إدارة قواعد البيانات الذي تستخدمه (أو بافتراض دعم)، حاول <strong>إنشاء نوع بيانات مُعرفة من قبل المستخدم (UDT)</strong> باسم <code>NationalID</code> ليمثل أرقام الهوية الوطنية، بحيث يكون نوعها <code>CHAR(10)</code> (حرفي بطول 10) ولا يمكن أن يكون فارغًا. ثم استخدم هذا النوع في جدول <code>Citizens</code> (المواطنين) يحتوي على <code>CitizenID</code> (PK) و<code>Name</code> و<code>NationalID</code>.</li>
+                        <li>باستخدام الجداول التي أنشأتها في التمارين السابقة، جرّب <strong>إدخال بيانات مخالفة للقيود</strong> التي وضعتها (مثل: محاولة إدخال قيمة <code>NULL</code> في عمود <code>NOT NULL</code>، أو قيمة مكررة في عمود <code>UNIQUE</code>). لاحظ ودوّن <strong>رسالة الخطأ</strong> التي تظهر من نظام إدارة قواعد البيانات (DBMS).</li>
+                    </ol>
+                </div>
+                
+                <!-- أزرار التنقل -->
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="unit-11.html" class="btn unit-nav-btn"><i class="fas fa-arrow-right"></i> الوحدة السابقة</a>
+                    <a href="../../../materials/db-design/unit-12.pdf" target="_blank" class="btn unit-nav-btn"><i class="fas fa-file-pdf"></i> عرض / تحميل مادة الوحدة</a>
+                    <a href="unit-13.html" class="btn unit-nav-btn text-end">الوحدة التالية <i class="fas fa-arrow-left"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- الفوتر -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>مسار الأمن السيبراني</h5>
+                    <p>منصة تعليمية متخصصة في تقديم محتوى أكاديمي وعملي في مجال الأمن السيبراني.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>روابط سريعة</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="../../../index.html" class="text-white">الرئيسية</a></li>
+                        <li><a href="../../index.html" class="text-white">جميع المقررات</a></li>
+                        <li><a href="#" class="text-white">الدعم الفني</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>تواصل معنا</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> info@cyberpath.com</li>
+                        <li><i class="fas fa-phone me-2"></i> 0502161465</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2025 مسار الأمن السيبراني. جميع الحقوق محفوظة.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-linkedin fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-youtube fa-lg"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-github fa-lg"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- تضمين Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // تحديث شريط التقدم بناءً على الوحدة الحالية
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentUnitNumber = 12; // رقم الوحدة الحالية
+            const totalModules = 14; // إجمالي عدد الوحدات في المقرر
+            const progressPercentage = (currentUnitNumber / totalModules) * 100;
+            
+            const progressBar = document.querySelector('.progress-bar');
+            progressBar.style.width = `${progressPercentage}%`;
+            progressBar.setAttribute('aria-valuenow', progressPercentage);
+            progressBar.textContent = `${Math.round(progressPercentage)}% مكتمل`;
+        });
+    </script>
+</body>
+</html>
