@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الوحدة 2: مفاهيم قواعد البيانات الأساسية | تصميم قواعد البيانات</title>
+    <!-- تضمين Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- تضمين Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- تضمين خط Tajawal من Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* تعريف المتغيرات لألوان موحدة */
+        :root {
+            --primary-color: #2c3e50; /* لون أزرق داكن/رمادي */
+            --secondary-color: #4CAF50; /* لون أخضر للمقرر الجديد */
+            --accent-color: #e74c3c; /* لون أحمر/برتقالي لـ "تحذير" أو "خطر" */
+            --light-bg: #f8f9fa; /* خلفية فاتحة جدًا للجسم */
+            --dark-text: #2c3e50; /* لون نص داكن */
+            --light-text: #7f8c8d; /* لون نص فاتح (رمادي) */
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--light-bg); /* خلفية فاتحة */
+            color: var(--dark-text); /* لون نص داكن */
+            line-height: 1.8;
+            direction: rtl; /* تأكيد الاتجاه من اليمين لليسار */
+            text-align: right; /* محاذاة النص لليمين افتراضيا */
+        }
+
+        .navbar {
+            background-color: var(--primary-color);
+        }
+        .navbar-brand {
+            color: white !important; /* لون أبيض للشعار في شريط التنقل */
+        }
+        .btn-outline-light {
+            border-color: rgba(255, 255, 255, 0.7) !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .btn-outline-light:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .course-header {
+            background: linear-gradient(135deg, #4CAF50, #8BC34A); /* تدرج أخضر لمقرر قواعد البيانات */
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 1rem 1rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .course-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-right: 4px solid var(--secondary-color); /* شريط جانبي بلون ثانوي أخضر */
+            padding: 2rem; /* تباعد داخلي للبطاقات */
+        }
+
+        .course-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .course-title-section {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .module-icon {
+            width: 50px;
+            height: 50px;
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 1rem;
+            flex-shrink: 0;
+            font-size: 1.25rem;
+        }
+        .sidebar .module-icon { /* تنسيق محدد لأيقونات الشريط الجانبي */
+            width: 40px; /* أصغر قليلاً للشريط الجانبي */
+            height: 40px;
+            font-size: 1rem;
+            margin-left: 10px; /* ضبط الهامش للشريط الجانبي */
+        }
+
+        .progress-container { /* تنسيق شريط التقدم في الشريط الجانبي */
+            height: 25px;
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-bar { /* تنسيق شريط التقدم في الشريط الجانبي */
+            background-color: var(--secondary-color);
+        }
+
+        .accordion-button:not(.collapsed) {
+            background-color: #e6ffe6; /* خلفية زر الأكورديون النشط (أخضر فاتح) */
+            color: var(--primary-color); /* لون نص زر الأكورديون النشط */
+            box-shadow: none;
+        }
+        .accordion-button:not(.collapsed) .module-icon { /* أيقونة زر الأكورديون النشط */
+            background-color: var(--primary-color); /* خلفية داكنة للأيقونة عندما تكون نشطة */
+        }
+        .accordion-button:not(.collapsed)::after {
+            filter: brightness(0) invert(1); /* عكس لون السهم للخلفية الداكنة */
+        }
+
+        .accordion-button {
+            border-radius: 0.5rem !important; /* للحفاظ على حدود مستديرة للأزرار */
+        }
+        .accordion-item {
+            margin-bottom: 0.5rem; /* مسافة بين عناصر الأكورديون */
+            border-radius: 0.75rem;
+            border: 1px solid rgba(0, 0, 0, 0.125); /* حدود للأكورديون */
+            overflow: hidden; /* لمنع تجاوز المحتوى للحواف المستديرة */
+        }
+        .accordion-body ul {
+            padding-right: 0; /* إزالة التباعد الافتراضي لقائمة الروابط الداخلية */
+        }
+        .accordion-body ul li a {
+            padding: 0.25rem 0.5rem;
+            display: block;
+            border-radius: 0.25rem;
+            color: var(--dark-text);
+        }
+        .accordion-body ul li a:hover,
+        .accordion-body ul li a.active-link { /* رابط نشط في الشريط الجانبي */
+            background-color: #e6ffe6;
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+        .accordion-body .btn-primary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .accordion-body .btn-primary:hover {
+            background-color: #388E3C; /* لون أخضر أغمق عند التحويم */
+            border-color: #388E3C;
+        }
+
+        .sidebar { /* تنسيق حاوية الشريط الجانبي */
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            color: var(--dark-text); /* التأكد من قابلية قراءة النص */
+        }
+        .sidebar h4 {
+            color: var(--primary-color); /* لون عنوان الشريط الجانبي */
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* تنسيقات الفوتر */
+        footer {
+            background-color: var(--primary-color) !important;
+            color: white;
+            padding: 2.5rem 0;
+        }
+        footer h5 {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        footer .list-unstyled li a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        footer .list-unstyled li a:hover {
+            color: var(--secondary-color);
+        }
+        footer .fab, footer .fas { /* تطبيق اللون الأبيض على أيقونات الفوتر */
+            color: white;
+            transition: color 0.2s;
+        }
+        footer .fab:hover, footer .fas:hover {
+            color: var(--secondary-color);
+        }
+
+        /* تنسيقات محتوى الوحدة المحددة */
+        h2.unit-section-title { /* للعناوين العامة، أهداف التعلم، إلخ. */
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+        }
+        h3.sub-topic-title { /* لعناوين المواضيع الفرعية مثل "3.1 تعريف أمن التطبيقات" */
+            color: var(--primary-color);
+            border-bottom: 1px dashed var(--light-text);
+            padding-bottom: 0.3rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.75rem;
+        }
+        h4.inner-sub-topic { /* للعناوين الفرعية داخل عناصر OWASP */
+            color: var(--dark-text);
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 1.25rem;
+        }
+        ul {
+            padding-right: 25px; /* ضبط تباعد القائمة الافتراضي */
+        }
+        ul.no-bullet {
+            list-style: none;
+            padding-right: 0;
+        }
+        ul li {
+            margin-bottom: 0.5rem;
+        }
+        .list-icon {
+            margin-left: 10px;
+            color: var(--secondary-color); /* لون الأيقونة الافتراضي */
+        }
+        /* ألوان أيقونات محددة بناءً على نوع المحتوى من أجل الوضوح */
+        .objectives-list .list-icon { color: #28a745; } /* أخضر لعلامات الصح */
+        .methods-list .list-icon { color: #17a2b8; } /* أزرق مخضر/سماوي للطرق */
+        .outcomes-list .list-icon { color: #ffc107; } /* أصفر/برتقالي للنجوم */
+        .topic-icon { /* الأيقونات داخل المواضيع الرئيسية مثل الأدوات/المفاهيم */
+            color: var(--secondary-color);
+            margin-left: 10px;
+        }
+        .alert-info-custom {
+            background-color: #e9ecef; /* خلفية رمادية فاتحة/زرقاء */
+            border-left: 5px solid var(--secondary-color);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        .alert-info-custom i {
+            color: var(--secondary-color);
+            margin-right: 0.5rem;
+        }
+
+        /* تنسيق مربعات الأمثلة/الملاحظات */
+        .example-box, .note-box {
+            background-color: #e9ecef; /* خلفية رمادية فاتحة */
+            border-right: 5px solid var(--secondary-color); /* حدود زرقاء */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        .example-box i, .note-box i {
+            color: var(--secondary-color); /* لون أيقونة أزرق */
+            margin-left: 0.5rem;
+        }
+        .example-box ul, .note-box ul {
+            list-style: none; /* إزالة النقاط الافتراضية */
+            padding-right: 0;
+        }
+        .example-box ul li::before, .note-box ul li::before {
+            content: "\f058"; /* أيقونة Font Awesome check-circle */
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            color: var(--secondary-color);
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+            margin-right: 0.5em;
+        }
+        /* تنسيق الجداول */
+        table {
+            width: 100%;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+            border-collapse: collapse;
+        }
+        table th,
+        table td {
+            padding: 0.75rem;
+            vertical-align: top;
+            border: 1px solid #dee2e6;
+            text-align: right; /* محاذاة النص لليمين لـ RTL */
+        }
+        table thead th {
+            vertical-align: bottom;
+            border-bottom: 2px solid #dee2e6;
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        table tbody + tbody {
+            border-top: 2px solid #dee2e6;
+        }
+
+        /* أزرار التنقل بين الوحدات */
+        .unit-nav-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: bold;
+            transition: background-color 0.2s, transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+        }
+        .unit-nav-btn:hover {
+            background-color: #388E3C; /* لون أخضر أغمق عند التحويم */
+            color: white;
+            transform: translateY(-2px);
+        }
+        .unit-nav-btn .fa-arrow-left { /* سهم يسار لزر "الوحدة التالية" */
+            margin-right: 0;
+            margin-left: 8px;
+        }
+        .unit-nav-btn .fa-arrow-right { /* سهم يمين لزر "العودة للفهرس" أو "الوحدة السابقة" */
+            margin-right: 8px;
+            margin-left: 0;
+        }
+
+        /* تنسيق كتل الكود */
+        pre {
+            background-color: #e9ecef;
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto; /* تمكين التمرير الأفقي للأسطر الطويلة */
+            direction: ltr; /* التأكد من أن اتجاه الكود هو LTR */
+            text-align: left; /* التأكد من أن محاذاة النص هي لليسار للكود */
+        }
+        code {
+            font-family: 'Consolas', 'Monaco', 'Lucida Console', monospace;
+            font-size: 0.9rem;
+            color: var(--dark-text);
+        }
+        pre code {
+            display: block; /* التأكد من أن كتلة الكود تأخذ عرضًا كاملاً */
+        }
+
+
+        /* تعديلات الاستجابة */
+        @media (max-width: 991px) { /* نقطة توقف تتوافق مع col-lg- */
+            .sidebar {
+                margin-top: 1rem;
+                margin-bottom: 1rem; /* إضافة هامش لتحسين التباعد على الشاشات الأصغر */
+            }
+            .course-header {
+                padding: 2rem 0;
+            }
+            .course-card {
+                padding: 1.5rem;
+            }
+            h1.display-4 {
+                font-size: 2.2rem;
+            }
+            h2.unit-section-title {
+                font-size: 1.75rem;
+            }
+            h3.sub-topic-title {
+                font-size: 1.5rem;
+            }
+            .unit-nav-btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+            .d-flex.justify-content-between.mt-4 {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <!-- شريط التنقل العلوي -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--primary-color);">
+        <div class="container">
+            <a class="navbar-brand" href="../../../index.html">مسار الأمن السيبراني</a>
+            <a href="../index.html" class="btn btn-outline-light">العودة إلى المقررات</a>
+        </div>
+    </nav>
+
+    <!-- رأس الوحدة -->
+    <header class="course-header text-center">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-3">الوحدة 2: مفاهيم قواعد البيانات الأساسية</h1>
+            <p class="lead">تهدف هذه الوحدة إلى تقديم فهم شامل لمفهوم قاعدة البيانات، خصائصها، أنواع المستخدمين، وأنظمة إدارة قواعد البيانات (DBMS)، مع توضيح المصطلحات الأساسية في هذا المجال.</p>
+        </div>
+    </header>
+
+    <div class="container-fluid py-5">
+        <div class="row">
+            <!-- الشريط الجانبي لتنقل الوحدات -->
+            <div class="col-lg-3">
+                <div class="sidebar p-4">
+                    <h4 class="mb-3">
+                        <i class="fas fa-stream me-2"></i>
+                        وحدات المقرر
+                    </h4>
+                    <div class="progress progress-container mb-4">
+                        <div class="progress-bar" role="progressbar" style="width: 14.28%;" aria-valuenow="14.28" aria-valuemin="0" aria-valuemax="100">14% مكتمل</div>
+                    </div>
+                    <div class="accordion" id="unitsAccordion">
+                        <!-- الوحدة التمهيدية -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingIntro">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseIntro" aria-expanded="false" aria-controls="collapseIntro">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-book-open"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">تمهيد – مقدمة إلى تصميم قواعد البيانات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseIntro" class="accordion-collapse collapse" aria-labelledby="headingIntro" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>مقدمة شاملة عن مجال قواعد البيانات، أهميتها، ومكوناتها الأساسية.</p>
+                                    <a href="index.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 1 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit1">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit1" aria-expanded="false" aria-controls="collapseUnit1">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-history"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 1: ما قبل ظهور أنظمة قواعد البيانات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit1" class="accordion-collapse collapse" aria-labelledby="headingUnit1" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>استعراض تاريخي للنظام القائم على الملفات وعيوبه، تمهيدًا لظهور قواعد البيانات.</p>
+                                    <a href="unit-1.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 2 (الوحدة النشطة) -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit2">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit2" aria-expanded="true" aria-controls="collapseUnit2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-lightbulb"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 2: مفاهيم قواعد البيانات الأساسية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit2" class="accordion-collapse collapse show" aria-labelledby="headingUnit2" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="#unit-objective" class="text-decoration-none active-link">الهدف من الوحدة</a></li>
+                                        <li><a href="#what-is-db" class="text-decoration-none">2.1 ما هي قاعدة البيانات؟</a></li>
+                                        <li><a href="#db-characteristics" class="text-decoration-none">2.2 خصائص قاعدة البيانات</a></li>
+                                        <li><a href="#db-users-types" class="text-decoration-none">2.3 أنواع مستخدمي قاعدة البيانات</a></li>
+                                        <li><a href="#dbms-classification" class="text-decoration-none">2.4 نظام إدارة قواعد البيانات (DBMS) وتصنيفاته</a></li>
+                                        <li><a href="#key-terms" class="text-decoration-none">2.5 مصطلحات أساسية</a></li>
+                                        <li><a href="#practical-examples-links" class="text-decoration-none">2.6 أمثلة تطبيقية وروابط توضيحية</a></li>
+                                        <li><a href="#unit-summary" class="text-decoration-none">ملخص الوحدة</a></li>
+                                        <li><a href="#exercises" class="text-decoration-none">التمارين المقترحة</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 3 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit3">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit3" aria-expanded="false" aria-controls="collapseUnit3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-cogs"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 3: خصائص قواعد البيانات والمزايا التي تقدمها</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit3" class="accordion-collapse collapse" aria-labelledby="headingUnit3" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>استكشاف الخصائص المتقدمة لقواعد البيانات وكيف تدعم واجهات عرض متعددة للبيانات.</p>
+                                    <a href="unit-3.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 4 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit4">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit4" aria-expanded="false" aria-controls="collapseUnit4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-sitemap"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 4: نمذجة البيانات وأنواعها</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit4" class="accordion-collapse collapse" aria-labelledby="headingUnit4" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>تعريف بنماذج البيانات، مستويات التجريد، وتخطيطات قواعد البيانات (Schemas).</p>
+                                    <a href="unit-4.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 5 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit5">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit5" aria-expanded="false" aria-controls="collapseUnit5">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-table"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 5: نموذج البيانات العلائقية (RDM)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit5" class="accordion-collapse collapse" aria-labelledby="headingUnit5" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>المفاهيم الأساسية للنموذج العلائقي، خصائص الجداول، وتمثيل البيانات.</p>
+                                    <a href="unit-5.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 6 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit6">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit6" aria-expanded="false" aria-controls="collapseUnit6">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-project-diagram"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 6: نموذج الكيان والعلاقة (ER)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit6" class="accordion-collapse collapse" aria-labelledby="headingUnit6" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>فهم الكيانات، العلاقات، السمات، والمفاتيح في نمذجة ER.</p>
+                                    <a href="unit-6.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 7 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit7">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit7" aria-expanded="false" aria-controls="collapseUnit7">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-gavel"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 7: قواعد السلامة وقيودها لضمان سلامة البيانات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit7" class="accordion-collapse collapse" aria-labelledby="headingUnit7" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>تعلم عن سلامة النطاق، قيود المؤسسة، وقواعد العمل لضمان جودة البيانات.</p>
+                                    <a href="unit-7.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 8 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit8">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit8" aria-expanded="false" aria-controls="collapseUnit8">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-pencil-ruler"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 8: نمذجة الكيان العلاقي عند تصميم قواعد البيانات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit8" class="accordion-collapse collapse" aria-labelledby="headingUnit8" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>التصميم العلاقي وتجنب الحالات الشاذة مثل حالات الإدخال والتحديث والحذف الشاذة.</p>
+                                    <a href="unit-8.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 9 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit9">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit9" aria-expanded="false" aria-controls="collapseUnit9">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-link"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 9: الاعتماديات الوظيفية (Functional Dependencies)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit9" class="accordion-collapse collapse" aria-labelledby="headingUnit9" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>قواعد الاعتماديات الوظيفية وقواعد الاستدلال ومخططات الاعتمادية.</p>
+                                    <a href="unit-9.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 10 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit10">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit10" aria-expanded="false" aria-controls="collapseUnit10">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-compress-arrows-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 10: فهم عملية التوحيد (Normalization)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit10" class="accordion-collapse collapse" aria-labelledby="headingUnit10" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>مفهوم التوحيد، النماذج الموحدة (1NF, 2NF, 3NF, BCNF)، وتأثيرها على تصميم قواعد البيانات.</p>
+                                    <a href="unit-10.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 11 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit11">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit11" aria-expanded="false" aria-controls="collapseUnit11">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-code-branch"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 11: عملية تطوير قواعد البيانات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit11" class="accordion-collapse collapse" aria-labelledby="headingUnit11" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>دورة حياة تطوير قواعد البيانات (Database Life Cycle)، وخطوات جمع المتطلبات والتصميم والتطبيق.</p>
+                                    <a href="unit-11.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 12 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit12">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit12" aria-expanded="false" aria-controls="collapseUnit12">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-file-code"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 12: لغة الاستعلامات الهيكلية (SQL)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit12" class="accordion-collapse collapse" aria-labelledby="headingUnit12" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>الأساسيات لإنشاء قواعد البيانات والجداول وقيودها باستخدام لغة DDL في SQL.</p>
+                                    <a href="unit-12.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 13 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit13">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThirteen" aria-expanded="false" aria-controls="collapseThirteen">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-edit"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 13: لغة معالجة البيانات (DML)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseThirteen" class="accordion-collapse collapse" aria-labelledby="headingUnit13" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>تعلم كيفية استعلام، إدخال، تحديث، وحذف البيانات باستخدام تعليمات DML، والدوال المدمجة، وضم الجداول.</p>
+                                    <a href="unit-13.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 14 (الملحقات العملية) -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit14">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit14" aria-expanded="false" aria-controls="collapseUnit14">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-award"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 14: الملحقات العملية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit14" class="accordion-collapse collapse" aria-labelledby="headingUnit14" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>ملحق يضم أمثلة عملية وتطبيقات لتصميم قواعد البيانات وحلول لتمارين SQL.</p>
+                                    <a href="unit-summary.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- منطقة المحتوى الرئيسية -->
+            <div class="col-lg-9">
+                <div class="course-card p-5 mb-4">
+                    <h2 class="unit-section-title" id="unit-objective">الهدف من الوحدة</h2>
+                    <p>
+                        تهدف هذه الوحدة إلى تقديم فهم شامل لمفهوم قاعدة البيانات، خصائصها، أنواع المستخدمين، وأنظمة إدارة قواعد البيانات (DBMS)، مع توضيح المصطلحات الأساسية التي يجب أن يعرفها كل مبتدئ في هذا المجال.
+                    </p>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="what-is-db">2.1 ما هي قاعدة البيانات؟ (What is a Database?)</h2>
+                    <h3 class="inner-sub-topic">التعريف:</h3>
+                    <p>
+                        <strong>قاعدة البيانات (Database)</strong> هي مجموعة منظمة من البيانات ذات الصلة ببعضها البعض، والتي يتم جمعها وتخزينها بطريقة تهدف إلى دعم أنشطة مؤسسة أو نظام معين بفعالية وكفاءة.
+                    </p>
+                    <div class="note-box">
+                        <i class="fas fa-info-circle"></i> يمكن اعتبار قاعدة البيانات "مستودعًا" رقميًا للبيانات يُعرف هيكله مرة واحدة (أي يتم تصميمه)، ويمكن بعد ذلك الوصول إليه واستخدامه من قبل مستخدمين متعددين وتطبيقات مختلفة بطريقة منظمة وآمنة.
+                    </div>
+                    <h3 class="inner-sub-topic">المكونات الأساسية لقاعدة البيانات:</h3>
+                    <ul class="no-bullet">
+                        <li><i class="fas fa-table list-icon"></i> <strong>الجداول (Tables):</strong> هي الهياكل الأساسية لتخزين البيانات في قواعد البيانات العلائقية. تُنظم البيانات داخل الجداول في <strong>صفوف (Records/Rows)</strong> تمثل كيانات فردية (مثل عميل واحد أو منتج واحد)، و<strong>أعمدة (Fields/Columns)</strong> تمثل سمات محددة لهذه الكيانات (مثل اسم العميل، سعر المنتج).</li>
+                        <li><i class="fas fa-link list-icon"></i> <strong>العلاقات (Relationships):</strong> هي الروابط المنطقية التي تُنشأ بين الجداول المختلفة داخل قاعدة البيانات. تسمح هذه العلاقات بربط البيانات المترابطة معاً لتحقيق التكامل في البيانات والاستفادة القصوى منها، بدلاً من تكرارها.</li>
+                    </ul>
+                    <div class="example-box">
+                        <i class="fas fa-lightbulb"></i> <strong>مثال تطبيقي: قاعدة بيانات بنك</strong>
+                        <p>تخيل قاعدة بيانات بنك قد تحتوي على الجداول التالية:</p>
+                        <ul>
+                            <li><strong>جدول Customer (العملاء):</strong> يحتوي على معلومات العملاء مثل `CustomerID`, `CustomerName`, `Address`, `PhoneNumber`.</li>
+                            <li><strong>جدول Account (الحسابات):</strong> يحتوي على تفاصيل الحسابات المصرفية مثل `AccountNumber`, `AccountType`, `Balance`.</li>
+                            <li><strong>جدول Transactions (المعاملات):</strong> يسجل كل معاملة مالية مثل `TransactionID`, `AccountNumber`, `Amount`, `TransactionDate`.</li>
+                        </ul>
+                        <p><strong>العلاقة:</strong></p>
+                        <p>يمكن ربط <strong>جدول Account</strong> بـ <strong>جدول Customer</strong> عن طريق استخدام عمود مشترك يسمى المفتاح الخارجي (<strong>Foreign Key</strong>). على سبيل المثال، يمكن إضافة عمود `CustomerID` في جدول `Account`. هذا يضمن أن كل حساب في جدول `Account` مرتبط بشكل صحيح ومحدد بعميل موجود في جدول `Customer`، مما يمنع إنشاء حسابات لعملاء غير موجودين ويحافظ على سلامة البيانات.</p>
+                        
+                    </div>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="db-characteristics">2.2 خصائص قاعدة البيانات (Database Characteristics)</h2>
+                    <p>تتميز قواعد البيانات الحديثة بعدة خصائص أساسية تميزها عن أنظمة الملفات التقليدية، وتساهم في فعاليتها:</p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-globe-americas topic-icon"></i> <strong>تمثيل جوانب من العالم الواقعي (Representation of Real World):</strong>
+                            <p>تحتوي قاعدة البيانات على بيانات تعكس كيانات حقيقية موجودة في العالم الواقعي أو في نظام الأعمال الذي تمثله. هذه الكيانات يمكن أن تكون: <strong>الموظفين</strong>، <strong>المنتجات</strong>، <strong>الطلبات</strong>، <strong>العملاء</strong>، <strong>المعاملات المالية</strong>، <strong>المقررات الدراسية</strong>، إلخ. الهدف هو إنشاء نموذج رقمي دقيق ومتناسق لهذه الكيانات وعلاقاتها.</p>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-network-wired topic-icon"></i> <strong>التنظيم المنطقي والترابط (Logical Organization and Inter-relatedness):</strong>
+                            <p>البيانات داخل قاعدة البيانات مُهيكلة بطريقة منطقية ومترابطة. هذا يعني أن البيانات ليست مجرد مجموعة عشوائية من الحقائق، بل يتم تنظيمها بحيث يمكن استخلاص علاقات ذات معنى بينها. هذا التنظيم يسهل الوصول إليها، إجراء الاستعلامات المعقدة، وإنشاء التقارير الشاملة التي تجمع معلومات من عدة مصادر.</p>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-bullseye topic-icon"></i> <strong>الغرض المحدد (Specific Purpose):</strong>
+                            <p>كل قاعدة بيانات تُصمم وتُبنى لخدمة هدف معين أو مجموعة محددة من الاحتياجات لمؤسسة أو تطبيق معين. على سبيل المثال، قاعدة بيانات لإدارة المبيعات ستختلف عن قاعدة بيانات لإدارة الموارد البشرية أو نظام إدارة المخزون أو العمليات المصرفية. هذا التركيز يضمن أن التصميم يلبي المتطلبات الوظيفية بدقة.</p>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-tag topic-icon"></i> <strong>السمات (Attributes) والقيم (Values):</strong>
+                            <p>كل جزء من المعلومات في قاعدة البيانات هو "قيمة" لـ "سمة" معينة لكيان ما. تُخزن السمات عادةً في <strong>حقل (Field)</strong> أو <strong>عمود (Column)</strong> داخل جدول.
+                            </p>
+                            <div class="example-box">
+                                <i class="fas fa-table"></i> <strong>مثال: جدول الموظفين (Employees)</strong>
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>EmployeeID (معرف الموظف)</th>
+                                            <th>Name (الاسم)</th>
+                                            <th>Department (القسم)</th>
+                                            <th>Salary (الراتب)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>101</td>
+                                            <td>أحمد محمد</td>
+                                            <td>المبيعات</td>
+                                            <td>7000</td>
+                                        </tr>
+                                        <tr>
+                                            <td>102</td>
+                                            <td>ليلى خالد</td>
+                                            <td>التسويق</td>
+                                            <td>8500</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <p>هنا، `EmployeeID` و`Name` و`Salary` هي <strong>سمات</strong> (Attributes)، و`101`, `أحمد محمد`, `7000` هي <strong>قيم</strong> (Values) لتلك السمات.</p>
+                            </div>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-shield-alt topic-icon"></i> <strong>التكامل والاستقلالية (Integration and Independence):</strong>
+                            <p>
+                                تهدف قواعد البيانات إلى <strong>تقليل تكرار البيانات</strong> وضمان <strong>اتساقها (Data Consistency)</strong> من خلال التكامل. كما تضمن <strong>استقلالية البيانات (Data Independence)</strong>، مما يعني أن التغييرات في هيكل البيانات (كيفية تخزينها فيزيائيًا) لا تؤثر على طريقة عرضها للتطبيقات والمستخدمين (الاستقلالية المادية)، والتغييرات في المنطق العام لا تؤثر على التطبيقات (الاستقلالية المنطقية). هذا يسهل صيانة وتطوير الأنظمة.
+                            </p>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="db-users-types">2.3 أنواع مستخدمي قاعدة البيانات (Types of Database Users)</h2>
+                    <p>يتفاعل مع قاعدة البيانات أنواع مختلفة من المستخدمين، لكل منهم دور ووظائف محددة:</p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-users topic-icon"></i> <strong>المستخدمون النهائيون (End Users):</strong>
+                            <p>هم الأشخاص الذين يتفاعلون مع قاعدة البيانات بشكل مباشر أو غير مباشر عبر تطبيقات واجهة المستخدم. يستخدمونها لاستخراج التقارير، إدخال البيانات، أو إجراء عمليات البحث البسيطة. <strong>مثال:</strong> موظفو المبيعات الذين يدخلون طلبات العملاء، أمناء المكتبة الذين يسجلون الكتب المستعارة.</p>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-desktop topic-icon"></i> <strong>مستخدمو التطبيقات (Application Users):</strong>
+                            <p>يستخدمون برامج وتطبيقات تم تصميمها خصيصًا للتفاعل مع قاعدة البيانات. لا يتفاعلون عادةً مع قاعدة البيانات بشكل مباشر بل عبر واجهة التطبيق. <strong>مثال:</strong> مستخدمو نظام الحجز الإلكتروني لشركات الطيران، مستخدمو تطبيق البنك على الهاتف.</p>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-flask topic-icon"></i> <strong>المستخدمون الخبراء (Sophisticated Users):</strong>
+                            <p>لديهم معرفة عميقة بهيكل قاعدة البيانات ولغة الاستعلام (مثل SQL). يكتبون استعلامات معقدة ومخصصة مباشرةً لاستخلاص بيانات محددة لأغراض التحليل أو التقارير. <strong>مثال:</strong> محللو البيانات، الباحثون، العلماء الذين يجرون تحليلات إحصائية.</p>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-code topic-icon"></i> <strong>مبرمجو التطبيقات (Application Programmers):</strong>
+                            <p>هم المطورون الذين يقومون ببناء وتطوير البرامج والتطبيقات التي تتفاعل مع قواعد البيانات. يكتبون التعليمات البرمجية التي تقوم بإدخال، تحديث، حذف، واسترجاع البيانات من قاعدة البيانات. <strong>مثال:</strong> مطورو الويب (Front-end و Back-end)، مطورو تطبيقات الهاتف المحمول.</p>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-user-shield topic-icon"></i> <strong>مسؤولو قواعد البيانات (DBAs – Database Administrators):</strong>
+                            <p>هم المسؤولون الرئيسيون عن إدارة وصيانة قاعدة البيانات بالكامل. تشمل مهامهم: تثبيت وتكوين الـ DBMS، تصميم وهيكلة قاعدة البيانات، منح الصلاحيات للمستخدمين، ضمان أداء قاعدة البيانات، النسخ الاحتياطي والاستعادة، وضمان سلامة وأمان البيانات. <strong>مثال:</strong> متخصص أمن قواعد البيانات، مهندس قواعد البيانات.</p>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="dbms-classification">2.4 نظام إدارة قواعد البيانات (DBMS) وتصنيفاته (DBMS and its Classifications)</h2>
+                    <h3 class="inner-sub-topic">تعريف DBMS:</h3>
+                    <p>
+                        <strong>نظام إدارة قواعد البيانات (Database Management System - DBMS)</strong> هو برنامج معقد يمثل الواجهة بين المستخدم النهائي وقاعدة البيانات. يسمح الـ DBMS بـ:
+                    </p>
+                    <ul class="no-bullet">
+                        <li><i class="fas fa-plus-circle list-icon"></i> <strong>إنشاء (Creation):</strong> تعريف هيكل قاعدة البيانات والجداول والعلاقات.</li>
+                        <li><i class="fas fa-edit list-icon"></i> <strong>إدارة (Management):</strong> تنظيم البيانات، تطبيق قيود السلامة، وتوفير آليات النسخ الاحتياطي والاستعادة.</li>
+                        <li><i class="fas fa-search list-icon"></i> <strong>استرجاع (Retrieval):</strong> تمكين المستخدمين من استعراض واستخلاص البيانات المطلوبة.</li>
+                        <li><i class="fas fa-sync-alt list-icon"></i> <strong>تحديث (Update):</strong> السماح بتعديل وحذف البيانات الموجودة.</li>
+                    </ul>
+                    <div class="example-box">
+                        <i class="fas fa-server"></i> <strong>أمثلة على أنظمة إدارة قواعد البيانات الشهيرة:</strong>
+                        <ul>
+                            <li><strong>MySQL:</strong> نظام علائقي مفتوح المصدر وشائع جداً لتطبيقات الويب.</li>
+                            <li><strong>Oracle Database:</strong> نظام علائقي تجاري قوي يستخدم في المؤسسات الكبيرة.</li>
+                            <li><strong>Microsoft SQL Server:</strong> نظام علائقي من مايكروسوفت، شائع في بيئات ويندوز.</li>
+                            <li><strong>PostgreSQL:</strong> نظام علائقي مفتوح المصدر ومتقدم، معروف بميزاته القوية والامتثال للمعايير.</li>
+                            <li><strong>MongoDB:</strong> نظام NoSQL (غير علائقي) شائع لتخزين البيانات غير المهيكلة أو شبه المهيكلة.</li>
+                        </ul>
+                    </div>
+
+                    <h3 class="inner-sub-topic">تصنيفات DBMS حسب نموذج البيانات (Classification by Data Model):</h3>
+                    <p>تُصنف أنظمة إدارة قواعد البيانات بشكل رئيسي بناءً على نموذج البيانات الذي تستخدمه لتنظيم وتخزين البيانات:</p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-th topic-icon"></i> <strong>الأنظمة العلائقية (Relational DBMS - RDBMS):</strong>
+                            <p>تُعد الأكثر شيوعًا اليوم. تخزن البيانات في جداول (Tables) تتكون من صفوف وأعمدة. تعتمد على العلاقات المنطقية بين الجداول باستخدام المفاتيح الأساسية (Primary Keys) والمفاتيح الخارجية (Foreign Keys). تستخدم لغة SQL للاستعلام والتعامل مع البيانات.
+                            </p>
+                            <div class="note-box">
+                                <i class="fas fa-info-circle"></i> <strong>أمثلة:</strong> MySQL, Oracle, SQL Server, PostgreSQL.
+                            </div>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-tree topic-icon"></i> <strong>الأنظمة الهرمية (Hierarchical DBMS):</strong>
+                            <p>تنظم البيانات على شكل هيكل شجري، حيث تكون هناك علاقة "أب-ابن" (Parent-Child) بين السجلات. كل ابن يمكن أن يكون له أب واحد فقط. تُعتبر أنظمة قديمة ولم تعد شائعة في التطبيقات الحديثة.
+                            </p>
+                            <div class="note-box">
+                                <i class="fas fa-info-circle"></i> <strong>مثال (أنظمة قديمة):</strong> IBM IMS.
+                            </div>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-sitemap topic-icon"></i> <strong>الأنظمة الشبكية (Network DBMS):</strong>
+                            <p>تُعد تطورًا للأنظمة الهرمية، حيث يمكن للسجل الواحد أن يكون له عدة آباء، مما يسمح بعلاقات أكثر تعقيدًا. كانت شائعة في الثمانينيات ولكنها تراجعت أمام الأنظمة العلائقية.
+                            </p>
+                            <div class="note-box">
+                                <i class="fas fa-info-circle"></i> <strong>مثال (أنظمة قديمة):</strong> IDS (Integrated Data Store).
+                            </div>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-box topic-icon"></i> <strong>الأنظمة الكائنية (Object-Oriented DBMS - OODBMS) / NoSQL Databases:</strong>
+                            <p>تخزن البيانات ككائنات (Objects) تشبه الكائنات في لغات البرمجة الموجهة للكائنات. تسمح بتخزين أنواع بيانات أكثر تعقيداً. ظهرت مؤخراً أنواع أخرى تُعرف بـ <strong>NoSQL</strong> التي لا تلتزم بالهيكل العلائقي الصارم، وهي مناسبة للبيانات غير المهيكلة أو شبه المهيكلة والبيئات الموزعة.
+                            </p>
+                            <div class="note-box">
+                                <i class="fas fa-info-circle"></i> <strong>أمثلة:</strong> MongoDB (Document-Oriented), Cassandra (Column-Family), Neo4j (Graph Database), Redis (Key-Value Store).
+                            </div>
+                        </li>
+                    </ul>
+
+                    <h3 class="inner-sub-topic">تصنيف DBMS حسب عدد المستخدمين (Classification by Number of Users):</h3>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-user topic-icon"></i> <strong>أحادي المستخدم (Single-user Database System):</strong>
+                            <p>يسمح لمستخدم واحد فقط بالوصول إلى قاعدة البيانات في أي وقت. شائع في التطبيقات الشخصية أو التطبيقات التي لا تتطلب مشاركة البيانات.
+                            </p>
+                            <div class="note-box">
+                                <i class="fas fa-info-circle"></i> <strong>مثال:</strong> قاعدة بيانات تطبيق الملاحظات على الهاتف، Microsoft Access لمهام صغيرة.
+                            </div>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-users topic-icon"></i> <strong>متعدد المستخدمين (Multi-user Database System):</strong>
+                            <p>يسمح لعدة مستخدمين بالوصول إلى نفس قاعدة البيانات في وقت واحد. هذا النوع ضروري لمعظم تطبيقات الأعمال والمؤسسات.
+                            </p>
+                            <div class="note-box">
+                                <i class="fas fa-info-circle"></i> <strong>مثال:</strong> قواعد بيانات الشركات الكبيرة، أنظمة البنوك، أنظمة التجارة الإلكترونية.
+                            </div>
+                        </li>
+                    </ul>
+
+                    <h3 class="inner-sub-topic">تصنيف DBMS حسب التوزيع (Classification by Distribution):</h3>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-server topic-icon"></i> <strong>مركزي (Centralized Database System):</strong>
+                            <p>يتم تخزين قاعدة البيانات بأكملها وإدارتها في موقع واحد على خادم مركزي. يتم الوصول إليها من قبل المستخدمين من مواقع مختلفة.
+                            </p>
+                            <div class="note-box">
+                                <i class="fas fa-info-circle"></i> <strong>مثال:</strong> قاعدة بيانات صغيرة لشركة محلية مخزنة على خادم واحد.
+                            </div>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-globe topic-icon"></i> <strong>موزع (Distributed Database System):</strong>
+                            <p>يتم توزيع أجزاء من قاعدة البيانات أو نسخ كاملة منها على مواقع جغرافية مختلفة أو على عدة خوادم متصلة بالشبكة. يوفر هذا النوع أداءً أفضل، مرونة أعلى، وتوافرًا (Availability) أكبر للبيانات.
+                            </p>
+                            <div class="note-box">
+                                <i class="fas fa-info-circle"></i> <strong>مثال:</strong> قواعد بيانات سلاسل المتاجر الكبيرة التي لها فروع متعددة، قواعد بيانات الويب العالمية مثل Amazon DynamoDB أو Google Cloud Spanner.
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="key-terms">2.5 مصطلحات أساسية (Key Terms)</h2>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>المصطلح بالإنجليزية</th>
+                                <th>المصطلح بالعربية</th>
+                                <th>التعريف</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Database</strong></td>
+                                <td>قاعدة البيانات</td>
+                                <td>مجموعة منظمة ومنطقية من البيانات المترابطة التي يتم جمعها لدعم نظام معين.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>DBMS</strong></td>
+                                <td>نظام إدارة قواعد البيانات</td>
+                                <td>البرنامج الذي يسمح بإنشاء، إدارة، استرجاع، وتحديث قواعد البيانات.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Table</strong></td>
+                                <td>جدول</td>
+                                <td>هيكل لتخزين البيانات في قواعد البيانات العلائقية، يتكون من صفوف وأعمدة.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Record (Row)</strong></td>
+                                <td>سجل (صف)</td>
+                                <td>مجموعة بيانات كاملة تمثل كيانًا واحدًا داخل الجدول.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Field (Column)</strong></td>
+                                <td>حقل (عمود)</td>
+                                <td>وحدة تخزين بيانات محددة تمثل سمة (Attribute) معينة لكيان ما، مثل: الاسم، العمر، الراتب.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Primary Key (PK)</strong></td>
+                                <td>المفتاح الرئيسي</td>
+                                <td>حقل (أو مجموعة حقول) يُعرف كل سجل (صف) بشكل فريد داخل الجدول، ويجب أن تكون قيمته فريدة وغير فارغة.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Foreign Key (FK)</strong></td>
+                                <td>المفتاح الخارجي</td>
+                                <td>حقل (أو مجموعة حقول) في جدول ما يشير إلى المفتاح الرئيسي في جدول آخر، لإنشاء علاقة بين الجدولين.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Query</strong></td>
+                                <td>استعلام</td>
+                                <td>طلب للحصول على بيانات محددة من قاعدة البيانات، أو لتعديلها، أو لحذفها.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Data Consistency</strong></td>
+                                <td>اتساق البيانات</td>
+                                <td>ضمان أن البيانات عبر قاعدة البيانات دقيقة ومتطابقة وغير متضاربة، خاصة عند وجود نسخ متعددة.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Data Independence</strong></td>
+                                <td>استقلالية البيانات</td>
+                                <td>فصل تعريف البيانات عن كيفية تخزينها فعليًا، مما يسمح بالتغييرات في أحدهما دون التأثير على الآخر.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="practical-examples-links">2.6 أمثلة تطبيقية وروابط توضيحية</h2>
+                    <h3 class="inner-sub-topic">مثال على قاعدة بيانات علائقية (Relational Database):</h3>
+                    <p>لنأخذ مثالاً مبسطاً لعلاقة بين جدولين في قاعدة بيانات علائقية:</p>
+                    <div class="example-box">
+                        <i class="fas fa-project-diagram"></i> <strong>جدول الأقسام (Departments)</strong>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>DepartmentID (PK)</th>
+                                    <th>DepartmentName</th>
+                                    <th>Location</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>1</td><td>المبيعات</td><td>الرياض</td></tr>
+                                <tr><td>2</td><td>التسويق</td><td>جدة</td></tr>
+                            </tbody>
+                        </table>
+                        <i class="fas fa-project-diagram"></i> <strong>جدول الموظفين (Employees)</strong>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>EmployeeID (PK)</th>
+                                    <th>EmployeeName</th>
+                                    <th>DepartmentID (FK)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>101</td><td>أحمد محمد</td><td>1</td></tr>
+                                <tr><td>102</td><td>ليلى خالد</td><td>2</td></tr>
+                                <tr><td>103</td><td>سارة علي</td><td>1</td></tr>
+                            </tbody>
+                        </table>
+                        <p>هنا، عمود <code>DepartmentID</code> في جدول <strong>Employees</strong> هو <strong>مفتاح خارجي (FK)</strong> يشير إلى عمود <code>DepartmentID</code> في جدول <strong>Departments</strong> (وهو مفتاح رئيسي PK في جدول الأقسام). هذا الربط يوضح أن أحمد وسارة يعملان في قسم المبيعات، وليلى في قسم التسويق.</p>
+                        
+                    </div>
+
+                    <h3 class="inner-sub-topic">مثال على قاعدة بيانات كائنية (Object-Oriented Database) أو NoSQL:</h3>
+                    <p>في قاعدة البيانات الكائنية (أو قواعد بيانات NoSQL الوثائقية)، يمكن تخزين الكائنات المعقدة بشكل مباشر دون الحاجة لتقسيمها إلى جداول منفصلة.</p>
+                    <div class="example-box">
+                        <i class="fas fa-book"></i> <strong>نظام إدارة مكتبة إلكترونية:</strong>
+                        <p>يمكن تمثيل كتاب كـ <strong>كائن `Book`</strong> يحتوي على سمات مثل `title`، `author`، `ISBN`، وربما قائمة بكائنات `reviews` (التعليقات) وكائنات `borrowers` (المستعيرين) بشكل متداخل داخل نفس الكائن.</p>
+                        <pre><code>
+{
+  "_id": "book123",
+  "title": "تصميم قواعد البيانات للمبتدئين",
+  "author": "محمد علي",
+  "isbn": "978-1234567890",
+  "genre": "تعليمي",
+  "publicationYear": 2023,
+  "reviews": [
+    { "reviewer": "سارة", "rating": 5, "comment": "كتاب رائع!" },
+    { "reviewer": "فهد", "rating": 4, "comment": "مفيد جداً للمبتدئين." }
+  ],
+  "copiesAvailable": 3,
+  "borrowedBy": [
+    { "userID": "user001", "borrowDate": "2024-01-15" },
+    { "userID": "user005", "borrowDate": "2024-02-01" }
+  ]
+}
+                        </code></pre>
+                        <p>هذا يوضح كيف يمكن أن يحتوي الكائن الواحد على بيانات هيكلية وغير هيكلية في نفس الوقت.</p>
+                    </div>
+
+                    <h3 class="inner-sub-topic">روابط توضيحية إضافية لفهم المفاهيم:</h3>
+                    <ul class="no-bullet">
+                        <li><i class="fab fa-youtube list-icon"></i> <strong>فيديو شرح العلاقات بين الجداول (مثال تقديمي):</strong> <a href="https://www.youtube.com/watch?v=D-w-l0w5h_s" target="_blank" style="color: var(--dark-text); text-decoration: none;">(رابط فيديو توضيحي)</a> - (قد تحتاج للبحث عن فيديو باللغة العربية أو الإنجليزية مناسب لمستوى الدبلوم).</li>
+                        <li><i class="fas fa-chart-pie list-icon"></i> <strong>مخطط ER توضيحي على موقع Lucidchart (مثال عام):</strong> <a href="https://www.lucidchart.com/pages/what-is-an-erd-diagram" target="_blank" style="color: var(--dark-text); text-decoration: none;">(رابط صفحة Lucidchart عن ERD)</a> - يُقدم هذا الرابط شرحًا بصريًا لمخططات الكيان والعلاقة التي ستتعلمها لاحقاً.</li>
+                    </ul>
+                </div>
+
+                <div class="course-card p-5 mb-4">
+                    <h2 class="unit-section-title" id="unit-summary">ملخص الوحدة</h2>
+                    <ul class="no-bullet">
+                        <li><i class="fas fa-star list-icon"></i> <strong>قاعدة البيانات</strong> هي نظام لتخزين البيانات بشكل منظم ومرتب وذو صلة.</li>
+                        <li><i class="fas fa-star list-icon"></i> تتكون قواعد البيانات من <strong>جداول</strong> تحتوي على <strong>سجلات</strong> و<strong>حقول</strong>، وتربطها <strong>علاقات</strong> لضمان التكامل.</li>
+                        <li><i class="fas fa-star list-icon"></i> تتميز قواعد البيانات بتمثيل العالم الواقعي، التنظيم المنطقي، الغرض المحدد، و<strong>التكامل والاستقلالية</strong>.</li>
+                        <li><i class="fas fa-star list-icon"></i> تُصنف <strong>أنظمة إدارة قواعد البيانات (DBMS)</strong> حسب <strong>نموذج البيانات</strong> (علائقية، هرمية، شبكية، كائنية/NoSQL)، <strong>عدد المستخدمين</strong> (أحادي/متعدد)، و<strong>التوزيع</strong> (مركزي/موزع).</li>
+                        <li><i class="fas fa-star list-icon"></i> لكل نوع من <strong>المستخدمين</strong> (النهائيون، التطبيقات، الخبراء، المبرمجون، مسؤولو قواعد البيانات) دور محدد في التفاعل مع قاعدة البيانات.</li>
+                        <li><i class="fas fa-star list-icon"></i> فهم <strong>المصطلحات الأساسية</strong> مثل المفتاح الرئيسي والخارجي والاستعلام أمر ضروري لتصميم وإدارة قواعد البيانات بكفاءة.</li>
+                    </ul>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="exercises">التمارين المقترحة (Suggested Exercises)</h2>
+                    <p>اختبر فهمك لمفاهيم هذه الوحدة بالإجابة على الأسئلة التالية:</p>
+                    <ol>
+                        <li>ما هو التعريف الشامل لقاعدة البيانات؟ وما هي المكونات الأساسية التي تتكون منها؟</li>
+                        <li>اذكر ثلاث خصائص رئيسية لقواعد البيانات الحديثة، واشرح بإيجاز كيف تساهم كل خاصية في فعاليتها.</li>
+                        <li>صمم جدولاً بسيطاً لمخزون المنتجات في متجر إلكتروني. حدد اسم الجدول، ثلاثة حقول رئيسية مع نوع البيانات (نص، رقم، تاريخ)، والمفتاح الرئيسي لهذا الجدول.</li>
+                        <li>قارن بين <strong>المفتاح الرئيسي (Primary Key)</strong> و<strong>المفتاح الخارجي (Foreign Key)</strong> مع تقديم مثال يوضح العلاقة بين جدولين باستخدام هذين المفهومين.</li>
+                        <li>ما هو <strong>نظام إدارة قواعد البيانات (DBMS)</strong>؟ اذكر مثالين لأنظمة DBMS علائقية ومثالين لأنظمة DBMS غير علائقية (NoSQL).</li>
+                        <li>اذكر ثلاثة أنواع مختلفة من <strong>مستخدمي قواعد البيانات</strong>، واشرح الدور الرئيسي لكل نوع في بيئة قاعدة البيانات.</li>
+                    </ol>
+                </div>
+                
+                <!-- أزرار التنقل -->
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="unit-1.html" class="btn unit-nav-btn"><i class="fas fa-arrow-right"></i> الوحدة السابقة</a>
+                    <a href="../../../materials/db-design/unit-2.pdf" target="_blank" class="btn unit-nav-btn"><i class="fas fa-file-pdf"></i> عرض / تحميل مادة الوحدة</a>
+                    <a href="unit-3.html" class="btn unit-nav-btn text-end">الوحدة التالية <i class="fas fa-arrow-left"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- الفوتر -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>مسار الأمن السيبراني</h5>
+                    <p>منصة تعليمية متخصصة في تقديم محتوى أكاديمي وعملي في مجال الأمن السيبراني.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>روابط سريعة</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="../../../index.html" class="text-white">الرئيسية</a></li>
+                        <li><a href="../../index.html" class="text-white">جميع المقررات</a></li>
+                        <li><a href="#" class="text-white">الدعم الفني</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>تواصل معنا</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> info@cyberpath.com</li>
+                        <li><i class="fas fa-phone me-2"></i> 0502161465</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2025 مسار الأمن السيبراني. جميع الحقوق محفوظة.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-linkedin fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-youtube fa-lg"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-github fa-lg"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- تضمين Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></scri
