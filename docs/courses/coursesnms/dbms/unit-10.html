@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الوحدة 10: فهم عملية التوحيد (Normalization) | تصميم قواعد البيانات</title>
+    <!-- تضمين Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- تضمين Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- تضمين خط Tajawal من Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* تعريف المتغيرات لألوان موحدة */
+        :root {
+            --primary-color: #2c3e50; /* لون أزرق داكن/رمادي */
+            --secondary-color: #4CAF50; /* لون أخضر للمقرر الجديد */
+            --accent-color: #e74c3c; /* لون أحمر/برتقالي لـ "تحذير" أو "خطر" */
+            --light-bg: #f8f9fa; /* خلفية فاتحة جدًا للجسم */
+            --dark-text: #2c3e50; /* لون نص داكن */
+            --light-text: #7f8c8d; /* لون نص فاتح (رمادي) */
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--light-bg); /* خلفية فاتحة */
+            color: var(--dark-text); /* لون نص داكن */
+            line-height: 1.8;
+            direction: rtl; /* تأكيد الاتجاه من اليمين لليسار */
+            text-align: right; /* محاذاة النص لليمين افتراضيا */
+        }
+
+        .navbar {
+            background-color: var(--primary-color);
+        }
+        .navbar-brand {
+            color: white !important; /* لون أبيض للشعار في شريط التنقل */
+        }
+        .btn-outline-light {
+            border-color: rgba(255, 255, 255, 0.7) !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .btn-outline-light:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .course-header {
+            background: linear-gradient(135deg, #4CAF50, #8BC34A); /* تدرج أخضر لمقرر قواعد البيانات */
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 1rem 1rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .course-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-right: 4px solid var(--secondary-color); /* شريط جانبي بلون ثانوي أخضر */
+            padding: 2rem; /* تباعد داخلي للبطاقات */
+        }
+
+        .course-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .course-title-section {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .module-icon {
+            width: 50px;
+            height: 50px;
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 1rem;
+            flex-shrink: 0;
+            font-size: 1.25rem;
+        }
+        .sidebar .module-icon { /* تنسيق محدد لأيقونات الشريط الجانبي */
+            width: 40px; /* أصغر قليلاً للشريط الجانبي */
+            height: 40px;
+            font-size: 1rem;
+            margin-left: 10px; /* ضبط الهامش للشريط الجانبي */
+        }
+
+        .progress-container { /* تنسيق شريط التقدم في الشريط الجانبي */
+            height: 25px;
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-bar { /* تنسيق شريط التقدم في الشريط الجانبي */
+            background-color: var(--secondary-color);
+        }
+
+        .accordion-button:not(.collapsed) {
+            background-color: #e6ffe6; /* خلفية زر الأكورديون النشط (أخضر فاتح) */
+            color: var(--primary-color); /* لون نص زر الأكورديون النشط */
+            box-shadow: none;
+        }
+        .accordion-button:not(.collapsed) .module-icon { /* أيقونة زر الأكورديون النشط */
+            background-color: var(--primary-color); /* خلفية داكنة للأيقونة عندما تكون نشطة */
+        }
+        .accordion-button:not(.collapsed)::after {
+            filter: brightness(0) invert(1); /* عكس لون السهم للخلفية الداكنة */
+        }
+
+        .accordion-button {
+            border-radius: 0.5rem !important; /* للحفاظ على حدود مستديرة للأزرار */
+        }
+        .accordion-item {
+            margin-bottom: 0.5rem; /* مسافة بين عناصر الأكورديون */
+            border-radius: 0.75rem;
+            border: 1px solid rgba(0, 0, 0, 0.125); /* حدود للأكورديون */
+            overflow: hidden; /* لمنع تجاوز المحتوى للحواف المستديرة */
+        }
+        .accordion-body ul {
+            padding-right: 0; /* إزالة التباعد الافتراضي لقائمة الروابط الداخلية */
+        }
+        .accordion-body ul li a {
+            padding: 0.25rem 0.5rem;
+            display: block;
+            border-radius: 0.25rem;
+            color: var(--dark-text);
+        }
+        .accordion-body ul li a:hover,
+        .accordion-body ul li a.active-link { /* رابط نشط في الشريط الجانبي */
+            background-color: #e6ffe6;
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+        .accordion-body .btn-primary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .accordion-body .btn-primary:hover {
+            background-color: #388E3C; /* لون أخضر أغمق عند التحويم */
+            border-color: #388E3C;
+        }
+
+        .sidebar { /* تنسيق حاوية الشريط الجانبي */
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            color: var(--dark-text); /* التأكد من قابلية قراءة النص */
+        }
+        .sidebar h4 {
+            color: var(--primary-color); /* لون عنوان الشريط الجانبي */
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* تنسيقات الفوتر */
+        footer {
+            background-color: var(--primary-color) !important;
+            color: white;
+            padding: 2.5rem 0;
+        }
+        footer h5 {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        footer .list-unstyled li a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        footer .list-unstyled li a:hover {
+            color: var(--secondary-color);
+        }
+        footer .fab, footer .fas { /* تطبيق اللون الأبيض على أيقونات الفوتر */
+            color: white;
+            transition: color 0.2s;
+        }
+        footer .fab:hover, footer .fas:hover {
+            color: var(--secondary-color);
+        }
+
+        /* تنسيقات محتوى الوحدة المحددة */
+        h2.unit-section-title { /* للعناوين العامة، أهداف التعلم، إلخ. */
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+        }
+        h3.sub-topic-title { /* لعناوين المواضيع الفرعية مثل "3.1 تعريف أمن التطبيقات" */
+            color: var(--primary-color);
+            border-bottom: 1px dashed var(--light-text);
+            padding-bottom: 0.3rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.75rem;
+        }
+        h4.inner-sub-topic { /* للعناوين الفرعية داخل عناصر OWASP */
+            color: var(--dark-text);
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 1.25rem;
+        }
+        ul {
+            padding-right: 25px; /* ضبط تباعد القائمة الافتراضي */
+        }
+        ul.no-bullet {
+            list-style: none;
+            padding-right: 0;
+        }
+        ul li {
+            margin-bottom: 0.5rem;
+        }
+        .list-icon {
+            margin-left: 10px;
+            color: var(--secondary-color); /* لون الأيقونة الافتراضي */
+        }
+        /* ألوان أيقونات محددة بناءً على نوع المحتوى من أجل الوضوح */
+        .objectives-list .list-icon { color: #28a745; } /* أخضر لعلامات الصح */
+        .methods-list .list-icon { color: #17a2b8; } /* أزرق مخضر/سماوي للطرق */
+        .outcomes-list .list-icon { color: #ffc107; } /* أصفر/برتقالي للنجوم */
+        .topic-icon { /* الأيقونات داخل المواضيع الرئيسية مثل الأدوات/المفاهيم */
+            color: var(--secondary-color);
+            margin-left: 10px;
+        }
+        .alert-info-custom {
+            background-color: #e9ecef; /* خلفية رمادية فاتحة/زرقاء */
+            border-left: 5px solid var(--secondary-color);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        .alert-info-custom i {
+            color: var(--secondary-color);
+            margin-right: 0.5rem;
+        }
+
+        /* تنسيق مربعات الأمثلة/الملاحظات */
+        .example-box, .note-box {
+            background-color: #e9ecef; /* خلفية رمادية فاتحة */
+            border-right: 5px solid var(--secondary-color); /* حدود زرقاء */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        .example-box i, .note-box i {
+            color: var(--secondary-color); /* لون أيقونة أزرق */
+            margin-left: 0.5rem;
+        }
+        .example-box ul, .note-box ul {
+            list-style: none; /* إزالة النقاط الافتراضية */
+            padding-right: 0;
+        }
+        .example-box ul li::before, .note-box ul li::before {
+            content: "\f058"; /* أيقونة Font Awesome check-circle */
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            color: var(--secondary-color);
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+            margin-right: 0.5em;
+        }
+        /* تنسيق الجداول */
+        table {
+            width: 100%;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+            border-collapse: collapse;
+        }
+        table th,
+        table td {
+            padding: 0.75rem;
+            vertical-align: top;
+            border: 1px solid #dee2e6;
+            text-align: right; /* محاذاة النص لليمين لـ RTL */
+        }
+        table thead th {
+            vertical-align: bottom;
+            border-bottom: 2px solid #dee2e6;
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        table tbody + tbody {
+            border-top: 2px solid #dee2e6;
+        }
+
+        /* أزرار التنقل بين الوحدات */
+        .unit-nav-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: bold;
+            transition: background-color 0.2s, transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+        }
+        .unit-nav-btn:hover {
+            background-color: #388E3C; /* لون أخضر أغمق عند التحويم */
+            color: white;
+            transform: translateY(-2px);
+        }
+        .unit-nav-btn .fa-arrow-left { /* سهم يسار لزر "الوحدة التالية" */
+            margin-right: 0;
+            margin-left: 8px;
+        }
+        .unit-nav-btn .fa-arrow-right { /* سهم يمين لزر "العودة للفهرس" أو "الوحدة السابقة" */
+            margin-right: 8px;
+            margin-left: 0;
+        }
+
+        /* تنسيق كتل الكود */
+        pre {
+            background-color: #e9ecef;
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto; /* تمكين التمرير الأفقي للأسطر الطويلة */
+            direction: ltr; /* التأكد من أن اتجاه الكود هو LTR */
+            text-align: left; /* التأكد من أن محاذاة النص هي لليسار للكود */
+        }
+        code {
+            font-family: 'Consolas', 'Monaco', 'Lucida Console', monospace;
+            font-size: 0.9rem;
+            color: var(--dark-text);
+        }
+        pre code {
+            display: block; /* التأكد من أن كتلة الكود تأخذ عرضًا كاملاً */
+        }
+
+
+        /* تعديلات الاستجابة */
+        @media (max-width: 991px) { /* نقطة توقف تتوافق مع col-lg- */
+            .sidebar {
+                margin-top: 1rem;
+                margin-bottom: 1rem; /* إضافة هامش لتحسين التباعد على الشاشات الأصغر */
+            }
+            .course-header {
+                padding: 2rem 0;
+            }
+            .course-card {
+                padding: 1.5rem;
+            }
+            h1.display-4 {
+                font-size: 2.2rem;
+            }
+            h2.unit-section-title {
+                font-size: 1.75rem;
+            }
+            h3.sub-topic-title {
+                font-size: 1.5rem;
+            }
+            .unit-nav-btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+            .d-flex.justify-content-between.mt-4 {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <!-- شريط التنقل العلوي -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--primary-color);">
+        <div class="container">
+            <a class="navbar-brand" href="../../../index.html">مسار الأمن السيبراني</a>
+            <a href="../index.html" class="btn btn-outline-light">العودة إلى المقررات</a>
+        </div>
+    </nav>
+
+    <!-- رأس الوحدة -->
+    <header class="course-header text-center">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-3">الوحدة 10: فهم عملية التوحيد (Normalization)</h1>
+            <p class="lead">تهدف هذه الوحدة إلى شرح مفهوم التوحيد (Normalization) في قواعد البيانات العلائقية، وكيفية استخدامه لتقليل التكرار، منع حالات الشذوذ، وتحسين سلامة البيانات.</p>
+        </div>
+    </header>
+
+    <div class="container-fluid py-5">
+        <div class="row">
+            <!-- الشريط الجانبي لتنقل الوحدات -->
+            <div class="col-lg-3">
+                <div class="sidebar p-4">
+                    <h4 class="mb-3">
+                        <i class="fas fa-stream me-2"></i>
+                        وحدات المقرر
+                    </h4>
+                    <div class="progress progress-container mb-4">
+                        <div class="progress-bar" role="progressbar" style="width: 71.42%;" aria-valuenow="71.42" aria-valuemin="0" aria-valuemax="100">71% مكتمل</div>
+                    </div>
+                    <div class="accordion" id="unitsAccordion">
+                        <!-- الوحدة التمهيدية -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingIntro">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseIntro" aria-expanded="false" aria-controls="collapseIntro">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-book-open"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">تمهيد – مقدمة إلى تصميم قواعد البيانات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseIntro" class="accordion-collapse collapse" aria-labelledby="headingIntro" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>مقدمة شاملة عن مجال قواعد البيانات، أهميتها، ومكوناتها الأساسية.</p>
+                                    <a href="index.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 1 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit1">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit1" aria-expanded="false" aria-controls="collapseUnit1">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-history"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 1: ما قبل ظهور أنظمة قواعد البيانات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit1" class="accordion-collapse collapse" aria-labelledby="headingUnit1" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>استعراض تاريخي للنظام القائم على الملفات وعيوبه، تمهيدًا لظهور قواعد البيانات.</p>
+                                    <a href="unit-1.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 2 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit2">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit2" aria-expanded="false" aria-controls="collapseUnit2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-lightbulb"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 2: مفاهيم قواعد البيانات الأساسية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit2" class="accordion-collapse collapse" aria-labelledby="headingUnit2" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>تعريف قاعدة البيانات، خصائصها، أنواع مستخدميها، وأنظمة إدارة قواعد البيانات (DBMS).</p>
+                                    <a href="unit-2.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 3 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit3">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit3" aria-expanded="false" aria-controls="collapseUnit3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-cogs"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 3: خصائص قواعد البيانات والمزايا التي تقدمها</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit3" class="accordion-collapse collapse" aria-labelledby="headingUnit3" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>استكشاف الخصائص المتقدمة لقواعد البيانات وكيف تدعم واجهات عرض متعددة للبيانات.</p>
+                                    <a href="unit-3.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 4 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit4">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit4" aria-expanded="false" aria-controls="collapseUnit4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-sitemap"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 4: نمذجة البيانات وأنواعها</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit4" class="accordion-collapse collapse" aria-labelledby="headingUnit4" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>تعريف بنماذج البيانات، مستويات التجريد، وتخطيطات قواعد البيانات (Schemas).</p>
+                                    <a href="unit-4.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 5 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit5">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit5" aria-expanded="false" aria-controls="collapseUnit5">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-table"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 5: نموذج البيانات العلائقية (RDM)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit5" class="accordion-collapse collapse" aria-labelledby="headingUnit5" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>المفاهيم الأساسية للنموذج العلائقي، خصائص الجداول، وتمثيل البيانات.</p>
+                                    <a href="unit-5.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 6 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit6">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit6" aria-expanded="false" aria-controls="collapseUnit6">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-project-diagram"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 6: نموذج الكيان والعلاقة (ER)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit6" class="accordion-collapse collapse" aria-labelledby="headingUnit6" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>فهم الكيانات، العلاقات، السمات، والمفاتيح في نمذجة ER.</p>
+                                    <a href="unit-6.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 7 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit7">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit7" aria-expanded="false" aria-controls="collapseUnit7">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-gavel"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 7: قواعد السلامة وقيودها لضمان سلامة البيانات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit7" class="accordion-collapse collapse" aria-labelledby="headingUnit7" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>تعلم عن سلامة النطاق، قيود المؤسسة، وقواعد العمل لضمان جودة البيانات.</p>
+                                    <a href="unit-7.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 8 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit8">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit8" aria-expanded="false" aria-controls="collapseUnit8">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-pencil-ruler"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 8: نمذجة الكيان العلاقي عند تصميم قواعد البيانات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit8" class="accordion-collapse collapse" aria-labelledby="headingUnit8" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>التصميم العلاقي وتجنب الحالات الشاذة مثل حالات الإدخال والتحديث والحذف الشاذة.</p>
+                                    <a href="unit-8.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 9 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit9">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit9" aria-expanded="false" aria-controls="collapseUnit9">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-link"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 9: الاعتماديات الوظيفية (Functional Dependencies)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit9" class="accordion-collapse collapse" aria-labelledby="headingUnit9" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>قواعد الاعتماديات الوظيفية وقواعد الاستدلال ومخططات الاعتمادية.</p>
+                                    <a href="unit-9.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 10 (الوحدة النشطة) -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit10">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit10" aria-expanded="true" aria-controls="collapseUnit10">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-compress-arrows-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 10: فهم عملية التوحيد (Normalization)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit10" class="accordion-collapse collapse show" aria-labelledby="headingUnit10" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="#unit-objective" class="text-decoration-none active-link">الهدف من الوحدة</a></li>
+                                        <li><a href="#what-is-normalization" class="text-decoration-none">10.1 ما هو التوحيد (Normalization)؟</a></li>
+                                        <li><a href="#normal-forms" class="text-decoration-none">10.2 النماذج الموحدة (Normal Forms)</a></li>
+                                        <li><a href="#first-normal-form" class="text-decoration-none">10.3 النموذج الموحد الأول (1NF)</a></li>
+                                        <li><a href="#second-normal-form" class="text-decoration-none">10.4 النموذج الموحد الثاني (2NF)</a></li>
+                                        <li><a href="#third-normal-form" class="text-decoration-none">10.5 النموذج الموحد الثالث (3NF)</a></li>
+                                        <li><a href="#boyce-codd-normal-form" class="text-decoration-none">10.6 نموذج بويس-كود الموحَّد (BCNF)</a></li>
+                                        <li><a href="#normalization-and-db-design" class="text-decoration-none">10.7 التوحيد وتصميم قواعد البيانات</a></li>
+                                        <li><a href="#key-terms" class="text-decoration-none">10.8 المصطلحات الأساسية والاختصارات</a></li>
+                                        <li><a href="#suggested-exercises" class="text-decoration-none">10.9 تمارين مقترحة</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 11 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit11">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit11" aria-expanded="false" aria-controls="collapseUnit11">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-code-branch"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 11: عملية تطوير قواعد البيانات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit11" class="accordion-collapse collapse" aria-labelledby="headingUnit11" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>دورة حياة تطوير قواعد البيانات (Database Life Cycle)، وخطوات جمع المتطلبات والتصميم والتطبيق.</p>
+                                    <a href="unit-11.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 12 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit12">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit12" aria-expanded="false" aria-controls="collapseUnit12">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-file-code"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 12: لغة الاستعلامات الهيكلية (SQL)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit12" class="accordion-collapse collapse" aria-labelledby="headingUnit12" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>الأساسيات لإنشاء قواعد البيانات والجداول وقيودها باستخدام لغة DDL في SQL.</p>
+                                    <a href="unit-12.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 13 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit13">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThirteen" aria-expanded="false" aria-controls="collapseThirteen">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-edit"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 13: لغة معالجة البيانات (DML)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseThirteen" class="accordion-collapse collapse" aria-labelledby="headingUnit13" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>تعلم كيفية استعلام، إدخال، تحديث، وحذف البيانات باستخدام تعليمات DML، والدوال المدمجة، وضم الجداول.</p>
+                                    <a href="unit-13.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 14 (الملحقات العملية) -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit14">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit14" aria-expanded="false" aria-controls="collapseUnit14">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-award"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 14: الملحقات العملية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit14" class="accordion-collapse collapse" aria-labelledby="headingUnit14" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>ملحق يضم أمثلة عملية وتطبيقات لتصميم قواعد البيانات وحلول لتمارين SQL.</p>
+                                    <a href="unit-summary.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- منطقة المحتوى الرئيسية -->
+            <div class="col-lg-9">
+                <div class="course-card p-5 mb-4">
+                    <h2 class="unit-section-title" id="unit-objective">الهدف من الوحدة</h2>
+                    <p>
+                        تهدف هذه الوحدة إلى شرح مفهوم <strong>التوحيد (Normalization)</strong> في قواعد البيانات العلائقية، وكيفية استخدامه لتقليل التكرار، منع حالات الشذوذ، وتحسين سلامة البيانات.
+                    </p>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="what-is-normalization">10.1 ما هو التوحيد (Normalization)؟</h2>
+                    <p>
+                        <strong>التوحيد (Normalization)</strong> هو عملية أساسية في تصميم قواعد البيانات العلائقية. تُعتبر أداة منهجية لتقليل التكرار وتحسين سلامة البيانات.
+                    </p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-balance-scale topic-icon"></i> <strong>تعريف:</strong>
+                            <p>
+                                التوحيد هو عملية تنظيم الجداول (العلاقات) في قاعدة البيانات لتقليل <strong>التكرار (Redundancy)</strong> ومنع <strong>التناقضات (Inconsistencies)</strong> وحالات <strong>الشذوذ (Anomalies)</strong> التي تحدث عند إدخال أو تحديث أو حذف البيانات.
+                            </p>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-bullseye topic-icon"></i> <strong>الغرض من التوحيد:</strong>
+                            <ul class="no-bullet">
+                                <li><i class="fas fa-minus-circle list-icon"></i> <strong>إزالة الاعتماديات الجزئية والانتقالية:</strong> التي تسبب التكرار والمشاكل في التصميم.</li>
+                                <li><i class="fas fa-shield-alt list-icon"></i> <strong>تحسين سلامة البيانات (Data Integrity):</strong> بضمان أن البيانات دقيقة ومتسقة.</li>
+                                <li><i class="fas fa-tools list-icon"></i> <strong>تسهيل الصيانة والتعديل:</strong> حيث أن التغيير في معلومة واحدة لا يتطلب تحديثها في أماكن متعددة.</li>
+                                <li><i class="fas fa-save list-icon"></i> <strong>تقليل مساحة التخزين:</strong> من خلال تجنب تكرار البيانات.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <div class="note-box">
+                        <i class="fas fa-lightbulb"></i> <strong>مفهوم أساسي:</strong>
+                        <p>يتم تحقيق التوحيد من خلال تحويل الجداول إلى أشكال طبيعية (Normal Forms) مختلفة، كل شكل منها يتبع مجموعة محددة من القواعد بناءً على <strong>الاعتماديات الوظيفية</strong> التي تعلمناها في الوحدة السابقة.</p>
+                    </div>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="normal-forms">10.2 النماذج الموحدة (Normal Forms)</h2>
+                    <p>
+                        النماذج الموحدة (Normal Forms) هي مجموعة من الإرشادات أو الشروط التي يجب أن تستوفيها الجداول لتقييم مدى توحيدها. كل شكل طبيعي يمثل مستوى أعلى من التنظيم ويُقلل من التكرار وحالات الشذوذ بشكل أكبر.
+                    </p>
+                    <p>فيما يلي أبرز النماذج الموحدة التي تُطبق بشكل شائع:</p>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="first-normal-form">10.3 النموذج الموحد الأول (1NF – First Normal Form)</h2>
+                    <p>
+                        هو المستوى الأساسي للتطبيع. يجب أن يفي كل جدول في قاعدة البيانات بهذا الشكل الطبيعي ليعتبر "علائقياً" بالمعنى الحقيقي.
+                    </p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-list-ol topic-icon"></i> <strong>الشرط:</strong>
+                            <ul class="no-bullet">
+                                <li><i class="fas fa-check list-icon"></i> <strong>الذرية (Atomicity):</strong> كل حقل (خلية) يجب أن يحتوي على <strong>قيمة واحدة فقط</strong>، وليس مجموعة من القيم أو قيم متعددة.</li>
+                                <li><i class="fas fa-check list-icon"></i> <strong>فرادة الصفوف (Unique Rows):</strong> كل صف في الجدول يجب أن يكون فريدًا، مما يعني وجود مفتاح أساسي (Primary Key) يُعرف كل صف بشكل فريد.</li>
+                                <li><i class="fas fa-check list-icon"></i> <strong>نفس النوع (Same Type):</strong> يجب أن تكون جميع القيم في عمود معين من نفس النوع.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <div class="example-box">
+                        <i class="fas fa-times-circle"></i> <strong>مثال: جدول غير 1NF (قبل التطبيق)</strong>
+                        <table class="table table-bordered text-center">
+                            <thead>
+                                <tr>
+                                    <th><code>StudentID</code></th>
+                                    <th><code>Name</code></th>
+                                    <th><code>Courses</code></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>1</code></td>
+                                    <td>علي</td>
+                                    <td>رياضيات، فيزياء</td>
+                                </tr>
+                                <tr>
+                                    <td><code>2</code></td>
+                                    <td>سارة</td>
+                                    <td>كيمياء</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p>المشكلة هنا هي أن الحقل <code>Courses</code> يحتوي على قيم متعددة ("رياضيات، فيزياء") في صف واحد.</p>
+                        <i class="fas fa-check-circle"></i> <strong>بعد تطبيق 1NF:</strong>
+                        <p>لتطبيع هذا الجدول إلى 1NF، نقوم بتفكيك القيم المتعددة إلى صفوف منفصلة، مع تكرار بيانات الطالب لكل مقرر:</p>
+                        <table class="table table-bordered text-center">
+                            <thead>
+                                <tr>
+                                    <th><code>StudentID</code></th>
+                                    <th><code>Name</code></th>
+                                    <th><code>Course</code></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>1</code></td>
+                                    <td>علي</td>
+                                    <td>رياضيات</td>
+                                </tr>
+                                <tr>
+                                    <td><code>1</code></td>
+                                    <td>علي</td>
+                                    <td>فيزياء</td>
+                                </tr>
+                                <tr>
+                                    <td><code>2</code></td>
+                                    <td>سارة</td>
+                                    <td>كيمياء</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p>الآن، كل حقل يحتوي على قيمة واحدة. المفتاح الأساسي للجدول الجديد سيكون المفتاح المركب <code>(StudentID, Course)</code>.</p>
+                    </div>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="second-normal-form">10.4 النموذج الموحد الثاني (2NF – Second Normal Form)</h2>
+                    <p>
+                        يُعالج 2NF مشاكل الاعتماديات الجزئية (Partial Dependencies) التي تحدث عندما تعتمد سمات غير رئيسية على جزء فقط من المفتاح الرئيسي المركب.
+                    </p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-list-ol topic-icon"></i> <strong>الشرط:</strong>
+                            <ul class="no-bullet">
+                                <li><i class="fas fa-check list-icon"></i> يجب أن يكون الجدول في <strong>1NF</strong>.</li>
+                                <li><i class="fas fa-check list-icon"></i> <strong>لا وجود لاعتمادية جزئية:</strong> يجب ألا تعتمد أي سمة غير مفتاحية على جزء فقط من المفتاح الرئيسي المركب. يجب أن تعتمد على المفتاح الرئيسي بالكامل.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <div class="example-box">
+                        <i class="fas fa-times-circle"></i> <strong>مثال: جدول غير 2NF (قبل التطبيق)</strong>
+                        <p>تخيل جدول <code>Student_Course_Info</code> لتسجيل الطلاب في المقررات، مع معلومات إضافية عن الطالب والمقرر:</p>
+                        <table class="table table-bordered text-center">
+                            <thead>
+                                <tr>
+                                    <th><code>StudentID</code></th>
+                                    <th><code>CourseID</code></th>
+                                    <th><code>StudentName</code></th>
+                                    <th><code>CourseName</code></th>
+                                    <th><code>Instructor</code></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>101</code></td>
+                                    <td><code>CS101</code></td>
+                                    <td>أحمد</td>
+                                    <td>مقدمة في البرمجة</td>
+                                    <td>د. سعيد</td>
+                                </tr>
+                                <tr>
+                                    <td><code>102</code></td>
+                                    <td><code>DB201</code></td>
+                                    <td>سارة</td>
+                                    <td>قواعد البيانات</td>
+                                    <td>د. ليلى</td>
+                                </tr>
+                                <tr>
+                                    <td><code>101</code></td>
+                                    <td><code>MA101</code></td>
+                                    <td>أحمد</td>
+                                    <td>حساب التفاضل</td>
+                                    <td>د. نورا</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p>المفتاح الرئيسي المركب هو <code>(StudentID, CourseID)</code>.</p>
+                        <p><strong>المشكلة هنا:</strong></p>
+                        <ul class="no-bullet">
+                            <li><code>StudentName</code> يعتمد فقط على <code>StudentID</code> (جزء من المفتاح المركب).</li>
+                            <li><code>CourseName</code> و<code>Instructor</code> يعتمدان فقط على <code>CourseID</code> (جزء آخر من المفتاح المركب).</li>
+                            <li>هذه هي <strong>اعتماديات جزئية</strong>.</li>
+                        </ul>
+                        <i class="fas fa-check-circle"></i> <strong>بعد تطبيق 2NF:</strong>
+                        <p>لفصل الاعتماديات الجزئية، نقوم بتقسيم الجدول إلى جداول منفصلة:</p>
+                        <h4 class="inner-sub-topic">جدول الطلاب (<code>Students</code>):</h4>
+                        <table class="table table-bordered text-center">
+                            <thead>
+                                <tr>
+                                    <th><code>StudentID</code> (PK)</th>
+                                    <th><code>StudentName</code></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td><code>101</code></td><td>أحمد</td></tr>
+                                <tr><td><code>102</code></td><td>سارة</td></tr>
+                            </tbody>
+                        </table>
+                        <h4 class="inner-sub-topic">جدول المقررات (<code>Courses</code>):</h4>
+                        <table class="table table-bordered text-center">
+                            <thead>
+                                <tr>
+                                    <th><code>CourseID</code> (PK)</th>
+                                    <th><code>CourseName</code></th>
+                                    <th><code>Instructor</code></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td><code>CS101</code></td><td>مقدمة في البرمجة</td><td>د. سعيد</td></tr>
+                                <tr><td><code>DB201</code></td><td>قواعد البيانات</td><td>د. ليلى</td></tr>
+                                <tr><td><code>MA101</code></td><td>حساب التفاضل</td><td>د. نورا</td></tr>
+                            </tbody>
+                        </table>
+                        <h4 class="inner-sub-topic">جدول التسجيل (<code>Enrollment</code>) (الجدول الوسيط):</h4>
+                        <table class="table table-bordered text-center">
+                            <thead>
+                                <tr>
+                                    <th><code>StudentID</code> (FK)</th>
+                                    <th><code>CourseID</code> (FK)</th>
+                                    <th>(PK المركب)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td><code>101</code></td><td><code>CS101</code></td><td></td></tr>
+                                <tr><td><code>102</code></td><td><code>DB201</code></td><td></td></tr>
+                                <tr><td><code>101</code></td><td><code>MA101</code></td><td></td></tr>
+                            </tbody>
+                        </table>
+                        <p>الآن، جميع السمات غير الرئيسية (لا توجد هنا في جدول Enrollment) تعتمد بشكل كامل على المفتاح الرئيسي المركب <code>(StudentID, CourseID)</code>.</p>
+                        <pre><code class="language-sql">
+-- إنشاء جدول الطلاب
+CREATE TABLE Students (
+    StudentID INT PRIMARY KEY,
+    StudentName VARCHAR(100) NOT NULL
+);
+
+-- إنشاء جدول المقررات
+CREATE TABLE Courses (
+    CourseID VARCHAR(10) PRIMARY KEY,
+    CourseName VARCHAR(100) NOT NULL,
+    Instructor VARCHAR(100)
+);
+
+-- إنشاء جدول التسجيل (للعلاقة M:N بين الطلاب والمقررات)
+CREATE TABLE Enrollment (
+    StudentID INT,
+    CourseID VARCHAR(10),
+    PRIMARY KEY (StudentID, CourseID), -- مفتاح رئيسي مركب
+    FOREIGN KEY (StudentID) REFERENCES Students(StudentID),
+    FOREIGN KEY (CourseID) REFERENCES Courses(CourseID)
+);
+                        </code></pre>
+                    </div>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="third-normal-form">10.5 النموذج الموحد الثالث (3NF – Third Normal Form)</h2>
+                    <p>
+                        يُعالج 3NF مشاكل الاعتماديات الانتقالية (Transitive Dependencies) التي تحدث عندما تعتمد سمة غير رئيسية على سمة غير رئيسية أخرى.
+                    </p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-list-ol topic-icon"></i> <strong>الشرط:</strong>
+                            <ul class="no-bullet">
+                                <li><i class="fas fa-check list-icon"></i> يجب أن يكون الجدول في <strong>2NF</strong>.</li>
+                                <li><i class="fas fa-check list-icon"></i> <strong>لا وجود لاعتمادية انتقالية:</strong> يجب ألا تعتمد أي سمة غير مفتاحية على سمة أخرى غير مفتاحية. (أي أن السمات غير الرئيسية تعتمد مباشرة فقط على المفتاح الرئيسي).</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <div class="example-box">
+                        <i class="fas fa-times-circle"></i> <strong>مثال: جدول غير 3NF (قبل التطبيق)</strong>
+                        <p>تخيل جدول <code>Employees_Departments</code>:</p>
+                        <table class="table table-bordered text-center">
+                            <thead>
+                                <tr>
+                                    <th><code>EmployeeID</code></th>
+                                    <th><code>EmployeeName</code></th>
+                                    <th><code>DepartmentID</code></th>
+                                    <th><code>DepartmentName</code></th>
+                                    <th><code>DepartmentLocation</code></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>101</code></td>
+                                    <td>علي</td>
+                                    <td><code>D01</code></td>
+                                    <td>الموارد البشرية</td>
+                                    <td>الرياض</td>
+                                </tr>
+                                <tr>
+                                    <td><code>102</code></td>
+                                    <td>سارة</td>
+                                    <td><code>D02</code></td>
+                                    <td>التسويق</td>
+                                    <td>جدة</td>
+                                </tr>
+                                <tr>
+                                    <td><code>103</code></td>
+                                    <td>فهد</td>
+                                    <td><code>D01</code></td>
+                                    <td>الموارد البشرية</td>
+                                    <td>الرياض</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p>المفتاح الرئيسي هو <code>EmployeeID</code>.</p>
+                        <p><strong>المشكلة هنا:</strong></p>
+                        <ul class="no-bullet">
+                            <li><code>EmployeeID</code> $\rightarrow$ <code>DepartmentID</code></li>
+                            <li><code>DepartmentID</code> $\rightarrow$ <code>DepartmentName</code> و <code>DepartmentID</code> $\rightarrow$ <code>DepartmentLocation</code></li>
+                            <li>هذا يعني أن <code>EmployeeID</code> $\rightarrow$ <code>DepartmentName</code> و <code>EmployeeID</code> $\rightarrow$ <code>DepartmentLocation</code> بشكل انتقالي عبر <code>DepartmentID</code>.</li>
+                            <li><code>DepartmentName</code> و<code>DepartmentLocation</code> يعتمدان على <code>DepartmentID</code>، و<code>DepartmentID</code> ليست المفتاح الرئيسي للجدول.</li>
+                            <li>هذه هي <strong>اعتماديات انتقالية</strong>.</li>
+                        </ul>
+                        <i class="fas fa-check-circle"></i> <strong>بعد تطبيق 3NF:</strong>
+                        <p>لفصل الاعتماديات الانتقالية، نقوم بتقسيم الجدول إلى جداول منفصلة:</p>
+                        <h4 class="inner-sub-topic">جدول الموظفين (<code>Employees</code>):</h4>
+                        <table class="table table-bordered text-center">
+                            <thead>
+                                <tr>
+                                    <th><code>EmployeeID</code> (PK)</th>
+                                    <th><code>EmployeeName</code></th>
+                                    <th><code>DepartmentID</code> (FK)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td><code>101</code></td><td>علي</td><td><code>D01</code></td></tr>
+                                <tr><td><code>102</code></td><td>سارة</td><td><code>D02</code></td></tr>
+                                <tr><td><code>103</code></td><td>فهد</td><td><code>D01</code></td></tr>
+                            </tbody>
+                        </table>
+                        <h4 class="inner-sub-topic">جدول الأقسام (<code>Departments</code>):</h4>
+                        <table class="table table-bordered text-center">
+                            <thead>
+                                <tr>
+                                    <th><code>DepartmentID</code> (PK)</th>
+                                    <th><code>DepartmentName</code></th>
+                                    <th><code>DepartmentLocation</code></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td><code>D01</code></td><td>الموارد البشرية</td><td>الرياض</td></tr>
+                                <tr><td><code>D02</code></td><td>التسويق</td><td>جدة</td></tr>
+                            </tbody>
+                        </table>
+                        <p>الآن، كل سمة غير رئيسية في جدول <code>Employees</code> (مثل <code>EmployeeName</code>) تعتمد مباشرة على المفتاح الرئيسي <code>EmployeeID</code>. ومعلومات القسم موجودة في جدول منفصل.</p>
+                        <pre><code class="language-sql">
+-- إنشاء جدول الأقسام
+CREATE TABLE Departments (
+    DepartmentID VARCHAR(10) PRIMARY KEY,
+    DepartmentName VARCHAR(100) NOT NULL,
+    DepartmentLocation VARCHAR(100)
+);
+
+-- إنشاء جدول الموظفين
+CREATE TABLE Employees (
+    EmployeeID INT PRIMARY KEY,
+    EmployeeName VARCHAR(100) NOT NULL,
+    DepartmentID VARCHAR(10),
+    FOREIGN KEY (DepartmentID) REFERENCES Departments(DepartmentID)
+);
+                        </code></pre>
+                    </div>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="boyce-codd-normal-form">10.6 نموذج بويس-كود الموحَّد (BCNF – Boyce-Codd Normal Form)</h2>
+                    <p>
+                        يُعتبر BCNF شكلاً طبيعيًا أكثر صرامة من 3NF، ويُعالج بعض الحالات الخاصة التي قد تسبب مشاكل في 3NF، خاصة عندما يكون هناك تداخل بين المفاتيح المحتملة (Candidate Keys).
+                    </p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-list-ol topic-icon"></i> <strong>الشرط:</strong>
+                            <ul class="no-bullet">
+                                <li><i class="fas fa-check list-icon"></i> يجب أن يكون الجدول في <strong>3NF</strong>.</li>
+                                <li><i class="fas fa-check list-icon"></i> <strong>لكل اعتماد وظيفي غير بديهي</strong> ($X \rightarrow Y$) في الجدول، يجب أن يكون <strong><code>X</code> مفتاحًا فائقًا (Super Key)</strong>. المفتاح الفائق هو أي مجموعة من السمات التي تُحدد بشكل فريد كل صف في الجدول (بما في ذلك المفتاح الرئيسي).</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <h4 class="inner-sub-topic">أهمية BCNF:</h4>
+                    <ul class="no-bullet">
+                        <li><i class="fas fa-flask list-icon"></i> <strong>حل الحالات المعقدة:</strong> يُعالج حالات الشذوذ التي لا يغطيها 3NF بشكل كامل، خاصة عندما يحتوي الجدول على مفتاحين أو أكثر متداخلين.</li>
+                        <li><i class="fas fa-check-double list-icon"></i> <strong>أقصى درجات التطبيع:</strong> يضمن BCNF أن كل اعتماد وظيفي يعتمد فقط على مفتاح فائق، مما يُقلل التكرار إلى أقصى حد ممكن.</li>
+                    </ul>
+                    <div class="example-box">
+                        <i class="fas fa-user-tie"></i> <strong>مثال: جدول <code>Course_Instructor_Student</code></strong>
+                        <p>تخيل جدولاً يسجل المقررات، المدرسين الذين يدرسونها، والطلاب المسجلين. (هذا مثال كلاسيكي يُستخدم لشرح BCNF)</p>
+                        <table class="table table-bordered text-center">
+                            <thead>
+                                <tr>
+                                    <th><code>StudentID</code></th>
+                                    <th><code>Course</code></th>
+                                    <th><code>Instructor</code></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>1</td><td>قواعد بيانات</td><td>أحمد</td></tr>
+                                <tr><td>2</td><td>قواعد بيانات</td><td>أحمد</td></tr>
+                                <tr><td>3</td><td>ذكاء اصطناعي</td><td>سارة</td></tr>
+                                <tr><td>1</td><td>ذكاء اصطناعي</td><td>سارة</td></tr>
+                            </tbody>
+                        </table>
+                        <p><strong>الاعتماديات المفترضة:</strong></p>
+                        <ul class="no-bullet">
+                            <li><code>(StudentID, Course)</code> $\rightarrow$ <code>Instructor</code> (الجمع بين الطالب والمقرر يحدد المدرس – لأن الطالب يسجل في مقرر، والمقرر يدرسه مدرس واحد). هذا هو المفتاح الرئيسي.</li>
+                            <li><code>Instructor</code> $\rightarrow$ <code>Course</code> (كل مدرس يدرس مقررًا واحدًا فقط). <strong>هذه هي المشكلة:</strong> <code>Instructor</code> ليس مفتاحًا فائقًا، لكنه يحدد <code>Course</code>.</li>
+                        </ul>
+                        <p>الجدول في 3NF (لا توجد اعتماديات جزئية أو انتقالية بالنسبة للمفتاح الرئيسي المركب). لكنه ليس في BCNF لأن <code>Instructor</code> (المُحدِّد) ليس مفتاحًا فائقًا.</p>
+                        <i class="fas fa-check-circle"></i> <strong>بعد تطبيق BCNF:</strong>
+                        <p>نفصل الجدول إلى جدولين:</p>
+                        <h4 class="inner-sub-topic">جدول <code>Enrollment</code> (التسجيل):</h4>
+                        <table class="table table-bordered text-center">
+                            <thead>
+                                <tr>
+                                    <th><code>StudentID</code> (PK جزء)</th>
+                                    <th><code>Course</code> (PK جزء)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>1</td><td>قواعد بيانات</td></tr>
+                                <tr><td>2</td><td>قواعد بيانات</td></tr>
+                                <tr><td>3</td><td>ذكاء اصطناعي</td></tr>
+                                <tr><td>1</td><td>ذكاء اصطناعي</td></tr>
+                            </tbody>
+                        </table>
+                        <h4 class="inner-sub-topic">جدول <code>Course_Taught_By</code> (المقررات التي يدرسها المدرسون):</h4>
+                        <table class="table table-bordered text-center">
+                            <thead>
+                                <tr>
+                                    <th><code>Instructor</code> (PK)</th>
+                                    <th><code>Course</code></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>أحمد</td><td>قواعد بيانات</td></tr>
+                                <tr><td>سارة</td><td>ذكاء اصطناعي</td></tr>
+                            </tbody>
+                        </table>
+                        <p>الآن، كل الاعتماديات في كلا الجدولين تعتمد على مفتاح فائق. في جدول <code>Course_Taught_By</code>، <code>Instructor</code> هو المفتاح الرئيسي وبالتالي مفتاح فائق.</p>
+                    </div>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="normalization-and-db-design">10.7 التوحيد وتصميم قواعد البيانات</h2>
+                    <p>
+                        التوحيد ليس مجرد مجموعة من القواعد النظرية؛ بل هو عملية عملية وحاسمة في تصميم قواعد البيانات ذات الكفاءة العالية والموثوقية.
+                    </p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-cogs topic-icon"></i> <strong>يساعد التوحيد على:</strong>
+                            <ul class="no-bullet">
+                                <li><i class="fas fa-eraser list-icon"></i> <strong>تقليل التكرار (Redundancy):</strong> يضمن أن كل معلومة مخزنة مرة واحدة فقط.</li>
+                                <li><i class="fas fa-ban list-icon"></i> <strong>منع حالات الشذوذ (Anomalies):</strong>
+                                    <ul>
+                                        <li><i class="fas fa-exclamation-triangle list-icon"></i> <strong>شذوذ الإدخال (Insertion Anomaly):</strong> عدم القدرة على إضافة بيانات لكيان دون وجود بيانات لكيان آخر.</li>
+                                        <li><i class="fas fa-exclamation-triangle list-icon"></i> <strong>شذوذ التحديث (Update Anomaly):</strong> الحاجة لتحديث نفس البيانات في أماكن متعددة.</li>
+                                        <li><i class="fas fa-exclamation-triangle list-icon"></i> <strong>شذوذ الحذف (Deletion Anomaly):</strong> فقدان بيانات غير مقصودة عند حذف سجل.</li>
+                                    </ul>
+                                </li>
+                                <li><i class="fas fa-toolbox list-icon"></i> <strong>تسهيل صيانة البيانات والتطبيقات:</strong> تصبح قاعدة البيانات أسهل في الفهم والتعديل مع تطور المتطلبات.</li>
+                                <li><i class="fas fa-handshake list-icon"></i> <strong>تعزيز سلامة البيانات (Data Integrity):</strong> بضمان اتساق البيانات ودقتها.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <div class="note-box">
+                        <i class="fas fa-info-circle"></i> <strong>ملاحظات عملية (Practical Considerations):</strong>
+                        <ul class="no-bullet">
+                            <li><i class="fas fa-balance-scale list-icon"></i> <strong>لا يجب الإفراط في التوحيد:</strong> على الرغم من فوائد التوحيد، فإن الوصول إلى أشكال طبيعية عالية جدًا (مثل 4NF أو 5NF) قد يؤدي إلى إنشاء عدد كبير جدًا من الجداول الصغيرة. هذا قد يزيد من تعقيد الاستعلامات (يتطلب المزيد من الروابط - JOINs) ويقلل من الأداء في بعض التطبيقات.</li>
+                            <li><i class="fas fa-chart-line list-icon"></i> <strong>يفضل الموازنة بين التطبيع والكفاءة:</strong> في العالم الحقيقي، غالبًا ما يُفضل المصممون التنازل عن مستوى توحيد أعلى قليلاً (مثل التوقف عند 3NF أو BCNF) من أجل تحسين أداء الاستعلامات أو تبسيط التصميم، خاصة في أنظمة مستودعات البيانات (Data Warehouses) حيث التكرار قد يكون مقبولاً لسرعة الاستعلام. هذا ما يُعرف بعملية "فك التطبيع" (Denormalization).</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="key-terms">10.8 المصطلحات الأساسية والاختصارات (Key Terms and Abbreviations)</h2>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>المصطلح (الإنجليزية)</th>
+                                <th>المصطلح (العربية)</th>
+                                <th>التعريف</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Normalization</strong></td>
+                                <td>التوحيد</td>
+                                <td>عملية تنظيم الجداول في قاعدة البيانات لتقليل التكرار ومنع التناقضات وحالات الشذوذ.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Normal Form (NF)</strong></td>
+                                <td>الشكل الطبيعي</td>
+                                <td>مجموعة من القواعد التي يجب أن يلتزم بها الجدول لتقييم مدى توحيده.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>1NF (First Normal Form)</strong></td>
+                                <td>النموذج الموحد الأول</td>
+                                <td>شرطه أن كل حقل يحتوي على قيمة واحدة فقط، وكل صف فريد (ذرية القيم وعدم تكرار الصفوف).</td>
+                            </tr>
+                            <tr>
+                                <td><strong>2NF (Second Normal Form)</strong></td>
+                                <td>النموذج الموحد الثاني</td>
+                                <td>شرطه أن يكون الجدول في 1NF، ولا وجود لاعتمادية جزئية على جزء من المفتاح المركب.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>3NF (Third Normal Form)</strong></td>
+                                <td>النموذج الموحد الثالث</td>
+                                <td>شرطه أن يكون الجدول في 2NF، ولا وجود لاعتمادية انتقالية بين الحقول غير المفتاحية.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>BCNF (Boyce-Codd Normal Form)</strong></td>
+                                <td>نموذج بويس-كود الموحَّد</td>
+                                <td>شرطه أن يكون الجدول في 3NF، ولكل اعتماد وظيفي X → Y، يجب أن يكون X مفتاحًا فائقًا.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Redundancy</strong></td>
+                                <td>التكرار</td>
+                                <td>وجود نفس البيانات في أكثر من مكان داخل قاعدة البيانات.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Anomaly</strong></td>
+                                <td>شذوذ / حالة شاذة</td>
+                                <td>مشكلة تحدث في قاعدة البيانات بسبب سوء التصميم (مثل مشاكل الإدخال، التحديث، الحذف).</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Insertion Anomaly</strong></td>
+                                <td>حالة الإدخال الشاذة</td>
+                                <td>صعوبة إدخال بيانات جديدة بسبب تصميم غير صحيح.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Update Anomaly</strong></td>
+                                <td>حالة التحديث الشاذة</td>
+                                <td>تضارب أو فقدان التناسق عند تعديل البيانات المتكررة.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Deletion Anomaly</strong></td>
+                                <td>حالة الحذف الشاذة</td>
+                                <td>فقدان بيانات أخرى مهمة (غير مستهدفة بالحذف) عند حذف سجل.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Functional Dependency (FD)</strong></td>
+                                <td>الاعتمادية الوظيفية</td>
+                                <td>علاقة بين مجموعتين من الحقول حيث تحدد مجموعة القيم في الأخرى.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Partial Dependency</strong></td>
+                                <td>اعتمادية جزئية</td>
+                                <td>اعتماد سمة غير رئيسية على جزء فقط من المفتاح الرئيسي المركب.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Transitive Dependency</strong></td>
+                                <td>اعتمادية انتقالية</td>
+                                <td>اعتماد سمة غير رئيسية على سمة غير رئيسية أخرى في نفس الجدول.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Super Key</strong></td>
+                                <td>مفتاح فائق</td>
+                                <td>أي مجموعة من السمات التي يمكنها تعريف كل سجل بشكل فريد (بما في ذلك المفتاح الرئيسي).</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="course-card p-5 mb-4">
+                    <h2 class="unit-section-title" id="unit-summary">ملخص الوحدة</h2>
+                    <ul class="no-bullet">
+                        <li><i class="fas fa-star list-icon"></i> <strong>التوحيد (Normalization)</strong> هو عملية تنظيم الجداول لتقليل التكرار ومنع حالات الشذوذ.</li>
+                        <li><i class="fas fa-star list-icon"></i> يُنجز التوحيد من خلال تطبيق <strong>النماذج الموحدة (Normal Forms)</strong>:
+                            <ul>
+                                <li><i class="fas fa-check-circle list-icon"></i> <strong>1NF:</strong> كل حقل قيمة ذرية واحدة، وكل صف فريد.</li>
+                                <li><i class="fas fa-check-circle list-icon"></i> <strong>2NF:</strong> في 1NF + لا اعتمادية جزئية.</li>
+                                <li><i class="fas fa-check-circle list-icon"></i> <strong>3NF:</strong> في 2NF + لا اعتمادية انتقالية.</li>
+                                <li><i class="fas fa-check-circle list-icon"></i> <strong>BCNF:</strong> في 3NF + كل مُحدِّد هو مفتاح فائق.</li>
+                            </ul>
+                        </li>
+                        <li><i class="fas fa-star list-icon"></i> التوحيد يُحسن <strong>سلامة البيانات</strong>، ويُسهل <strong>صيانة قاعدة البيانات</strong>، لكن يجب الموازنة بين مستوى التطبيع و<strong>الأداء</strong>.</li>
+                    </ul>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="suggested-exercises">10.9 تمارين مقترحة (Suggested Exercises)</h2>
+                    <p>اختبر فهمك لمفاهيم هذه الوحدة بالإجابة على الأسئلة التالية:</p>
+                    <ol>
+                        <li>تخيل جدولاً غير مُطبع يُسمى <code>Student_Course_Grade_Instructor_Dept</code> يحتوي على الأعمدة التالية: <code>StudentID</code>, <code>StudentName</code>, <code>CourseID</code>, <code>CourseName</code>, <code>InstructorName</code>, <code>InstructorDept</code>, <code>Grade</code>.
+                            <br>أعد تصميم هذا الجدول خطوة بخطوة <strong>إلى 1NF ثم 2NF ثم 3NF</strong>. لكل خطوة، اذكر المشكلة (إن وجدت) والحل، مع توضيح الجداول الناتجة والمفاتيح الأساسية والخارجية.
+                            <br><strong>الاعتماديات المفترضة:</strong>
+                            <ul>
+                                <li><code>StudentID</code> $\rightarrow$ <code>StudentName</code></li>
+                                <li><code>CourseID</code> $\rightarrow$ <code>CourseName</code></li>
+                                <li><code>InstructorName</code> $\rightarrow$ <code>InstructorDept</code></li>
+                                <li><code>(StudentID, CourseID)</code> $\rightarrow$ <code>Grade</code></li>
+                                <li><code>CourseID</code> $\rightarrow$ <code>InstructorName</code> (كل مقرر يدرسه مدرس واحد فقط)</li>
+                            </ul>
+                        </li>
+                        <li>أعطِ مثالًا عمليًا لـ <strong>حالة إدخال شاذة (Insertion Anomaly)</strong> في جدول غير مُطبع، ثم اشرح كيف يمكن <strong>حلها باستخدام عملية التوحيد</strong>، موضحًا الأشكال الطبيعية التي ستساعد في ذلك.</li>
+                        <li>صف الفرق الأساسي بين <strong>النموذج الموحد الثالث (3NF)</strong> و<strong>نموذج بويس-كود الموحَّد (BCNF)</strong>. أعطِ مثالًا عمليًا لجدول يكون في 3NF ولكنه <strong>ليس في BCNF</strong>، واشرح سبب ذلك وكيف يمكن تطبيعه إلى BCNF.</li>
+                        <li>بالنظر إلى الجدول التالي الذي يُمثل تسجيلات الطلاب في مشاريع متعددة:
+                            <table class="table table-bordered text-center">
+                                <thead>
+                                    <tr>
+                                        <th><code>ProjectID</code></th>
+                                        <th><code>ProjectName</code></th>
+                                        <th><code>StudentID</code></th>
+                                        <th><code>StudentName</code></th>
+                                        <th><code>Advisor</code></th>
+                                        <th><code>AdvisorDept</code></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>P1</td><td>المكتبة الرقمية</td><td>S1</td><td>ليلى</td><td>د. ناصر</td><td>علوم حاسب</td></tr>
+                                    <tr><td>P1</td><td>المكتبة الرقمية</td><td>S2</td><td>أحمد</td><td>د. ناصر</td><td>علوم حاسب</td></tr>
+                                    <tr><td>P2</td><td>نظام إدارة المستشفى</td><td>S3</td><td>فاطمة</td><td>د. سارة</td><td>نظم معلومات</td></tr>
+                                </tbody>
+                            </table>
+                            <p><strong>الاعتماديات المفترضة:</strong></p>
+                            <ul>
+                                <li><code>ProjectID</code> $\rightarrow$ <code>ProjectName</code></li>
+                                <li><code>StudentID</code> $\rightarrow$ <code>StudentName</code></li>
+                                <li><code>Advisor</code> $\rightarrow$ <code>AdvisorDept</code></li>
+                                <li><code>(ProjectID, StudentID)</code> هو المفتاح الرئيسي.</li>
+                            </ul>
+                            حلل هذا الجدول وقُم <strong>بتوحيده إلى BCNF</strong>، مع الرسم التوضيحي للجداول الجديدة والمفاتيح الرئيسية والخارجية.
+                        </li>
+                    </ol>
+                </div>
+                
+                <!-- أزرار التنقل -->
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="unit-9.html" class="btn unit-nav-btn"><i class="fas fa-arrow-right"></i> الوحدة السابقة</a>
+                    <a href="../../../materials/db-design/unit-10.pdf" target="_blank" class="btn unit-nav-btn"><i class="fas fa-file-pdf"></i> عرض / تحميل مادة الوحدة</a>
+                    <a href="unit-11.html" class="btn unit-nav-btn text-end">الوحدة التالية <i class="fas fa-arrow-left"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- الفوتر -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>مسار الأمن السيبراني</h5>
+                    <p>منصة تعليمية متخصصة في تقديم محتوى أكاديمي وعملي في مجال الأمن السيبراني.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>روابط سريعة</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="../../../index.html" class="text-white">الرئيسية</a></li>
+                        <li><a href="../../index.html" class="text-white">جميع المقررات</a></li>
+                        <li><a href="#" class="text-white">الدعم الفني</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>تواصل معنا</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> info@cyberpath.com</li>
+                        <li><i class="fas fa-phone me-2"></i> 0502161465</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2025 مسار الأمن السيبراني. جميع الحقوق محفوظة.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-linkedin fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-youtube fa-lg"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-github fa-lg"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- تضمين Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // تحديث شريط التقدم بناءً على الوحدة الحالية
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentUnitNumber = 10; // رقم الوحدة الحالية
+            const totalModules = 14; // إجمالي عدد الوحدات في المقرر
+            const progressPercentage = (currentUnitNumber / totalModules) * 100;
+            
+            const progressBar = document.querySelector('.progress-bar');
+            progressBar.style.width = `${progressPercentage}%`;
+            progressBar.setAttribute('aria-valuenow', progressPercentage);
+            progressBar.textContent = `${Math.round(progressPercentage)}% مكتمل`;
+        });
+    </script>
+</body>
+</html>
