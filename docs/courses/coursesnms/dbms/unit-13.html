@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الوحدة 13: SQL – لغة معالجة البيانات (DML) | تصميم قواعد البيانات</title>
+    <!-- تضمين Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- تضمين Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- تضمين خط Tajawal من Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* تعريف المتغيرات لألوان موحدة */
+        :root {
+            --primary-color: #2c3e50; /* لون أزرق داكن/رمادي */
+            --secondary-color: #4CAF50; /* لون أخضر للمقرر الجديد */
+            --accent-color: #e74c3c; /* لون أحمر/برتقالي لـ "تحذير" أو "خطر" */
+            --light-bg: #f8f9fa; /* خلفية فاتحة جدًا للجسم */
+            --dark-text: #2c3e50; /* لون نص داكن */
+            --light-text: #7f8c8d; /* لون نص فاتح (رمادي) */
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--light-bg); /* خلفية فاتحة */
+            color: var(--dark-text); /* لون نص داكن */
+            line-height: 1.8;
+            direction: rtl; /* تأكيد الاتجاه من اليمين لليسار */
+            text-align: right; /* محاذاة النص لليمين افتراضيا */
+        }
+
+        .navbar {
+            background-color: var(--primary-color);
+        }
+        .navbar-brand {
+            color: white !important; /* لون أبيض للشعار في شريط التنقل */
+        }
+        .btn-outline-light {
+            border-color: rgba(255, 255, 255, 0.7) !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .btn-outline-light:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .course-header {
+            background: linear-gradient(135deg, #4CAF50, #8BC34A); /* تدرج أخضر لمقرر قواعد البيانات */
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 1rem 1rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .course-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-right: 4px solid var(--secondary-color); /* شريط جانبي بلون ثانوي أخضر */
+            padding: 2rem; /* تباعد داخلي للبطاقات */
+        }
+
+        .course-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .course-title-section {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .module-icon {
+            width: 50px;
+            height: 50px;
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 1rem;
+            flex-shrink: 0;
+            font-size: 1.25rem;
+        }
+        .sidebar .module-icon { /* تنسيق محدد لأيقونات الشريط الجانبي */
+            width: 40px; /* أصغر قليلاً للشريط الجانبي */
+            height: 40px;
+            font-size: 1rem;
+            margin-left: 10px; /* ضبط الهامش للشريط الجانبي */
+        }
+
+        .progress-container { /* تنسيق شريط التقدم في الشريط الجانبي */
+            height: 25px;
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-bar { /* تنسيق شريط التقدم في الشريط الجانبي */
+            background-color: var(--secondary-color);
+        }
+
+        .accordion-button:not(.collapsed) {
+            background-color: #e6ffe6; /* خلفية زر الأكورديون النشط (أخضر فاتح) */
+            color: var(--primary-color); /* لون نص زر الأكورديون النشط */
+            box-shadow: none;
+        }
+        .accordion-button:not(.collapsed) .module-icon { /* أيقونة زر الأكورديون النشط */
+            background-color: var(--primary-color); /* خلفية داكنة للأيقونة عندما تكون نشطة */
+        }
+        .accordion-button:not(.collapsed)::after {
+            filter: brightness(0) invert(1); /* عكس لون السهم للخلفية الداكنة */
+        }
+
+        .accordion-button {
+            border-radius: 0.5rem !important; /* للحفاظ على حدود مستديرة للأزرار */
+        }
+        .accordion-item {
+            margin-bottom: 0.5rem; /* مسافة بين عناصر الأكورديون */
+            border-radius: 0.75rem;
+            border: 1px solid rgba(0, 0, 0, 0.125); /* حدود للأكورديون */
+            overflow: hidden; /* لمنع تجاوز المحتوى للحواف المستديرة */
+        }
+        .accordion-body ul {
+            padding-right: 0; /* إزالة التباعد الافتراضي لقائمة الروابط الداخلية */
+        }
+        .accordion-body ul li a {
+            padding: 0.25rem 0.5rem;
+            display: block;
+            border-radius: 0.25rem;
+            color: var(--dark-text);
+        }
+        .accordion-body ul li a:hover,
+        .accordion-body ul li a.active-link { /* رابط نشط في الشريط الجانبي */
+            background-color: #e6ffe6;
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+        .accordion-body .btn-primary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .accordion-body .btn-primary:hover {
+            background-color: #388E3C; /* لون أخضر أغمق عند التحويم */
+            border-color: #388E3C;
+        }
+
+        .sidebar { /* تنسيق حاوية الشريط الجانبي */
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            color: var(--dark-text); /* التأكد من قابلية قراءة النص */
+        }
+        .sidebar h4 {
+            color: var(--primary-color); /* لون عنوان الشريط الجانبي */
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* تنسيقات الفوتر */
+        footer {
+            background-color: var(--primary-color) !important;
+            color: white;
+            padding: 2.5rem 0;
+        }
+        footer h5 {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        footer .list-unstyled li a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        footer .list-unstyled li a:hover {
+            color: var(--secondary-color);
+        }
+        footer .fab, footer .fas { /* تطبيق اللون الأبيض على أيقونات الفوتر */
+            color: white;
+            transition: color 0.2s;
+        }
+        footer .fab:hover, footer .fas:hover {
+            color: var(--secondary-color);
+        }
+
+        /* تنسيقات محتوى الوحدة المحددة */
+        h2.unit-section-title { /* للعناوين العامة، أهداف التعلم، إلخ. */
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+        }
+        h3.sub-topic-title { /* لعناوين المواضيع الفرعية مثل "3.1 تعريف أمن التطبيقات" */
+            color: var(--primary-color);
+            border-bottom: 1px dashed var(--light-text);
+            padding-bottom: 0.3rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.75rem;
+        }
+        h4.inner-sub-topic { /* للعناوين الفرعية داخل عناصر OWASP */
+            color: var(--dark-text);
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 1.25rem;
+        }
+        ul {
+            padding-right: 25px; /* ضبط تباعد القائمة الافتراضي */
+        }
+        ul.no-bullet {
+            list-style: none;
+            padding-right: 0;
+        }
+        ul li {
+            margin-bottom: 0.5rem;
+        }
+        .list-icon {
+            margin-left: 10px;
+            color: var(--secondary-color); /* لون الأيقونة الافتراضي */
+        }
+        /* ألوان أيقونات محددة بناءً على نوع المحتوى من أجل الوضوح */
+        .objectives-list .list-icon { color: #28a745; } /* أخضر لعلامات الصح */
+        .methods-list .list-icon { color: #17a2b8; } /* أزرق مخضر/سماوي للطرق */
+        .outcomes-list .list-icon { color: #ffc107; } /* أصفر/برتقالي للنجوم */
+        .topic-icon { /* الأيقونات داخل المواضيع الرئيسية مثل الأدوات/المفاهيم */
+            color: var(--secondary-color);
+            margin-left: 10px;
+        }
+        .alert-info-custom {
+            background-color: #e9ecef; /* خلفية رمادية فاتحة/زرقاء */
+            border-left: 5px solid var(--secondary-color);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        .alert-info-custom i {
+            color: var(--secondary-color);
+            margin-right: 0.5rem;
+        }
+
+        /* تنسيق مربعات الأمثلة/الملاحظات */
+        .example-box, .note-box {
+            background-color: #e9ecef; /* خلفية رمادية فاتحة */
+            border-right: 5px solid var(--secondary-color); /* حدود زرقاء */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        .example-box i, .note-box i {
+            color: var(--secondary-color); /* لون أيقونة أزرق */
+            margin-left: 0.5rem;
+        }
+        .example-box ul, .note-box ul {
+            list-style: none; /* إزالة النقاط الافتراضية */
+            padding-right: 0;
+        }
+        .example-box ul li::before, .note-box ul li::before {
+            content: "\f058"; /* أيقونة Font Awesome check-circle */
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            color: var(--secondary-color);
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+            margin-right: 0.5em;
+        }
+        /* تنسيق الجداول */
+        table {
+            width: 100%;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+            border-collapse: collapse;
+        }
+        table th,
+        table td {
+            padding: 0.75rem;
+            vertical-align: top;
+            border: 1px solid #dee2e6;
+            text-align: right; /* محاذاة النص لليمين لـ RTL */
+        }
+        table thead th {
+            vertical-align: bottom;
+            border-bottom: 2px solid #dee2e6;
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        table tbody + tbody {
+            border-top: 2px solid #dee2e6;
+        }
+
+        /* أزرار التنقل بين الوحدات */
+        .unit-nav-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: bold;
+            transition: background-color 0.2s, transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+        }
+        .unit-nav-btn:hover {
+            background-color: #388E3C; /* لون أخضر أغمق عند التحويم */
+            color: white;
+            transform: translateY(-2px);
+        }
+        .unit-nav-btn .fa-arrow-left { /* سهم يسار لزر "الوحدة التالية" */
+            margin-right: 0;
+            margin-left: 8px;
+        }
+        .unit-nav-btn .fa-arrow-right { /* سهم يمين لزر "العودة للفهرس" أو "الوحدة السابقة" */
+            margin-right: 8px;
+            margin-left: 0;
+        }
+
+        /* تنسيق كتل الكود */
+        pre {
+            background-color: #e9ecef;
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto; /* تمكين التمرير الأفقي للأسطر الطويلة */
+            direction: ltr; /* التأكد من أن اتجاه الكود هو LTR */
+            text-align: left; /* التأكد من أن محاذاة النص هي لليسار للكود */
+        }
+        code {
+            font-family: 'Consolas', 'Monaco', 'Lucida Console', monospace;
+            font-size: 0.9rem;
+            color: var(--dark-text);
+        }
+        pre code {
+            display: block; /* التأكد من أن كتلة الكود تأخذ عرضًا كاملاً */
+        }
+
+
+        /* تعديلات الاستجابة */
+        @media (max-width: 991px) { /* نقطة توقف تتوافق مع col-lg- */
+            .sidebar {
+                margin-top: 1rem;
+                margin-bottom: 1rem; /* إضافة هامش لتحسين التباعد على الشاشات الأصغر */
+            }
+            .course-header {
+                padding: 2rem 0;
+            }
+            .course-card {
+                padding: 1.5rem;
+            }
+            h1.display-4 {
+                font-size: 2.2rem;
+            }
+            h2.unit-section-title {
+                font-size: 1.75rem;
+            }
+            h3.sub-topic-title {
+                font-size: 1.5rem;
+            }
+            .unit-nav-btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+            .d-flex.justify-content-between.mt-4 {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <!-- شريط التنقل العلوي -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--primary-color);">
+        <div class="container">
+            <a class="navbar-brand" href="../../../index.html">مسار الأمن السيبراني</a>
+            <a href="../index.html" class="btn btn-outline-light">العودة إلى المقررات</a>
+        </div>
+    </nav>
+
+    <!-- رأس الوحدة -->
+    <header class="course-header text-center">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-3">الوحدة 13: SQL – لغة معالجة البيانات (DML)</h1>
+            <p class="lead">تهدف هذه الوحدة إلى تمكين الطلاب من التعامل مع البيانات داخل قواعد البيانات من خلال أوامر DML: <code>SELECT</code>، <code>INSERT</code>، <code>UPDATE</code>، <code>DELETE</code>، واستخدام الدوال المدمجة وضم الجداول.</p>
+        </div>
+    </header>
+
+    <div class="container-fluid py-5">
+        <div class="row">
+            <!-- الشريط الجانبي لتنقل الوحدات -->
+            <div class="col-lg-3">
+                <div class="sidebar p-4">
+                    <h4 class="mb-3">
+                        <i class="fas fa-stream me-2"></i>
+                        وحدات المقرر
+                    </h4>
+                    <div class="progress progress-container mb-4">
+                        <div class="progress-bar" role="progressbar" style="width: 92.85%;" aria-valuenow="92.85" aria-valuemin="0" aria-valuemax="100">93% مكتمل</div>
+                    </div>
+                    <div class="accordion" id="unitsAccordion">
+                        <!-- الوحدة التمهيدية -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingIntro">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseIntro" aria-expanded="false" aria-controls="collapseIntro">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-book-open"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">تمهيد – مقدمة إلى تصميم قواعد البيانات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseIntro" class="accordion-collapse collapse" aria-labelledby="headingIntro" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>مقدمة شاملة عن مجال قواعد البيانات، أهميتها، ومكوناتها الأساسية.</p>
+                                    <a href="index.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 1 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit1">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit1" aria-expanded="false" aria-controls="collapseUnit1">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-history"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 1: ما قبل ظهور أنظمة قواعد البيانات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit1" class="accordion-collapse collapse" aria-labelledby="headingUnit1" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>استعراض تاريخي للنظام القائم على الملفات وعيوبه، تمهيدًا لظهور قواعد البيانات.</p>
+                                    <a href="unit-1.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 2 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit2">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit2" aria-expanded="false" aria-controls="collapseUnit2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-lightbulb"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 2: مفاهيم قواعد البيانات الأساسية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit2" class="accordion-collapse collapse" aria-labelledby="headingUnit2" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>تعريف قاعدة البيانات، خصائصها، أنواع مستخدميها، وأنظمة إدارة قواعد البيانات (DBMS).</p>
+                                    <a href="unit-2.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 3 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit3">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit3" aria-expanded="false" aria-controls="collapseUnit3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-cogs"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 3: خصائص قواعد البيانات والمزايا التي تقدمها</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit3" class="accordion-collapse collapse" aria-labelledby="headingUnit3" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>استكشاف الخصائص المتقدمة لقواعد البيانات وكيف تدعم واجهات عرض متعددة للبيانات.</p>
+                                    <a href="unit-3.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 4 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit4">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit4" aria-expanded="false" aria-controls="collapseUnit4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-sitemap"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 4: نمذجة البيانات وأنواعها</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit4" class="accordion-collapse collapse" aria-labelledby="headingUnit4" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>تعريف بنماذج البيانات، مستويات التجريد، وتخطيطات قواعد البيانات (Schemas).</p>
+                                    <a href="unit-4.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 5 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit5">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit5" aria-expanded="false" aria-controls="collapseUnit5">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-table"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 5: نموذج البيانات العلائقية (RDM)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit5" class="accordion-collapse collapse" aria-labelledby="headingUnit5" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>المفاهيم الأساسية للنموذج العلائقي، خصائص الجداول، وتمثيل البيانات.</p>
+                                    <a href="unit-5.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 6 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit6">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit6" aria-expanded="false" aria-controls="collapseUnit6">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-project-diagram"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 6: نموذج الكيان والعلاقة (ER)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit6" class="accordion-collapse collapse" aria-labelledby="headingUnit6" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>فهم الكيانات، العلاقات، السمات، والمفاتيح في نمذجة ER.</p>
+                                    <a href="unit-6.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 7 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit7">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit7" aria-expanded="false" aria-controls="collapseUnit7">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-gavel"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 7: قواعد السلامة وقيودها لضمان سلامة البيانات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit7" class="accordion-collapse collapse" aria-labelledby="headingUnit7" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>تعلم عن سلامة النطاق، قيود المؤسسة، وقواعد العمل لضمان جودة البيانات.</p>
+                                    <a href="unit-7.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 8 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit8">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit8" aria-expanded="false" aria-controls="collapseUnit8">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-pencil-ruler"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 8: نمذجة الكيان العلاقي عند تصميم قواعد البيانات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit8" class="accordion-collapse collapse" aria-labelledby="headingUnit8" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>التصميم العلاقي وتجنب الحالات الشاذة مثل حالات الإدخال والتحديث والحذف الشاذة.</p>
+                                    <a href="unit-8.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 9 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit9">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit9" aria-expanded="false" aria-controls="collapseUnit9">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-link"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 9: الاعتماديات الوظيفية (Functional Dependencies)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit9" class="accordion-collapse collapse" aria-labelledby="headingUnit9" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>قواعد الاعتماديات الوظيفية وقواعد الاستدلال ومخططات الاعتمادية.</p>
+                                    <a href="unit-9.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 10 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit10">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit10" aria-expanded="false" aria-controls="collapseUnit10">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-compress-arrows-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 10: فهم عملية التوحيد (Normalization)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit10" class="accordion-collapse collapse" aria-labelledby="headingUnit10" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>مفهوم التوحيد، النماذج الموحدة (1NF, 2NF, 3NF, BCNF)، وتأثيرها على تصميم قواعد البيانات.</p>
+                                    <a href="unit-10.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 11 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit11">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit11" aria-expanded="false" aria-controls="collapseUnit11">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-code-branch"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 11: عملية تطوير قواعد البيانات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit11" class="accordion-collapse collapse" aria-labelledby="headingUnit11" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>دورة حياة تطوير قواعد البيانات (Database Life Cycle)، وخطوات جمع المتطلبات والتصميم والتطبيق.</p>
+                                    <a href="unit-11.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 12 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit12">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit12" aria-expanded="false" aria-controls="collapseUnit12">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-file-code"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 12: لغة الاستعلامات الهيكلية (SQL)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit12" class="accordion-collapse collapse" aria-labelledby="headingUnit12" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>الأساسيات لإنشاء قواعد البيانات والجداول وقيودها باستخدام لغة DDL في SQL.</p>
+                                    <a href="unit-12.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 13 (الوحدة النشطة) -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit13">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThirteen" aria-expanded="true" aria-controls="collapseThirteen">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-edit"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 13: لغة معالجة البيانات (DML)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseThirteen" class="accordion-collapse collapse show" aria-labelledby="headingUnit13" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="#unit-objective" class="text-decoration-none active-link">الهدف من الوحدة</a></li>
+                                        <li><a href="#select-statement" class="text-decoration-none">13.1 تعليمة SELECT</a></li>
+                                        <li><a href="#insert-statement" class="text-decoration-none">13.2 تعليمة INSERT</a></li>
+                                        <li><a href="#update-statement" class="text-decoration-none">13.3 تعليمة UPDATE</a></li>
+                                        <li><a href="#delete-statement" class="text-decoration-none">13.4 تعليمة DELETE</a></li>
+                                        <li><a href="#built-in-functions" class="text-decoration-none">13.5 الدوال المدمجة</a></li>
+                                        <li><a href="#joining-tables" class="text-decoration-none">13.6 ضم الجداول</a></li>
+                                        <li><a href="#key-terms" class="text-decoration-none">13.7 مصطلحات أساسية</a></li>
+                                        <li><a href="#suggested-exercises" class="text-decoration-none">13.8 تمارين مقترحة</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 14 (الملحقات العملية) -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit14">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit14" aria-expanded="false" aria-controls="collapseUnit14">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-award"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 14: الملحقات العملية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit14" class="accordion-collapse collapse" aria-labelledby="headingUnit14" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>ملحق يضم أمثلة عملية وتطبيقات لتصميم قواعد البيانات وحلول لتمارين SQL.</p>
+                                    <a href="unit-summary.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- منطقة المحتوى الرئيسية -->
+            <div class="col-lg-9">
+                <div class="course-card p-5 mb-4">
+                    <h2 class="unit-section-title" id="unit-objective">الهدف من الوحدة</h2>
+                    <p>
+                        تهدف هذه الوحدة إلى تمكين الطلاب من التعامل مع البيانات داخل قواعد البيانات من خلال أوامر <strong>DML (Data Manipulation Language)</strong>: <code>SELECT</code>، <code>INSERT</code>، <code>UPDATE</code>، <code>DELETE</code>، واستخدام الدوال المدمجة وضم الجداول.
+                    </p>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="select-statement">13.1 تعليمة <code>SELECT</code></h2>
+                    <p>
+                        تعليمة <code>SELECT</code> هي العمود الفقري لأي نظام قواعد بيانات، وهي الأكثر استخدامًا لاسترجاع المعلومات.
+                    </p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-search topic-icon"></i> <strong>التعريف:</strong>
+                            <p>
+                                تُستخدم تعليمة <code>SELECT</code> لاستخراج البيانات من جداول قاعدة البيانات. يمكنك تحديد الأعمدة التي تريدها، الجداول التي ستسترجع منها البيانات، والشروط التي يجب أن تستوفيها السجلات.
+                            </p>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-code topic-icon"></i> <strong>الصياغة الأساسية:</strong>
+                            <pre><code class="language-sql">
+SELECT column1, column2, ...
+FROM table_name
+WHERE condition
+ORDER BY column1 ASC|DESC;
+                            </code></pre>
+                            <ul class="no-bullet">
+                                <li><code>column1, column2, ...</code>: الأعمدة التي تريد استرجاعها. يمكنك استخدام <code>*</code> لاسترجاع جميع الأعمدة.</li>
+                                <li><code>table_name</code>: اسم الجدول الذي تريد استرجاع البيانات منه.</li>
+                                <li><code>WHERE condition</code>: (اختياري) يُستخدم لتصفية السجلات بناءً على شرط محدد.</li>
+                                <li><code>ORDER BY column1 ASC|DESC</code>: (اختياري) يُستخدم لفرز النتائج بترتيب تصاعدي (<code>ASC</code>) أو تنازلي (<code>DESC</code>) بناءً على عمود واحد أو أكثر.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <div class="example-box">
+                        <i class="fas fa-poll-h"></i> <strong>مثال عملي:</strong>
+                        <p>لاستخراج أسماء الموظفين ورواتبهم من جدول <code>Employees</code> حيث الراتب أكبر من 5000، وترتيبهم أبجديًا حسب الاسم:</p>
+                        <pre><code class="language-sql">
+SELECT Name, Salary
+FROM Employees
+WHERE Salary > 5000
+ORDER BY Name ASC;
+                        </code></pre>
+                        <h4 class="inner-sub-topic">خيارات مهمة مع <code>SELECT</code>:</h4>
+                        <ul class="no-bullet">
+                            <li><i class="fas fa-clone list-icon"></i> <strong><code>DISTINCT</code>:</strong> تُستخدم لإرجاع القيم الفريدة فقط في عمود محدد، مما يزيل أي صفوف مكررة من مجموعة النتائج.
+                                <pre><code class="language-sql">SELECT DISTINCT City FROM Customers;</code></pre>
+                            </li>
+                            <li><i class="fas fa-sort-numeric-down list-icon"></i> <strong><code>LIMIT</code> (أو <code>TOP</code> في SQL Server):</strong> تُستخدم لتحديد العدد الأقصى من السجلات التي سيتم إرجاعها. مفيدة لتقليل الحمل على قاعدة البيانات.
+                                <pre><code class="language-sql">SELECT Name, Email FROM Employees LIMIT 10; -- لـ MySQL وPostgreSQL
+-- SELECT TOP 10 Name, Email FROM Employees; -- لـ SQL Server</code></pre>
+                            </li>
+                            <li><i class="fas fa-search-dollar list-icon"></i> <strong><code>LIKE</code>:</strong> تُستخدم للبحث عن نمط محدد في عمود نصي باستخدام أحرف البدل (wildcard characters) مثل <code>%</code> (يمثل أي عدد من الأحرف) و <code>_</code> (يمثل حرفًا واحدًا).
+                                <pre><code class="language-sql">SELECT ProductName FROM Products WHERE ProductName LIKE 'Laptop%'; -- المنتجات التي تبدأ بـ "Laptop"
+SELECT Email FROM Employees WHERE Email LIKE '%@example.com'; -- البريد الإلكتروني الذي ينتهي بـ "@example.com"</code></pre>
+                            </li>
+                        </ul>
+                        <p>لمزيد من المعلومات حول تعليمة <code>SELECT</code>، يمكنك زيارة: <a href="https://www.w3schools.com/sql/sql_select.asp" target="_blank">SQL SELECT – W3Schools</a></p>
+                    </div>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="insert-statement">13.2 تعليمة <code>INSERT</code></h2>
+                    <p>
+                        تُستخدم تعليمة <code>INSERT</code> لإضافة بيانات جديدة إلى الجداول.
+                    </p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-plus-square topic-icon"></i> <strong>التعريف:</strong>
+                            <p>
+                                تُستخدم تعليمة <code>INSERT INTO</code> لإضافة سجلات (صفوف) جديدة إلى جدول موجود في قاعدة البيانات.
+                            </p>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-code topic-icon"></i> <strong>الصياغة الأساسية:</strong>
+                            <pre><code class="language-sql">
+INSERT INTO table_name (column1, column2, column3, ...)
+VALUES (value1, value2, value3, ...);
+                            </code></pre>
+                            <ul class="no-bullet">
+                                <li><code>table_name</code>: اسم الجدول الذي ستُضاف إليه البيانات.</li>
+                                <li><code>(column1, column2, ...)</code>: (اختياري) قائمة الأعمدة التي ستُدخل فيها البيانات. إذا تم تضمين قيم لجميع الأعمدة بنفس الترتيب، يمكن حذف هذه القائمة.</li>
+                                <li><code>(value1, value2, ...)</code>: القيم المقابلة للأعمدة المحددة. يجب أن تتطابق أنواع البيانات.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <div class="example-box">
+                        <i class="fas fa-plus-circle"></i> <strong>مثال عملي:</strong>
+                        <p>لإضافة موظف جديد إلى جدول <code>Employees</code>:</p>
+                        <pre><code class="language-sql">
+INSERT INTO Employees (EmployeeID, Name, Salary, HireDate, Email)
+VALUES (1, 'علي', 6000, '2023-01-15', 'ali.a@example.com');
+                        </code></pre>
+                        <p>إذا كنت تضيف قيمًا لجميع الأعمدة وبنفس الترتيب الذي تم تعريفها به في الجدول، يمكنك حذف قائمة الأعمدة:</p>
+                        <pre><code class="language-sql">
+-- إذا كان ترتيب الأعمدة في جدول Employees هو: EmployeeID, Name, Salary, HireDate, Email
+INSERT INTO Employees
+VALUES (2, 'سارة', 7500, '2022-03-01', 'sara.m@example.com');
+                        </code></pre>
+                        <p>لمزيد من المعلومات حول تعليمة <code>INSERT</code>، يمكنك زيارة: <a href="https://www.w3schools.com/sql/sql_insert.asp" target="_blank">SQL INSERT – W3Schools</a></p>
+                    </div>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="update-statement">13.3 تعليمة <code>UPDATE</code></h2>
+                    <p>
+                        تُستخدم تعليمة <code>UPDATE</code> لتعديل البيانات الموجودة في جدول.
+                    </p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-edit topic-icon"></i> <strong>التعريف:</strong>
+                            <p>
+                                تُستخدم تعليمة <code>UPDATE</code> لتعديل القيم الموجودة في عمود واحد أو أكثر لسجلات معينة في جدول.
+                            </p>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-code topic-icon"></i> <strong>الصياغة الأساسية:</strong>
+                            <pre><code class="language-sql">
+UPDATE table_name
+SET column1 = value1, column2 = value2, ...
+WHERE condition;
+                            </code></pre>
+                            <ul class="no-bullet">
+                                <li><code>table_name</code>: اسم الجدول الذي ستُعدّل بياناته.</li>
+                                <li><code>SET column1 = value1, ...</code>: يحدد الأعمدة الجديدة وقيمها.</li>
+                                <li><code>WHERE condition</code>: (اختياري) يُحدد السجلات التي سيتم تحديثها.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <div class="example-box">
+                        <i class="fas fa-pencil-alt"></i> <strong>مثال عملي:</strong>
+                        <p>لتعديل راتب الموظف ذو الرقم 1 ليصبح 6500:</p>
+                        <pre><code class="language-sql">
+UPDATE Employees
+SET Salary = 6500
+WHERE EmployeeID = 1;
+                        </code></pre>
+                        <p>لتحديث عدة أعمدة:</p>
+                        <pre><code class="language-sql">
+UPDATE Products
+SET Price = 25.00, StockQuantity = 150
+WHERE ProductID = 101;
+                        </code></pre>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> <strong>تحذير هام:</strong>
+                            <p class="mb-0"><strong>عدم استخدام جملة <code>WHERE</code> في تعليمة <code>UPDATE</code> سيؤدي إلى تحديث جميع السجلات في الجدول!</strong> هذا يمكن أن يؤدي إلى فقدان بيانات لا يمكن استعادتها.</p>
+                        </div>
+                        <p>لمزيد من المعلومات حول تعليمة <code>UPDATE</code>، يمكنك زيارة: <a href="https://www.w3schools.com/sql/sql_update.asp" target="_blank">SQL UPDATE – W3Schools</a></p>
+                    </div>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="delete-statement">13.4 تعليمة <code>DELETE</code></h2>
+                    <p>
+                        تُستخدم تعليمة <code>DELETE</code> لحذف سجلات من الجدول.
+                    </p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-trash-alt topic-icon"></i> <strong>التعريف:</strong>
+                            <p>
+                                تُستخدم تعليمة <code>DELETE FROM</code> لحذف صف واحد أو أكثر من السجلات من جدول في قاعدة البيانات.
+                            </p>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-code topic-icon"></i> <strong>الصياغة الأساسية:</strong>
+                            <pre><code class="language-sql">
+DELETE FROM table_name
+WHERE condition;
+                            </code></pre>
+                            <ul class="no-bullet">
+                                <li><code>table_name</code>: اسم الجدول الذي ستُحذف منه البيانات.</li>
+                                <li><code>WHERE condition</code>: (اختياري) يُحدد السجلات التي سيتم حذفها.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <div class="example-box">
+                        <i class="fas fa-cut"></i> <strong>مثال عملي:</strong>
+                        <p>لحذف الموظف ذو الرقم 1 من جدول <code>Employees</code>:</p>
+                        <pre><code class="language-sql">
+DELETE FROM Employees
+WHERE EmployeeID = 1;
+                        </code></pre>
+                        <p>لحذف جميع الطلبات التي تمت قبل تاريخ معين:</p>
+                        <pre><code class="language-sql">
+DELETE FROM Orders
+WHERE OrderDate < '2023-01-01';
+                        </code></pre>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> <strong>تحذير هام:</strong>
+                            <p class="mb-0"><strong>عدم استخدام جملة <code>WHERE</code> في تعليمة <code>DELETE</code> سيؤدي إلى حذف جميع السجلات في الجدول!</strong> هذا يمكن أن يؤدي إلى فقدان بيانات لا يمكن استعادتها.</p>
+                        </div>
+                        <p>لمزيد من المعلومات حول تعليمة <code>DELETE</code>، يمكنك زيارة: <a href="https://www.w3schools.com/sql/sql_delete.asp" target="_blank">SQL DELETE – W3Schools</a></p>
+                    </div>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="built-in-functions">13.5 الدوال المدمجة (Built-in Functions)</h2>
+                    <p>
+                        تُقدم SQL مجموعة غنية من الدوال المدمجة التي تُمكنك من إجراء عمليات حسابية، معالجة النصوص، التعامل مع التواريخ، وغيرها من العمليات مباشرة على البيانات المسترجعة.
+                    </p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-calculator topic-icon"></i> <strong>التعريف:</strong>
+                            <p>
+                                هي دوال مُعدة مسبقًا تُسهل العمليات الحسابية والمنطقية والتحويلية على البيانات في قواعد البيانات. تُستخدم غالبًا في جمل <code>SELECT</code>، <code>WHERE</code>، أو <code>HAVING</code>.
+                            </p>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-tasks topic-icon"></i> <strong>أمثلة شائعة على الدوال المجمعة (Aggregate Functions):</strong>
+                            <ul class="no-bullet">
+                                <li><i class="fas fa-list-ol list-icon"></i> <strong><code>COUNT()</code>:</strong> تُرجع عدد السجلات التي تطابق معيارًا محددًا.
+                                    <pre><code class="language-sql">SELECT COUNT(*) AS TotalEmployees FROM Employees; -- عدد كل الموظفين
+SELECT COUNT(Email) FROM Employees; -- عدد الموظفين الذين لديهم بريد إلكتروني غير NULL</code></pre>
+                                </li>
+                                <li><i class="fas fa-plus list-icon"></i> <strong><code>SUM()</code>:</strong> تُرجع المجموع الكلي للقيم العددية في عمود.
+                                    <pre><code class="language-sql">SELECT SUM(Salary) AS TotalSalaries FROM Employees; -- مجموع رواتب الموظفين</code></pre>
+                                </li>
+                                <li><i class="fas fa-chart-line list-icon"></i> <strong><code>AVG()</code>:</strong> تُرجع متوسط القيم العددية في عمود.
+                                    <pre><code class="language-sql">SELECT AVG(Salary) AS AverageSalary FROM Employees; -- متوسط رواتب الموظفين</code></pre>
+                                </li>
+                                <li><i class="fas fa-arrow-down list-icon"></i> <strong><code>MIN()</code>:</strong> تُرجع أصغر قيمة في عمود.
+                                    <pre><code class="language-sql">SELECT MIN(Price) AS CheapestProduct FROM Products; -- أرخص منتج</code></pre>
+                                </li>
+                                <li><i class="fas fa-arrow-up list-icon"></i> <strong><code>MAX()</code>:</strong> تُرجع أكبر قيمة في عمود.
+                                    <pre><code class="language-sql">SELECT MAX(OrderDate) AS LatestOrderDate FROM Orders; -- أحدث تاريخ طلب</code></pre>
+                                </li>
+                            </ul>
+                            <div class="note-box">
+                                <i class="fas fa-info-circle"></i> <strong>ملاحظة:</strong> تستخدم الدوال المجمعة (Aggregate Functions) غالبًا مع جملة <code>GROUP BY</code> لتطبيق الدالة على مجموعات من السجلات بدلاً من الجدول بأكمله.
+                                <pre><code class="language-sql">SELECT DepartmentID, AVG(Salary) AS AvgDeptSalary FROM Employees GROUP BY DepartmentID;</code></pre>
+                            </div>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-font topic-icon"></i> <strong>أمثلة على دوال السلاسل النصية (String Functions):</strong>
+                            <ul class="no-bullet">
+                                <li><code>CONCAT(str1, str2, ...)</code>: لدمج سلاسل نصية.</li>
+                                <li><code>LENGTH(string)</code> (أو <code>LEN()</code>): لإرجاع طول السلسلة.</li>
+                                <li><code>LOWER(string)</code> / <code>UPPER(string)</code>: لتحويل النص إلى أحرف صغيرة / كبيرة.</li>
+                            </ul>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-calendar-alt topic-icon"></i> <strong>أمثلة على دوال التاريخ والوقت (Date and Time Functions):</strong>
+                            <ul class="no-bullet">
+                                <li><code>NOW()</code> / <code>CURRENT_DATE()</code>: لإرجاع التاريخ والوقت الحاليين.</li>
+                                <li><code>DATEDIFF(unit, start_date, end_date)</code>: لحساب الفرق بين تاريخين.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <p>لمزيد من المعلومات حول دوال SQL، يمكنك زيارة: <a href="https://www.w3schools.com/sql/sql_functions.asp" target="_blank">SQL Functions – W3Schools</a></p>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="joining-tables">13.6 ضم الجداول (Joining Tables)</h2>
+                    <p>
+                        تُستخدم عمليات الضم (JOINs) لدمج الصفوف من جدولين أو أكثر بناءً على عمود مشترك بينهما (عادةً مفتاح رئيسي ومفتاح خارجي)، مما يُمكنك من استرجاع بيانات مترابطة مخزنة عبر جداول متعددة.
+                    </p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-code-merge topic-icon"></i> <strong>التعريف:</strong>
+                            <p>
+                                عملية تُستخدم لربط جدولين أو أكثر في استعلام واحد للحصول على بيانات مترابطة. تتم عملية الربط عادةً عن طريق مقارنة القيم في عمود مشترك (أو أكثر) بين الجداول.
+                            </p>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-network-wired topic-icon"></i> <strong>أنواع <code>JOIN</code> الشائعة:</strong>
+                            <ul class="no-bullet">
+                                <li><i class="fas fa-circle list-icon"></i> <strong><code>INNER JOIN</code>:</strong>
+                                    <p>
+                                        يُرجع فقط الصفوف التي تتطابق فيها القيم في كلا الجدولين. هذا هو النوع الأكثر شيوعًا من الضم.
+                                    </p>
+                                    
+                                </li>
+                                <li><i class="fas fa-arrow-left list-icon"></i> <strong><code>LEFT JOIN</code> (أو <code>LEFT OUTER JOIN</code>):</strong>
+                                    <p>
+                                        يُرجع جميع الصفوف من الجدول الأيسر، بالإضافة إلى الصفوف المطابقة من الجدول الأيمن. إذا لم يكن هناك تطابق في الجدول الأيمن، فستظهر قيم <code>NULL</code> للأعمدة من الجدول الأيمن.
+                                    </p>
+                                    
+                                </li>
+                                <li><i class="fas fa-arrow-right list-icon"></i> <strong><code>RIGHT JOIN</code> (أو <code>RIGHT OUTER JOIN</code>):</strong>
+                                    <p>
+                                        يُرجع جميع الصفوف من الجدول الأيمن، بالإضافة إلى الصفوف المطابقة من الجدول الأيسر. إذا لم يكن هناك تطابق في الجدول الأيسر، فستظهر قيم <code>NULL</code> للأعمدة من الجدول الأيسر. (هو عكس <code>LEFT JOIN</code>).
+                                    </p>
+                                    
+                                </li>
+                                <li><i class="fas fa-arrows-alt-h list-icon"></i> <strong><code>FULL OUTER JOIN</code> (أو <code>FULL JOIN</code>):</strong>
+                                    <p>
+                                        يُرجع جميع الصفوف من كلا الجدولين. إذا لم يكن هناك تطابق في أحد الجدولين، فستظهر قيم <code>NULL</code> للأعمدة من الجدول الآخر.
+                                    </p>
+                                    
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <div class="example-box">
+                        <i class="fas fa-code-branch"></i> <strong>مثال عملي:</strong>
+                        <p>لنفترض أن لدينا جداول: <code>Students</code> (<code>StudentID</code>, <code>Name</code>)، <code>Courses</code> (<code>CourseID</code>, <code>CourseName</code>)، و <code>Enrollments</code> (<code>EnrollmentID</code>, <code>StudentID</code>, <code>CourseID</code>, <code>Grade</code>).</p>
+                        <p>لإظهار أسماء الطلاب والمقررات التي سجلوها (لجلب بيانات من ثلاثة جداول):</p>
+                        <pre><code class="language-sql">
+SELECT
+    S.Name AS StudentName,
+    C.CourseName
+FROM
+    Enrollments E
+INNER JOIN
+    Students S ON E.StudentID = S.StudentID
+INNER JOIN
+    Courses C ON E.CourseID = C.CourseID;
+                        </code></pre>
+                        <p>في هذا المثال:</p>
+                        <ul>
+                            <li><code>Enrollments</code> هو الجدول المركزي الذي يربط الطلاب بالمقررات.</li>
+                            <li><code>INNER JOIN Students ON E.StudentID = S.StudentID</code>: يربط جدول <code>Enrollments</code> بجدول <code>Students</code> باستخدام <code>StudentID</code>.</li>
+                            <li><code>INNER JOIN Courses ON E.CourseID = C.CourseID</code>: يربط جدول <code>Enrollments</code> بجدول <code>Courses</code> باستخدام <code>CourseID</code>.</li>
+                            <li><code>AS</code> يُستخدم لإعطاء أسماء مستعارة (aliases) للأعمدة والجداول لتسهيل القراءة وتجنب تضارب الأسماء.</li>
+                        </ul>
+                        <p>لمزيد من المعلومات حول ضم الجداول (JOINs)، يمكنك زيارة: <a href="https://www.w3schools.com/sql/sql_join.asp" target="_blank">SQL JOIN – W3Schools</a></p>
+                    </div>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="key-terms">13.7 مصطلحات أساسية (Key Terms)</h2>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>المصطلح (الإنجليزية)</th>
+                                <th>المصطلح (العربية)</th>
+                                <th>التعريف</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>DML (Data Manipulation Language)</strong></td>
+                                <td>لغة معالجة البيانات</td>
+                                <td>جزء من SQL يُستخدم لاسترجاع، إضافة، تعديل، وحذف البيانات في قاعدة البيانات.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>SELECT</strong></td>
+                                <td>تحديد / استعلام</td>
+                                <td>أمر DML لاستخراج البيانات من جدول أو أكثر.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>INSERT INTO</strong></td>
+                                <td>إدخال في</td>
+                                <td>أمر DML لإضافة صفوف جديدة من البيانات إلى جدول.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>UPDATE</strong></td>
+                                <td>تحديث</td>
+                                <td>أمر DML لتعديل البيانات الموجودة في جدول.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>DELETE FROM</strong></td>
+                                <td>حذف من</td>
+                                <td>أمر DML لحذف صفوف من البيانات من جدول.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>WHERE Clause</strong></td>
+                                <td>جملة WHERE</td>
+                                <td>تُستخدم لتصفية السجلات بناءً على شرط محدد في أوامر SELECT, UPDATE, DELETE.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>ORDER BY</strong></td>
+                                <td>ترتيب حسب</td>
+                                <td>تُستخدم لفرز مجموعة النتائج بترتيب تصاعدي أو تنازلي.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>DISTINCT</strong></td>
+                                <td>فريد</td>
+                                <td>تُستخدم لإرجاع قيم غير مكررة فقط.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>LIMIT / TOP</strong></td>
+                                <td>تحديد / أعلى</td>
+                                <td>تُستخدم لتحديد العدد الأقصى من السجلات المراد إرجاعها.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>LIKE</strong></td>
+                                <td>يشبه</td>
+                                <td>تُستخدم للبحث عن نمط محدد في عمود نصي.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Built-in Functions</strong></td>
+                                <td>الدوال المدمجة</td>
+                                <td>دوال جاهزة في SQL لإجراء عمليات على البيانات (مثل COUNT, SUM, AVG, MIN, MAX).</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Aggregate Functions</strong></td>
+                                <td>الدوال المجمعة</td>
+                                <td>دوال تُجري عمليات حسابية على مجموعة من الصفوف وتُرجع قيمة واحدة (مثل COUNT, SUM, AVG).</td>
+                            </tr>
+                            <tr>
+                                <td><strong>GROUP BY</strong></td>
+                                <td>تجميع حسب</td>
+                                <td>تُستخدم لتجميع الصفوف التي تحتوي على نفس القيم في أعمدة محددة في مجموعات.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>JOIN</strong></td>
+                                <td>ضم / ربط</td>
+                                <td>عملية دمج الصفوف من جدولين أو أكثر بناءً على عمود مشترك.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>INNER JOIN</strong></td>
+                                <td>ضم داخلي</td>
+                                <td>يُرجع الصفوف المتطابقة فقط من كلا الجدولين.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>LEFT JOIN</strong></td>
+                                <td>ضم أيسر</td>
+                                <td>يُرجع جميع الصفوف من الجدول الأيسر والصفوف المتطابقة من الجدول الأيمن.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>RIGHT JOIN</strong></td>
+                                <td>ضم أيمن</td>
+                                <td>يُرجع جميع الصفوف من الجدول الأيمن والصفوف المتطابقة من الجدول الأيسر.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>FULL OUTER JOIN</strong></td>
+                                <td>ضم خارجي كامل</td>
+                                <td>يُرجع جميع الصفوف من كلا الجدولين، مع قيم NULL للصفوف غير المتطابقة.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Alias</strong></td>
+                                <td>اسم مستعار</td>
+                                <td>اسم مؤقت يُعطى لجدول أو عمود في استعلام SQL.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="course-card p-5 mb-4">
+                    <h2 class="unit-section-title" id="unit-summary">ملخص الوحدة</h2>
+                    <ul class="no-bullet">
+                        <li><i class="fas fa-star list-icon"></i> <strong>لغة معالجة البيانات (DML)</strong> هي جزء أساسي من SQL للتعامل مع البيانات.</li>
+                        <li><i class="fas fa-star list-icon"></i> أوامر DML الرئيسية هي <code>SELECT</code> (لاسترجاع البيانات)، <code>INSERT</code> (لإضافة بيانات)، <code>UPDATE</code> (لتعديل بيانات)، و<code>DELETE</code> (لحذف بيانات).</li>
+                        <li><i class="fas fa-star list-icon"></i> جملة <code>WHERE</code> حاسمة لتصفية السجلات في أوامر <code>SELECT</code>، <code>UPDATE</code>، و<code>DELETE</code> لمنع العمليات غير المقصودة.</li>
+                        <li><i class="fas fa-star list-icon"></i> <strong>الدوال المدمجة</strong> (مثل <code>COUNT</code>، <code>SUM</code>، <code>AVG</code>، <code>MIN</code>، <code>MAX</code>) تُمكن من إجراء عمليات حسابية وتحويلات على البيانات.</li>
+                        <li><i class="fas fa-star list-icon"></i> عمليات <strong>ضم الجداول (JOINs)</strong> مثل <code>INNER JOIN</code> و<code>LEFT JOIN</code> تُستخدم لدمج البيانات من جداول متعددة بناءً على العلاقات بينها.</li>
+                    </ul>
+                </div>
+
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="suggested-exercises">13.8 تمارين مقترحة (Suggested Exercises)</h2>
+                    <p>استخدم قاعدة بيانات افتراضية تحتوي على الجداول التالية لتطبيق التمارين:</p>
+                    <h4 class="inner-sub-topic">جدول <code>Employees</code>:</h4>
+                    <table class="table table-bordered text-center">
+                        <thead>
+                            <tr>
+                                <th><code>EmployeeID</code> (INT PK)</th>
+                                <th><code>Name</code> (VARCHAR)</th>
+                                <th><code>Salary</code> (DECIMAL)</th>
+                                <th><code>DepartmentID</code> (INT FK)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>1</td><td>أحمد علي</td><td>6000.00</td><td>10</td></tr>
+                            <tr><td>2</td><td>سارة محمد</td><td>7500.00</td><td>20</td></tr>
+                            <tr><td>3</td><td>فهد خالد</td><td>5500.00</td><td>10</td></tr>
+                            <tr><td>4</td><td>نور يوسف</td><td>8000.00</td><td>30</td></tr>
+                        </tbody>
+                    </table>
+                    <h4 class="inner-sub-topic">جدول <code>Departments</code>:</h4>
+                    <table class="table table-bordered text-center">
+                        <thead>
+                            <tr>
+                                <th><code>DepartmentID</code> (INT PK)</th>
+                                <th><code>DepartmentName</code> (VARCHAR)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>10</td><td>الموارد البشرية</td></tr>
+                            <tr><td>20</td><td>التسويق</td></tr>
+                            <tr><td>30</td><td>التطوير</td></tr>
+                        </tbody>
+                    </table>
+                    <h4 class="inner-sub-topic">جدول <code>Courses</code>:</h4>
+                    <table class="table table-bordered text-center">
+                        <thead>
+                            <tr>
+                                <th><code>CourseID</code> (INT PK)</th>
+                                <th><code>CourseName</code> (VARCHAR)</th>
+                                <th><code>Credits</code> (INT)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>101</td><td>مقدمة في قواعد البيانات</td><td>3</td></tr>
+                            <tr><td>102</td><td>البرمجة بلغة بايثون</td><td>4</td></tr>
+                        </tbody>
+                    </table>
+                    <hr>
+                    <ol>
+                        <li><strong>تعليمة <code>SELECT</code>:</strong>
+                            <br>اكتب استعلام SQL لاستخراج <code>Name</code> و<code>Salary</code> لجميع الموظفين من جدول <code>Employees</code>، ورتب النتائج بترتيب تنازلي حسب <code>Salary</code>، ثم تصاعدي حسب <code>Name</code>.</li>
+                        <li><strong>تعليمة <code>INSERT</code>:</strong>
+                            <br>أضف سجلًا جديدًا إلى جدول <code>Courses</code> بالمعلومات التالية: <code>CourseID = 103</code>، <code>CourseName = 'أساسيات الأمن السيبراني'</code>، <code>Credits = 3</code>.</li>
+                        <li><strong>تعليمة <code>UPDATE</code>:</strong>
+                            <br>قم بتعديل راتب الموظف ذو <code>EmployeeID = 2</code> في جدول <code>Employees</code> ليصبح <code>8200.00</code>.</li>
+                        <li><strong>تعليمة <code>DELETE</code>:</strong>
+                            <br>اكتب استعلامًا لحذف الموظف ذو <code>EmployeeID = 4</code> من جدول <code>Employees</code>. (افترض أنه لا يوجد تكامل مرجعي يمنع الحذف أو قم بتعطيله مؤقتًا لأغراض التمرين).</li>
+                        <li><strong>الدوال المدمجة:</strong>
+                            <br>استخدم دالة <code>AVG()</code> لحساب متوسط رواتب الموظفين في كل قسم. يجب أن يظهر الاستعلام <code>DepartmentID</code> ومتوسط الراتب لكل قسم.</li>
+                        <li><strong>ضم الجداول (<code>JOIN</code>):</strong>
+                            <br>صمم استعلام <code>INNER JOIN</code> بين جدولي <code>Employees</code> و<code>Departments</code> لإظهار <code>EmployeeID</code>، <code>Name</code>، و<code>DepartmentName</code> لجميع الموظفين.</li>
+                        <li><strong>ضم الجداول (<code>LEFT JOIN</code>):</strong>
+                            <br>صمم استعلام <code>LEFT JOIN</code> بين جدولي <code>Departments</code> و<code>Employees</code>. أظهر <code>DepartmentName</code> و<code>Name</code> لجميع الأقسام، مع إظهار الموظفين المرتبطين بها. (يجب أن تُظهر الأقسام التي ليس لها موظفين أيضًا).</li>
+                    </ol>
+                </div>
+                
+                <!-- أزرار التنقل -->
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="unit-12.html" class="btn unit-nav-btn"><i class="fas fa-arrow-right"></i> الوحدة السابقة</a>
+                    <a href="../../../materials/db-design/unit-13.pdf" target="_blank" class="btn unit-nav-btn"><i class="fas fa-file-pdf"></i> عرض / تحميل مادة الوحدة</a>
+                    <a href="unit-summary.html" class="btn unit-nav-btn text-end">الوحدة الختامية <i class="fas fa-arrow-left"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- الفوتر -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>مسار الأمن السيبراني</h5>
+                    <p>منصة تعليمية متخصصة في تقديم محتوى أكاديمي وعملي في مجال الأمن السيبراني.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>روابط سريعة</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="../../../index.html" class="text-white">الرئيسية</a></li>
+                        <li><a href="../../index.html" class="text-white">جميع المقررات</a></li>
+                        <li><a href="#" class="text-white">الدعم الفني</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>تواصل معنا</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> info@cyberpath.com</li>
+                        <li><i class="fas fa-phone me-2"></i> 0502161465</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2025 مسار الأمن السيبراني. جميع الحقوق محفوظة.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-linkedin fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-youtube fa-lg"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-github fa-lg"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- تضمين Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // تحديث شريط التقدم بناءً على الوحدة الحالية
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentUnitNumber = 13; // رقم الوحدة الحالية
+            const totalModules = 14; // إجمالي عدد الوحدات في المقرر
+            const progressPercentage = (currentUnitNumber / totalModules) * 100;
+            
+            const progressBar = document.querySelector('.progress-bar');
+            progressBar.style.width = `${progressPercentage}%`;
+            progressBar.setAttribute('aria-valuenow', progressPercentage);
+            progressBar.textContent = `${Math.round(progressPercentage)}% مكتمل`;
+        });
+    </script>
+</body>
+</html>
