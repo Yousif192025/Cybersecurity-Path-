@@ -1,1 +1,1025 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الوحدة 8: اتفاقيات مستوى الخدمة (SLAs) | مسار الأمن السيبراني</title>
+    <!-- تضمين Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- تضمين Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- تضمين Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- تضمين خط Tajawal من Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* تعريف المتغيرات لألوان موحدة */
+        :root {
+            --primary-color: #2c3e50; /* لون أزرق داكن/رمادي */
+            --secondary-color: #3498db; /* لون أزرق فاتح */
+            --accent-color: #e74c3c; /* لون أحمر/برتقالي لـ "تحذير" أو "خطر" */
+            --light-bg: #f8f9fa; /* خلفية فاتحة جدًا للجسم */
+            --dark-text: #2c3e50; /* لون نص داكن */
+            --light-text: #7f8c8d; /* لون نص فاتح (رمادي) */
+            --warning-color: #d68910; /* لون برتقالي للتحذيرات والعناوين المميزة */
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--light-bg); /* خلفية فاتحة */
+            color: var(--dark-text); /* لون نص داكن */
+            line-height: 1.8;
+            direction: rtl; /* تأكيد الاتجاه من اليمين لليسار */
+            text-align: right; /* محاذاة النص لليمين افتراضيا */
+        }
+
+        .navbar {
+            background-color: var(--primary-color);
+        }
+        .navbar-brand {
+            color: white !important; /* لون أبيض للشعار في شريط التنقل */
+        }
+        .btn-outline-light {
+            border-color: rgba(255, 255, 255, 0.7) !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .btn-outline-light:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .course-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 1rem 1rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .course-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-right: 4px solid var(--secondary-color); /* شريط جانبي بلون ثانوي */
+            padding: 2rem; /* تباعد داخلي للبطاقات */
+        }
+
+        .course-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .course-title-section {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .module-icon {
+            width: 50px;
+            height: 50px;
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 1rem;
+            flex-shrink: 0;
+            font-size: 1.25rem;
+        }
+        .sidebar .module-icon { /* Specific styling for sidebar icons */
+            width: 40px; /* Slightly smaller for sidebar */
+            height: 40px;
+            font-size: 1rem;
+            margin-left: 10px; /* Adjust margin for sidebar */
+        }
+
+        .progress-container { /* Styling for sidebar progress bar */
+            height: 25px;
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-bar { /* Styling for sidebar progress bar */
+            background-color: var(--secondary-color);
+        }
+
+        .accordion-button:not(.collapsed) {
+            background-color: var(--secondary-color); /* Active accordion button background */
+            color: #fff; /* Active accordion button text color */
+            box-shadow: none;
+        }
+        .accordion-button:not(.collapsed) .module-icon { /* Active accordion button icon */
+            background-color: var(--primary-color); /* Darker background for icon when active */
+        }
+        .accordion-button:not(.collapsed)::after {
+            filter: brightness(0) invert(1); /* Invert arrow color for dark background */
+        }
+
+        .accordion-button {
+            border-radius: 0.5rem !important; /* للحفاظ على حدود مستديرة للأزرار */
+        }
+        .accordion-item {
+            margin-bottom: 0.5rem; /* مسافة بين عناصر الأكورديون */
+            border-radius: 0.75rem;
+            border: 1px solid rgba(0, 0, 0, 0.125); /* حدود للأكورديون */
+            overflow: hidden; /* لمنع تجاوز المحتوى للحواف المستديرة */
+        }
+        .accordion-body ul {
+            padding-right: 0; /* إزالة التباعد الافتراضي لقائمة الروابط الداخلية */
+        }
+        .accordion-body ul li a {
+            padding: 0.25rem 0.5rem;
+            display: block;
+            border-radius: 0.25rem;
+            color: var(--dark-text);
+        }
+        .accordion-body ul li a:hover,
+        .accordion-body ul li a.active-link { /* Active link in sidebar */
+            background-color: #e9f5ff;
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+        .accordion-body .btn-primary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .accordion-body .btn-primary:hover {
+            background-color: #2874ad;
+            border-color: #2874ad;
+        }
+
+        .sidebar { /* Styling for the sidebar container */
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            color: var(--dark-text); /* Ensure text is readable */
+        }
+        .sidebar h4 {
+            color: var(--primary-color); /* Sidebar heading color */
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* تنسيقات الفوتر */
+        footer {
+            background-color: var(--primary-color) !important;
+            color: white;
+            padding: 2.5rem 0;
+        }
+        footer h5 {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        footer .list-unstyled li a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        footer .list-unstyled li a:hover {
+            color: var(--secondary-color);
+        }
+        footer .fab, footer .fas { /* تطبيق اللون الأبيض على أيقونات الفوتر */
+            color: white;
+            transition: color 0.2s;
+        }
+        footer .fab:hover, footer .fas:hover {
+            color: var(--secondary-color);
+        }
+
+        /* Unit-specific content styling */
+        h2.unit-section-title { /* For general description, learning objectives, etc. */
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+        }
+        h3.sub-topic-title { /* For topic headings like "3.1 تعريف أمن التطبيقات" */
+            color: var(--primary-color);
+            border-bottom: 1px dashed var(--light-text);
+            padding-bottom: 0.3rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.75rem;
+        }
+        h4.inner-sub-topic { /* For sub-headings within OWASP items */
+            color: var(--dark-text);
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 1.25rem;
+        }
+        ul {
+            padding-right: 25px; /* Adjust default list padding */
+        }
+        ul.no-bullet {
+            list-style: none;
+            padding-right: 0;
+        }
+        ul li {
+            margin-bottom: 0.5rem;
+        }
+        .list-icon {
+            margin-left: 10px;
+            color: var(--secondary-color); /* Default icon color */
+        }
+        /* Specific icon colors based on content type for clarity */
+        .objectives-list .list-icon { color: #28a745; } /* Green for checkmarks */
+        .methods-list .list-icon { color: #17a2b8; } /* Teal/Cyan for methods */
+        .outcomes-list .list-icon { color: #ffc107; } /* Yellow/Orange for stars */
+        .topic-icon { /* Icons within the main topics like for Tools/Concepts */
+            color: var(--secondary-color);
+            margin-left: 10px;
+        }
+        .alert-info-custom {
+            background-color: #e9ecef; /* Light grey/blue background */
+            border-left: 5px solid var(--secondary-color);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        .alert-info-custom i {
+            color: var(--secondary-color);
+            margin-right: 0.5rem;
+        }
+
+        /* Styling for Example/Note boxes */
+        .example-box, .note-box {
+            background-color: #e9ecef; /* Light grey background */
+            border-right: 5px solid var(--secondary-color); /* Blue border */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        .example-box i, .note-box i {
+            color: var(--secondary-color); /* Blue icon color */
+            margin-left: 0.5rem;
+        }
+        .example-box ul, .note-box ul {
+            list-style: none; /* Remove default bullets */
+            padding-right: 0;
+        }
+        .example-box ul li::before, .note-box ul li::before {
+            content: "\f058"; /* Font Awesome check-circle icon */
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            color: var(--secondary-color);
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+            margin-right: 0.5em;
+        }
+        /* Styling for tables */
+        table {
+            width: 100%;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+            border-collapse: collapse;
+        }
+        table th,
+        table td {
+            padding: 0.75rem;
+            vertical-align: top;
+            border: 1px solid #dee2e6;
+            text-align: right; /* Align text to right for RTL */
+        }
+        table thead th {
+            vertical-align: bottom;
+            border-bottom: 2px solid #dee2e6;
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        table tbody + tbody {
+            border-top: 2px solid #dee2e6;
+        }
+
+        /* Buttons for Unit Navigation */
+        .unit-nav-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: bold;
+            transition: background-color 0.2s, transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+        }
+        .unit-nav-btn:hover {
+            background-color: #2874ad;
+            color: white;
+            transform: translateY(-2px);
+        }
+        .unit-nav-btn .fa-arrow-left { /* Left arrow for "Next Unit" button */
+            margin-right: 0;
+            margin-left: 8px;
+        }
+        .unit-nav-btn .fa-arrow-right { /* Right arrow for "Back to Index" button */
+            margin-right: 8px;
+            margin-left: 0;
+        }
+
+        /* Styling for code blocks */
+        pre {
+            background-color: #e9ecef;
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto; /* Enable horizontal scrolling for long lines */
+            direction: ltr; /* Ensure code direction is LTR */
+            text-align: left; /* Ensure text alignment is left for code */
+        }
+        code {
+            font-family: 'Consolas', 'Monaco', 'Lucida Console', monospace;
+            font-size: 0.9rem;
+            color: var(--dark-text);
+        }
+        pre code {
+            display: block; /* Ensures code block takes full width */
+        }
+
+
+        /* Responsive adjustments */
+        @media (max-width: 991px) { /* Changed breakpoint to align with col-lg- */
+            .sidebar {
+                margin-top: 1rem;
+                margin-bottom: 1rem; /* Added margin for better spacing on smaller screens */
+            }
+            .course-header {
+                padding: 2rem 0;
+            }
+            .course-card {
+                padding: 1.5rem;
+            }
+            h1.display-4 {
+                font-size: 2.2rem;
+            }
+            h2.unit-section-title {
+                font-size: 1.75rem;
+            }
+            h3.sub-topic-title {
+                font-size: 1.5rem;
+            }
+            .unit-nav-btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+            .d-flex.justify-content-between.mt-4 {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <!-- شريط التنقل -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--primary-color);">
+        <div class="container">
+            <a class="navbar-brand" href="../../../index.html">مسار الأمن السيبراني</a>
+            <a href="../../index.html" class="btn btn-outline-light">العودة إلى المقررات</a>
+        </div>
+    </nav>
+
+    <!-- رأس الوحدة -->
+    <header class="course-header text-center">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-3">الوحدة 8: اتفاقيات مستوى الخدمة (SLAs)</h1>
+            <p class="lead">فهم وتقييم اتفاقيات مستوى الخدمة (SLAs) في الحوسبة السحابية.</p>
+        </div>
+    </header>
+
+    <div class="container-fluid py-5">
+        <div class="row">
+            <!-- Sidebar for Units Navigation -->
+            <div class="col-lg-3">
+                <div class="sidebar p-4">
+                    <h4 class="mb-3">
+                        <i class="fas fa-stream me-2"></i>
+                        وحدات المقرر
+                    </h4>
+                    <div class="progress progress-container mb-4">
+                        <div class="progress-bar" role="progressbar" style="width: 80%;" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100">80% مكتمل</div>
+                    </div>
+                    <div class="accordion" id="unitsAccordion">
+                        <!-- Unit 1 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingCloudSecUnit1">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCloudSecUnit1" aria-expanded="false" aria-controls="collapseCloudSecUnit1">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-cloud"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 1: مقدمة في أمن التطبيقات السحابية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseCloudSecUnit1" class="accordion-collapse collapse" aria-labelledby="headingCloudSecUnit1" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-1.html#general-description" class="text-decoration-none">1. الوصف العام للوحدة</a></li>
+                                        <li><a href="unit-1.html#learning-objectives" class="text-decoration-none">2. الأهداف التعليمية</a></li>
+                                        <li><a href="unit-1.html#detailed-content" class="text-decoration-none">3. محتويات الوحدة بالتفصيل</a>
+                                            <ul class="list-unstyled ms-3">
+                                                <li><a href="unit-1.html#cloud-computing-concept" class="text-decoration-none">3.1 مفهوم الحوسبة السحابية</a></li>
+                                                <li><a href="unit-1.html#cloud-essential-characteristics" class="text-decoration-none">3.2 الخصائص الأساسية للسحابة</a></li>
+                                                <li><a href="unit-1.html#shared-responsibility-model" class="text-decoration-none">3.3 نموذج مشاركة المسؤولية</a></li>
+                                                <li><a href="unit-1.html#traditional-vs-cloud-security" class="text-decoration-none">3.4 الفرق بين الأمن التقليدي والسحابي</a></li>
+                                                <li><a href="unit-1.html#cloud-security-challenges" class="text-decoration-none">3.5 التحديات الأمنية في السحابة</a></li>
+                                                <li><a href="unit-1.html#enhancing-cloud-security" class="text-decoration-none">3.6 تعزيز الأمن السحابي</a></li>
+                                            </ul>
+                                        </li>
+                                        <li><a href="unit-1.html#practical-examples" class="text-decoration-none">4. أمثلة تطبيقية</a></li>
+                                        <li><a href="unit-1.html#activities-exercises" class="text-decoration-none">5. أنشطة وتمارين</a></li>
+                                        <li><a href="unit-1.html#additional-resources" class="text-decoration-none">6. موارد إضافية</a></li>
+                                        <li><a href="unit-1.html#assessment" class="text-decoration-none">7. التقييم</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 2 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingCloudSecUnit2">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCloudSecUnit2" aria-expanded="false" aria-controls="collapseCloudSecUnit2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-server"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 2: المحاكاة الافتراضية في الحوسبة السحابية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseCloudSecUnit2" class="accordion-collapse collapse" aria-labelledby="headingCloudSecUnit2" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-2.html#general-description" class="text-decoration-none">1. الوصف العام للوحدة</a></li>
+                                        <li><a href="unit-2.html#learning-objectives" class="text-decoration-none">2. الأهداف التعليمية</a></li>
+                                        <li><a href="unit-2.html#detailed-content" class="text-decoration-none">3. محتويات الوحدة بالتفصيل</a>
+                                            <ul class="list-unstyled ms-3">
+                                                <li><a href="unit-2.html#virtualization-basic-concepts" class="text-decoration-none">3.1 المفاهيم الأساسية للمحاكاة الافتراضية</a></li>
+                                                <li><a href="unit-2.html#virtualization-types" class="text-decoration-none">3.2 أنواع المحاكاة الافتراضية</a></li>
+                                                <li><a href="unit-2.html#virtualization-architecture-components" class="text-decoration-none">3.3 مكونات بنية المحاكاة الافتراضية</a></li>
+                                                <li><a href="unit-2.html#virtualization-management-tools" class="text-decoration-none">3.4 أدوات إدارة البنية التحتية الافتراضية</a></li>
+                                                <li><a href="unit-2.html#virtualization-security-threats" class="text-decoration-none">3.5 التهديدات الأمنية الخاصة بالمحاكاة الافتراضية</a></li>
+                                                <li><a href="unit-2.html#virtualization-security-best-practices" class="text-decoration-none">3.6 أفضل الممارسات الأمنية</a></li>
+                                            </ul>
+                                        </li>
+                                        <li><a href="unit-2.html#practical-examples" class="text-decoration-none">4. أمثلة تطبيقية</a></li>
+                                        <li><a href="unit-2.html#interactive-activities" class="text-decoration-none">5. أنشطة تفاعلية مقترحة</a></li>
+                                        <li><a href="unit-2.html#enrichment-resources" class="text-decoration-none">6. موارد إثرائية وروابط مفيدة</a></li>
+                                        <li><a href="unit-2.html#assessment" class="text-decoration-none">7. التقييم</a></li>
+                                        <li><a href="unit-2.html#emerging-technologies" class="text-decoration-none">8. ملحق: التقنيات الناشئة في الحوسبة السحابية</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 3 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingCloudSecUnit3">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCloudSecUnit3" aria-expanded="false" aria-controls="collapseCloudSecUnit3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-shield-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 3: التهديدات السحابية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseCloudSecUnit3" class="accordion-collapse collapse" aria-labelledby="headingCloudSecUnit3" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-3.html#general-description" class="text-decoration-none">1. الوصف العام للوحدة</a></li>
+                                        <li><a href="unit-3.html#learning-objectives" class="text-decoration-none">2. الأهداف التعليمية</a></li>
+                                        <li><a href="unit-3.html#detailed-content" class="text-decoration-none">3. محتويات الوحدة بالتفصيل</a>
+                                            <ul class="list-unstyled ms-3">
+                                                <li><a href="unit-3.html#cloud-threats-definition" class="text-decoration-none">3.1 تعريف التهديدات السحابية</a></li>
+                                                <li><a href="unit-3.html#cloud-threats-types" class="text-decoration-none">3.2 أنواع التهديدات الأمنية في البيئات السحابية</a></li>
+                                                <li><a href="unit-3.html#multi-tenancy-challenges" class="text-decoration-none">3.3 التحديات الأمنية في نموذج تعدد المستأجرين</a></li>
+                                                <li><a href="unit-3.html#privacy-compliance-threats" class="text-decoration-none">3.4 تهديدات الخصوصية والامتثال</a></li>
+                                                <li><a href="unit-3.html#threat-mitigation-strategies" class="text-decoration-none">3.5 الاستراتيجيات والتقنيات لمواجهة التهديدات</a></li>
+                                            </ul>
+                                        </li>
+                                        <li><a href="unit-3.html#real-world-examples" class="text-decoration-none">4. أمثلة واقعية ودراسات حالة</a></li>
+                                        <li><a href="unit-3.html#interactive-activities" class="text-decoration-none">5. أنشطة تفاعلية</a></li>
+                                        <li><a href="unit-3.html#enrichment-resources" class="text-decoration-none">6. موارد إثرائية وروابط مفيدة</a></li>
+                                        <li><a href="unit-3.html#assessment" class="text-decoration-none">7. التقييم</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 4 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingCloudSecUnit4">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCloudSecUnit4" aria-expanded="false" aria-controls="collapseCloudSecUnit4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-bug"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 4: هجمات الحوسبة السحابية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseCloudSecUnit4" class="accordion-collapse collapse" aria-labelledby="headingCloudSecUnit4" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-4.html#general-description" class="text-decoration-none">1. الوصف العام للوحدة</a></li>
+                                        <li><a href="unit-4.html#learning-objectives" class="text-decoration-none">2. الأهداف التعليمية</a></li>
+                                        <li><a href="unit-4.html#detailed-content" class="text-decoration-none">3. محتويات الوحدة بالتفصيل</a>
+                                            <ul class="list-unstyled ms-3">
+                                                <li><a href="unit-4.html#ddos-attacks" class="text-decoration-none">3.1 هجمات حرمان الخدمة (DDoS)</a></li>
+                                                <li><a href="unit-4.html#container-exploits" class="text-decoration-none">3.2 هجمات استغلال الحاويات (Container Exploits)</a></li>
+                                                <li><a href="unit-4.html#misconfiguration-attacks" class="text-decoration-none">3.3 استغلال التكوين الخاطئ (Misconfiguration Attacks)</a></li>
+                                                <li><a href="unit-4.html#api-attacks" class="text-decoration-none">3.4 هجمات واجهات برمجة التطبيقات (API Attacks)</a></li>
+                                                <li><a href="unit-4.html#social-engineering-attacks" class="text-decoration-none">3.5 هجمات الهندسة الاجتماعية (Social Engineering Attacks)</a></li>
+                                                <li><a href="unit-4.html#insider-threats" class="text-decoration-none">3.6 هجمات السرقة الداخلية (Insider Threats)</a></li>
+                                            </ul>
+                                        </li>
+                                        <li><a href="unit-4.html#practical-examples" class="text-decoration-none">4. أمثلة تطبيقية ودراسات حالة</a></li>
+                                        <li><a href="unit-4.html#interactive-activities" class="text-decoration-none">5. أنشطة تفاعلية</a></li>
+                                        <li><a href="unit-4.html#enrichment-resources" class="text-decoration-none">6. موارد إثرائية وروابط مفيدة</a></li>
+                                        <li><a href="unit-4.html#assessment" class="text-decoration-none">7. التقييم</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 5 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingCloudSecUnit5">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCloudSecUnit5" aria-expanded="false" aria-controls="collapseCloudSecUnit5">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-lock"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 5: الأمن السحابي</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseCloudSecUnit5" class="accordion-collapse collapse" aria-labelledby="headingCloudSecUnit5" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-5.html#introduction" class="text-decoration-none">1. مقدمة الوحدة</a></li>
+                                        <li><a href="unit-5.html#learning-objectives" class="text-decoration-none">2. أهداف التعلم</a></li>
+                                        <li><a href="unit-5.html#basic-concepts" class="text-decoration-none">3. المفاهيم الأساسية</a>
+                                            <ul class="list-unstyled ms-3">
+                                                <li><a href="unit-5.html#cloud-security-definition" class="text-decoration-none">3.1 تعريف الأمن السحابي</a></li>
+                                                <li><a href="unit-5.html#cloud-service-models-security-impact" class="text-decoration-none">3.2 نماذج الخدمات السحابية وأثرها على الأمن</a></li>
+                                            </ul>
+                                        </li>
+                                        <li><a href="unit-5.html#cloud-security-strategies" class="text-decoration-none">4. استراتيجيات تأمين البيئات السحابية</a>
+                                            <ul class="list-unstyled ms-3">
+                                                <li><a href="unit-5.html#iam" class="text-decoration-none">4.1 إدارة الهوية والوصول (IAM)</a></li>
+                                                <li><a href="unit-5.html#encryption" class="text-decoration-none">4.2 التشفير</a></li>
+                                                <li><a href="unit-5.html#compliance-standards" class="text-decoration-none">4.3 الامتثال والمعايير</a></li>
+                                            </ul>
+                                        </li>
+                                        <li><a href="unit-5.html#common-cloud-threats" class="text-decoration-none">5. التهديدات الشائعة في السحابة</a></li>
+                                        <li><a href="unit-5.html#cloud-security-tools" class="text-decoration-none">6. أدوات وتقنيات الأمن السحابي</a></li>
+                                        <li><a href="unit-5.html#case-study" class="text-decoration-none">7. دراسة حالة تطبيقية</a></li>
+                                        <li><a href="unit-5.html#practical-activities" class="text-decoration-none">8. أنشطة عملية مقترحة</a></li>
+                                        <li><a href="unit-5.html#unit-summary" class="text-decoration-none">9. ملخص الوحدة</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 6 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingCloudSecUnit6">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCloudSecUnit6" aria-expanded="false" aria-controls="collapseCloudSecUnit6">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-tools"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 6: أدوات الأمن السحابي</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseCloudSecUnit6" class="accordion-collapse collapse" aria-labelledby="headingCloudSecUnit6" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-6.html#part1-overview" class="text-decoration-none">الجزء الأول: أدوات الأمن السحابي</a></li>
+                                        <ul class="list-unstyled ms-3">
+                                            <li><a href="unit-6.html#cloud-monitoring-tools" class="text-decoration-none">أ. أدوات المراقبة السحابية</a></li>
+                                            <li><a href="unit-6.html#iam-tools" class="text-decoration-none">ب. أدوات إدارة الهوية والوصول (IAM)</a></li>
+                                            <li><a href="unit-6.html#threat-detection-tools" class="text-decoration-none">ج. أدوات كشف التهديدات</a></li>
+                                            <li><a href="unit-6.html#container-protection-tools" class="text-decoration-none">د. أدوات حماية الحاويات</a></li>
+                                            <li><a href="unit-6.html#part1-practical-applications" class="text-decoration-none">4. التطبيقات العملية (الجزء الأول)</a></li>
+                                            <li><a href="unit-6.html#part1-activities" class="text-decoration-none">5. الأنشطة والتمارين (الجزء الأول)</a></li>
+                                        </ul>
+                                        <li><a href="unit-6.html#part2-overview" class="text-decoration-none">الجزء الثاني: جدران الحماية السحابية</a></li>
+                                        <ul class="list-unstyled ms-3">
+                                            <li><a href="unit-6.html#cloud-firewall-types" class="text-decoration-none">أ. أنواع جدران الحماية السحابية</a></li>
+                                            <li><a href="unit-6.html#filtering-mechanisms" class="text-decoration-none">ب. آليات التصفية</a></li>
+                                            <li><a href="unit-6.html#security-system-integration" class="text-decoration-none">ج. التكامل مع أنظمة الأمن</a></li>
+                                            <li><a href="unit-6.html#part2-practical-applications" class="text-decoration-none">4. التطبيقات العملية (الجزء الثاني)</a></li>
+                                            <li><a href="unit-6.html#part2-activities" class="text-decoration-none">5. الأنشطة والتمارين (الجزء الثاني)</a></li>
+                                        </ul>
+                                        <li><a href="unit-6.html#enrichment-resources" class="text-decoration-none">الموارد الإثرائية</a></li>
+                                        <li><a href="unit-6.html#assessment" class="text-decoration-none">التقييم</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 7 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingCloudSecUnit7">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCloudSecUnit7" aria-expanded="false" aria-controls="collapseCloudSecUnit7">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-shield-virus"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 7: اختبار اختراق السحابة</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseCloudSecUnit7" class="accordion-collapse collapse" aria-labelledby="headingCloudSecUnit7" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-7.html#general-description" class="text-decoration-none">1. الوصف العام للوحدة</a></li>
+                                        <li><a href="unit-7.html#learning-objectives" class="text-decoration-none">2. الأهداف التعليمية</a></li>
+                                        <li><a href="unit-7.html#detailed-unit-content" class="text-decoration-none">3. محتويات الوحدة التفصيلية</a>
+                                            <ul class="list-unstyled ms-3">
+                                                <li><a href="unit-7.html#pen-testing-basics" class="text-decoration-none">3.1 أساسيات اختبار اختراق السحابة</a></li>
+                                                <li><a href="unit-7.html#pen-testing-phases" class="text-decoration-none">3.2 مراحل اختبار الاختراق السحابي</a></li>
+                                                <li><a href="unit-7.html#pen-testing-tools" class="text-decoration-none">3.3 أدوات اختبار الاختراق السحابي</a></li>
+                                                <li><a href="unit-7.html#advanced-red-teaming-techniques" class="text-decoration-none">3.4 تقنيات متقدمة (Red Teaming)</a></li>
+                                                <li><a href="unit-7.html#common-security-challenges" class="text-decoration-none">3.5 التحديات الأمنية الشائعة</a></li>
+                                            </ul>
+                                        </li>
+                                        <li><a href="unit-7.html#practical-applications" class="text-decoration-none">4. التطبيقات العملية</a></li>
+                                        <li><a href="unit-7.html#activities-and-exercises" class="text-decoration-none">5. أنشطة وتمارين</a></li>
+                                        <li><a href="unit-7.html#additional-resources" class="text-decoration-none">6. موارد إضافية</a></li>
+                                        <li><a href="unit-7.html#assessment" class="text-decoration-none">7. التقييم</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 8 (Active Unit) -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingCloudSecUnit8">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCloudSecUnit8" aria-expanded="true" aria-controls="collapseCloudSecUnit8">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-file-contract"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 8: اتفاقيات مستوى الخدمة</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseCloudSecUnit8" class="accordion-collapse collapse show" aria-labelledby="headingCloudSecUnit8" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="#general-overview" class="text-decoration-none active-link">1. الوصف العام للوحدة</a></li>
+                                        <li><a href="#learning-goals" class="text-decoration-none">2. أهداف التعلم</a></li>
+                                        <li><a href="#detailed-structure" class="text-decoration-none">3. هيكل الوحدة التفصيلي</a>
+                                            <ul class="list-unstyled ms-3">
+                                                <li><a href="#slas-basics" class="text-decoration-none">3.1 أساسيات SLAs في السحابة</a></li>
+                                                <li><a href="#sla-components" class="text-decoration-none">3.2 مكونات SLA النموذجية</a></li>
+                                                <li><a href="#provider-comparison" class="text-decoration-none">3.3 مقارنة بين مزودي الخدمة</a></li>
+                                                <li><a href="#legal-compliance" class="text-decoration-none">3.4 الجوانب القانونية والامتثال</a></li>
+                                                <li><a href="#sla-management" class="text-decoration-none">3.5 إدارة وتقييم SLAs</a></li>
+                                            </ul>
+                                        </li>
+                                        <li><a href="#case-studies-applications" class="text-decoration-none">4. دراسات حالة وتطبيقات عملية</a></li>
+                                        <li><a href="#learning-activities" class="text-decoration-none">5. أنشطة تعليمية</a></li>
+                                        <li><a href="#additional-resources" class="text-decoration-none">6. موارد إضافية</a></li>
+                                        <li><a href="#assessment" class="text-decoration-none">7. التقييم</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 9 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingCloudSecUnit9">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCloudSecUnit9" aria-expanded="false" aria-controls="collapseCloudSecUnit9">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-search"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 9: التدقيق في السحابة</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseCloudSecUnit9" class="accordion-collapse collapse" aria-labelledby="headingCloudSecUnit9" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>معايير وأساليب تدقيق الأمن والامتثال في البيئات السحابية.</p>
+                                    <a href="unit-9.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Unit 10 (Summary Unit) -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingCloudSecSummary">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCloudSecSummary" aria-expanded="false" aria-controls="collapseCloudSecSummary">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-award"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة الختامية: ملخص المقرر</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseCloudSecSummary" class="accordion-collapse collapse" aria-labelledby="headingCloudSecSummary" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>مراجعة شاملة للمفاهيم الرئيسية وتوجيهات للتعلم المستمر.</p>
+                                    <a href="unit-summary.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-lg-9">
+                <div class="content-section mb-4 p-5">
+                    <h2 class="unit-section-title" id="general-overview">1. الوصف العام للوحدة</h2>
+                    <p>
+                        تركز هذه الوحدة على فهم <strong>اتفاقيات مستوى الخدمة (Service Level Agreements - SLAs)</strong> في بيئات الحوسبة السحابية، ودورها في ضمان جودة الأداء، التوافر، والأمن. يتعلم الطلاب كيفية قراءة بنود SLAs وتقييم الالتزامات القانونية والتقنية لمزودي الخدمة السحابية، مع تحليل المخاطر المترتبة على عدم الالتزام بالشروط. كما يتم التطرق إلى الجوانب القانونية المتعلقة بالمسؤولية، حماية البيانات، والامتثال للوائح المحلية والدولية.
+                    </p>
+                    <p>
+                        تستكشف هذه الوحدة اتفاقيات مستوى الخدمة (Service Level Agreements - SLAs) في الحوسبة السحابية كعقد ملزم بين العميل ومزود الخدمة، مع التركيز على:
+                    </p>
+                    <ul class="no-bullet">
+                        <li><i class="fas fa-check-circle list-icon"></i> المكونات القانونية والتقنية لضمان جودة الخدمة.</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> مؤشرات الأداء الرئيسية (KPIs) مثل وقت التشغيل (Uptime)، زمن الاستجابة، وسياسات التعويض.</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> الفروقات بين SLAs لمزودي الخدمات (AWS، Azure، GCP).</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> كيفية تفاوض الشركات على بنود SLAs لحماية بياناتها وضمان استمرارية الأعمال.</li>
+                    </ul>
+                </div>
+
+                <!-- أهداف التعلم -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="learning-goals">2. أهداف التعلم</h2>
+                    <p>بنهاية الوحدة، سيكون المتدرب قادرًا على:</p>
+                    <ul class="no-bullet objectives-list">
+                        <li><i class="fas fa-check-circle list-icon"></i> تمييز مكونات SLA الأساسية: التوافر، الأداء، الدعم، التعويضات، ومسؤوليات الأطراف.</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> تقييم الالتزامات القانونية والتقنية لمزود الخدمة السحابية.</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> فهم كيفية تأثير SLAs على إدارة المخاطر الأمنية وعمليات الاستجابة للحوادث.</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> مقارنة SLAs بين مزودي الخدمة الرئيسيين (AWS, Azure, GCP) وتحليل الفروق الجوهرية.</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> استخدام أدوات وموارد لتتبع التزام المزودين بالمعايير المتفق عليها.</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> تحليل بنود SLA وتحديد التزامات المزود مقابل مسؤوليات العميل.</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> قياس مؤشرات الأداء مثل <strong>%99.9 Uptime</strong> وتأثيرها على الأعمال.</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> مقارنة SLAs بين AWS وAzure وGCP في خدمات محددة (Compute، Storage).</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> فهم الجوانب القانونية مثل حماية البيانات (<strong>GDPR</strong>)، ومساءلة المزود في حال الاختراق.</li>
+                        <li><i class="fas fa-check-circle list-icon"></i> صياغة مقترحات SLA مخصصة لاحتياجات المؤسسة.</li>
+                    </ul>
+                </div>
+
+                <!-- هيكل الوحدة التفصيلي -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="detailed-structure">3. هيكل الوحدة التفصيلي</h2>
+
+                    <h3 class="sub-topic-title" id="slas-basics">3.1 أساسيات SLAs في السحابة</h3>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-handshake topic-icon"></i> <strong>تعريف SLA:</strong> هي عقد ملزم قانونيًا يحدد مستوى الخدمة المتوقع من مزود الخدمة السحابية، بما في ذلك ضمانات الأداء، التوافر، والدعم الفني، بالإضافة إلى آليات التعويض في حال عدم الالتزام.</li>
+                        <li class="content-list-item"><i class="fas fa-balance-scale topic-icon"></i> <strong>الفرق بين SLA ومفاهيم أخرى:</strong>
+                            <ul>
+                                <li class="content-list-item"><i class="fas fa-file-alt topic-icon"></i> <strong>Terms of Service (ToS):</strong> هي الشروط والأحكام العامة للاستخدام، أقل تفصيلاً من SLA ولا تتضمن دائمًا ضمانات أداء محددة أو تعويضات.</li>
+                                <li class="content-list-item"><i class="fas fa-file-contract topic-icon"></i> <strong>Memorandum of Understanding (MoU):</strong> مذكرة تفاهم، وهي اتفاق غير ملزم قانونيًا يحدد نية الأطراف للعمل معًا.</li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <h3 class="sub-topic-title" id="sla-components">3.2 مكونات SLA النموذجية</h3>
+                    <p>عادةً ما تتضمن اتفاقيات مستوى الخدمة المكونات التالية:</p>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>المكون</th>
+                                <th>الوصف</th>
+                                <th>مثال</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>نطاق التغطية (Scope of Service)</strong></td>
+                                <td>الخدمات والميزات المحددة المشمولة في الاتفاقية.</td>
+                                <td>تغطية SLA لـ AWS EC2 فقط، أو لخدمات التخزين السحابي.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>مؤشرات الأداء الرئيسية (Key Performance Indicators - KPIs)</strong></td>
+                                <td>المقاييس التي تُستخدم لقياس أداء الخدمة.</td>
+                                <td>وقت التشغيل (Uptime) بنسبة 99.95% سنويًا، زمن الاستجابة (Latency) أقل من 100 مللي ثانية.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>سياسات التعويض (Compensation/Service Credits)</strong></td>
+                                <td>ما يحصل عليه العميل في حال عدم التزام المزود بـ KPI المتفق عليه.</td>
+                                <td>خصم 10% على الفاتورة الشهرية أو ائتمانات خدمة (Service Credits) إذا انقطع توفر الخدمة لأكثر من ساعة في الشهر.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>استثناءات المسؤولية (Exclusions)</strong></td>
+                                <td>الظروف التي لا يتحمل فيها المزود المسؤولية عن عدم الالتزام بـ SLA.</td>
+                                <td>الكوارث الطبيعية، هجمات DDoS التي تتجاوز قدرة المزود على التخفيف (عادة ما يكون هناك مستوى أساسي من الحماية)، أو الأخطاء الناتجة عن تكوين العميل.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>الدعم الفني (Support)</strong></td>
+                                <td>مستوى الدعم المقدم، أوقات الاستجابة، وقنوات الاتصال.</td>
+                                <td>دعم على مدار الساعة طوال أيام الأسبوع (24/7)، زمن استجابة لطلبات الدعم الحرجة في أقل من 15 دقيقة.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3 class="sub-topic-title" id="provider-comparison">3.3 مقارنة بين مزودي الخدمة</h3>
+                    <p>تختلف SLAs بشكل كبير بين مزودي الخدمات السحابية وحتى بين خدمات مختلفة لنفس المزود. من المهم مقارنة هذه الشروط بدقة.</p>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>المزود</th>
+                                <th>ضمان Uptime (لخدمة Compute - مثال)</th>
+                                <th>نسبة التعويض (مثال)</th>
+                                <th>اعتبارات أمنية/امتثال إضافية</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>AWS</strong></td>
+                                <td>99.99% (EC2)</td>
+                                <td>10% من الرسوم الشهرية لكل 30 دقيقة توقف (إذا انخفض عن الضمان)</td>
+                                <td>يتحمل العميل المسؤولية الكاملة عن تأمين أنظمته وبياناته ("Security in the Cloud").</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Azure</strong></td>
+                                <td>99.95% (VMs)</td>
+                                <td>25% ائتمان خدمة إذا انخفض التوفر تحت 99.9% (لخدمة Compute)</td>
+                                <td>تطبيق <strong>GDPR</strong> افتراضيًا لخدمات معينة، وتقديم عقود BAA للامتثال لـ HIPAA.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>GCP</strong></td>
+                                <td>99.95% (Compute Engine)</td>
+                                <td>خصم بنسبة 10-50% حسب مدة التوقف (إذا انخفض عن الضمان)</td>
+                                <td>التشفير الافتراضي للبيانات أثناء التخزين والنقل، توفير معايير امتثال واسعة.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3 class="sub-topic-title" id="legal-compliance">3.4 الجوانب القانونية والامتثال</h3>
+                    <p>يجب أن تعكس SLAs متطلبات الامتثال التنظيمي لحماية البيانات والخصوصية.</p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-user-lock topic-icon"></i> <strong>حماية البيانات (Data Protection):</strong>
+                            <ul>
+                                <li><strong>GDPR (General Data Protection Regulation):</strong> للعملاء الذين يتعاملون مع بيانات مواطني الاتحاد الأوروبي. يُلزم المزود والعميل بمتطلبات صارمة، بما في ذلك إخطار السلطات خلال 72 ساعة من اختراق البيانات (إذا كان يمثل خطرًا على حقوق وحريات الأفراد).</li>
+                                <li><strong>HIPAA (Health Insurance Portability and Accountability Act):</strong> للقطاع الصحي في الولايات المتحدة. تشترط توثيق اتفاقية <strong>Business Associate Agreement (BAA)</strong> مع مزود الخدمة السحابية لضمان التزام المزود بمعايير حماية البيانات الصحية.</li>
+                            </ul>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-balance-scale topic-icon"></i> <strong>مسؤولية الاختراقات (Liability for Breaches):</strong>
+                            <p>تُعد مسؤولية الاختراقات نقطة حرجة في SLAs. مثال: في حالة تسريب بيانات من S3 Bucket، قد تتحمل الشركة العميل المسؤولية إذا كان التسريب ناتجًا عن إعدادات خاطئة من جانبها (وفقًا <strong>نموذج المشاركة في المسؤولية</strong>)، بينما قد يتحمل المزود المسؤولية إذا كان التسريب ناتجًا عن ضعف في البنية التحتية الأساسية.</p>
+                        </li>
+                    </ul>
+
+                    <h3 class="sub-topic-title" id="sla-management">3.5 إدارة وتقييم SLAs</h3>
+                    <p>لضمان الالتزام بـ SLAs، يجب على العميل والمزود على حد سواء إدارة وتقييم الأداء بشكل مستمر.</p>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-chart-line topic-icon"></i> <strong>أدوات المراقبة:</strong>
+                            <p>استخدام أدوات المراقبة السحابية الأصلية مثل <strong>AWS CloudWatch</strong> و <strong>Azure Monitor</strong> و <strong>Google Cloud Operations Suite</strong> لقياس الالتزام بـ KPIs المحددة في SLA، مثل Uptime، وزمن الاستجابة.</p>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-comment-dollar topic-icon"></i> <strong>خطوات التفاوض على SLA:</strong>
+                            <ul>
+                                <li><strong>تحديد احتياجات الأعمال:</strong> قبل التعاقد، يجب على المؤسسة تحديد مستوى التوفر والأداء المطلوب لخدماتها الحيوية (مثال: 99.99% Uptime للتطبيقات الحرجة).</li>
+                                <li><strong>طلب تعديل البنود:</strong> في بعض الحالات (خاصة للمؤسسات الكبيرة)، يمكن التفاوض على بنود SLA لتناسب احتياجات معينة، مثل زيادة نسبة التعويض أو إضافة ضمانات أمنية محددة.</li>
+                                <li><strong>توثيق استثناءات محددة:</strong> يجب توضيح أي استثناءات، مثل فترات الصيانة المخطط لها مسبقًا، لضمان عدم احتسابها ضمن أوقات التوقف.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- دراسات حالة وتطبيقات عملية -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="case-studies-applications">4. دراسات حالة وتطبيقات عملية</h2>
+                    <ul>
+                        <li class="content-list-item"><i class="fab fa-aws topic-icon"></i> <strong>تحليل SLA لخدمة AWS S3:</strong>
+                            <p>دراسة كيفية حساب AWS لـ Uptime لخدمة S3، وما هي سياسات التعويض المطبقة إذا انخفض مستوى التوفر عن الضمان (99.99% على سبيل المثال). استكشف كيف تختلف شروط SLA لـ S3 مقارنة بخدمة EC2.</p>
+                        </li>
+                        <li class="content-list-item"><i class="fab fa-microsoft topic-icon"></i> <strong>مقارنة تعويضات Azure vs GCP:</strong>
+                            <p>قارن بين شروط التعويض (Service Credits) لخدمات قواعد البيانات المدارة (مثل Azure SQL Database و Google Cloud SQL) لكلا المزودين. حدد أي مزود يقدم شروطًا أفضل أو أكثر سخاءً في حال عدم الالتزام بـ SLA.</p>
+                        </li>
+                        <li class="content-list-item"><i class="fab fa-google topic-icon"></i> <strong>نموذج BAA مع GCP للقطاع الصحي:</strong>
+                            <p>ابحث عن معلومات حول كيفية توفير Google Cloud Platform لاتفاقيات BAA (Business Associate Agreements) للعملاء في قطاع الرعاية الصحية. ناقش كيف يضمن هذا النموذج الامتثال لـ HIPAA ومتطلبات حماية البيانات الصحية للمؤسسات التي تستخدم خدمات GCP.</p>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- أنشطة تعليمية -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="learning-activities">5. أنشطة تعليمية</h2>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-calculator topic-icon"></i> <strong>النشاط 1:</strong> <strong>حساب التكلفة الفعلية لانقطاع الخدمة:</strong> بناءً على SLA بضمان 99.9% Uptime سنويًا، احسب الحد الأقصى المسموح به من وقت التوقف (بالدقائق أو الساعات). ثم، بافتراض تكلفة معينة (مثلاً 1000 دولار للساعة) لانقطاع الخدمة لشركتك، احسب التكلفة المحتملة إذا تجاوز وقت التوقف هذا الضمان. (ملاحظة: 0.1% من السنة = حوالي 8.76 ساعة = 525.6 دقيقة).</li>
+                        <li class="content-list-item"><i class="fas fa-pencil-alt topic-icon"></i> <strong>النشاط 2:</strong> <strong>صياغة بند SLA مخصص:</strong> تخيل أنك مستشار أمن لشركة ناشئة تستخدم Azure Functions لتطبيقها الرئيسي. قم بصياغة بند SLA مخصص يتعلق بـ "زمن الاستجابة للوظائف Serverless" و"آلية التعويض" التي ترغب في تضمينها في اتفاقيتهم مع Azure.</li>
+                        <li class="content-list-item"><i class="fas fa-file-search topic-icon"></i> <strong>النشاط 3:</strong> <strong>تحليل عقد SLA حقيقي:</strong> ابحث عن نموذج لعقد SLA حقيقي لأحد مزودي الخدمات السحابية (أو خدمة معينة داخل مزود). قم بتحليله لتحديد نقاط القوة والضعف القانونية، وخاصة البنود المتعلقة بالمسؤولية الأمنية وحماية البيانات، وقدم توصيات لتحسينه من منظور العميل.</li>
+                    </ul>
+                </div>
+
+                <!-- موارد إضافية -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="additional-resources">6. موارد إضافية</h2>
+                    <h4 class="inner-sub-topic">وثائق رسمية (دائمًا مرجع جيد):</h4>
+                    <ul>
+                        <li class="content-list-item"><i class="fab fa-aws topic-icon"></i> <strong>AWS SLA:</strong> <a href="https://aws.amazon.com/compute/sla/" target="_blank" style="color: var(--dark-text); text-decoration: none;">(الرابط)</a> (لاحظ أن الرابط قد يتغير، ابحث عن "AWS Service Level Agreements" للحصول على الأحدث).</li>
+                        <li class="content-list-item"><i class="fab fa-microsoft topic-icon"></i> <strong>Microsoft Azure SLA:</strong> <a href="https://azure.microsoft.com/en-us/support/legal/sla/" target="_blank" style="color: var(--dark-text); text-decoration: none;">(الرابط)</a></li>
+                        <li class="content-list-item"><i class="fab fa-google topic-icon"></i> <strong>Google Cloud SLA:</strong> <a href="https://cloud.google.com/terms/sla" target="_blank" style="color: var(--dark-text); text-decoration: none;">(الرابط)</a></li>
+                    </ul>
+                    <h4 class="inner-sub-topic">كتب:</h4>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-book topic-icon"></i> <strong>Cloud Contract Law</strong> by Alan Cunningham (يركز على الجوانب القانونية للعقود السحابية).</li>
+                        <li class="content-list-item"><i class="fas fa-book topic-icon"></i> <strong>The Law and Economics of Cloud Computing</strong> by Quentin Vilalta.</li>
+                    </ul>
+                    <h4 class="inner-sub-topic">معايير:</h4>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-certificate topic-icon"></i> <strong>ISO/IEC 19086:</strong> معيار عالمي يركز على أطر عمل لاتفاقيات مستوى الخدمة في الحوسبة السحابية.</li>
+                    </ul>
+                </div>
+
+                <!-- التقييم -->
+                <div class="course-card">
+                    <h2 class="unit-section-title" id="assessment">7. التقييم</h2>
+                    <ul>
+                        <li class="content-list-item"><i class="fas fa-file-alt topic-icon"></i> <strong>اختبار كتابي:</strong>
+                            <p>يتضمن أسئلة حول تفسير بنود SLA مختلفة، حساب التعويضات بناءً على سيناريوهات معينة، وتحديد المسؤوليات بين المزود والعميل في حالات أمنية محددة.</p>
+                        </li>
+                        <li class="content-list-item"><i class="fas fa-project-diagram topic-icon"></i> <strong>مشروع عملي:</strong>
+                            <p>يُطلب من المتدربين إجراء مقارنة تفصيلية بين SLAs لثلاث خدمات سحابية رئيسية (على الأقل من مزودين مختلفين) فيما يتعلق بالتوافر، الأمان، والتعويضات، ثم تقديم توصية مدعومة بالتحليل لمؤسسة افتراضية بناءً على احتياجاتها. يجب أن يشمل التقرير تحليلًا للمخاطر الأمنية ذات الصلة بـ SLAs.</p>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- أزرار التنقل -->
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="unit-7.html" class="btn unit-nav-btn"><i class="fas fa-arrow-right"></i> الوحدة السابقة</a>
+                    <a href="../../../materials/cloud-sec/unit-8-slas.pdf" target="_blank" class="btn unit-nav-btn"><i class="fas fa-file-pdf"></i> عرض / تحميل مادة الوحدة</a>
+                    <a href="unit-9.html" class="btn unit-nav-btn text-end">الوحدة التالية <i class="fas fa-arrow-left"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- الفوتر -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>مسار الأمن السيبراني</h5>
+                    <p>منصة تعليمية متخصصة في تقديم محتوى أكاديمي وعملي في مجال الأمن السيبراني.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>روابط سريعة</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="../../../index.html" class="text-white">الرئيسية</a></li>
+                        <li><a href="../../index.html" class="text-white">جميع المقررات</a></li>
+                        <li><a href="#" class="text-white">الدعم الفني</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>تواصل معنا</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> info@cyberpath.com</li>
+                        <li><i class="fas fa-phone me-2"></i> 0502161465</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2025 مسار الأمن السيبراني. جميع الحقوق محفوظة.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-linkedin fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-youtube fa-lg"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-github fa-lg"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- تضمين Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
 
