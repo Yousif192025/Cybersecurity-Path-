@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الوحدة 3: الخوارزميات وخرائط التدفق | أساسيات البرمجة بلغة الجافا</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts - Tajawal for Arabic font -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <!-- MathJax for mathematical equations (Optional, can be removed if not needed) -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        /* تعريف المتغيرات لألوان موحدة */
+        :root {
+            --primary-color: #2c3e50; /* لون أساسي غامق */
+            --secondary-color: #e74c3c; /* لون مميز للجافا (أحمر / برتقالي محروق) */
+            --accent-color: #f39c12; /* لون ثانوي مميز (برتقالي) */
+            --light-bg: #f8f9fa; /* خلفية فاتحة */
+            --dark-text: #2c3e50; /* نص غامق */
+            --light-text: #7f8c8d; /* نص فاتح */
+        }
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            line-height: 1.8;
+            direction: rtl; /* اتجاه النص من اليمين لليسار */
+            text-align: right; /* محاذاة النص لليمين */
+        }
+
+        /* تنسيقات شريط التنقل */
+        .navbar {
+            background-color: var(--primary-color);
+        }
+        .navbar-brand {
+            color: white !important;
+        }
+        .btn-outline-light {
+            border-color: rgba(255, 255, 255, 0.7) !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .btn-outline-light:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        /* تنسيقات رأس الوحدة */
+        .unit-header {
+            background: linear-gradient(135deg, var(--secondary-color), #c0392b); /* تدرج أحمر / برتقالي للجافا */
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 1rem 1rem; /* زوايا دائرية سفلية */
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        /* تنسيقات بطاقة المحتوى الرئيسية */
+        .content-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            padding: 2rem;
+            border-right: 4px solid var(--secondary-color); /* شريط جانبي بلون ثانوي */
+            transition: transform 0.3s ease, box-shadow 0.3s ease; /* تأثير التحويم */
+        }
+        .content-card:hover {
+            transform: translateY(-5px); /* رفع البطاقة قليلاً عند التحويم */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); /* ظل أكبر عند التحويم */
+        }
+
+        /* تنسيقات عنوان القسم */
+        .section-title {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+        }
+
+        /* تنسيقات العناوين الفرعية */
+        h3.sub-heading {
+            color: var(--primary-color);
+            border-bottom: 1px dashed var(--light-text);
+            padding-bottom: 0.3rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.75rem;
+        }
+
+        /* تنسيقات صناديق الأمثلة والملاحظات */
+        .example-box, .note-box {
+            background-color: #ffe0b2; /* لون برتقالي فاتح */
+            border-right: 5px solid var(--accent-color); /* حدود بلون مميز */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        .example-box i, .note-box i {
+            color: var(--accent-color);
+            margin-left: 0.5rem; /* مسافة بين الأيقونة والنص */
+        }
+
+        /* تنسيقات صناديق الأنشطة */
+        .activity-box {
+            background-color: #e9f7ef; /* لون أخضر فاتح للأنشطة */
+            border-right: 5px solid #28a745; /* حدود خضراء */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            color: var(--dark-text);
+        }
+        .activity-box i {
+            color: #28a745; /* لون أيقونة خضراء */
+            margin-left: 0.5rem;
+        }
+
+        /* تنسيقات تنبيهات المعلومات المخصصة */
+        .alert-info-custom {
+            background-color: #d1ecf1; /* أزرق فاتح جداً */
+            border-left: 5px solid #17a2b8; /* أزرق سماوي */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        .alert-info-custom i {
+            color: #17a2b8;
+            margin-right: 0.5rem;
+        }
+
+        /* تمييز المفاهيم الهامة */
+        .concept-highlight {
+            background-color: #fff3cd; /* لون أصفر فاتح للتمييز */
+            padding: 0.3rem 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        /* تنسيقات القوائم */
+        ul {
+            padding-right: 25px; /* مسافة داخلية لترقيم القوائم */
+        }
+        ul.no-bullet {
+            list-style: none;
+            padding-right: 0;
+        }
+        ul li {
+            margin-bottom: 0.5rem;
+        }
+        .list-group-item {
+            border: none;
+            padding-right: 0;
+            background-color: transparent;
+        }
+        .list-group-item i {
+            margin-left: 8px; /* مسافة بين الأيقونة والنص */
+        }
+
+        /* تنسيقات الجداول */
+        .table thead th {
+            background-color: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+        .table tbody tr:hover {
+            background-color: #fff5e6; /* تأثير التحويم على صفوف الجدول */
+        }
+        .table-bordered th, .table-bordered td {
+            border-color: #dee2e6;
+        }
+
+        /* تنسيق أزرار التنقل بين الوحدات */
+        .unit-nav-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: bold;
+            transition: background-color 0.2s, transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+        }
+        .unit-nav-btn:hover {
+            background-color: #c0392b; /* درجة أغمق من الأحمر */
+            color: white;
+            transform: translateY(-2px);
+        }
+        /* لتحديد اتجاه الأيقونات في أزرار التنقل لليسار واليمين */
+        .unit-nav-btn .fa-arrow-left {
+            margin-right: 0;
+            margin-left: 8px; /* أيقونة السهم الأيسر تظهر قبل النص في اتجاه RTL */
+        }
+        .unit-nav-btn .fa-arrow-right {
+            margin-right: 8px; /* أيقونة السهم الأيمن تظهر بعد النص في اتجاه RTL */
+            margin-left: 0;
+        }
+
+        /* تنسيقات الفوتر */
+        footer {
+            background-color: var(--primary-color) !important;
+            color: white;
+            padding: 2.5rem 0;
+        }
+        footer h5 {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        footer .list-unstyled li a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        footer .list-unstyled li a:hover {
+            color: var(--secondary-color);
+        }
+        footer .fab, footer .fas {
+            color: white;
+            transition: color 0.2s;
+        }
+        footer .fab:hover, footer .fas:hover {
+            color: var(--secondary-color);
+        }
+
+        /* تنسيقات الشريط الجانبي */
+        .sidebar {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            color: var(--dark-text);
+        }
+        .sidebar h4 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .sidebar .module-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+            margin-left: 10px;
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .sidebar .progress-container {
+            height: 25px;
+            margin-bottom: 1.5rem;
+        }
+        .sidebar .progress-bar {
+            background-color: var(--secondary-color);
+        }
+        /* تنسيقات الأكورديون في الشريط الجانبي */
+        .sidebar .accordion-button:not(.collapsed) {
+            background-color: #ffe0b2; /* لون برتقالي فاتح جداً */
+            color: var(--primary-color);
+            box-shadow: none;
+        }
+        .sidebar .accordion-button:not(.collapsed) .module-icon {
+            background-color: var(--primary-color);
+        }
+        .sidebar .accordion-button {
+            border-radius: 0.5rem !important;
+        }
+        .sidebar .accordion-item {
+            margin-bottom: 0.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(0, 0, 0, 0.125);
+            overflow: hidden;
+        }
+        .sidebar .accordion-body ul {
+            padding-right: 0;
+        }
+        .sidebar .accordion-body ul li a {
+            padding: 0.25rem 0.5rem;
+            display: block;
+            border-radius: 0.25rem;
+            color: var(--dark-text);
+        }
+        .sidebar .accordion-body ul li a:hover,
+        .sidebar .accordion-body ul li a.active-link {
+            background-color: #ffe0b2;
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+        .sidebar .accordion-body .btn-primary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .sidebar .accordion-body .btn-primary:hover {
+            background-color: #c0392b;
+            border-color: #c0392b;
+        }
+
+        /* ضبط الاستجابة (Responsive adjustments) */
+        @media (max-width: 991px) { /* نقطة توقف تتوافق مع col-lg- */
+            .sidebar {
+                margin-top: 1rem;
+                margin-bottom: 1rem; /* إضافة هامش لتحسين التباعد على الشاشات الأصغر */
+            }
+            .unit-header {
+                padding: 2rem 0;
+            }
+            .content-card {
+                padding: 1.5rem;
+            }
+            .section-title {
+                font-size: 1.75rem;
+            }
+            h3.sub-heading {
+                font-size: 1.5rem;
+            }
+            .unit-nav-btn {
+                width: 100%;
+                justify-content: center;
+                margin-bottom: 0.5rem;
+            }
+            .d-flex.justify-content-between.mt-4 {
+                flex-direction: column;
+            }
+        }
+
+        /* كود خاص بالـ pre و code لـ Java */
+        pre {
+            background-color: #282c34; /* خلفية داكنة مثل محرر الأكواد */
+            color: #abb2bf; /* لون نص فاتح */
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            overflow-x: auto; /* للسماح بالتمرير الأفقي للأكواد الطويلة */
+            font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace; /* خط أحادي المسافة */
+            font-size: 0.95rem;
+            line-height: 1.6;
+            tab-size: 4;
+            margin-top: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        pre code {
+            display: block; /* لجعل كل سطر من الكود يظهر في سطر جديد */
+            white-space: pre-wrap; /* للحفاظ على تنسيق المسافات والأسطر */
+            word-break: break-all; /* لكسر الكلمات الطويلة جداً */
+        }
+        
+    </style>
+</head>
+<body>
+    <!-- شريط التنقل (Navbar) -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--primary-color);">
+        <div class="container">
+            <a class="navbar-brand" href="../../../index.html">مسار الأمن السيبراني</a>
+            <a href="../index.html" class="btn btn-outline-light">العودة إلى مقرر الجافا</a>
+        </div>
+    </nav>
+
+    <!-- رأس الوحدة (Unit Header) -->
+    <header class="unit-header text-center">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-3">الوحدة 3: الخوارزميات وخرائط التدفق</h1>
+            <p class="lead">صمم حلولك البرمجية قبل أن تكتبها</p>
+            <div class="mt-4">
+                <span class="badge bg-light text-primary p-2 mx-1"><i class="fas fa-clock me-1"></i> المدة: أسبوعان</span>
+                <span class="badge bg-light text-primary p-2 mx-1"><i class="fas fa-laptop-code me-1"></i> 6 ساعات نظرية</span>
+                <span class="badge bg-light text-primary p-2 mx-1"><i class="fas fa-flask me-1"></i> 6 ساعات عملية</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container-fluid py-5">
+        <div class="row">
+            <!-- الشريط الجانبي لتنقل الوحدات (Sidebar) -->
+            <div class="col-lg-3">
+                <div class="sidebar p-4">
+                    <h4 class="mb-3">
+                        <i class="fas fa-list-ul me-2"></i>
+                        وحدات المقرر
+                    </h4>
+                    <div class="progress progress-container mb-4">
+                        <div class="progress-bar" role="progressbar" style="width: 30%;" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100">جاري التقدم</div>
+                    </div>
+                    <div class="accordion" id="unitsAccordion">
+                        <!-- الوحدة التمهيدية (مقرر الجافا) -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaCourse">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaCourse" aria-expanded="false" aria-controls="collapseJavaCourse">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-book-open"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">مقرر أساسيات الجافا</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaCourse" class="accordion-collapse collapse" aria-labelledby="headingJavaCourse" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="index.html#course-description" class="text-decoration-none">وصف المقرر</a></li>
+                                        <li><a href="index.html#course-objectives" class="text-decoration-none">أهداف المقرر</a></li>
+                                        <li><a href="index.html#learning-outcomes" class="text-decoration-none">مخرجات التعلم</a></li>
+                                        <li><a href="index.html#teaching-assessment" class="text-decoration-none">طرق التدريس والتقييم</a></li>
+                                        <li><a href="index.html#references-resources" class="text-decoration-none">المراجع والمصادر</a></li>
+                                    </ul>
+                                    <a href="index.html" class="btn btn-sm btn-primary mt-2">الانتقال للمقرر</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 1 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaUnit1">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaUnit1" aria-expanded="false" aria-controls="collapseJavaUnit1">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-laptop-code"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 1: مقدمة في البرمجة والحاسب</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaUnit1" class="accordion-collapse collapse" aria-labelledby="headingJavaUnit1" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-1.html#unit-objectives" class="text-decoration-none">أهداف الوحدة</a></li>
+                                        <li><a href="unit-1.html#basic-concepts" class="text-decoration-none">مفاهيم أساسية في البرمجة</a></li>
+                                        <li><a href="unit-1.html#programming-languages" class="text-decoration-none">لغات البرمجة والمترجمات</a></li>
+                                        <li><a href="unit-1.html#java-introduction" class="text-decoration-none">مقدمة في لغة الجافا</a></li>
+                                        <li><a href="unit-1.html#practical-section" class="text-decoration-none">الجانب العملي: أول برنامج جافا</a></li>
+                                        <li><a href="unit-1.html#security-applications" class="text-decoration-none">تطبيقات أمنية أولية</a></li>
+                                        <li><a href="unit-1.html#exercises-evaluation" class="text-decoration-none">تمارين وتقييم الوحدة</a></li>
+                                        <li><a href="unit-1.html#references" class="text-decoration-none">المراجع</a></li>
+                                        <li><a href="unit-1.html#unit-summary" class="text-decoration-none">ملخص الوحدة</a></li>
+                                    </ul>
+                                    <a href="unit-1.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 2 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaUnit2">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaUnit2" aria-expanded="false" aria-controls="collapseJavaUnit2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fab fa-java"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 2: أساسيات جافا والمتغيرات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaUnit2" class="accordion-collapse collapse" aria-labelledby="headingJavaUnit2" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-2.html#unit-objectives" class="text-decoration-none">أهداف الوحدة</a></li>
+                                        <li><a href="unit-2.html#java-definition" class="text-decoration-none">تعريف لغة الجافا وميزاتها</a></li>
+                                        <li><a href="unit-2.html#data-types-variables" class="text-decoration-none">أنواع البيانات والمتغيرات</a></li>
+                                        <li><a href="unit-2.html#comments" class="text-decoration-none">التعليقات (Comments)</a></li>
+                                        <li><a href="unit-2.html#keywords-punctuation" class="text-decoration-none">الكلمات المحجوزة وعلامات الترقيم</a></li>
+                                        <li><a href="unit-2.html#practical-print" class="text-decoration-none">الجانب العملي: أوامر الطباعة</a></li>
+                                        <li><a href="unit-2.html#practical-average" class="text-decoration-none">تطبيق عملي: برنامج حساب المتوسط</a></li>
+                                        <li><a href="unit-2.html#exercises-evaluation" class="text-decoration-none">تمارين وتقييم الوحدة</a></li>
+                                        <li><a href="unit-2.html#references" class="text-decoration-none">المراجع</a></li>
+                                        <li><a href="unit-2.html#unit-summary" class="text-decoration-none">ملخص الوحدة</a></li>
+                                    </ul>
+                                    <a href="unit-2.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 3 (الوحدة النشطة) -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaUnit3">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaUnit3" aria-expanded="true" aria-controls="collapseJavaUnit3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-bezier-curve"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 3: الخوارزميات وخرائط التدفق</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaUnit3" class="accordion-collapse collapse show" aria-labelledby="headingJavaUnit3" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="#unit-objectives" class="text-decoration-none active-link">أهداف الوحدة</a></li>
+                                        <li><a href="#problem-solving" class="text-decoration-none">طريقة حل المشكلات (Problem Solving)</a></li>
+                                        <li><a href="#algorithms" class="text-decoration-none">الخوارزميات (Algorithms)</a></li>
+                                        <li><a href="#flowcharts" class="text-decoration-none">خرائط تدفق البيانات (Flowcharts)</a></li>
+                                        <li><a href="#practical" class="text-decoration-none">الجانب العملي</a></li>
+                                        <li><a href="#exercises-evaluation" class="text-decoration-none">تمارين وتقييم</a></li>
+                                        <li><a href="#conclusion" class="text-decoration-none">الخلاصة</a></li>
+                                        <li><a href="#references" class="text-decoration-none">المراجع</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 4 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaUnit4">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaUnit4" aria-expanded="false" aria-controls="collapseJavaUnit4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-exchange-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 4: المتغيرات وإسناد القيم</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaUnit4" class="accordion-collapse collapse" aria-labelledby="headingJavaUnit4" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-4.html#variable-types" class="text-decoration-none">أنواع المتغيرات (int, String, boolean)</a></li>
+                                        <li><a href="unit-4.html#assignment" class="text-decoration-none">طرق إسناد القيم والعمليات الحسابية</a></li>
+                                    </ul>
+                                    <a href="unit-4.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 5 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaUnit5">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaUnit5" aria-expanded="false" aria-controls="collapseJavaUnit5">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-keyboard"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 5: الطباعة والإدخال عبر JOptionPane</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaUnit5" class="accordion-collapse collapse" aria-labelledby="headingJavaUnit5" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-5.html#input-output" class="text-decoration-none">استخدام نوافذ الحوار (JOptionPane)</a></li>
+                                        <li><a href="unit-5.html#data-conversion" class="text-decoration-none">تحويل أنواع البيانات</a></li>
+                                        <li><a href="unit-5.html#security-application" class="text-decoration-none">تطبيق أمني: التحقق من كلمات المرور</a></li>
+                                    </ul>
+                                    <a href="unit-5.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 6 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaUnit6">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaUnit6" aria-expanded="false" aria-controls="collapseJavaUnit6">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-code-branch"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 6: التعبيرات المنطقية وجمل if-else</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaUnit6" class="accordion-collapse collapse" aria-labelledby="headingJavaUnit6" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-6.html#logical-operators" class="text-decoration-none">العوامل المنطقية (AND, OR, NOT)</a></li>
+                                        <li><a href="unit-6.html#if-else" class="text-decoration-none">جمل الشرط if-else</a></li>
+                                    </ul>
+                                    <a href="unit-6.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 7 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaUnit7">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaUnit7" aria-expanded="false" aria-controls="collapseJavaUnit7">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-sync-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 7: جمل switch وif-else المتقدمة</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaUnit7" class="accordion-collapse collapse" aria-labelledby="headingJavaUnit7" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-7.html#switch-statement" class="text-decoration-none">جمل switch و استخدام break و default</a></li>
+                                        <li><a href="unit-7.html#advanced-if-else" class="text-decoration-none">جمل if-else المتقدمة</a></li>
+                                    </ul>
+                                    <a href="unit-7.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 8 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaUnit8">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaUnit8" aria-expanded="false" aria-controls="collapseJavaUnit8">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-redo"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 8: حلقات التكرار (for, while, do-while)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaUnit8" class="accordion-collapse collapse" aria-labelledby="headingJavaUnit8" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-8.html#loop-types" class="text-decoration-none">الفروق بين حلقات التكرار</a></li>
+                                        <li><a href="unit-8.html#loop-control" class="text-decoration-none">استخدام continue و break</a></li>
+                                    </ul>
+                                    <a href="unit-8.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 9 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaUnit9">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaUnit9" aria-expanded="false" aria-controls="collapseJavaUnit9">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-code"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 9: الدوال في جافا</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaUnit9" class="accordion-collapse collapse" aria-labelledby="headingJavaUnit9" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-9.html#function-definition" class="text-decoration-none">تعريف الدوال وأنواعها</a></li>
+                                        <li><a href="unit-9.html#return-values" class="text-decoration-none">القيم المرجعة واستخداماتها</a></li>
+                                    </ul>
+                                    <a href="unit-9.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 10 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaUnit10">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaUnit10" aria-expanded="false" aria-controls="collapseJavaUnit10">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-grip-lines"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 10: المصفوفات (ذات البعد الواحد والثنائي)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaUnit10" class="accordion-collapse collapse" aria-labelledby="headingJavaUnit10" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-10.html#array-definition" class="text-decoration-none">تعريف المصفوفات وخصائصها</a></li>
+                                        <li><a href="unit-10.html#multi-dim-arrays" class="text-decoration-none">المصفوفات ثنائية الأبعاد</a></li>
+                                    </ul>
+                                    <a href="unit-10.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 11 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaUnit11">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaUnit11" aria-expanded="false" aria-controls="collapseJavaUnit11">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-cube"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 11: الكائنات والكلاسات (Objects and Classes)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaUnit11" class="accordion-collapse collapse" aria-labelledby="headingJavaUnit11" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-11.html#oop-concepts" class="text-decoration-none">مفاهيم الكلاس والكائن والكونستركتور</a></li>
+                                        <li><a href="unit-11.html#properties-methods" class="text-decoration-none">الخصائص والطرق (Properties and Methods)</a></li>
+                                    </ul>
+                                    <a href="unit-11.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- تمارين ومراجعة -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaExercises">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaExercises" aria-expanded="false" aria-controls="collapseJavaExercises">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-question-circle"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">تمارين عامة ومراجعة</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaExercises" class="accordion-collapse collapse" aria-labelledby="headingJavaExercises" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="exercises.html#overview" class="text-decoration-none">أسئلة نظرية وعملية شاملة</a></li>
+                                        <li><a href="exercises.html#code-correction" class="text-decoration-none">تصحيح الأكواد وتطبيقات متكاملة</a></li>
+                                    </ul>
+                                    <a href="exercises.html" class="btn btn-sm btn-primary mt-2">الانتقال للتمارين</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ملحقات -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaAppendices">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaAppendices" aria-expanded="false" aria-controls="collapseJavaAppendices">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-paperclip"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">ملحقات المقرر</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaAppendices" class="accordion-collapse collapse" aria-labelledby="headingJavaAppendices" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="glossary.html" class="text-decoration-none">مصطلحات إنجليزية</a></li>
+                                        <li><a href="references.html" class="text-decoration-none">المراجع والمصادر</a></li>
+                                        <!-- يمكنك إضافة المزيد مثل اختصارات لوحة المفاتيح هنا لاحقًا -->
+                                    </ul>
+                                    <a href="glossary.html" class="btn btn-sm btn-primary mt-2">عرض الملحقات</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة الختامية -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaSummary">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaSummary" aria-expanded="false" aria-controls="collapseJavaSummary">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-award"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة الختامية: ملخص وتوصيات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaSummary" class="accordion-collapse collapse" aria-labelledby="headingJavaSummary" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>ملخص شامل للمقرر وتوصيات للتوسع في المجال.</p>
+                                    <a href="unit-summary.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة الختامية</a>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- منطقة المحتوى الرئيسية -->
+            <div class="col-lg-9">
+                <!-- مقدمة الوحدة -->
+                <div class="content-card" id="introduction">
+                    <h2 class="section-title"><i class="fas fa-lightbulb me-2"></i>المقدمة</h2>
+                    <p>
+                        تعد هذه الوحدة من أهم الوحدات في مسار تعلم البرمجة، حيث تتعلم فيها كيف تفكر <strong>كمبرمج محترف</strong> من خلال:
+                    </p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-puzzle-piece text-info me-2"></i> <strong>تحليل المشكلات:</strong> وتقسيمها إلى خطوات قابلة للتنفيذ.</li>
+                        <li class="list-group-item"><i class="fas fa-cogs text-info me-2"></i> <strong>تصميم الحلول:</strong> باستخدام الخوارزميات وخرائط التدفق.</li>
+                        <li class="list-group-item"><i class="fas fa-code text-info me-2"></i> <strong>تحويل الأفكار:</strong> إلى أكواد برمجية عملية.</li>
+                    </ul>
+                    <div class="note-box">
+                        <i class="fas fa-info-circle"></i> <strong>لماذا هذه الوحدة مهمة؟</strong>
+                        <p>
+                            قبل أن تبدأ بكتابة أي سطر من الكود، من الضروري أن تفهم المشكلة جيدًا وتصمم الحل لها. هذه الوحدة ستزودك بالأدوات الفكرية والمنهجية اللازمة للتخطيط الفعال لبرامجك، مما يوفر عليك الوقت ويقلل من الأخطاء في المراحل اللاحقة.
+                        </p>
+                    </div>
+                </div>
+
+                ---
+
+                <!-- أهداف الوحدة -->
+                <div class="content-card" id="unit-objectives">
+                    <h2 class="section-title"><i class="fas fa-bullseye me-2"></i>أهداف الوحدة</h2>
+                    <p>بنهاية هذه الوحدة، ستكون قادرًا على:</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> تطبيق خطوات حل المشكلات البرمجية بشكل منهجي.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> كتابة خوارزميات واضحة لحل مشكلات برمجية.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> رسم خرائط تدفق البيانات (Flowcharts) لتمثيل الحلول.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> تحويل الخوارزميات والخرائط إلى أكواد جافا عملية.</li>
+                    </ul>
+                </div>
+
+                ---
+
+                <!-- المحتوى النظري -->
+                <div class="content-card">
+                    <h2 class="section-title"><i class="fas fa-book-open me-2"></i>المحتوى النظري</h2>
+
+                    <h3 class="sub-heading" id="problem-solving">1. طريقة حل المشكلات (Problem Solving)</h3>
+                    <p>
+                        حل المشكلات هو جوهر البرمجة. قبل أن تكتب أي كود، يجب أن تفهم المشكلة جيدًا وتخطط لحلها. هذه العملية المنهجية تساعدك على إنشاء برامج فعالة وخالية من الأخطاء.
+                    </p>
+                    <h4 class="sub-sub-heading mt-3">أ. خطوات حل المشكلات البرمجية:</h4>
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item"><i class="fas fa-lightbulb text-primary me-2"></i> <strong>فهم المشكلة (Understanding the Problem):</strong>
+                            <p>هذه هي الخطوة الأولى والأكثر أهمية. يجب أن تفهم بوضوح ما تطلبه المشكلة. حدد:</p>
+                            <ul class="no-bullet">
+                                <li><strong>المدخلات (Inputs):</strong> ما هي البيانات التي سيتم تزويد البرنامج بها؟</li>
+                                <li><strong>المخرجات (Outputs):</strong> ما هي النتائج التي يتوقع من البرنامج أن ينتجها؟</li>
+                                <li><strong>المتطلبات (Requirements):</strong> أي شروط أو قيود خاصة (مثل نوع البيانات، النطاق).</li>
+                            </ul>
+                            <div class="example-box">
+                                <i class="fas fa-calculator"></i> <strong>مثال:</strong> لحساب متوسط ثلاثة أعداد:
+                                <ul class="no-bullet">
+                                    <li>المدخلات: ثلاثة أعداد (a, b, c).</li>
+                                    <li>المخرجات: المتوسط الحسابي لهذه الأعداد.</li>
+                                    <li>المتطلبات: الأعداد قد تكون عشرية.</li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-cut text-primary me-2"></i> <strong>تقسيم المشكلة (Breaking Down the Problem):</strong>
+                            <p>المشكلات الكبيرة غالبًا ما تكون معقدة. قم بتجزئتها إلى مشكلات فرعية أصغر وأكثر قابلية للإدارة. هذه الاستراتيجية تُعرف باسم "فرق تسد" (Divide and Conquer).</p>
+                            <div class="example-box">
+                                <i class="fas fa-calculator"></i> <strong>مثال:</strong> لحساب متوسط ثلاثة أعداد:
+                                <ul class="no-bullet">
+                                    <li>مشكلة فرعية 1: حساب مجموع الأعداد الثلاثة.</li>
+                                    <li>مشكلة فرعية 2: قسمة المجموع على عددها (3 في هذه الحالة).</li>
+                                    <li>مشكلة فرعية 3: عرض النتيجة.</li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-pencil-alt text-primary me-2"></i> <strong>تصميم الحل (Designing the Solution):</strong>
+                            <p>في هذه الخطوة، تقوم بكتابة خطوات الحل بشكل تسلسلي ومنطقي. يمكن أن يتم ذلك باستخدام الخوارزميات أو خرائط التدفق، والتي سنتناولها بالتفصيل لاحقًا.</p>
+                            <div class="example-box">
+                                <i class="fas fa-list-ol"></i> <strong>مثال:</strong> خطوات حل مشكلة حساب المتوسط:
+                                <pre><code>1. ابدأ.
+2. أدخل العدد الأول (a).
+3. أدخل العدد الثاني (b).
+4. أدخل العدد الثالث (c).
+5. احسب المجموع = a + b + c.
+6. احسب المتوسط = المجموع / 3.
+7. اطبع المتوسط.
+8. توقف.</code></pre>
+                            </div>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-code text-primary me-2"></i> <strong>كتابة الكود (Coding the Solution):</strong>
+                            <p>بعد تصميم الحل، حوِّل الخوارزمية أو خريطة التدفق إلى كود برمجي فعلي باستخدام لغة البرمجة المختارة (في حالتنا، الجافا).</p>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-bug text-primary me-2"></i> <strong>اختبار وتصحيح الأخطاء (Testing and Debugging):</strong>
+                            <p>لا يكفي كتابة الكود، يجب اختباره باستخدام مدخلات مختلفة (صحيحة وخاطئة) للتأكد من أنه يعمل بشكل صحيح. إذا ظهرت أخطاء (Bugs)، قم بتصحيحها.</p>
+                        </li>
+                    </ul>
+
+                    <h4 class="sub-sub-heading mt-3">ب. مثال تطبيقي على خطوات حل المشكلات:</h4>
+                    <div class="example-box">
+                        <i class="fas fa-calculator"></i> <strong>المشكلة:</strong> حساب مساحة المستطيل.
+                        <ul class="no-bullet">
+                            <li><i class="fas fa-check-circle text-success me-2"></i> <strong>1. الفهم:</strong>
+                                <ul class="no-bullet">
+                                    <li>المدخلات: الطول (length) والعرض (width) للمستطيل (أعداد عشرية).</li>
+                                    <li>المخرجات: المساحة (area) للمستطيل.</li>
+                                </ul>
+                            </li>
+                            <li><i class="fas fa-check-circle text-success me-2"></i> <strong>2. التقسيم:</strong>
+                                <ul class="no-bullet">
+                                    <li>مشكلة فرعية: ضرب الطول في العرض.</li>
+                                </ul>
+                            </li>
+                            <li><i class="fas fa-check-circle text-success me-2"></i> <strong>3. الحل (الخوارزمية الأولية):</strong>
+                                <pre><code>1. أدخل الطول (length).
+2. أدخل العرض (width).
+3. احسب المساحة = length × width.
+4. اطبع المساحة.
+</code></pre>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <h3 class="sub-heading" id="algorithms">2. الخوارزميات (Algorithms)</h3>
+                    <p>
+                        بعد فهم المشكلة وتقسيمها، تأتي خطوة تصميم الحل. <span class="concept-highlight">الخوارزمية</span> هي العمود الفقري لأي برنامج.
+                    </p>
+                    <h4 class="sub-sub-heading mt-3">أ. ما هي الخوارزمية؟</h4>
+                    <p>
+                        <strong>التعريف:</strong> الخوارزمية هي مجموعة محدودة ومرتبة من الخطوات المنطقية الواضحة والمحددة جيدًا، تُستخدم لحل مشكلة معينة أو لإنجاز مهمة محددة. يمكن أن تُكتب باللغة الطبيعية، أو pseudocode (شبه كود)، أو خرائط التدفق.
+                    </p>
+                    <div class="note-box">
+                        <i class="fas fa-lightbulb"></i> <strong>خصائص الخوارزمية الجيدة:</strong>
+                        <ul class="no-bullet">
+                            <li><i class="fas fa-magic me-2"></i> <strong>الوضوح (Clear):</strong> كل خطوة يجب أن تكون محددة بدقة ولا تحتمل التفسير.</li>
+                            <li><i class="fas fa-hand-point-right me-2"></i> <strong>التحديد (Definite):</strong> يجب أن يكون لها نقطة بداية واحدة ونقطة نهاية واحدة على الأقل.</li>
+                            <li><i class="fas fa-play-circle me-2"></i> <strong>النهائية (Finite):</strong> يجب أن تنتهي في عدد محدود من الخطوات.</li>
+                            <li><i class="fas fa-terminal me-2"></i> <strong>المدخلات والمخرجات (Input/Output):</strong> يجب أن تحدد المدخلات بوضوح وأن تنتج مخرجات صحيحة.</li>
+                            <li><i class="fas fa-check-square me-2"></i> <strong>الفعالية (Effective):</strong> كل خطوة يجب أن تكون قابلة للتنفيذ في وقت معقول.</li>
+                        </ul>
+                    </div>
+
+                    <h4 class="sub-sub-heading mt-3">ب. صيغة كتابة الخوارزميات (الطريقة النصية / Pseudocode)</h4>
+                    <p>
+                        تُكتب الخوارزميات عادةً في شكل خطوات متسلسلة باستخدام لغة قريبة من اللغة الطبيعية ولكن مع بعض المصطلحات البرمجية.
+                    </p>
+                    <div class="example-box">
+                        <i class="fas fa-code"></i> <strong>مثال: خوارزمية لجمع عددين:</strong>
+                        <pre><code>1. ابدأ.
+2. أدخل الرقم الأول (num1).
+3. أدخل الرقم الثاني (num2).
+4. احسب المجموع = num1 + num2.
+5. اطبع المجموع.
+6. توقف.
+</code></pre>
+                        <p class="mt-3"><strong>كود جافا المقابل لهذه الخوارزمية:</strong></p>
+                        <pre><code class="language-java">public class Sum {
+    public static void main(String[] args) {
+        // تعريف وإسناد قيم للرقمين
+        int num1 = 10; 
+        int num2 = 20;
+
+        // حساب المجموع
+        int sum = num1 + num2;
+
+        // طباعة النتيجة
+        System.out.println("المجموع: " + sum);
+    }
+}
+</code></pre>
+                    </div>
+                </div>
+
+                ---
+
+                <!-- 3. خرائط تدفق البيانات (Flowcharts) -->
+                <div class="content-card" id="flowcharts">
+                    <h2 class="section-title"><i class="fas fa-project-diagram me-2"></i>3. خرائط تدفق البيانات (Flowcharts)</h2>
+                    <p>
+                        بينما الخوارزميات تقدم وصفًا نصيًا للحل، فإن <span class="concept-highlight">خرائط التدفق (Flowcharts)</span> تقدم تمثيلًا مرئيًا (رسوميًا) للخوارزمية.
+                    </p>
+                    <h4 class="sub-sub-heading mt-3">أ. ما هي خرائط التدفق؟</h4>
+                    <p>
+                        <strong>التعريف:</strong> خريطة التدفق هي تمثيل تخطيطي لعملية أو خوارزمية باستخدام أشكال هندسية موحدة (رموز) متصلة بأسهم توضح تسلسل تدفق البيانات والتحكم.
+                    </p>
+                    <div class="note-box">
+                        <i class="fas fa-bullseye"></i> <strong>الهدف من خرائط التدفق:</strong>
+                        <ul class="no-bullet">
+                            <li><i class="fas fa-eye me-2"></i> توضيح تسلسل الخطوات بشكل بديهي وسهل الفهم حتى لغير المبرمجين.</li>
+                            <li><i class="fas fa-search me-2"></i> المساعدة في اكتشاف الأخطاء المنطقية في تصميم الحل قبل كتابة الكود.</li>
+                            <li><i class="fas fa-file-alt me-2"></i> توثيق خطط البرامج بشكل بصري.</li>
+                        </ul>
+                    </div>
+
+                    <h4 class="sub-sub-heading mt-3">ب. رموز خرائط التدفق الأساسية:</h4>
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>الرمز</th>
+                                <th>الاسم</th>
+                                <th>الوصف</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td></td>
+                                <td><strong>بداية/نهاية (Terminal)</strong></td>
+                                <td>يحدد نقطة البداية أو النهاية للبرنامج أو الخوارزمية.</td>
+                            </tr>
+                            <tr>
+                                <td>
+    </td>
+<td><strong>عملية (Process)</strong></td>
+<td>يمثل خطوة معالجة أو عملية (مثل: حساب مجموع، إجراء عملية حسابية).</td>
+</tr>
+<tr>
+<td>
+
+Licensed by Google
+
+</td>
+<td><strong>إدخال/إخراج (Input/Output)</strong></td>
+<td>يستخدم لقراءة المدخلات من المستخدم أو عرض المخرجات على الشاشة.</td>
+</tr>
+<tr>
+<td></td>
+<td><strong>قرار (Decision)</strong></td>
+<td>يمثل نقطة اتخاذ قرار حيث يوجد مساران محتملان (مثل: جملة if-else). عادة ما يخرج منه سهمان: أحدهما لـ "نعم" والآخر لـ "لا".</td>
+</tr>
+<tr>
+<td></td>
+<td><strong>اتجاه التدفق (Flow Line)</strong></td>
+<td>أسهم تحدد تسلسل واتجاه الخطوات في الخريطة.</td>
+</tr>
+</tbody>
+</table>
+
+                <h4 class="sub-sub-heading mt-3">ج. أنواع خرائط التدفق:</h4>
+                <ul class="list-group list-group-flush mb-3">
+                    <li class="list-group-item"><i class="fas fa-stream text-primary me-2"></i> <strong>خرائط التتابع البسيط (Sequential Flowcharts):</strong>
+                        <p>تستخدم لتمثيل العمليات الخطية التي يتم تنفيذها خطوة بخطوة دون أي فروع أو تكرارات.</p>
+                        <div class="example-box">
+                            <i class="fas fa-code"></i> <strong>مثال:</strong> حساب مجموع عددين.
+                        </div>
+                    </li>
+                    <li class="list-group-item"><i class="fas fa-code-branch text-primary me-2"></i> <strong>خرائط الفروع (Branching Flowcharts):</strong>
+                        <p>تحتوي على نقاط قرار (رموز القرار) التي توجه تدفق البرنامج بناءً على شروط معينة (مثل: جمل <code>if-else</code>).</p>
+                        <div class="example-box">
+                            <i class="fas fa-code"></i> <strong>مثال:</strong> تحديد إذا كان العدد زوجيًا أم فرديًا.
+                        </div>
+                    </li>
+                    <li class="list-group-item"><i class="fas fa-redo-alt text-primary me-2"></i> <strong>خرائط التكرار (Looping Flowcharts):</strong>
+                        <p>تمثل العمليات التي تتكرر لعدد معين من المرات أو حتى يتم استيفاء شرط معين (مثل: حلقات <code>for</code>، <code>while</code>، <code>do-while</code>).</p>
+                        <div class="example-box">
+                            <i class="fas fa-code"></i> <strong>مثال:</strong> طباعة الأعداد من 1 إلى 10.
+                        </div>
+                    </li>
+                </ul>
+
+                <h4 class="sub-sub-heading mt-3">د. أهمية خرائط التدفق:</h4>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><i class="fas fa-chart-line text-success me-2"></i> <strong>تبسيط الفهم:</strong> تساعد في تصور حل المشكلة المعقدة بطريقة بصرية سهلة الهضم.</li>
+                    <li class="list-group-item"><i class="fas fa-search-dollar text-success me-2"></i> <strong>اكتشاف الأخطاء:</strong> تمكن المبرمج من الكشف عن أخطاء المنطق أو التسلسل في الحل قبل البدء بكتابة الكود، مما يوفر الوقت والجهد في مرحلة تصحيح الأخطاء.</li>
+                    <li class="list-group-item"><i class="fas fa-file-invoice text-success me-2"></i> <strong>التوثيق (Documentation):</strong> تُعد وثيقة مهمة تشرح كيف يعمل البرنامج، مما يسهل على المطورين الآخرين فهم الكود وتعديله لاحقًا.</li>
+                    <li class="list-group-item"><i class="fas fa-handshake text-success me-2"></i> <strong>التواصل:</strong> وسيلة ممتازة للتواصل بين المبرمجين وغير المبرمجين حول منطق البرنامج.</li>
+                </ul>
+            </div>
+
+            ---
+
+            <!-- الجانب العملي -->
+            <div class="content-card" id="practical">
+                <h2 class="section-title"><i class="fas fa-flask me-2"></i>الجانب العملي</h2>
+                <p>في هذا القسم، سنقوم بتحويل الخوارزميات وخرائط التدفق إلى أكواد جافا عملية.</p>
+
+                <h3 class="sub-heading">1. مثال: خريطة تدفق لجمع عددين</h3>
+                <h4 class="sub-sub-heading mt-3">أ. الخوارزمية النصية:</h4>
+                <pre><code>1. ابدأ.
+أدخل العدد الأول (num1).
+
+أدخل العدد الثاني (num2).
+
+احسب المجموع = num1 + num2.
+
+اطبع المجموع.
+
+توقف.
+</code></pre>
+<h4 class="sub-sub-heading mt-3">ب. خريطة التدفق (تمثيل مبسط):</h4>
+<div class="alert alert-info-custom">
+<p>لتمثيل الخريطة بصريًا، يمكنك تخيل الرموز متصلة بالأسهم:</p>
+<ul class="no-bullet">
+<li> <strong>بداية</strong></li>
+<li><i class="fas fa-arrow-down"></i> (اتجاه تدفق)</li>
+<li>
+
+
+Licensed by Google
+
+<strong>أدخل num1</strong></li>
+<li><i class="fas fa-arrow-down"></i> (اتجاه تدفق)</li>
+<li>
+
+Licensed by Google
+
+
+<strong>أدخل num2</strong></li>
+<li><i class="fas fa-arrow-down"></i> (اتجاه تدفق)</li>
+<li>
+
+Licensed by Google
+
+
+<strong>المجموع = num1 + num2</strong></li>
+<li><i class="fas fa-arrow-down"></i> (اتجاه تدفق)</li>
+<li>
+
+Licensed by Google
+
+
+<strong>اطبع المجموع</strong></li>
+<li><i class="fas fa-arrow-down"></i> (اتجاه تدفق)</li>
+<li> <strong>نهاية</strong></li>
+</ul>
+</div>
+<h4 class="sub-sub-heading mt-3">ج. كود جافا المقابل:</h4>
+<pre><code class="language-java">import java.util.Scanner; // استيراد كلاس Scanner لقراءة المدخلات من لوحة المفاتيح
+
+public class AddNumbers {
+public static void main(String[] args) {
+// إنشاء كائن Scanner لقراءة المدخلات
+Scanner input = new Scanner(System.in);
+
+    // طلب وإدخال العدد الأول
+    System.out.print("أدخل العدد الأول: ");
+    int num1 = input.nextInt(); // قراءة عدد صحيح من المستخدم
+
+    // طلب وإدخال العدد الثاني
+    System.out.print("أدخل العدد الثاني: ");
+    int num2 = input.nextInt(); // قراءة عدد صحيح من المستخدم
+
+    // حساب المجموع
+    int sum = num1 + num2;
+
+    // طباعة المجموع
+    System.out.println("المجموع: " + sum);
+
+    // إغلاق كائن Scanner لمنع تسرب الموارد
+    input.close(); 
+}
+}
+</code></pre>
+
+                <h3 class="sub-heading mt-4">2. مثال: خريطة تدفق لتحديد النجاح/الرسوب</h3>
+                <h4 class="sub-sub-heading mt-3">أ. الخوارزمية النصية:</h4>
+                <pre><code>1. ابدأ.
+أدخل درجة الطالب (grade).
+
+إذا كانت grade >= 60:
+
+اطبع "ناجح".
+
+وإلا:
+
+اطبع "راسب".
+
+توقف.
+</code></pre>
+<h4 class="sub-sub-heading mt-3">ب. خريطة التدفق (تمثيل مبسط):</h4>
+<div class="alert alert-info-custom">
+<p>لتمثيل الخريطة بصريًا، يمكنك تخيل الرموز متصلة بالأسهم:</p>
+<ul class="no-bullet">
+<li> <strong>بداية</strong></li>
+<li><i class="fas fa-arrow-down"></i> (اتجاه تدفق)</li>
+<li>
+
+
+Licensed by Google
+
+<strong>أدخل grade</strong></li>
+<li><i class="fas fa-arrow-down"></i> (اتجاه تدفق)</li>
+<li> <strong>هل grade >= 60؟</strong></li>
+<li><i class="fas fa-arrow-down"></i> (إذا كانت "نعم")</li>
+<li>
+
+Licensed by Google
+
+
+<strong>اطبع "ناجح"</strong></li>
+<li><i class="fas fa-arrow-down"></i> (تتصل بنهاية)</li>
+<li><i class="fas fa-arrow-right"></i> (من رمز القرار إذا كانت "لا")</li>
+<li>
+
+Licensed by Google
+
+
+<strong>اطبع "راسب"</strong></li>
+<li><i class="fas fa-arrow-down"></i> (تتصل بنهاية)</li>
+<li> <strong>نهاية</strong></li>
+</ul>
+</div>
+<h4 class="sub-sub-heading mt-3">ج. كود جافا المقابل:</h4>
+<pre><code class="language-java">import java.util.Scanner; // استيراد كلاس Scanner
+
+public class CheckGrade {
+public static void main(String[] args) {
+// إنشاء كائن Scanner لقراءة المدخلات
+Scanner input = new Scanner(System.in);
+
+    // طلب درجة الطالب
+    System.out.print("أدخل درجة الطالب: ");
+    int grade = input.nextInt(); // قراءة عدد صحيح
+
+    // استخدام جملة if-else للتحقق من الدرجة
+    if (grade >= 60) {
+        System.out.println("ناجح");
+    } else {
+        System.out.println("راسب");
+    }
+
+    // إغلاق كائن Scanner
+    input.close();
+}
+}
+</code></pre>
+</div>
+
+Licensed by Google
+
+            ---
+
+            <!-- تمارين وتقييم الوحدة -->
+            <div class="content-card" id="exercises-evaluation">
+                <h2 class="section-title"><i class="fas fa-puzzle-piece me-2"></i>تمارين وتقييم الوحدة</h2>
+                <h3 class="sub-heading">1. التمارين العملية:</h3>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><i class="fas fa-laptop-code text-warning me-2"></i> <strong>البرنامج 1: مساحة الدائرة</strong>
+                        <p>ارسم خريطة تدفق لبرنامج يحسب مساحة الدائرة. المدخل هو نصف القطر (Radius)، والمخرج هو المساحة. تذكر أن مساحة الدائرة = $\pi \times radius^2$. يمكنك استخدام القيمة التقريبية لـ $\pi$ وهي 3.14159.</p>
+                    </li>
+                    <li class="list-group-item"><i class="fas fa-laptop-code text-warning me-2"></i> <strong>البرنامج 2: التحقق من العدد موجب أم سالب</strong>
+                        <p>حول خريطة التدفق التالية إلى كود جافا كامل:</p>
+                        <div class="alert alert-info-custom">
+                            <p>لتمثيل الخريطة بصريًا، يمكنك تخيل الرموز متصلة بالأسهم:</p>
+                            <ul class="no-bullet">
+                                <li> <strong>بداية</strong></li>
+                                <li><i class="fas fa-arrow-down"></i> (اتجاه تدفق)</li>
+                                <li>
+
+<strong>أدخل عددًا (num)</strong></li>
+<li><i class="fas fa-arrow-down"></i> (اتجاه تدفق)</li>
+<li> <strong>هل num > 0؟</strong></li>
+<li><i class="fas fa-arrow-down"></i> (إذا كانت "نعم")</li>
+<li>
+
+Licensed by Google
+
+
+<strong>اطبع "العدد موجب"</strong></li>
+<li><i class="fas fa-arrow-down"></i> (تتصل بنهاية)</li>
+<li><i class="fas fa-arrow-right"></i> (من رمز القرار إذا كانت "لا")</li>
+<li>
+
+Licensed by Google
+
+
+<strong>اطبع "العدد سالب أو صفر"</strong></li>
+<li><i class="fas fa-arrow-down"></i> (تتصل بنهاية)</li>
+<li> <strong>نهاية</strong></li>
+</ul>
+</div>
+</li>
+</ul>
+
+                <h3 class="sub-heading">2. أسئلة نظرية:</h3>
+                <ul class="list-group list-group-flush mb-3">
+                    <li class="list-group-item"><i class="fas fa-question text-primary me-2"></i> ما الفرق الأساسي بين <span class="concept-highlight">الخوارزمية</span> و <span class="concept-highlight">خريطة التدفق</span>؟ ومتى تفضل استخدام كل منهما؟</li>
+                    <li class="list-group-item"><i class="fas fa-question text-primary me-2"></i> لماذا تُستخدم رموز محددة ومعيارية في خرائط التدفق؟ وما الفائدة من ذلك للمبرمجين؟</li>
+                    <li class="list-group-item"><i class="fas fa-question text-primary me-2"></i> اشرح باختصار أهمية خطوة "فهم المشكلة" في منهجية حل المشكلات البرمجية.</li>
+                </ul>
+            </div>
+
+            ---
+
+            <!-- الخلاصة -->
+            <div class="content-card" id="conclusion">
+                <h2 class="section-title"><i class="fas fa-check-double me-2"></i>الخلاصة</h2>
+                <p>في هذه الوحدة الهامة، تعلمت أن:</p>
+                <ul class="list-group list-group-flush mb-3">
+                    <li class="list-group-item"><i class="fas fa-clipboard-check text-success me-2"></i> <strong>حل المشكلات</strong> يتطلب فهمًا دقيقًا للمشكلة، وتقسيمها إلى أجزاء أصغر، ثم تصميم الحل.</li>
+                    <li class="list-group-item"><i class="fas fa-clipboard-check text-success me-2"></i> <strong>الخوارزميات</strong> هي قلب البرمجة، وتُكتب كمجموعة من الخطوات المنطقية المتسلسلة لحل مشكلة ما.</li>
+                    <li class="list-group-item"><i class="fas fa-clipboard-check text-success me-2"></i> <strong>خرائط التدفق</strong> هي أداة بصرية قوية لتصميم الحلول وتوضيح تدفق البيانات والتحكم، مما يسهل الفهم واكتشاف الأخطاء.</li>
+                    <li class="list-group-item"><i class="fas fa-clipboard-check text-success me-2"></i> <strong>التطبيق العملي</strong> لتحويل الخوارزميات والخرائط إلى أكواد جافا عملية يجعل المفاهيم النظرية أكثر وضوحًا وقابلية للتطبيق.</li>
+                </ul>
+                <div class="activity-box">
+                    <i class="fas fa-graduation-cap"></i> <strong>أنت الآن جاهز...</strong>
+                    <p>بعد هذه الوحدة، أصبحت تمتلك الأدوات الأساسية للتفكير البرمجي السليم. يمكنك الآن تحليل المشكلات، وتصميم حلولها بشكل منطقي ومرئي، والبدء في ترجمة هذه الحلول إلى كود جافا.</p>
+                </div>
+            </div>
+
+            ---
+
+            <!-- المراجع -->
+            <div class="content-card" id="references">
+                <h2 class="section-title"><i class="fas fa-book-reader me-2"></i>المراجع</h2>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><i class="fas fa-book me-2 text-secondary"></i> "Java: The Complete Reference" – Herbert Schildt.</li>
+                    <li class="list-group-item"><i class="fas fa-book me-2 text-secondary"></i> موقع <a href="https://docs.oracle.com/en/java/" target="_blank" class="resource-link">Oracle Java Documentation</a>.</li>
+                    <li class="list-group-item"><i class="fas fa-book me-2 text-secondary"></i> مصادر إضافية حول الخوارزميات وخرائط التدفق.</li>
+                </ul>
+            </div>
+
+            <!-- أزرار التنقل بين الوحدات -->
+            <div class="d-flex justify-content-between mt-4">
+                <a href="unit-2.html" class="unit-nav-btn"><i class="fas fa-arrow-left"></i>الوحدة السابقة: أساسيات جافا والمتغيرات</a>
+                <a href="unit-4.html" class="unit-nav-btn">الوحدة التالية: المتغيرات وإسناد القيم<i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- الفوتر (Footer) -->
+<footer class="text-center text-lg-start mt-5" style="background-color: var(--primary-color);">
+    <div class="container p-4">
+        <div class="row">
+            <!-- قسم مسار الأمن السيبراني -->
+            <div class="col-lg-6 col-md-12 mb-4 mb-md-0">
+                <h5 class="text-uppercase">مسار الأمن السيبراني</h5>
+                <p>
+                    نحن نقدم محتوى تعليميًا شاملاً ومُحدثًا لمساعدتك على بناء أساس قوي في الأمن السيبراني وشبكات الحاسوب.
+                </p>
+            </div>
+
+            <!-- قسم روابط مفيدة -->
+            <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                <h5 class="text-uppercase">روابط مفيدة</h5>
+                <ul class="list-unstyled mb-0">
+                    <li>
+                        <a href="#!" class="text-white">عن المسار</a>
+                    </li>
+                    <li>
+                        <a href="#!" class="text-white">اتصل بنا</a>
+                    </li>
+                    <li>
+                        <a href="#!" class="text-white">الأسئلة الشائعة</a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- قسم تابعنا -->
+            <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                <h5 class="text-uppercase">تابعنا</h5>
+                <ul class="list-unstyled mb-0">
+                    <li>
+                        <a href="#!" class="text-white"><i class="fab fa-facebook-f me-2"></i>فيسبوك</a>
+                    </li>
+                    <li>
+                        <a href="#!" class="text-white"><i class="fab fa-twitter me-2"></i>تويتر</a>
+                    </li>
+                    <li>
+                        <a href="#!" class="text-white"><i class="fab fa-linkedin-in me-2"></i>لينكد إن</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- حقوق النشر -->
+    <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
+        © 2025 مسار الأمن السيبراني. جميع الحقوق محفوظة.
+    </div>
+</footer>
+
+<!-- Bootstrap Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
