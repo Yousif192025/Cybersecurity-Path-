@@ -1,1 +1,1326 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الوحدة 8: طبقة الشبكة والتوجيه | مسار الأمن السيبراني</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts - Tajawal for Arabic font -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <!-- MathJax for mathematical equations -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        /* تعريف المتغيرات لألوان موحدة */
+        :root {
+            --primary-color: #2c3e50; /* لون أساسي غامق */
+            --secondary-color: #007bff; /* لون أزرق لمقرر شبكات الحاسوب */
+            --accent-color: #e74c3c; /* لون مميز (أحمر) */
+            --light-bg: #f8f9fa; /* خلفية فاتحة */
+            --dark-text: #2c3e50; /* نص غامق */
+            --light-text: #7f8c8d; /* نص فاتح */
+        }
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            line-height: 1.8;
+            direction: rtl; /* اتجاه النص من اليمين لليسار */
+            text-align: right; /* محاذاة النص لليمين */
+        }
+
+        /* تنسيقات شريط التنقل */
+        .navbar {
+            background-color: var(--primary-color);
+        }
+        .navbar-brand {
+            color: white !important;
+        }
+        .btn-outline-light {
+            border-color: rgba(255, 255, 255, 0.7) !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .btn-outline-light:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        /* تنسيقات رأس الوحدة */
+        .unit-header {
+            background: linear-gradient(135deg, #007bff, #0056b3); /* تدرج أزرق */
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 1rem 1rem; /* زوايا دائرية سفلية */
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        /* تنسيقات بطاقة المحتوى الرئيسية */
+        .content-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            padding: 2rem;
+            border-right: 4px solid var(--secondary-color); /* شريط جانبي بلون ثانوي */
+            transition: transform 0.3s ease, box-shadow 0.3s ease; /* تأثير التحويم */
+        }
+        .content-card:hover {
+            transform: translateY(-5px); /* رفع البطاقة قليلاً عند التحويم */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); /* ظل أكبر عند التحويم */
+        }
+
+        /* تنسيقات عنوان القسم */
+        .section-title {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+        }
+
+        /* تنسيقات العناوين الفرعية (مثل 3.1، 3.2) */
+        h3.sub-heading {
+            color: var(--primary-color);
+            border-bottom: 1px dashed var(--light-text);
+            padding-bottom: 0.3rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.75rem;
+        }
+
+        /* تنسيقات صناديق الأمثلة والملاحظات */
+        .example-box, .note-box {
+            background-color: #e9ecef; /* خلفية رمادية فاتحة/زرقاء */
+            border-right: 5px solid var(--secondary-color); /* حدود بلون ثانوي */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        .example-box i, .note-box i {
+            color: var(--secondary-color);
+            margin-left: 0.5rem; /* مسافة بين الأيقونة والنص */
+        }
+
+        /* تنسيقات صناديق الأنشطة */
+        .activity-box {
+            background-color: #e9f7ef; /* لون أخضر فاتح للأنشطة */
+            border-right: 5px solid #28a745; /* حدود خضراء */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            color: var(--dark-text);
+        }
+        .activity-box i {
+            color: #28a745; /* لون أيقونة خضراء */
+            margin-left: 0.5rem;
+        }
+
+        /* تنسيقات تنبيهات المعلومات المخصصة */
+        .alert-info-custom {
+            background-color: #e0f2ff; /* أزرق فاتح */
+            border-left: 5px solid var(--secondary-color);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        .alert-info-custom i {
+            color: var(--secondary-color);
+            margin-right: 0.5rem;
+        }
+
+        /* تمييز المفاهيم الهامة */
+        .concept-highlight {
+            background-color: #fff3cd; /* لون أصفر فاتح للتمييز */
+            padding: 0.3rem 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        /* تنسيقات القوائم */
+        ul {
+            padding-right: 25px; /* مسافة داخلية لترقيم القوائم */
+        }
+        ul.no-bullet {
+            list-style: none;
+            padding-right: 0;
+        }
+        ul li {
+            margin-bottom: 0.5rem;
+        }
+        .list-group-item {
+            border: none;
+            padding-right: 0;
+            background-color: transparent;
+        }
+        .list-group-item i {
+            margin-left: 8px; /* مسافة بين الأيقونة والنص */
+        }
+
+        /* تنسيقات الجداول */
+        .table thead th {
+            background-color: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+        .table tbody tr:hover {
+            background-color: #f0f8ff; /* تأثير التحويم على صفوف الجدول */
+        }
+        .table-bordered th, .table-bordered td {
+            border-color: #dee2e6;
+        }
+
+        /* تنسيق أزرار التنقل بين الوحدات */
+        .unit-nav-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: bold;
+            transition: background-color 0.2s, transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+        }
+        .unit-nav-btn:hover {
+            background-color: #0056b3;
+            color: white;
+            transform: translateY(-2px);
+        }
+        /* لتحديد اتجاه الأيقونات في أزرار التنقل لليسار واليمين */
+        .unit-nav-btn .fa-arrow-left {
+            margin-right: 0;
+            margin-left: 8px; /* أيقونة السهم الأيسر تظهر قبل النص في اتجاه RTL */
+        }
+        .unit-nav-btn .fa-arrow-right {
+            margin-right: 8px; /* أيقونة السهم الأيمن تظهر بعد النص في اتجاه RTL */
+            margin-left: 0;
+        }
+
+        /* تنسيقات الفوتر */
+        footer {
+            background-color: var(--primary-color) !important;
+            color: white;
+            padding: 2.5rem 0;
+        }
+        footer h5 {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        footer .list-unstyled li a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        footer .list-unstyled li a:hover {
+            color: var(--secondary-color);
+        }
+        footer .fab, footer .fas {
+            color: white;
+            transition: color 0.2s;
+        }
+        footer .fab:hover, footer .fas:hover {
+            color: var(--secondary-color);
+        }
+
+        /* تنسيقات الشريط الجانبي */
+        .sidebar {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            color: var(--dark-text);
+        }
+        .sidebar h4 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .sidebar .module-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+            margin-left: 10px;
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .sidebar .progress-container {
+            height: 25px;
+            margin-bottom: 1.5rem;
+        }
+        .sidebar .progress-bar {
+            background-color: var(--secondary-color);
+        }
+        /* تنسيقات الأكورديون في الشريط الجانبي */
+        .sidebar .accordion-button:not(.collapsed) {
+            background-color: #e0f2ff;
+            color: var(--primary-color);
+            box-shadow: none;
+        }
+        .sidebar .accordion-button:not(.collapsed) .module-icon {
+            background-color: var(--primary-color);
+        }
+        .sidebar .accordion-button {
+            border-radius: 0.5rem !important;
+        }
+        .sidebar .accordion-item {
+            margin-bottom: 0.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(0, 0, 0, 0.125);
+            overflow: hidden;
+        }
+        .sidebar .accordion-body ul {
+            padding-right: 0;
+        }
+        .sidebar .accordion-body ul li a {
+            padding: 0.25rem 0.5rem;
+            display: block;
+            border-radius: 0.25rem;
+            color: var(--dark-text);
+        }
+        .sidebar .accordion-body ul li a:hover,
+        .sidebar .accordion-body ul li a.active-link {
+            background-color: #e0f2ff;
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+        .sidebar .accordion-body .btn-primary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .sidebar .accordion-body .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+        /* ضبط الاستجابة (Responsive adjustments) */
+        @media (max-width: 991px) { /* نقطة توقف تتوافق مع col-lg- */
+            .sidebar {
+                margin-top: 1rem;
+                margin-bottom: 1rem; /* إضافة هامش لتحسين التباعد على الشاشات الأصغر */
+            }
+            .unit-header {
+                padding: 2rem 0;
+            }
+            .content-card {
+                padding: 1.5rem;
+            }
+            .section-title {
+                font-size: 1.75rem;
+            }
+            h3.sub-heading {
+                font-size: 1.5rem;
+            }
+            .unit-nav-btn {
+                width: 100%;
+                justify-content: center;
+                margin-bottom: 0.5rem;
+            }
+            .d-flex.justify-content-between.mt-4 {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- شريط التنقل (Navbar) -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--primary-color);">
+        <div class="container">
+            <a class="navbar-brand" href="../../../index.html">مسار الأمن السيبراني</a>
+            <a href="../index.html" class="btn btn-outline-light">العودة إلى المقرر</a>
+        </div>
+    </nav>
+
+    <!-- رأس الوحدة (Unit Header) -->
+    <header class="unit-header text-center">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-3">الوحدة 8: طبقة الشبكة والتوجيه (Network Layer)</h1>
+            <p class="lead">العنونة المنطقية وتوجيه الحزم بين الشبكات</p>
+        </div>
+    </header>
+
+    <div class="container-fluid py-5">
+        <div class="row">
+            <!-- الشريط الجانبي لتنقل الوحدات (Sidebar) -->
+            <div class="col-lg-3">
+                <div class="sidebar p-4">
+                    <h4 class="mb-3">
+                        <i class="fas fa-stream me-2"></i>
+                        وحدات المقرر
+                    </h4>
+                    <div class="progress progress-container mb-4">
+                        <div class="progress-bar" role="progressbar" style="width: 80%;" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100">80% مكتمل</div>
+                    </div>
+                    <div class="accordion" id="unitsAccordion">
+                        <!-- الوحدة التمهيدية (المقدمة) -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingIntroCourse">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseIntroCourse" aria-expanded="false" aria-controls="collapseIntroCourse">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-book-open"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">مقدمة في شبكات الحاسوب (المقرر)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseIntroCourse" class="accordion-collapse collapse" aria-labelledby="headingIntroCourse" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="../index.html#course-definition" class="text-decoration-none">تعريف المقرر</a></li>
+                                        <li><a href="../index.html#general-objectives" class="text-decoration-none">الأهداف العامة</a></li>
+                                        <li><a href="../index.html#evaluation-method" class="text-decoration-none">طريقة التقييم</a></li>
+                                        <li><a href="..//index.html#learning-outcomes" class="text-decoration-none">المخرجات التعليمية</a></li>
+                                        <li><a href="..//index.html#resources" class="text-decoration-none">مصادر المعلومات</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 1 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingNetUnit1">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNetUnit1" aria-expanded="false" aria-controls="collapseNetUnit1">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-sitemap"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 1: مقدمة في الشبكات وأهميتها</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseNetUnit1" class="accordion-collapse collapse" aria-labelledby="headingNetUnit1" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-1.html#unit-introduction" class="text-decoration-none">تمهيد الوحدة</a></li>
+                                        <li><a href="unit-1.html#learning-objectives" class="text-decoration-none">أهداف التعلم</a></li>
+                                        <li><a href="unit-1.html#content-overview" class="text-decoration-none">المحتوى التعليمي</a></li>
+                                        <li><a href="unit-1.html#activities" class="text-decoration-none">أنشطة تعليمية</a></li>
+                                        <li><a href="unit-1.html#evaluation" class="text-decoration-none">تقييم الوحدة</a></li>
+                                        <li><a href="unit-1.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 2 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingNetUnit2">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNetUnit2" aria-expanded="false" aria-controls="collapseNetUnit2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-network-wired"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 2: البروتوكولات ونماذج الشبكات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseNetUnit2" class="accordion-collapse collapse" aria-labelledby="headingNetUnit2" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-2.html#unit-introduction" class="text-decoration-none">تمهيد الوحدة</a></li>
+                                        <li><a href="unit-2.html#learning-objectives" class="text-decoration-none">أهداف التعلم</a></li>
+                                        <li><a href="unit-2.html#content-overview" class="text-decoration-none">المحتوى التعليمي</a></li>
+                                        <li><a href="unit-2.html#applied-examples" class="text-decoration-none">أمثلة تطبيقية</a></li>
+                                        <li><a href="unit-2.html#activities" class="text-decoration-none">النشاطات المقترحة</a></li>
+                                        <li><a href="unit-2.html#enrichment-materials" class="text-decoration-none">المواد الإثرائية</a></li>
+                                        <li><a href="unit-2.html#evaluation" class="text-decoration-none">التقييم</a></li>
+                                    </ul>
+                                    <a href="unit-2.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 3 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingNetUnit3">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNetUnit3" aria-expanded="false" aria-controls="collapseNetUnit3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-globe"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 3: أنواع الشبكات حسب الحجم</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseNetUnit3" class="accordion-collapse collapse" aria-labelledby="headingNetUnit3" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-3.html#unit-introduction" class="text-decoration-none">تمهيد الوحدة</a></li>
+                                        <li><a href="unit-3.html#learning-objectives" class="text-decoration-none">أهداف الوحدة</a></li>
+                                        <li><a href="unit-3.html#content-overview" class="text-decoration-none">المحتوى التفصيلي</a></li>
+                                        <li><a href="unit-3.html#comparison" class="text-decoration-none">مقارنة بين الأنواع</a></li>
+                                        <li><a href="unit-3.html#enrichment-materials" class="text-decoration-none">المواد الإثرائية</a></li>
+                                        <li><a href="unit-3.html#evaluation" class="text-decoration-none">التقييم</a></li>
+                                    </ul>
+                                    <a href="unit-3.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 4 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingNetUnit4">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNetUnit4" aria-expanded="false" aria-controls="collapseNetUnit4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-share-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 4: أنواع الشبكات حسب التوصيل (Topology)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseNetUnit4" class="accordion-collapse collapse" aria-labelledby="headingNetUnit4" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-4.html#unit-introduction" class="text-decoration-none">تمهيد الوحدة</a></li>
+                                        <li><a href="unit-4.html#learning-objectives" class="text-decoration-none">أهداف الوحدة</a></li>
+                                        <li><a href="unit-4.html#content-overview" class="text-decoration-none">المحتوى التفصيلي</a></li>
+                                        <li><a href="unit-4.html#comparison" class="text-decoration-none">مقارنة بين الأنواع</a></li>
+                                        <li><a href="unit-4.html#enrichment-materials" class="text-decoration-none">المواد الإثرائية</a></li>
+                                        <li><a href="unit-4.html#evaluation" class="text-decoration-none">التقييم</a></li>
+                                    </ul>
+                                    <a href="unit-4.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 5 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingNetUnit5">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNetUnit5" aria-expanded="false" aria-controls="collapseNetUnit5">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-handshake"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 5: البروتوكولات ووحدات قياس البيانات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseNetUnit5" class="accordion-collapse collapse" aria-labelledby="headingNetUnit5" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-5.html#unit-introduction" class="text-decoration-none">تمهيد الوحدة</a></li>
+                                        <li><a href="unit-5.html#learning-objectives" class="text-decoration-none">أهداف الوحدة</a></li>
+                                        <li><a href="unit-5.html#what-is-protocol" class="text-decoration-none">ما هو البروتوكول؟</a></li>
+                                        <li><a href="unit-5.html#tcp-ip-suite" class="text-decoration-none">لمحة عن حزمة TCP/IP</a></li>
+                                        <li><a href="unit-5.html#common-application-protocols" class="text-decoration-none">بروتوكولات تطبيق شائعة</a></li>
+                                        <li><a href="unit-5.html#ssl-tls" class="text-decoration-none">SSL/TLS – الأمان في الشبكات</a></li>
+                                        <li><a href="unit-5.html#data-speed-units" class="text-decoration-none">وحدات قياس البيانات والسرعة</a></li>
+                                        <li><a href="unit-5.html#practical-examples" class="text-decoration-none">أمثلة حسابية عملية</a></li>
+                                        <li><a href="unit-5.html#summary-tables" class="text-decoration-none">جداول ملخصة</a></li>
+                                        <li><a href="unit-5.html#common-mistakes" class="text-decoration-none">أخطاء شائعة يجب تجنبها</a></li>
+                                        <li><a href="unit-5.html#activities-exercises" class="text-decoration-none">أنشطة وتمارين</a></li>
+                                        <li><a href="unit-5.html#enrichment-materials" class="text-decoration-none">مواد إثرائية</a></li>
+                                        <li><a href="unit-5.html#evaluation" class="text-decoration-none">التقييم المقترح</a></li>
+                                        <li><a href="unit-5.html#duration" class="text-decoration-none">المدة الزمنية المقترحة</a></li>
+                                    </ul>
+                                    <a href="unit-5.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 6 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingNetUnit6">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNetUnit6" aria-expanded="false" aria-controls="collapseNetUnit6">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-layer-group"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 6: الطبقة الفيزيائية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseNetUnit6" class="accordion-collapse collapse" aria-labelledby="headingNetUnit6" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-6.html#unit-introduction" class="text-decoration-none">تمهيد الوحدة</a></li>
+                                        <li><a href="unit-6.html#learning-objectives" class="text-decoration-none">أهداف الوحدة</a></li>
+                                        <li><a href="unit-6.html#physical-layer-tasks" class="text-decoration-none">المهام الأساسية للطبقة الفيزيائية</a></li>
+                                        <li><a href="unit-6.html#signal-characteristics" class="text-decoration-none">خصائص الإشارات</a></li>
+                                        <li><a href="unit-6.html#transmission-media" class="text-decoration-none">الأوساط الناقلة</a></li>
+                                        <li><a href="unit-6.html#physical-topology" class="text-decoration-none">بنيان الشبكات (Physical Topology)</a></li>
+                                        <li><a href="unit-6.html#quality-factors" class="text-decoration-none">عوامل تؤثر على جودة الطبقة الفيزيائية</a></li>
+                                        <li><a href="unit-6.html#practical-examples" class="text-decoration-none">أمثلة تطبيقية</a></li>
+                                        <li><a href="unit-6.html#enrichment-materials" class="text-decoration-none">مواد إثرائية</a></li>
+                                        <li><a href="unit-6.html#evaluation" class="text-decoration-none">التقييم المقترح</a></li>
+                                        <li><a href="unit-6.html#duration" class="text-decoration-none">المدة الزمنية المقترحة</a></li>
+                                    </ul>
+                                    <a href="unit-6.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 7 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingNetUnit7">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNetUnit7" aria-expanded="false" aria-controls="collapseNetUnit7">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-exchange-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 7: طبقة ربط البيانات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseNetUnit7" class="accordion-collapse collapse" aria-labelledby="headingNetUnit7" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-7.html#unit-introduction" class="text-decoration-none">تمهيد الوحدة</a></li>
+                                        <li><a href="unit-7.html#learning-objectives" class="text-decoration-none">أهداف الوحدة</a></li>
+                                        <li><a href="unit-7.html#data-link-intro" class="text-decoration-none">مقدمة عن عمل الطبقة الثانية</a></li>
+                                        <li><a href="unit-7.html#bridges-switches" class="text-decoration-none">وظائف الجسور (Bridges) والبدالات (Switches)</a></li>
+                                        <li><a href="unit-7.html#historical-evolution" class="text-decoration-none">التطور التاريخي</a></li>
+                                        <li><a href="unit-7.html#error-detection-correction" class="text-decoration-none">تقنيات كشف وتصحيح الأخطاء</a></li>
+                                        <li><a href="unit-7.html#practical-examples" class="text-decoration-none">أمثلة واقعية</a></li>
+                                        <li><a href="unit-7.html#enrichment-materials" class="text-decoration-none">مواد إثرائية</a></li>
+                                        <li><a href="unit-7.html#evaluation" class="text-decoration-none">التقييم المقترح</a></li>
+                                        <li><a href="unit-7.html#duration" class="text-decoration-none">المدة الزمنية المقترحة</a></li>
+                                    </ul>
+                                    <a href="unit-7.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 8 (الوحدة النشطة) -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingNetUnit8">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNetUnit8" aria-expanded="true" aria-controls="collapseNetUnit8">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-route"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 8: طبقة الشبكة والتوجيه</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseNetUnit8" class="accordion-collapse collapse show" aria-labelledby="headingNetUnit8" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="#unit-introduction" class="text-decoration-none active-link">تمهيد الوحدة</a></li>
+                                        <li><a href="#learning-objectives" class="text-decoration-none">أهداف الوحدة</a></li>
+                                        <li><a href="#network-layer-concepts" class="text-decoration-none">مفاهيم أساسية في طبقة الشبكة</a></li>
+                                        <li><a href="#routing-functions" class="text-decoration-none">وظائف التوجيه (Routing Functions)</a></li>
+                                        <li><a href="#routing-mechanisms" class="text-decoration-none">آليات التوجيه: Static vs Dynamic</a></li>
+                                        <li><a href="#routing-protocols" class="text-decoration-none">بروتوكولات التوجيه الأساسية</a></li>
+                                        <li><a href="#quick-examples" class="text-decoration-none">أمثلة سريعة</a></li>
+                                        <li><a href="#design-security-considerations" class="text-decoration-none">اعتبارات التصميم والأمان</a></li>
+                                        <li><a href="#osi-tcpip-comparison" class="text-decoration-none">مقارنة نموذج OSI ونموذج TCP/IP</a></li>
+                                        <li><a href="#exercises-applications" class="text-decoration-none">تمارين وتطبيقات</a></li>
+                                        <li><a href="#command-summary" class="text-decoration-none">مختصر أوامر (صياغة إرشادية)</a></li>
+                                        <li><a href="#enrichment-materials" class="text-decoration-none">مواد إثرائية مقترحة</a></li>
+                                        <li><a href="#evaluation" class="text-decoration-none">التقييم المقترح</a></li>
+                                        <li><a href="#duration" class="text-decoration-none">المدة الزمنية المقترحة</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 9 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingNetUnit9">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNetUnit9" aria-expanded="false" aria-controls="collapseNetUnit9">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-ethernet"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 9: شبكة الإيثرنت والتقنيات المرتبطة</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseNetUnit9" class="accordion-collapse collapse" aria-labelledby="headingNetUnit9" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>تعريف Ethernet وأنواعها، الوسائط، وتقنيات Token Ring.</p>
+                                    <a href="unit-9.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 10 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingNetUnit10">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNetUnit10" aria-expanded="false" aria-controls="collapseNetUnit10">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-shield-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 10: أمن وخصوصية الشبكات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseNetUnit10" class="accordion-collapse collapse" aria-labelledby="headingNetUnit10" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>التشفير، الجدران النارية، ومقارنة الشبكات من حيث الأمان.</p>
+                                    <a href="unit-10.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة الختامية -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingNetSummary">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNetSummary" aria-expanded="false" aria-controls="collapseNetSummary">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-award"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة الختامية: مراجعة وتوسع</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseNetSummary" class="accordion-collapse collapse" aria-labelledby="headingNetSummary" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>مراجعة المفاهيم الأساسية، تمارين، نصائح وموارد إضافية.</p>
+                                    <a href="unit-summary.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- منطقة المحتوى الرئيسية -->
+            <div class="col-lg-9">
+                <!-- تمهيد الوحدة -->
+                <div class="content-card" id="unit-introduction">
+                    <h2 class="section-title"><i class="fas fa-lightbulb me-2"></i>تمهيد الوحدة</h2>
+                    <p>
+                        <span class="concept-highlight">طبقة الشبكة (Network Layer)</span> (Layer 3 في نموذج OSI) هي المسؤولة عن العنونة المنطقية (IP) وتوجيه الحزم بين الشبكات المختلفة. بينما تهتم طبقة ربط البيانات (Layer 2) بنقل الإطارات داخل الشبكة المحلية، تتكفّل طبقة الشبكة بإيصال الحِزم إلى شبكات بعيدة عبر عدّة قفزات (Hops) وفق أفضل مسار متاح.
+                    </p>
+                    <div class="alert-info-custom">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>نصيحة تعليمية:</strong> تخيل الطبقة الثانية كـ "نظام العنونة والشوارع داخل مدينة واحدة"، فإن الطبقة الثالثة هي "نظام تحديد العناوين البريدية وشبكة الطرق السريعة" التي تربط المدن المختلفة (الشبكات).
+                    </div>
+                </div>
+
+                <!-- أهداف الوحدة -->
+                <div class="content-card" id="learning-objectives">
+                    <h2 class="section-title"><i class="fas fa-graduation-cap me-2"></i>أهداف الوحدة</h2>
+                    <p>بنهاية هذه الوحدة ستكون قادرًا على:</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success"></i> شرح مفهوم التوجيه والتمييز بين التوجّه (Forwarding) والتوجيه (Routing).</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success"></i> تعداد وظائف موجِّهات Layer 3 (Routers) ومكوّنات جدول التوجيه.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success"></i> المقارنة بين التوجيه اليدوي (Static) والآلي (Dynamic).</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success"></i> فهم مبادئ بروتوكولات التوجيه الشائعة: RIP، OSPF، BGP.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success"></i> تطبيق قواعد الاختيار مثل أطول قناع مطابق (Longest Prefix Match) والمسافة الإدارية (Administrative Distance).</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success"></i> مواءمة طبقات OSI مع TCP/IP.</li>
+                    </ul>
+                </div>
+
+                <!-- مفاهيم أساسية في طبقة الشبكة -->
+                <div class="content-card" id="network-layer-concepts">
+                    <h2 class="section-title"><i class="fas fa-cubes me-2"></i>مفاهيم أساسية في طبقة الشبكة</h2>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-map-marked-alt text-primary"></i> <strong>العنونة المنطقية (IP Addressing):</strong>
+                            <ul class="no-bullet">
+                                <li><i class="fas fa-caret-left text-secondary"></i> <strong>IPv4/IPv6:</strong> نظامان لتحديد العناوين الفريدة للأجهزة على مستوى الشبكة العالمية.</li>
+                                <li><i class="fas fa-caret-left text-secondary"></i> <strong>الأقنعة (Mask):</strong> تستخدم لتحديد جزء الشبكة وجزء المضيف في عنوان IP.</li>
+                                <li><i class="fas fa-caret-left text-secondary"></i> <strong>التقسيم (Subnetting):</strong> تقسيم شبكة IP كبيرة إلى شبكات فرعية أصغر لزيادة الكفاءة والأمان.</li>
+                                <li><i class="fas fa-caret-left text-secondary"></i> <strong>CIDR (Classless Inter-Domain Routing):</strong> طريقة لعنونة IP وتجميع الشبكات بشكل أكثر مرونة وكفاءة من العنونة المصنفة التقليدية.</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-forward text-primary"></i> <strong>التوجّه (Forwarding):</strong>
+                            <p>هو القرار السريع الذي يتخذه الموجّه (Router) لإرسال الحزمة الواردة إلى المنفذ الصحيح أو إلى الموجّه المجاور (Next Hop) بناءً على أقرب إدخال مطابق في جدول التوجيه الخاص به. هذا يتم لكل حزمة على حدة وبسرعة عالية.</p>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-route text-primary"></i> <strong>التوجيه (Routing):</strong>
+                            <p>هي العملية الأوسع والأكثر تعقيدًا لبناء وتحديث وصيانة <span class="concept-highlight">قاعدة المعرفة بالمسارات (Routing Table)</span>. يمكن أن يتم ذلك يدويًا (Static Routing) أو تلقائيًا باستخدام بروتوكولات التوجيه (Dynamic Routing Protocols) التي تتشارك المعلومات عن الشبكات المتاحة.</p>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-microchip text-primary"></i> <strong>بروتوكولات مساعدة:</strong>
+                            <ul class="no-bullet">
+                                <li><i class="fas fa-caret-left text-secondary"></i> <strong>ICMP (Internet Control Message Protocol):</strong> يُستخدم لإرسال رسائل الأخطاء التشغيلية (مثل "الوجهة غير قابلة للوصول") ولإجراء اختبارات التشخيص (مثل أمر <code>ping</code>).</li>
+                                <li><i class="fas fa-caret-left text-secondary"></i> <strong>ARP (Address Resolution Protocol):</strong> (في IPv4) يُستخدم لربط عنوان IP منطقي بعناوين MAC الفيزيائية المقابلة في الشبكة المحلية.</li>
+                                <li><i class="fas fa-caret-left text-secondary"></i> <strong>ND (Neighbor Discovery Protocol):</strong> (في IPv6) يؤدي وظائف مشابهة لـ ARP و ICMP في IPv6 لاكتشاف الجيران وحل العناوين.</li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <h3 class="sub-heading">3.1 أطول قناع مطابق (Longest Prefix Match)</h3>
+                    <p>عندما يستقبل الموجّه حزمة موجهة إلى عنوان IP معين، ويبحث في جدول التوجيه الخاص به، قد يجد عدة إدخالات مطابقة لعنوان الوجهة. في هذه الحالة، يتبع الموجّه قاعدة <span class="concept-highlight">أطول قناع مطابق (Longest Prefix Match)</span>، والتي تعني أنه يختار المسار الذي يحتوي على أطول Prefix (أكبر قناع شبكة). هذا يضمن اختيار المسار الأكثر تحديدًا للوجهة المطلوبة.</p>
+                    <div class="example-box">
+                        <i class="fas fa-code-branch"></i> <strong>مثال:</strong> الوجهة هي <code>10.1.5.7</code>
+                        <ul class="no-bullet">
+                            <li><code>10.0.0.0/8</code> عبر <code>R1</code> (مطابقة 8 بتات)</li>
+                            <li><code>10.1.0.0/16</code> عبر <code>R2</code> (مطابقة 16 بتًا)</li>
+                            <li><code>10.1.5.0/24</code> عبر <code>R3</code> <i class="fas fa-check-circle text-success"></i> (الأطول مطابقة: 24 بتًا)</li>
+                        </ul>
+                        <p>في هذا المثال، سيتم اختيار المسار عبر <code>R3</code> لأن قناعه (<code>/24</code>) هو الأطول مطابقة لعنوان الوجهة.</p>
+                    </div>
+
+                    <h3 class="sub-heading">3.2 المسافة الإدارية (Administrative Distance - AD)</h3>
+                    <p>تُستخدم <span class="concept-highlight">المسافة الإدارية (Administrative Distance - AD)</span> لتحديد موثوقية مصدر معلومات التوجيه. عندما يتعلم الموجّه عن نفس الشبكة الوجهة من عدة مصادر مختلفة (مثل بروتوكولات توجيه مختلفة أو مسارات ثابتة)، فإنه يفضل المسار الذي يأتي من المصدر ذي المسافة الإدارية الأقل (الأكثر موثوقية).</p>
+                    <div class="note-box">
+                        <i class="fas fa-star"></i> <strong>ترتيب ثقة المصدر (قيم AD الشائعة في Cisco، كلما كانت القيمة أصغر كان المصدر أوثق):</strong>
+                        <ul class="no-bullet">
+                            <li><i class="fas fa-caret-left text-secondary"></i> <strong>Connected: 0</strong> (المسارات المتصلة مباشرة بالموجّه، الأكثر موثوقية)</li>
+                            <li><i class="fas fa-caret-left text-secondary"></i> <strong>Static: 1</strong> (المسارات المُدخلة يدويًا)</li>
+                            <li><i class="fas fa-caret-left text-secondary"></i> <strong>eBGP: 20</strong> (بروتوكول BGP الخارجي)</li>
+                            <li><i class="fas fa-caret-left text-secondary"></i> <strong>EIGRP: 90</strong> (بروتوكول توجيه داخلي)</li>
+                            <li><i class="fas fa-caret-left text-secondary"></i> <strong>OSPF: 110</strong> (بروتوكول توجيه داخلي)</li>
+                            <li><i class="fas fa-caret-left text-secondary"></i> <strong>RIP: 120</strong> (بروتوكول توجيه داخلي)</li>
+                            <li><i class="fas fa-caret-left text-secondary"></i> <strong>iBGP: 200</strong> (بروتوكول BGP الداخلي)</li>
+                        </ul>
+                        <p>
+                            <em>(القيم قد تختلف قليلاً حسب منصة الجهاز ونظام التشغيل الشبكي، ولكن الفكرة الأساسية هي أن القيمة الأقل تعني مصداقية أعلى.)</em>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- وظائف التوجيه (Routing Functions) -->
+                <div class="content-card" id="routing-functions">
+                    <h2 class="section-title"><i class="fas fa-list-check me-2"></i>وظائف التوجيه (Routing Functions)</h2>
+                    <p>يؤدي التوجيه (Routing) وظائف متعددة لضمان نقل الحزم بكفاءة بين الشبكات:</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-search text-primary"></i> <strong>اكتشاف الشبكات (Network Discovery):</strong> التعرف على الشبكات المتصلة مباشرة بالموجّه، وكذلك الشبكات البعيدة التي يمكن الوصول إليها عبر موجّهات أخرى.</li>
+                        <li class="list-group-item"><i class="fas fa-map-signs text-primary"></i> <strong>اختيار المسار الأفضل (Best Path Selection):</strong> يختار الموجّه المسار الأمثل لوجهة معينة بناءً على المقاييس (Metric) الخاصة ببروتوكول التوجيه المستخدم (مثل Hop Count لـ RIP، أو Cost لـ OSPF).</li>
+                        <li class="list-group-item"><i class="fas fa-ban text-primary"></i> <strong>تجنّب الحلقات (Loop Prevention):</strong> تنفيذ آليات تضمن عدم دوران الحزم في حلقات لا نهائية داخل الشبكة، مما يستهلك الموارد ويؤدي إلى فقدان الحزم.</li>
+                        <li class="list-group-item"><i class="fas fa-compress-arrows-alt text-primary"></i> <strong>الملخّصات (Summarization/Aggregation):</strong> تقليل حجم جداول التوجيه عن طريق تجميع عدة شبكات فرعية متجاورة في إدخال واحد (Supernet). هذا يحسن من كفاءة التوجيه ويقلل من استهلاك الموارد.</li>
+                        <li class="list-group-item"><i class="fas fa-balance-scale text-primary"></i> <strong>الموازنة (Load Balancing):</strong> توزيع حركة المرور على مسارات متعددة ومتساوية الكلفة إلى نفس الوجهة (Equal-Cost Multi-Path - ECMP) لزيادة عرض النطاق الكلي وتقليل الازدحام.</li>
+                        <li class="list-group-item"><i class="fas fa-sync-alt text-primary"></i> <strong>التقارب (Convergence):</strong> هي السرعة التي تستغرقها الشبكة للوصول إلى حالة مستقرة وتحديث جداول التوجيه الخاصة بها بعد حدوث تغيير (مثل سقوط رابط أو إضافة شبكة جديدة). التقارب السريع ضروري للحفاظ على استمرارية الخدمة.</li>
+                        <li class="list-group-item"><i class="fas fa-filter text-primary"></i> <strong>التصفية والسياسات (Filtering & Policy):</strong> استخدام قوائم الوصول (Access Lists) وخرائط المسارات (Route Maps) لفرض سياسات معينة على حركة التوجيه، مثل منع إعلان شبكات معينة أو تفضيل مسارات بناءً على شروط محددة.</li>
+                    </ul>
+                </div>
+
+                <!-- آليات التوجيه: Static vs Dynamic -->
+                <div class="content-card" id="routing-mechanisms">
+                    <h2 class="section-title"><i class="fas fa-code-compare me-2"></i>آليات التوجيه: Static vs Dynamic</h2>
+
+                    <h3 class="sub-heading">5.1 التوجيه الثابت (Static Routing)</h3>
+                    <p>يتم فيه إدخال المسارات إلى جداول التوجيه يدويًا بواسطة مدير الشبكة.</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-keyboard text-primary"></i> <strong>الضبط:</strong> يجب على مدير الشبكة تحديد كل شبكة وجهة والجهاز المجاور (Next Hop) للوصول إليها.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success"></i> <strong>المزايا:</strong>
+                            <ul class="no-bullet">
+                                <li><i class="fas fa-caret-left text-success"></i> <strong>بسيط ويسهل فهمه:</strong> لا توجد بروتوكولات معقدة تعمل في الخلفية.</li>
+                                <li><i class="fas fa-caret-left text-success"></i> <strong>متوقَّع وآمن:</strong> المسارات محددة ولا تتغير تلقائيًا، مما يقلل من الثغرات الأمنية المحتملة.</li>
+                                <li><i class="fas fa-caret-left text-success"></i> <strong>لا يولّد حركة بروتوكول:</strong> لا يستهلك عرض النطاق (Bandwidth) لإرسال تحديثات التوجيه.</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-times-circle text-danger"></i> <strong>العيوب:</strong>
+                            <ul class="no-bullet">
+                                <li><i class="fas fa-caret-left text-danger"></i> <strong>لا يتكيّف تلقائيًا:</strong> إذا سقط رابط أو حدث تغيير في الشبكة، فلن يتم تحديث المسارات تلقائيًا، مما يتطلب تدخلًا يدويًا.</li>
+                                <li><i class="fas fa-caret-left text-danger"></i> <strong>صيانة أصعب:</strong> في الشبكات الكبيرة، تصبح إدارة وتحديث المسارات الثابتة معقدة جدًا ومُعرضة للأخطاء.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <div class="example-box">
+                        <i class="fas fa-code"></i> <strong>مثال إعداد (صياغة شبيهة بسيسكو):</strong>
+                        <pre><code>ip route 192.168.50.0 255.255.255.0 10.0.0.1</code></pre>
+                        <p>
+                            هذا الأمر يخبر الموجّه أن للوصول إلى الشبكة <code>192.168.50.0</code> بقناع <code>255.255.255.0</code>، يجب إرسال الحزم إلى الجهاز المجاور (Next Hop) ذي عنوان IP <code>10.0.0.1</code>.
+                        </p>
+                    </div>
+
+                    <h3 class="sub-heading">5.2 التوجيه الديناميكي (Dynamic Routing)</h3>
+                    <p>تستخدم بروتوكولات توجيه خاصة تسمح للموجّهات بتبادل معلومات المسارات تلقائيًا وبناء جداول التوجيه الخاصة بها.</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-network-wired text-primary"></i> <strong>الأنواع الرئيسية:</strong>
+                            <ul class="no-bullet">
+                                <li><i class="fas fa-caret-left text-secondary"></i> <strong>Distance-Vector Protocols (بروتوكولات متجه المسافة):</strong>
+                                    <p>مثل <strong>RIP (Routing Information Protocol)</strong>. تقوم الموجّهات بمشاركة المسافات (المقاييس) إلى الشبكات الوجهة مع جيرانها فقط. سهلة الإعداد ولكنها أبطأ في التقارب وأكثر عرضة للحلقات التوجيهية في بعض السيناريوهات.</p>
+                                </li>
+                                <li><i class="fas fa-caret-left text-secondary"></i> <strong>Link-State Protocols (بروتوكولات حالة الوصلة):</strong>
+                                    <p>مثل <strong>OSPF (Open Shortest Path First)</strong> و <strong>IS-IS (Intermediate System to Intermediate System)</strong>. تقوم الموجّهات ببناء "خريطة" كاملة للشبكة (Topology Database) ومن ثم تقوم كل موجّه بحساب أقصر مسار لكل وجهة باستخدام خوارزمية مثل Dijkstra Shortest Path First (SPF). توفر تقاربًا أسرع وتصميمًا هرميًا.</p>
+                                </li>
+                                <li><i class="fas fa-caret-left text-secondary"></i> <strong>Path-Vector Protocols (بروتوكولات متجه المسار):</strong>
+                                    <p>مثل <strong>BGP (Border Gateway Protocol)</strong>. لا تعتمد فقط على المسافات، بل على "المسار" الكامل الذي تمر به الحزمة عبر الأنظمة المستقلة (Autonomous Systems - ASes). مصممة للتوجيه بين شبكات مزودي خدمة الإنترنت الكبار (ISP) وتدعم سياسات توجيه مرنة للغاية.</p>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success"></i> <strong>المزايا:</strong>
+                            <ul class="no-bullet">
+                                <li><i class="fas fa-caret-left text-success"></i> <strong>تكيف سريع:</strong> تتكيف جداول التوجيه تلقائيًا مع التغييرات في الشبكة (سقوط روابط، إضافة شبكات).</li>
+                                <li><i class="fas fa-caret-left text-success"></i> <strong>قابلية التوسع:</strong> مناسبة جدًا للشبكات المتوسطة والكبيرة والمعقدة حيث يكون التوجيه اليدوي غير عملي.</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-times-circle text-danger"></i> <strong>العيوب:</strong>
+                            <ul class="no-bullet">
+                                <li><i class="fas fa-caret-left text-danger"></i> <strong>تعقيد أعلى:</strong> يتطلب فهمًا أعمق لكيفية عمل البروتوكولات وإعدادات أكثر تفصيلاً.</li>
+                                <li><i class="fas fa-caret-left text-danger"></i> <strong>استهلاك للموارد:</strong> تستهلك بعض عرض النطاق للمعالج والذاكرة لإرسال تحديثات التوجيه ومعالجة الخوارزميات.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- بروتوكولات التوجيه الأساسية -->
+                <div class="content-card" id="routing-protocols">
+                    <h2 class="section-title"><i class="fas fa-route me-2"></i>بروتوكولات التوجيه الأساسية</h2>
+
+                    <h3 class="sub-heading">6.1 RIP (Routing Information Protocol)</h3>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-chart-bar text-primary"></i> <strong>النوع:</strong> Distance-Vector.</li>
+                        <li class="list-group-item"><i class="fas fa-hashtag text-primary"></i> <strong>المقياس (Metric):</strong> يستخدم <span class="concept-highlight">عدد القفزات (Hop Count)</span> كالمقياس الوحيد لاختيار المسار الأفضل. كل موجّه يُعد قفزة واحدة.</li>
+                        <li class="list-group-item"><i class="fas fa-arrow-up text-danger"></i> <strong>الحد الأقصى للقفزات:</strong> 15 قفزة. أي وجهة تتطلب 16 قفزة أو أكثر تُعتبر غير قابلة للوصول (Unreachable)، مما يجعله غير مناسب للشبكات الكبيرة.</li>
+                        <li class="list-group-item"><i class="fas fa-clock text-primary"></i> <strong>الإعلانات:</strong> يرسل جداول التوجيه الكاملة بشكل دوري (عادةً كل 30 ثانية) إلى جيرانه. هذا يسبب استهلاكًا بسيطًا لعرض النطاق ويجعل عملية التقارب (Convergence) بطيئة نسبيًا.</li>
+                        <li class="list-group-item"><i class="fas fa-code-branch text-primary"></i> <strong>النسخ:</strong>
+                            <ul class="no-bullet">
+                                <li><i class="fas fa-caret-left text-secondary"></i> <strong>RIP v1:</strong> لا يدعم Subnet Masks متغيرة (VLSM) ولا المصادقة (Authentication).</li>
+                                <li><i class="fas fa-caret-left text-secondary"></i> <strong>RIP v2:</strong> يدعم VLSM والمصادقة، ويرسل التحديثات كـ Multicast.</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success"></i> <strong>مناسب لـ:</strong> الشبكات الصغيرة والبسيطة جدًا.</li>
+                    </ul>
+
+                    <h3 class="sub-heading">6.2 OSPF (Open Shortest Path First)</h3>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-project-diagram text-primary"></i> <strong>النوع:</strong> Link-State.</li>
+                        <li class="list-group-item"><i class="fas fa-chart-line text-primary"></i> <strong>المقياس:</strong> يستخدم <span class="concept-highlight">Cost (التكلفة)</span> كالمقياس الأساسي. التكلفة الافتراضية مرتبطة بعرض النطاق الترددي للرابط (كلما زاد عرض النطاق، قلّت التكلفة).
+                            <p>صيغة حساب التكلفة الافتراضية (Reference Bandwidth = 100 Mbps أو $10^8$ bps):</p>
+                            $$ \text{Cost} = \frac{\text{Reference Bandwidth}}{\text{Interface Bandwidth}} = \frac{10^8 \text{ bps}}{\text{Bandwidth (bps)}} $$
+                            <p>على سبيل المثال، رابط إيثرنت 100 Mbps (أي $10^8$ bps) ستكون تكلفته 1. رابط 10 Mbps ستكون تكلفته 10. رابط 1 Gbps ستكون تكلفته 1 (إذا كانت المرجعية 100 Mbps) أو 0.1 (إذا كانت المرجعية 1 Gbps).</p>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-map-marked-alt text-primary"></i> <strong>المفهوم:</strong>
+                            <ul class="no-bullet">
+                                <li><i class="fas fa-caret-left text-secondary"></i> يقسم الشبكة إلى <span class="concept-highlight">مناطق (Areas)</span> لتقليل حجم جداول التوجيه وزيادة قابلية التوسع. المنطقة الأساسية (Backbone Area) هي المنطقة رقم 0.</li>
+                                <li><i class="fas fa-caret-left text-secondary"></i> يتبادل الموجّهات معلومات تسمى <span class="concept-highlight">Link-State Advertisements (LSAs)</span> التي تصف حالة روابطها المباشرة.</li>
+                                <li><i class="fas fa-caret-left text-secondary"></i> يستخدم كل موجّه LSAs الواردة لبناء <span class="concept-highlight">قاعدة بيانات طبولوجيا (Topological Database)</span> كاملة للشبكة، ثم يطبق خوارزمية <span class="concept-highlight">Dijkstra Shortest Path First (SPF)</span> لحساب أقصر شجرة مسار لكل وجهة.</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success"></i> <strong>المزايا:</strong> تقارب أسرع بكثير من RIP، دعم تصميم الشبكات الهرمي (Hierarchical Design)، قابلية توسع عالية، يدعم VLSM.</li>
+                        <li class="list-group-item"><i class="fas fa-building text-success"></i> <strong>مناسب لـ:</strong> شبكات المؤسسات الكبيرة والمتوسطة.</li>
+                    </ul>
+
+                    <h3 class="sub-heading">6.3 BGP (Border Gateway Protocol)</h3>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-globe text-primary"></i> <strong>النوع:</strong> Path-Vector.</li>
+                        <li class="list-group-item"><i class="fas fa-handshake text-primary"></i> <strong>الغرض:</strong> هو بروتوكول التوجيه <span class="concept-highlight">الوحيد المستخدم للتوجيه بين الأنظمة المستقلة (Autonomous Systems - AS)</span>، وهو ما يشكل <span class="concept-highlight">عماد الإنترنت</span>.</li>
+                        <li class="list-group-item"><i class="fas fa-share-alt text-primary"></i> <strong>أنواع الجلسات:</strong>
+                            <ul class="no-bullet">
+                                <li><i class="fas fa-caret-left text-secondary"></i> <strong>eBGP (External BGP):</strong> يُستخدم لإنشاء جلسات BGP بين موجّهات في أنظمة مستقلة مختلفة (ASes).</li>
+                                <li><i class="fas fa-caret-left text-secondary"></i> <strong>iBGP (Internal BGP):</strong> يُستخدم لإنشاء جلسات BGP بين موجّهات داخل نفس النظام المستقل (AS) لضمان اتساق معلومات التوجيه.</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-award text-primary"></i> <strong>سمات قرار اختيار المسار (BGP Path Attributes):</strong> BGP لا يعتمد على مقياس واحد فقط، بل على مجموعة كبيرة من السمات التي تؤثر في قرار اختيار المسار. ترتيب اتخاذ القرار (مختصر):
+                            <ol>
+                                <li>تفضيل المسار ذي <span class="concept-highlight">LOCAL_PREF</span> الأعلى.</li>
+                                <li>تفضيل المسار ذي <span class="concept-highlight">AS_PATH</span> الأقصر.</li>
+                                <li>تفضيل المسار ذي <span class="concept-highlight">MED (Multi-Exit Discriminator)</span> الأدنى.</li>
+                                <li>تفضيل مسارات eBGP على مسارات iBGP.</li>
+                                <li>تفضيل المسار الذي يؤدي إلى Next-Hop بأقل تكلفة في بروتوكول التوجيه الداخلي (IGP metric).</li>
+                                <li>المسار الأقدم (للاحتفاظ بالاستقرار)، ثم Router-ID الأدنى، وهكذا... (توجد قائمة طويلة من المعايير).</li>
+                            </ol>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success"></i> <strong>مزايا:</strong> قابلية ضخمة (Scalability)، مرونة عالية في تطبيق السياسات (عبر Route-Maps, Communities, Filtering) للتحكم الدقيق في حركة المرور.</li>
+                        <li class="list-group-item"><i class="fas fa-info-circle text-info"></i> <strong>ملاحظات:</strong> BGP ليس مصممًا ليكون "الأسرع" في التقارب، بل مصمم للاستقرار والتحكم في السياسات على نطاق الإنترنت الواسع.</li>
+                    </ul>
+                </div>
+
+                <!-- أمثلة سريعة -->
+                <div class="content-card" id="quick-examples">
+                    <h2 class="section-title"><i class="fas fa-calculator me-2"></i>أمثلة سريعة</h2>
+
+                    <h3 class="sub-heading">7.1 اختيار المسار – OSPF Cost</h3>
+                    <p>إذا كان لديك مساران للوصول إلى شبكة معينة:</p>
+                    <ul class="list-group list-group-flush no-bullet">
+                        <li class="list-group-item"><i class="fas fa-arrow-left text-secondary"></i> عبر رابط 100 Mbps &rarr; Cost $\approx 1$ (بافتراض Reference Bandwidth = 100 Mbps)</li>
+                        <li class="list-group-item"><i class="fas fa-arrow-left text-secondary"></i> عبر رابط 10 Mbps &rarr; Cost $\approx 10$</li>
+                    </ul>
+                    <div class="note-box">
+                        <i class="fas fa-lightbulb"></i> <strong>النتيجة:</strong> OSPF يفضّل المسار الأقل كلفة، لذا سيختار المسار عبر الرابط ذي سرعة 100 Mbps (تكلفة 1).
+                    </div>
+
+                    <h3 class="sub-heading">7.2 RIP Hop Count</h3>
+                    <p>للوصول إلى شبكة بعيدة، لديك مساران محتملان:</p>
+                    <ul class="list-group list-group-flush no-bullet">
+                        <li class="list-group-item"><i class="fas fa-arrow-left text-secondary"></i> مسار A: 3 قفزات (Hops)</li>
+                        <li class="list-group-item"><i class="fas fa-arrow-left text-secondary"></i> مسار B: 5 قفزات (Hops)</li>
+                    </ul>
+                    <div class="note-box">
+                        <i class="fas fa-lightbulb"></i> <strong>النتيجة:</strong> RIP يختار المسار الأقل عددًا من القفزات، لذا سيختار المسار A (3 Hops).
+                    </div>
+
+                    <h3 class="sub-heading">7.3 BGP AS-Path (المسار الأقصر)</h3>
+                    <p>للوصول إلى AS معين، تلقيت تحديثين BGP يصفان المسارات التالية:</p>
+                    <ul class="list-group list-group-flush no-bullet">
+                        <li class="list-group-item"><i class="fas fa-arrow-left text-secondary"></i> مسار 1: عبر AS Path = <code>65010 64512</code></li>
+                        <li class="list-group-item"><i class="fas fa-arrow-left text-secondary"></i> مسار 2: عبر AS Path = <code>65010 65020 64512</code></li>
+                    </ul>
+                    <div class="note-box">
+                        <i class="fas fa-lightbulb"></i> <strong>النتيجة:</strong> بافتراض ثبات باقي سمات BGP، يتم تفضيل المسار ذي AS_PATH الأقصر. لذا، سيتم اختيار <strong>المسار 1</strong>.
+                    </div>
+
+                    <h3 class="sub-heading">7.4 تلخيص (Summarization) – CIDR</h3>
+                    <p>لنفترض أن لديك الشبكات الفرعية التالية التي ترغب في إعلانها إلى موجّه آخر:</p>
+                    <ul class="list-group list-group-flush no-bullet">
+                        <li class="list-group-item"><i class="fas fa-network-wired text-secondary"></i> <code>10.1.0.0/24</code></li>
+                        <li class="list-group-item"><i class="fas fa-network-wired text-secondary"></i> <code>10.1.1.0/24</code></li>
+                        <li class="list-group-item"><i class="fas fa-network-wired text-secondary"></i> <code>10.1.2.0/24</code></li>
+                        <li class="list-group-item"><i class="fas fa-network-wired text-secondary"></i> <code>10.1.3.0/24</code></li>
+                    </ul>
+                    <div class="note-box">
+                        <i class="fas fa-lightbulb"></i> <strong>النتيجة:</strong> يمكن تلخيص هذه الشبكات الأربع في إدخال واحد لتقليل حجم جدول التوجيه: <code>10.1.0.0/22</code>.
+                        <p>
+                            (كيفية حسابها: هذه الشبكات تبدأ جميعًا بـ <code>10.1</code>، وفي الجزء الثالث من عنوان IP، تتغير من 0 إلى 3. في النظام الثنائي، 00, 01, 10, 11. بما أنها تشترك في أول 6 بتات من الجزء الثالث (أي 24+6=30 بت)، والـ <code>/22</code> يعني 22 بت ثابتة، فإن <code>10.1.0.0/22</code> تغطي النطاق من <code>10.1.0.0</code> إلى <code>10.1.3.255</code>.)
+                        </p>
+                    </div>
+                </div>
+
+                <!-- اعتبارات التصميم والأمان -->
+                <div class="content-card" id="design-security-considerations">
+                    <h2 class="section-title"><i class="fas fa-shield-alt me-2"></i>اعتبارات التصميم والأمان</h2>
+                    <p>عند تصميم وتطبيق طبقة الشبكة، يجب أخذ العديد من العوامل في الاعتبار:</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-sync-alt text-primary"></i> <strong>التقارب (Convergence):</strong> يجب اختيار بروتوكول توجيه يلائم حجم الشبكة ومتطلباتها للتقارب السريع بعد أي تغيير. OSPF عادةً أسرع بكثير من RIP في التقارب.</li>
+                        <li class="list-group-item"><i class="fas fa-circle-notch text-primary"></i> <strong>مكافحة الحلقات (Loop Prevention):</strong> لضمان عدم وجود حلقات توجيهية، تُستخدم آليات متعددة:
+                            <ul class="no-bullet">
+                                <li><i class="fas fa-caret-left text-secondary"></i> <strong>Split Horizon, Poison Reverse, Hold-Down Timers:</strong> تستخدم عادةً في بروتوكولات Distance-Vector (مثل RIP).</li>
+                                <li><i class="fas fa-caret-left text-secondary"></i> <strong>تسلسل LSAs و Timers:</strong> تستخدم في بروتوكولات Link-State (مثل OSPF).</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-expand-alt text-primary"></i> <strong>التوسّع (Scalability):</strong> تصميم الشبكة يجب أن يسمح بالنمو المستقبلي. مناطق OSPF (Areas)، وتلخيص الشبكات (Summarization)، والتصميم الهرمي (Hierarchical Design) مهمة للتوسع الفعال.</li>
+                        <li class="list-group-item"><i class="fas fa-lock text-primary"></i> <strong>الأمان (Security):</strong> حماية معلومات التوجيه أمر بالغ الأهمية:
+                            <ul class="no-bullet">
+                                <li><i class="fas fa-caret-left text-secondary"></i> <strong>مصادقة بروتوكولات التوجيه (Routing Protocol Authentication):</strong> استخدام MD5 أو Keychain لضمان أن التحديثات تأتي من موجّهات موثوقة فقط.</li>
+                                <li><i class="fas fa-caret-left text-secondary"></i> <strong>تصفية المسارات (Route Filtering):</strong> استخدام Prefix-List أو Route-Map لمنع إعلان أو استقبال شبكات معينة غير مرغوبة.</li>
+                                <li><i class="fas fa-caret-left text-secondary"></i> <strong>عزل التوجيه الخارجي:</strong> استخدام BGP Communities والسياسات لضمان عدم إعلان الشبكات الداخلية للإنترنت والعكس.</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-chart-line text-primary"></i> <strong>الأداء (Performance):</strong>
+                            <ul class="no-bullet">
+                                <li><i class="fas fa-caret-left text-secondary"></i> <strong>ECMP (Equal-Cost Multi-Path):</strong> لزيادة عرض النطاق الكلي من خلال استخدام مسارات متعددة متساوية التكلفة.</li>
+                                <li><i class="fas fa-caret-left text-secondary"></i> <strong>جودة الخدمة (Quality of Service - QoS):</strong> لإعطاء أولوية لحركة المرور الحساسة للتأخير (مثل الصوت والفيديو) لضمان أداء مستقر.</li>
+                                <li><i class="fas fa-caret-left text-secondary"></i> <strong>خفض Latency/Jitter:</strong> لتحسين تجربة المستخدم في التطبيقات الحساسة للزمن.</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-cogs text-primary"></i> <strong>التوافر (Availability):</strong>
+                            <ul class="no-bullet">
+                                <li><i class="fas fa-caret-left text-secondary"></i> <strong>تصميم مسارات احتياطية:</strong> لضمان استمرارية الاتصال في حال فشل مسار رئيسي.</li>
+                                <li><i class="fas fa-caret-left text-secondary"></i> <strong>Anycast:</strong> لبعض الخدمات، حيث يمكن توجيه الطلبات إلى أقرب خادم متاح يحمل نفس عنوان IP.</li>
+                                <li><i class="fas fa-caret-left text-secondary"></i> <strong>First Hop Redundancy Protocols (FHRP):</strong> مثل HSRP/VRRP لبوّابات افتراضية عالية التوفّر، مما يضمن وجود بوابة افتراضية نشطة حتى لو فشل الموجّه المادي.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- مقارنة نموذج OSI ونموذج TCP/IP -->
+                <div class="content-card" id="osi-tcpip-comparison">
+                    <h2 class="section-title"><i class="fas fa-puzzle-piece me-2"></i>مقارنة نموذج OSI ونموذج TCP/IP</h2>
+                    <p>للربط بين ما تعلمناه في هذه الوحدة والوحدات السابقة، إليك مقارنة سريعة بين طبقات نموذج OSI النموذجي ونموذج TCP/IP العملي:</p>
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>نموذج OSI</th>
+                                <th>نموذج TCP/IP</th>
+                                <th>أمثلة بروتوكولات / وظائف</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>7) التطبيق (Application)</td>
+                                <td rowspan="3">التطبيق (Application)</td>
+                                <td>HTTP/HTTPS, FTP, DNS, SMTP, POP3, IMAP, Telnet, SSH</td>
+                            </tr>
+                            <tr>
+                                <td>6) العرض (Presentation)</td>
+                                <td class="text-muted">— (وظائفها ضمن التطبيق) <br> TLS/SSL (غالبًا هنا منطقيًا، لتشفير البيانات)</td>
+                            </tr>
+                            <tr>
+                                <td>5) الجلسة (Session)</td>
+                                <td class="text-muted">— (وظائفها ضمن التطبيق) <br> مفاهيم إدارة الجلسات والحالات (Session/State management)</td>
+                            </tr>
+                            <tr>
+                                <td>4) النقل (Transport)</td>
+                                <td>النقل (Transport)</td>
+                                <td>TCP, UDP</td>
+                            </tr>
+                            <tr>
+                                <td><span class="concept-highlight">3) الشبكة (Network)</span></td>
+                                <td><span class="concept-highlight">الإنترنت (Internet)</span></td>
+                                <td><span class="concept-highlight">IP, ICMP, ARP/ND</span> (محور وحدتنا)</td>
+                            </tr>
+                            <tr>
+                                <td>2) ربط البيانات (Data Link)</td>
+                                <td rowspan="2">الوصول للشبكة (Network Access)</td>
+                                <td>Ethernet, PPP, Frame Relay, MAC Addressing, Switches, Bridges</td>
+                            </tr>
+                            <tr>
+                                <td>1) الفيزيائية (Physical)</td>
+                                <td>UTP, Fiber Optic, Wi-Fi, Signals, Hubs</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="note-box">
+                        <i class="fas fa-info-circle"></i> <strong>ملاحظة:</strong> المقارنة هي مفاهيمية في المقام الأول. نموذج TCP/IP أبسط طبقيًا وبعض وظائف OSI (مثل العرض والجلسة) مدمجة في طبقة التطبيق.
+                    </div>
+                </div>
+
+                <!-- تمارين وتطبيقات -->
+                <div class="content-card" id="exercises-applications">
+                    <h2 class="section-title"><i class="fas fa-laptop-code me-2"></i>تمارين وتطبيقات</h2>
+
+                    <h3 class="sub-heading">تمرين 1 – Longest Prefix Match</h3>
+                    <div class="example-box">
+                        <p>أمامك جزء من جدول توجيه موجّه (Router) يرغب في توجيه حزمة إلى عنوان الوجهة <code>172.16.10.25</code>:</p>
+                        <ul class="list-group list-group-flush no-bullet">
+                            <li class="list-group-item"><i class="fas fa-arrow-left text-secondary"></i> <code>0.0.0.0/0</code> &rarr; عبر <code>GW1</code> (مسار افتراضي)</li>
+                            <li class="list-group-item"><i class="fas fa-arrow-left text-secondary"></i> <code>172.16.0.0/12</code> &rarr; عبر <code>GW2</code></li>
+                            <li class="list-group-item"><i class="fas fa-arrow-left text-secondary"></i> <code>172.16.8.0/21</code> &rarr; عبر <code>GW3</code></li>
+                            <li class="list-group-item"><i class="fas fa-arrow-left text-secondary"></i> <code>172.16.10.0/24</code> &rarr; عبر <code>GW4</code></li>
+                        </ul>
+                        <p><strong>السؤال:</strong> أي مسار سيُختار للحزمة المتجهة إلى <code>172.16.10.25</code> ولماذا؟</p>
+                        <details class="mt-3">
+                            <summary class="btn btn-sm btn-outline-secondary">إظهار الإجابة</summary>
+                            <div class="card card-body mt-2">
+                                <p>سيُختار المسار <code>172.16.10.0/24</code> عبر <code>GW4</code>.</p>
+                                <p><strong>السبب:</strong> بناءً على مبدأ <span class="concept-highlight">أطول قناع مطابق (Longest Prefix Match)</span>، فإن المسار ذو القناع <code>/24</code> هو الأكثر تحديدًا ويطابق أكبر عدد من البتات في عنوان الوجهة (24 بتًا)، مقارنةً بـ <code>/21</code> و <code>/12</code> و <code>/0</code>.</p>
+                            </div>
+                        </details>
+                    </div>
+
+                    <h3 class="sub-heading">تمرين 2 – Static vs Dynamic Routing</h3>
+                    <div class="example-box">
+                        <p><strong>السؤال:</strong> متى تفضّل استخدام التوجيه الثابت (Static Routing) ومتى تفضّل التوجيه الديناميكي (Dynamic Routing)؟ أعطِ مثالين عمليين لكل حالة.</p>
+                        <details class="mt-3">
+                            <summary class="btn btn-sm btn-outline-secondary">إظهار الإجابة</summary>
+                            <div class="card card-body mt-2">
+                                <h5>التوجيه الثابت (Static Routing):</h5>
+                                <ul>
+                                    <li><strong>يُفضّل:</strong> في الشبكات الصغيرة جدًا، أو للمسارات الاحتياطية (Backup Routes)، أو لربط شبكة فرعية (Stub Network) لا يوجد لديها إلا مسار واحد للخارج.</li>
+                                    <li><strong>مثال 1:</strong> شبكة منزلية صغيرة متصلة بموجّه واحد فقط بالإنترنت.</li>
+                                    <li><strong>مثال 2:</strong> إضافة مسار افتراضي (Default Route) يوجه كل حركة المرور غير المعروفة إلى موجّه الإنترنت الرئيسي.</li>
+                                </ul>
+                                <h5>التوجيه الديناميكي (Dynamic Routing):</h5>
+                                <ul>
+                                    <li><strong>يُفضّل:</strong> في الشبكات المتوسطة والكبيرة والمعقدة حيث تتغير التبولوجيا بشكل متكرر، أو عندما توجد مسارات متعددة لوجهات مختلفة.</li>
+                                    <li><strong>مثال 1:</strong> شبكة مؤسسة كبيرة تتكون من عدة فروع ومراكز بيانات، حيث تضمن بروتوكولات مثل OSPF التحديث التلقائي للمسارات.</li>
+                                    <li><strong>مثال 2:</strong> الإنترنت نفسه، حيث يتعلم مزودو الخدمة (ISPs) عن ملايين الشبكات الجديدة يوميًا عبر BGP.</li>
+                                </ul>
+                            </div>
+                        </details>
+                    </div>
+
+                    <h3 class="sub-heading">تمرين 3 – OSPF Areas</h3>
+                    <div class="example-box">
+                        <p><strong>السؤال:</strong> لديك مؤسسة كبيرة تتكون من مركز رئيسي (Core Network) و5 فروع (Branch Offices) موزعة جغرافيًا. كل فرع لديه شبكته المحلية الخاصة. اقترح تقسيمًا لهذه الشبكة باستخدام OSPF Areas وكيف يمكن لهذا التقسيم أن يقلّل من حجم جداول التوجيه ويحسّن من سرعة التقارب (Convergence) مقارنةً بتصميم OSPF بدون مناطق (Single Area).</p>
+                        <details class="mt-3">
+                            <summary class="btn btn-sm btn-outline-secondary">إظهار الإجابة</summary>
+                            <div class="card card-body mt-2">
+                                <h5>التقسيم المقترح:</h5>
+                                <ul>
+                                    <li><strong>المنطقة 0 (Area 0 - Backbone Area):</strong> ستضم مركز البيانات الرئيسي والموجّهات الأساسية التي تربط الفروع ببعضها.</li>
+                                    <li><strong>مناطق الفروع (Branch Areas):</strong> كل فرع من الفروع الخمسة سيكون في منطقة OSPF منفصلة خاصة به (مثل Area 1، Area 2، ... Area 5).</li>
+                                </ul>
+                                <h5>كيف يحسّن التقسيم الأداء:</h5>
+                                <ul>
+                                    <li><strong>تقليل حجم جداول التوجيه (Smaller Routing Tables):</strong> الموجّهات داخل كل منطقة لا تحتاج إلى معرفة تفاصيل كل شبكة داخل المناطق الأخرى. بدلاً من ذلك، تعرف فقط الملخصات (Summaries) التي تُعلنها الموجّهات الحدودية للمناطق (Area Border Routers - ABRs) إلى المنطقة 0. هذا يقلل من حجم جداول التوجيه في كل موجّه ويقلل من استهلاك الذاكرة والمعالج.</li>
+                                    <li><strong>تحسين سرعة التقارب (Faster Convergence):</strong> إذا حدث تغيير (مثل سقوط رابط) داخل فرع معين (مثلاً Area 1)، فإن هذا التغيير لن يُعلن بالضرورة إلى جميع المناطق الأخرى. الموجّهات داخل Area 1 فقط هي التي ستقوم بإعادة حساب SPF. باقي الموجّهات في المناطق الأخرى ستعرف فقط أن هناك مشكلة في الوصلة الملخصة (Summarized Route) ولكنها لا تحتاج لإعادة حساب جداولها بشكل كامل، مما يسرع من عملية التقارب الكلية للشبكة.</li>
+                                </ul>
+                            </div>
+                        </details>
+                    </div>
+
+                    <h3 class="sub-heading">تمرين 4 – BGP Policy</h3>
+                    <div class="example-box">
+                        <p><strong>السؤال:</strong> كيف يمكنك منع إعلان شبكة داخلية حساسة (مثلاً <code>192.168.100.0/24</code>) من الخروج إلى الإنترنت عبر جلسة BGP مع مزود الخدمة (ISP) الخاص بك؟ صف إعدادًا عامًا باستخدام <span class="concept-highlight">Prefix-List</span> و <span class="concept-highlight">Route-Map</span> (مع صياغة مشابهة لسيسكو).</p>
+                        <details class="mt-3">
+                            <summary class="btn btn-sm btn-outline-secondary">إظهار الإجابة</summary>
+                            <div class="card card-body mt-2">
+                                <p>لتحقيق ذلك، سنستخدم <code>Prefix-List</code> لتحديد الشبكة التي نريد منعها، و <code>Route-Map</code> لتطبيق هذه القاعدة على جلسة BGP الخارجية.</p>
+                                <pre><code>
+! تعريف Prefix-List لمنع الشبكة 192.168.100.0/24
+ip prefix-list NO_ADVERTISE_LAN deny 192.168.100.0/24
+ip prefix-list NO_ADVERTISE_LAN permit 0.0.0.0/0 le 32 ! السماح بباقي الشبكات
+
+! تعريف Route-Map لتطبيق القاعدة
+route-map FILTER_OUT_BGP deny 10
+ match ip address prefix-list NO_ADVERTISE_LAN
+
+route-map FILTER_OUT_BGP permit 20
+! لا توجد شروط مطابقة هنا، لذا ستسمح بباقي الشبكات التي سمح بها الـ prefix-list
+
+! تطبيق الـ Route-Map على جلسة BGP الصادرة
+router bgp 65000 ! رقم الـ AS الخاص بك
+ neighbor 203.0.113.1 remote-as 64500 ! عنوان الـ ISP و رقم AS الخاص به
+ neighbor 203.0.113.1 route-map FILTER_OUT_BGP out
+                                </code></pre>
+                                <ul>
+                                    <li><code>ip prefix-list NO_ADVERTISE_LAN deny 192.168.100.0/24</code>: هذه القاعدة ترفض إعلان الشبكة المحددة (<code>192.168.100.0/24</code>).</li>
+                                    <li><code>ip prefix-list NO_ADVERTISE_LAN permit 0.0.0.0/0 le 32</code>: هذه قاعدة عامة تسمح بإعلان أي شبكة أخرى (وهي ضرورية لأن الـ prefix-list ينفذ ضمنيًا <code>deny all</code> في النهاية).</li>
+                                    <li><code>route-map FILTER_OUT_BGP deny 10</code>: أي مسار يطابق <code>NO_ADVERTISE_LAN</code> (أي <code>192.168.100.0/24</code>) سيتم رفضه (deny) بواسطة الـ Route-Map.</li>
+                                    <li><code>route-map FILTER_OUT_BGP permit 20</code>: تسمح هذه القاعدة بمرور أي مسارات أخرى لم يتم رفضها في الخطوة 10.</li>
+                                    <li><code>neighbor ... route-map FILTER_OUT_BGP out</code>: يتم تطبيق الـ Route-Map على تحديثات BGP الصادرة (<code>out</code>) إلى مزود الخدمة، مما يضمن أن الشبكة الحساسة لن تُعلن.</li>
+                                </ul>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+
+                <!-- مختصر أوامر (صياغة إرشادية) -->
+                <div class="content-card" id="command-summary">
+                    <h2 class="section-title"><i class="fas fa-terminal me-2"></i>مختصر أوامر (صياغة إرشادية)</h2>
+                    <p>هذه أمثلة عامة لإعدادات بروتوكولات التوجيه على أجهزة الشبكة. تذكر أن الصياغة الدقيقة قد تختلف حسب الشركة المصنعة للجهاز وإصدار نظام التشغيل الشبكي (مثل Cisco IOS، Juniper Junos، أو Huawei VRP).</p>
+
+                    <h3 class="sub-heading">RIP v2</h3>
+                    <pre><code>
+router rip
+ version 2
+ network 10.0.0.0      ! للإعلان عن الشبكات التي تبدأ بـ 10
+ no auto-summary       ! لمنع التلخيص التلقائي للشبكات المصنفة
+                    </code></pre>
+
+                    <h3 class="sub-heading">OSPF</h3>
+                    <pre><code>
+router ospf 10          ! رقم العملية (Process ID)
+ network 10.1.0.0 0.0.255.255 area 0 ! الإعلان عن الشبكة 10.1.0.0 وقناع Wildcard في Area 0
+ passive-interface default  ! جعل جميع الواجهات غير معلنة لـ OSPF افتراضيًا
+ no passive-interface Gig0/0 ! استثناء واجهة معينة (مثل Gig0/0) للسماح بتبادل OSPF
+                    </code></pre>
+
+                    <h3 class="sub-heading">BGP (مثال مبسّط)</h3>
+                    <pre><code>
+router bgp 65010       ! رقم النظام المستقل (Your AS Number)
+ neighbor 203.0.113.2 remote-as 64512 ! تحديد الجار (Peer) ورقم AS الخاص به
+ neighbor 203.0.113.2 description eBGP-to-ISP ! إضافة وصف للجار (اختياري)
+                    </code></pre>
+                </div>
+
+                <!-- مواد إثرائية مقترحة -->
+                <div class="content-card" id="enrichment-materials">
+                    <h2 class="section-title"><i class="fas fa-book-open me-2"></i>مواد إثرائية مقترحة</h2>
+                    <p>لتعميق فهمك لطبقة الشبكة والتوجيه، نوصي بالمصادر التالية:</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-laptop-code text-info"></i> <strong>مناهج Cisco NetAcad:</strong> ابحث عن وحدات CCNA و ENARSI التي تغطي OSPF و BGP للحصول على شرح تفصيلي وتجارب عملية.</li>
+                        <li class="list-group-item"><i class="fas fa-book-reader text-info"></i> <strong>شهادة CompTIA Network+:</strong> توفر أساسًا جيدًا لمفاهيم التوجيه وبروتوكولاته.</li>
+                        <li class="list-group-item"><i class="fas fa-file-alt text-info"></i> <strong>وثائق RFCs:</strong> للمهتمين بالمعلومات التقنية العميقة، يمكن مراجعة:
+                            <ul class="no-bullet">
+                                <li><i class="fas fa-caret-left text-secondary"></i> RFC 4271 (BGP-4)</li>
+                                <li><i class="fas fa-caret-left text-secondary"></i> RFC 2453 (RIP v2)</li>
+                                <li><i class="fas fa-caret-left text-secondary"></i> RFC 2328 (OSPFv2)</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-tools text-info"></i> <strong>أدوات محاكاة الشبكات:</strong>
+                            <ul class="no-bullet">
+                                <li><i class="fas fa-caret-left text-secondary"></i> <strong>Cisco Packet Tracer:</strong> أداة محاكاة مجانية لشبكات Cisco، ممتازة للتجارب الأولية.</li>
+                                <li><i class="fas fa-caret-left text-secondary"></i> <strong>GNS3 و EVE-NG:</strong> منصات محاكاة أكثر تقدمًا تسمح بتشغيل أنظمة تشغيل راوتر حقيقية.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- التقييم المقترح -->
+                <div class="content-card" id="evaluation">
+                    <h2 class="section-title"><i class="fas fa-pencil-alt me-2"></i>التقييم المقترح</h2>
+                    <p>
+                        <strong>اختبار قصير:</strong> يتضمن أسئلة متعددة الخيارات وأسئلة مقارنة حول مفاهيم Longest Prefix Match، و Administrative Distance، والفروقات بين بروتوكولات التوجيه RIP، OSPF، و BGP.
+                    </p>
+                    <p>
+                        <strong>مختبر عملي:</strong> قم بتفعيل بروتوكول OSPF بين ثلاثة موجِّهات (باستخدام محاكي شبكات مثل Packet Tracer أو GNS3) مع تقسيم الشبكة إلى مناطق (Areas) وتلخيص الشبكات الفرعية. ثم قم باختبار سيناريو انقطاع أحد الروابط ولاحظ سرعة تقارب الشبكة.
+                    </p>
+                    <p>
+                        <strong>واجب منزلي:</strong> قم بإعداد سياسة BGP (باستخدام محاكي أو وصف نظري) تمنع إعلان Prefix داخلي محدد من الخروج إلى الإنترنت، وتفضيل مسار معين من مزود خدمة إنترنت على آخر باستخدام سمة Local-Pref.
+                    </p>
+                    <button class="btn btn-primary mt-3"><i class="fas fa-file-alt me-2"></i>بدء الاختبار</button>
+                    <button class="btn btn-info mt-3 ms-2"><i class="fas fa-upload me-2"></i>تقديم الواجب العملي</button>
+                </div>
+
+                <!-- المدة الزمنية المقترحة -->
+                <div class="content-card" id="duration">
+                    <h2 class="section-title"><i class="fas fa-hourglass-half me-2"></i>المدة الزمنية المقترحة</h2>
+                    <p>لإكمال هذه الوحدة بفاعلية، يُقترح تخصيص <strong>8 ساعات تدريبية</strong> (تشمل المحاضرات، التطبيقات العملية، والتقييم).</p>
+                </div>
+
+                <!-- أزرار التنقل بين الوحدات -->
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="unit-7.html" class="unit-nav-btn"><i class="fas fa-arrow-left"></i>الوحدة السابقة: طبقة ربط البيانات</a>
+                    <a href="unit-9.html" class="unit-nav-btn">الوحدة التالية: شبكة الإيثرنت والتقنيات المرتبطة<i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- الفوتر (Footer) -->
+    <footer class="text-center text-lg-start mt-5" style="background-color: var(--primary-color);">
+        <div class="container p-4">
+            <div class="row">
+                <!-- قسم مسار الأمن السيبراني -->
+                <div class="col-lg-6 col-md-12 mb-4 mb-md-0">
+                    <h5 class="text-uppercase">مسار الأمن السيبراني</h5>
+                    <p>
+                        نحن نقدم محتوى تعليميًا شاملاً ومُحدثًا لمساعدتك على بناء أساس قوي في الأمن السيبراني وشبكات الحاسوب.
+                    </p>
+                </div>
+
+                <!-- قسم روابط مفيدة -->
+                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                    <h5 class="text-uppercase">روابط مفيدة</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li>
+                            <a href="#!" class="text-white">عن المسار</a>
+                        </li>
+                        <li>
+                            <a href="#!" class="text-white">اتصل بنا</a>
+                        </li>
+                        <li>
+                            <a href="#!" class="text-white">الأسئلة الشائعة</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- قسم تابعنا -->
+                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                    <h5 class="text-uppercase">تابعنا</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li>
+                            <a href="#!" class="text-white"><i class="fab fa-facebook-f me-2"></i>فيسبوك</a>
+                        </li>
+                        <li>
+                            <a href="#!" class="text-white"><i class="fab fa-twitter me-2"></i>تويتر</a>
+                        </li>
+                        <li>
+                            <a href="#!" class="text-white"><i class="fab fa-linkedin-in me-2"></i>لينكد إن</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- حقوق النشر -->
+        <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
+            © 2025 مسار الأمن السيبراني. جميع الحقوق محفوظة.
+        </div>
+    </footer>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
 
