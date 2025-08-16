@@ -1,1 +1,1227 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الوحدة 7: تحليل وتصميم البيانات (ERD) | مقرر تحليل وتصميم النظم</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts - Tajawal for Arabic font -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* تعريف المتغيرات لألوان موحدة */
+        :root {
+            --primary-color: #2c3e50; /* لون أساسي غامق */
+            --secondary-color: #3498db; /* لون مميز للأنظمة (أزرق) */
+            --accent-color: #2ecc71; /* لون ثانوي مميز (أخضر) */
+            --light-bg: #f8f9fa; /* خلفية فاتحة */
+            --dark-text: #2c3e50; /* نص غامق */
+            --light-text: #7f8c8d; /* نص فاتح */
+        }
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            line-height: 1.8;
+            direction: rtl; /* اتجاه النص من اليمين لليسار */
+            text-align: right; /* محاذاة النص لليمين */
+        }
+
+        /* تنسيقات شريط التنقل */
+        .navbar {
+            background-color: var(--primary-color);
+        }
+        .navbar-brand {
+            color: white !important;
+        }
+        .btn-outline-light {
+            border-color: rgba(255, 255, 255, 0.7) !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .btn-outline-light:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        /* تنسيقات رأس الوحدة */
+        .unit-header {
+            background: linear-gradient(135deg, var(--secondary-color), #2980b9); /* تدرج أزرق للأنظمة */
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 1rem 1rem; /* زوايا دائرية سفلية */
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        /* تنسيقات بطاقة المحتوى الرئيسية */
+        .content-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            padding: 2rem;
+            border-right: 4px solid var(--secondary-color); /* شريط جانبي بلون ثانوي */
+            transition: transform 0.3s ease, box-shadow 0.3s ease; /* تأثير التحويم */
+        }
+        .content-card:hover {
+            transform: translateY(-5px); /* رفع البطاقة قليلاً عند التحويم */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); /* ظل أكبر عند التحويم */
+        }
+
+        /* تنسيقات عنوان القسم */
+        .section-title {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+        }
+
+        /* تنسيقات العناوين الفرعية */
+        h3.sub-heading {
+            color: var(--primary-color);
+            border-bottom: 1px dashed var(--light-text);
+            padding-bottom: 0.3rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.75rem;
+        }
+        h4.sub-heading {
+            color: var(--primary-color);
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 1.5rem;
+        }
+
+
+        /* تنسيقات صناديق الأمثلة والملاحظات */
+        .example-box, .note-box {
+            background-color: #e3f2fd; /* لون أزرق فاتح جداً */
+            border-right: 5px solid var(--secondary-color); /* حدود بلون مميز */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        .example-box i, .note-box i {
+            color: var(--secondary-color);
+            margin-left: 0.5rem; /* مسافة بين الأيقونة والنص */
+        }
+
+        /* تنسيقات صناديق الأنشطة */
+        .activity-box {
+            background-color: #e9f7ef; /* لون أخضر فاتح للأنشطة */
+            border-right: 5px solid var(--accent-color); /* حدود خضراء */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            color: var(--dark-text);
+        }
+        .activity-box i {
+            color: var(--accent-color); /* لون أيقونة خضراء */
+            margin-left: 0.5rem;
+        }
+
+        /* تنسيقات تنبيهات المعلومات المخصصة */
+        .alert-info-custom {
+            background-color: #d1ecf1; /* أزرق فاتح جداً */
+            border-left: 5px solid #17a2b8; /* أزرق سماوي */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        .alert-info-custom i {
+            color: #17a2b8;
+            margin-right: 0.5rem;
+        }
+
+        /* تمييز المفاهيم الهامة */
+        .concept-highlight {
+            background-color: #e0f7fa; /* لون فاتح للتمييز */
+            padding: 0.3rem 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        /* تنسيقات القوائم */
+        ul {
+            padding-right: 25px; /* مسافة داخلية لترقيم القوائم */
+        }
+        ul.no-bullet {
+            list-style: none;
+            padding-right: 0;
+        }
+        ul li {
+            margin-bottom: 0.5rem;
+        }
+        .list-group-item {
+            border: none;
+            padding-right: 0;
+            background-color: transparent;
+        }
+        .list-group-item i {
+            margin-left: 8px; /* مسافة بين الأيقونة والنص */
+        }
+
+        /* تنسيقات الجداول */
+        .table thead th {
+            background-color: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+        .table tbody tr:hover {
+            background-color: #f0f8ff; /* تأثير التحويم على صفوف الجدول */
+        }
+        .table-bordered th, .table-bordered td {
+            border-color: #dee2e6;
+        }
+
+        /* تنسيق أزرار التنقل بين الوحدات */
+        .unit-nav-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: bold;
+            transition: background-color 0.2s, transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+        }
+        .unit-nav-btn:hover {
+            background-color: #2980b9; /* درجة أغمق من الأزرق */
+            color: white;
+            transform: translateY(-2px);
+        }
+        /* لتحديد اتجاه الأيقونات في أزرار التنقل لليسار واليمين */
+        .unit-nav-btn .fa-arrow-left {
+            margin-right: 0;
+            margin-left: 8px; /* أيقونة السهم الأيسر تظهر قبل النص في اتجاه RTL */
+        }
+        .unit-nav-btn .fa-arrow-right {
+            margin-right: 8px; /* أيقونة السهم الأيمن تظهر بعد النص في اتجاه RTL */
+            margin-left: 0;
+        }
+
+        /* تنسيقات الفوتر */
+        footer {
+            background-color: var(--primary-color) !important;
+            color: white;
+            padding: 2.5rem 0;
+        }
+        footer h5 {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        footer .list-unstyled li a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        footer .list-unstyled li a:hover {
+            color: var(--secondary-color);
+        }
+        footer .fab, footer .fas {
+            color: white;
+            transition: color 0.2s;
+        }
+        footer .fab:hover, footer .fas:hover {
+            color: var(--secondary-color);
+        }
+
+        /* تنسيقات الشريط الجانبي */
+        .sidebar {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            color: var(--dark-text);
+        }
+        .sidebar h4 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .sidebar .module-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+            margin-left: 10px;
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .sidebar .progress-container {
+            height: 25px;
+            margin-bottom: 1.5rem;
+        }
+        .sidebar .progress-bar {
+            background-color: var(--secondary-color);
+        }
+        /* تنسيقات الأكورديون في الشريط الجانبي */
+        .sidebar .accordion-button:not(.collapsed) {
+            background-color: #e3f2fd; /* لون أزرق فاتح جداً */
+            color: var(--primary-color);
+            box-shadow: none;
+        }
+        .sidebar .accordion-button:not(.collapsed) .module-icon {
+            background-color: var(--primary-color);
+        }
+        .sidebar .accordion-button {
+            border-radius: 0.5rem !important;
+        }
+        .sidebar .accordion-item {
+            margin-bottom: 0.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(0, 0, 0, 0.125);
+            overflow: hidden;
+        }
+        .sidebar .accordion-body ul {
+            padding-right: 0;
+        }
+        .sidebar .accordion-body ul li a {
+            padding: 0.25rem 0.5rem;
+            display: block;
+            border-radius: 0.25rem;
+            color: var(--dark-text);
+        }
+        .sidebar .accordion-body ul li a:hover,
+        .sidebar .accordion-body ul li a.active-link {
+            background-color: #e3f2fd;
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+        .sidebar .accordion-body .btn-primary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .sidebar .accordion-body .btn-primary:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+        }
+
+        /* ضبط الاستجابة (Responsive adjustments) */
+        @media (max-width: 991px) { /* نقطة توقف تتوافق مع col-lg- */
+            .sidebar {
+                margin-top: 1rem;
+                margin-bottom: 1rem; /* إضافة هامش لتحسين التباعد على الشاشات الأصغر */
+            }
+            .unit-header {
+                padding: 2rem 0;
+            }
+            .content-card {
+                padding: 1.5rem;
+            }
+            .section-title {
+                font-size: 1.75rem;
+            }
+            h3.sub-heading {
+                font-size: 1.5rem;
+            }
+            .unit-nav-btn {
+                width: 100%;
+                justify-content: center;
+                margin-bottom: 0.5rem;
+            }
+            .d-flex.justify-content-between.mt-4 {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- شريط التنقل (Navbar) -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--primary-color);">
+        <div class="container">
+            <a class="navbar-brand" href="../../../index.html">مسار الأمن السيبراني</a>
+            <a href="index.html" class="btn btn-outline-light">العودة إلى مقرر تحليل النظم</a>
+        </div>
+    </nav>
+
+    <!-- رأس الوحدة (Unit Header) -->
+    <header class="unit-header text-center">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-3">الوحدة 7: تحليل وتصميم البيانات (ERD)</h1>
+            <p class="lead">من الفوضى إلى التنظيم: هندسة البيانات عبر نمذجة الكيانات والعلاقات</p>
+            <div class="mt-4">
+                <span class="badge bg-light text-primary p-2 mx-1"><i class="fas fa-database me-1"></i> ERD</span>
+                <span class="badge bg-light text-primary p-2 mx-1"><i class="fas fa-project-diagram me-1"></i> الكيانات والعلاقات</span>
+                <span class="badge bg-light text-primary p-2 mx-1"><i class="fas fa-sitemap me-1"></i> التطبيع</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container-fluid py-5">
+        <div class="row">
+            <!-- الشريط الجانبي لتنقل الوحدات (Sidebar) -->
+            <div class="col-lg-3">
+                <div class="sidebar p-4">
+                    <h4 class="mb-3">
+                        <i class="fas fa-list-ul me-2"></i>
+                        وحدات المقرر
+                    </h4>
+                    <div class="progress progress-container mb-4">
+                        <div class="progress-bar" role="progressbar" style="width: 70%;" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100">70% مكتمل</div>
+                    </div>
+                    <div class="accordion" id="unitsAccordion">
+                        <!-- الوحدة التمهيدية (مقرر تحليل وتصميم النظم) -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingCourseInfo">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCourseInfo" aria-expanded="false" aria-controls="collapseCourseInfo">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-book-open"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">مقرر تحليل وتصميم النظم</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseCourseInfo" class="accordion-collapse collapse" aria-labelledby="headingCourseInfo" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="index.html#course-description" class="text-decoration-none">وصف المقرر</a></li>
+                                        <li><a href="index.html#course-objectives" class="text-decoration-none">أهداف المقرر</a></li>
+                                        <li><a href="index.html#learning-outcomes" class="text-decoration-none">مخرجات التعلم</a></li>
+                                        <li><a href="index.html#course-content" class="text-decoration-none">محتوى المقرر (خطة دراسية)</a></li>
+                                        <li><a href="index.html#teaching-methods" class="text-decoration-none">طرق التدريس</a></li>
+                                        <li><a href="index.html#assessment-methods" class="text-decoration-none">أساليب التقييم</a></li>
+                                        <li><a href="index.html#references" class="text-decoration-none">المراجع</a></li>
+                                        <li><a href="index.html#additional-notes" class="text-decoration-none">ملاحظات إضافية</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 1 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit1">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit1" aria-expanded="false" aria-controls="collapseUnit1">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-desktop"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 1: مدخل إلى النظم وأنظمة المعلومات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit1" class="accordion-collapse collapse" aria-labelledby="headingUnit1" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-1.html#unit-objectives" class="text-decoration-none">أهداف التعلم</a></li>
+                                        <li><a href="unit-1.html#basic-concepts" class="text-decoration-none">مفاهيم أساسية</a></li>
+                                        <li><a href="unit-1.html#practical-examples" class="text-decoration-none">أمثلة تطبيقية</a></li>
+                                        <li><a href="unit-1.html#information-systems" class="text-decoration-none">أنظمة المعلومات</a></li>
+                                        <li><a href="unit-1.html#case-study" class="text-decoration-none">دراسة حالة</a></li>
+                                        <li><a href="unit-1.html#learning-activities" class="text-decoration-none">الأنشطة التعليمية</a></li>
+                                        <li><a href="unit-1.html#assessment-tools" class="text-decoration-none">أدوات التقييم</a></li>
+                                        <li><a href="unit-1.html#visual-references" class="text-decoration-none">المراجع البصرية المقترحة</a></li>
+                                        <li><a href="unit-1.html#unit-summary" class="text-decoration-none">ملخص الوحدة</a></li>
+                                    </ul>
+                                    <a href="unit-1.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 2 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit2">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit2" aria-expanded="false" aria-controls="collapseUnit2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-recycle"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 2: دورة حياة تطوير النظام (SDLC)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit2" class="accordion-collapse collapse" aria-labelledby="headingUnit2" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-2.html#unit-objectives" class="text-decoration-none">أهداف التعلم</a></li>
+                                        <li><a href="unit-2.html#planning-phase" class="text-decoration-none">مرحلة التخطيط</a></li>
+                                        <li><a href="unit-2.html#analysis-phase" class="text-decoration-none">مرحلة التحليل</a></li>
+                                        <li><a href="unit-2.html#design-phase" class="text-decoration-none">مرحلة التصميم</a></li>
+                                        <li><a href="unit-2.html#implementation-phase" class="text-decoration-none">مرحلة التنفيذ</a></li>
+                                        <li><a href="unit-2.html#testing-phase" class="text-decoration-none">مرحلة الاختبار</a></li>
+                                        <li><a href="unit-2.html#maintenance-phase" class="text-decoration-none">مرحلة الصيانة</a></li>
+                                        <li><a href="unit-2.html#development-models" class="text-decoration-none">نماذج تطوير النظام</a></li>
+                                        <li><a href="unit-2.html#ai-integration" class="text-decoration-none">الربط بالذكاء الاصطناعي (AI)</a></li>
+                                        <li><a href="unit-2.html#references" class="text-decoration-none">المراجع</a></li>
+                                        <li><a href="unit-2.html#unit-summary" class="text-decoration-none">ملخص الوحدة</a></li>
+                                    </ul>
+                                    <a href="unit-2.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 3 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit3">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit3" aria-expanded="false" aria-controls="collapseUnit3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-chart-line"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 3: دراسة الجدوى وتخطيط المشروع</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit3" class="accordion-collapse collapse" aria-labelledby="headingUnit3" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-3.html#unit-objectives" class="text-decoration-none">أهداف التعلم</a></li>
+                                        <li><a href="unit-3.html#intro-feasibility" class="text-decoration-none">مدخل إلى دراسة الجدوى</a></li>
+                                        <li><a href="unit-3.html#types-feasibility" class="text-decoration-none">أنواع دراسة الجدوى</a></li>
+                                        <li><a href="unit-3.html#project-planning" class="text-decoration-none">تخطيط المشروع</a></li>
+                                        <li><a href="unit-3.html#learning-activities" class="text-decoration-none">الأنشطة التعليمية</a></li>
+                                        <li><a href="unit-3.html#assessment-tools" class="text-decoration-none">أدوات التقييم</a></li>
+                                        <li><a href="unit-3.html#visual-references" class="text-decoration-none">المراجع البصرية المقترحة</a></li>
+                                        <li><a href="unit-3.html#references" class="text-decoration-none">المراجع</a></li>
+                                        <li><a href="unit-3.html#unit-summary" class="text-decoration-none">ملخص الوحدة</a></li>
+                                    </ul>
+                                    <a href="unit-3.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 4 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit4">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit4" aria-expanded="false" aria-controls="collapseUnit4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-clipboard-list"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 4: جمع المتطلبات وتحليلها</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit4" class="accordion-collapse collapse" aria-labelledby="headingUnit4" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-4.html#unit-objectives" class="text-decoration-none">أهداف التعلم</a></li>
+                                        <li><a href="unit-4.html#intro-requirements" class="text-decoration-none">مقدمة في جمع المتطلبات</a></li>
+                                        <li><a href="unit-4.html#gathering-techniques" class="text-decoration-none">تقنيات جمع المتطلبات</a></li>
+                                        <li><a href="unit-4.html#classifying-requirements" class="text-decoration-none">تصنيف المتطلبات</a></li>
+                                        <li><a href="unit-4.html#documenting-requirements" class="text-decoration-none">توثيق المتطلبات</a></li>
+                                        <li><a href="unit-4.html#learning-activities" class="text-decoration-none">الأنشطة التعليمية</a></li>
+                                        <li><a href="unit-4.html#assessment-tools" class="text-decoration-none">أدوات التقييم</a></li>
+                                        <li><a href="unit-4.html#visual-references" class="text-decoration-none">المراجع البصرية المقترحة</a></li>
+                                        <li><a href="unit-4.html#references" class="text-decoration-none">المراجع</a></li>
+                                        <li><a href="unit-4.html#unit-summary" class="text-decoration-none">ملخص الوحدة</a></li>
+                                    </ul>
+                                    <a href="unit-4.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 5 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit5">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit5" aria-expanded="false" aria-controls="collapseUnit5">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-chart-area"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 5: أدوات التحليل (DFD)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit5" class="accordion-collapse collapse" aria-labelledby="headingUnit5" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-5.html#unit-objectives" class="text-decoration-none">أهداف التعلم</a></li>
+                                        <li><a href="unit-5.html#what-is-dfd" class="text-decoration-none">ما هو مخطط تدفق البيانات (DFD)؟</a></li>
+                                        <li><a href="unit-5.html#why-dfd-important" class="text-decoration-none">لماذا تعتبر مخططات DFD مهمة؟</a></li>
+                                        <li><a href="unit-5.html#dfd-components" class="text-decoration-none">مكونات مخطط تدفق البيانات</a></li>
+                                        <li><a href="unit-5.html#dfd-levels" class="text-decoration-none">مستويات مخططات DFD</a></li>
+                                        <li><a href="unit-5.html#learning-activities" class="text-decoration-none">الأنشطة التعليمية</a></li>
+                                        <li><a href="unit-5.html#assessment-tools" class="text-decoration-none">أدوات التقييم</a></li>
+                                        <li><a href="unit-5.html#visual-references" class="text-decoration-none">المراجع البصرية المقترحة</a></li>
+                                        <li><a href="unit-5.html#references" class="text-decoration-none">المراجع</a></li>
+                                        <li><a href="unit-5.html#unit-summary" class="text-decoration-none">ملخص الوحدة</a></li>
+                                    </ul>
+                                    <a href="unit-5.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 6 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit6">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit6" aria-expanded="false" aria-controls="collapseUnit6">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-object-group"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 6: النمذجة الكائنية باستخدام UML (Use Case)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit6" class="accordion-collapse collapse" aria-labelledby="headingUnit6" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-6.html#unit-objectives" class="text-decoration-none">أهداف التعلم</a></li>
+                                        <li><a href="unit-6.html#uml-intro" class="text-decoration-none">مقدمة في UML</a></li>
+                                        <li><a href="unit-6.html#use-case-diagrams" class="text-decoration-none">رسوم Use Case</a></li>
+                                        <li><a href="unit-6.html#actors" class="text-decoration-none">الأدوار (Actors)</a></li>
+                                        <li><a href="unit-6.html#scenarios" class="text-decoration-none">سيناريوهات التفاعل (Scenarios)</a></li>
+                                        <li><a href="unit-6.html#importance-use-case" class="text-decoration-none">أهمية رسوم Use Case</a></li>
+                                        <li><a href="unit-6.html#practical-example" class="text-decoration-none">مثال تطبيقي: نظام حجز تذاكر طيران</a></li>
+                                        <li><a href="unit-6.html#learning-activities" class="text-decoration-none">الأنشطة التعليمية</a></li>
+                                        <li><a href="unit-6.html#assessment-tools" class="text-decoration-none">أدوات التقييم</a></li>
+                                        <li><a href="unit-6.html#visual-references" class="text-decoration-none">المراجع البصرية المقترحة</a></li>
+                                        <li><a href="unit-6.html#references" class="text-decoration-none">المراجع</a></li>
+                                        <li><a href="unit-6.html#unit-summary" class="text-decoration-none">ملخص الوحدة</a></li>
+                                    </ul>
+                                    <a href="unit-6.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 7 (الوحدة النشطة) -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit7">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit7" aria-expanded="true" aria-controls="collapseUnit7">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-database"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 7: تحليل وتصميم البيانات (ERD)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit7" class="accordion-collapse collapse show" aria-labelledby="headingUnit7" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="#unit-objectives" class="text-decoration-none active-link">أهداف التعلم</a></li>
+                                        <li><a href="#what-is-erd" class="text-decoration-none">ما هو مخطط ERD؟</a></li>
+                                        <li><a href="#erd-components" class="text-decoration-none">المكونات الأساسية لـ ERD</a></li>
+                                        <li><a href="#benefits-erd" class="text-decoration-none">فوائد استخدام ERD</a></li>
+                                        <li><a href="#practical-example" class="text-decoration-none">مثال تطبيقي: نظام الجامعة</a></li>
+                                        <li><a href="#creation-steps" class="text-decoration-none">خطوات إنشاء ERD</a></li>
+                                        <li><a href="#tools" class="text-decoration-none">أدوات مساعدة</a></li>
+                                        <li><a href="#suggested-activities" class="text-decoration-none">الأنشطة المقترحة</a></li>
+                                        <li><a href="#assessment-methods" class="text-decoration-none">التقييم</a></li>
+                                        <li><a href="#ai-integration" class="text-decoration-none">الربط بالذكاء الاصطناعي</a></li>
+                                        <li><a href="#references" class="text-decoration-none">المراجع</a></li>
+                                        <li><a href="#unit-summary" class="text-decoration-none">ملخص الوحدة</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 8 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit8">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit8" aria-expanded="false" aria-controls="collapseUnit8">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-laptop-code"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 8: تصميم النظام وتنفيذه</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit8" class="accordion-collapse collapse" aria-labelledby="headingUnit8" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-8.html#system-design" class="text-decoration-none">ترجمة المتطلبات إلى مخططات هيكلية</a></li>
+                                        <li><a href="unit-8.html#implementation" class="text-decoration-none">التنفيذ العملي للنظام واختباره</a></li>
+                                    </ul>
+                                    <a href="unit-8.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة الختامية -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingSummary">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSummary" aria-expanded="false" aria-controls="collapseSummary">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-award"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة الختامية: التلخيص والمراجعة</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseSummary" class="accordion-collapse collapse" aria-labelledby="headingSummary" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-summary.html#summary" class="text-decoration-none">استعراض شامل للمقرر</a></li>
+                                        <li><a href="unit-summary.html#projects" class="text-decoration-none">مناقشة المشاريع العملية</a></li>
+                                        <li><a href="unit-summary.html#recommendations" class="text-decoration-none">التوصيات النهائية</a></li>
+                                    </ul>
+                                    <a href="unit-summary.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- منطقة المحتوى الرئيسية -->
+            <div class="col-lg-9">
+                <!-- أهداف التعلم -->
+                <div class="content-card" id="unit-objectives">
+                    <h2 class="section-title"><i class="fas fa-bullseye me-2"></i>أهداف التعلم</h2>
+                    <p>
+                        "من الفوضى إلى التنظيم: هندسة البيانات عبر نمذجة الكيانات والعلاقات"
+                    </p>
+                    <p>بنهاية هذه الوحدة سيكون الطالب قادرًا على:</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> فهم مكونات **مخطط ERD** (الكيانات، السمات، العلاقات).</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> تعلم تحويل المتطلبات الوظيفية إلى نموذج بيانات منطقي.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> إتقان استخدام **مفاتيح التمييز** (Primary/Foreign Keys).</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> تطبيق قواعد **التطبيع (Normalization)** لتجنب تكرار البيانات.</li>
+                    </ul>
+                </div>
+
+                ---
+
+                <!-- المحتوى التفصيلي: 1. ما هو مخطط ERD؟ -->
+                <div class="content-card" id="what-is-erd">
+                    <h2 class="section-title"><i class="fas fa-database me-2"></i>1. ما هو مخطط ERD؟</h2>
+                    <p>
+                        بعد أن تعلمنا في الوحدات السابقة كيفية نمذجة وظائف النظام وتدفقاته، حان الوقت للتعمق في جانب حيوي آخر من تصميم الأنظمة: **كيفية تنظيم وتخزين البيانات**. هنا يأتي دور **مخطط الكيانات والعلاقات (Entity-Relationship Diagram - ERD)**، وهو أداة قوية لتصميم قواعد البيانات.
+                    </p>
+                    <h3 class="sub-heading">تعريف ERD</h3>
+                    <p>
+                        **مخطط الكيانات والعلاقات (ERD)** هو **نموذج بصري (رسومي)** يوضح **هيكل قاعدة البيانات** من خلال تمثيل الكيانات الرئيسية في النظام (الأشياء التي نريد تخزين معلومات عنها)، والسمات (الخصائص) الخاصة بكل كيان، والعلاقات المنطقية بين هذه الكيانات. إنه طريقة مجردة وعالية المستوى لتصميم قاعدة البيانات قبل البدء في تفاصيل التنفيذ التقني.
+                    </p>
+                    <p>
+                        **المبتكر:** تم تقديم مفهوم ERD لأول مرة بواسطة العالم **Peter Chen** في عام 1976.
+                    </p>
+                    <h3 class="sub-heading">أهمية ERD</h3>
+                    <p>
+                        تكمن أهمية ERD في قدرته على:
+                    </p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-handshake me-2"></i> **جسر بين المتطلبات الوظيفية والتنفيذ التقني:** يُترجم احتياجات العمل (المتطلبات) إلى تصميم واضح لقاعدة البيانات يفهمه كل من محللي النظم ومطوري قواعد البيانات.</li>
+                        <li class="list-group-item"><i class="fas fa-bug me-2"></i> **يمنع الأخطاء قبل البرمجة:** عبر تصور العلاقات وهيكل البيانات مبكرًا، يمكن تحديد وتصحيح المشاكل المنطقية في تصميم قاعدة البيانات قبل كتابة سطر واحد من الكود، مما يوفر الوقت والتكلفة.</li>
+                        <li class="list-group-item"><i class="fas fa-comments me-2"></i> **تسهيل التواصل:** يوفر لغة بصرية مشتركة بين أصحاب المصلحة التقنيين وغير التقنيين لمناقشة وفهم بنية البيانات.</li>
+                        <li class="list-group-item"><i class="fas fa-file-invoice me-2"></i> **توثيق النظام:** يُعد ERD وثيقة أساسية لتصميم قاعدة البيانات، وهي مرجع لا غنى عنه في جميع مراحل دورة حياة تطوير النظام (SDLC).</li>
+                    </ul>
+                </div>
+
+                ---
+
+                <!-- 2. المكونات الأساسية لـ ERD -->
+                <div class="content-card" id="erd-components">
+                    <h2 class="section-title"><i class="fas fa-cube me-2"></i>2. المكونات الأساسية لـ ERD</h2>
+                    <p>
+                        يتكون مخطط ERD من ثلاثة مكونات رئيسية، لكل منها رمز رسومي خاص به:
+                    </p>
+                    
+
+                    <h3 class="sub-heading">أ. الكيانات (Entities)</h3>
+                    <p>
+                        الكيان هو **كائن حقيقي أو مفهومي** (مثل شخص، مكان، شيء، حدث، أو فكرة) يمكن تخزين معلومات عنه في قاعدة البيانات. كل كيان يمثل جدولاً في قاعدة البيانات العلايقية.
+                    </p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-arrow-alt-circle-right me-2"></i> **تمثيلها:** تُرمز الكيانات عادةً **بمستطيل**.</li>
+                    </ul>
+                    <h4 class="sub-heading">أنواع الكيانات:</h4>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-square me-2"></i> **كيان قوي (Strong Entity):**
+                            <ul>
+                                <li>كيان يمكن تعريفه بشكل فريد من خلال سماته الخاصة (أي لديه مفتاح أساسي خاص به).</li>
+                                <li>لا يعتمد وجوده على كيان آخر.</li>
+                                <li>**تمثيلها:** مستطيل واحد.</li>
+                                <li>**مثال:** **الطالب** (يمكن تعريفه برقم جامعي فريد).</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-square-full me-2"></i> **كيان ضعيف (Weak Entity):**
+                            <ul>
+                                <li>كيان لا يمكن تعريفه بشكل فريد بسماته الخاصة، بل يعتمد على كيان قوي آخر (كيانه الأب) لوجوده وتعريفه.</li>
+                                <li>**تمثيلها:** مستطيل مزدوج.</li>
+                                <li>**مثال:** **التابع** (في نظام الموظفين، التابع لا يمكن أن يوجد بدون موظف يرتبط به، ومعرفه الفريد قد يتكون من رقم الموظف ورقم التابع).</li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <h3 class="sub-heading">ب. السمات (Attributes)</h3>
+                    <p>
+                        السمة هي **خاصية أو صفة** تصف كيانًا معينًا. كل كيان لديه مجموعة من السمات التي تُخزن معلومات عنه (مثلاً: الاسم، العمر، العنوان للطالب). كل سمة تُصبح عمودًا في جدول قاعدة البيانات.
+                    </p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-arrow-alt-circle-right me-2"></i> **تمثيلها:** تُرمز السمات عادةً **بشكل بيضاوي** متصل بالكيان.</li>
+                    </ul>
+                    <h4 class="sub-heading">أنواع السمات:</h4>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-key me-2"></i> **مفتاح أساسي (Primary Key - PK):**
+                            <ul>
+                                <li>سمة أو مجموعة سمات تُعرف كل سجل (صف) بشكل **فريد** داخل الكيان. لا يمكن أن تكون قيمته فارغة (NULL) ولا يمكن أن تتكرر.</li>
+                                <li>**تمثيلها:** بيضاوي بخط تحته أو مكتوب بجانبه (PK).</li>
+                                <li>**مثال:** **رقم_الطالب** في كيان الطالب.</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-link me-2"></i> **مفتاح أجنبي (Foreign Key - FK):**
+                            <ul>
+                                <li>سمة (أو مجموعة سمات) في كيان ما تُشير إلى المفتاح الأساسي في كيان آخر. تُستخدم لإنشاء العلاقات بين الكيانات.</li>
+                                <li>**تمثيلها:** بيضاوي عادي، ولكن وظيفته تُعرف من خلال العلاقة.</li>
+                                <li>**مثال:** **رقم_القسم** في كيان الطلاب (يشير إلى رقم القسم في كيان الأقسام).</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-calculator me-2"></i> **سمة مشتقة (Derived Attribute):**
+                            <ul>
+                                <li>سمة لا تُخزن مباشرة في قاعدة البيانات، بل تُحسب أو تُشتق من قيم سمات أخرى.</li>
+                                <li>**تمثيلها:** بيضاوي بخط متقطع.</li>
+                                <li>**مثال:** **العمر** (يمكن اشتقاقه من تاريخ الميلاد).</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-list me-2"></i> **سمة مركبة (Composite Attribute):**
+                            <ul>
+                                <li>سمة يمكن تقسيمها إلى سمات فرعية أصغر ذات معنى.</li>
+                                <li>**مثال:** **العنوان** (يتكون من: الشارع، المدينة، الرمز البريدي).</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-clone me-2"></i> **سمة متعددة القيم (Multivalued Attribute):**
+                            <ul>
+                                <li>سمة يمكن أن تحتوي على أكثر من قيمة واحدة لنفس الكيان.</li>
+                                <li>**تمثيلها:** بيضاوي مزدوج.</li>
+                                <li>**مثال:** **رقم_الهاتف** (لشخص قد يكون لديه أكثر من رقم هاتف).</li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <h3 class="sub-heading">ج. العلاقات (Relationships)</h3>
+                    <p>
+                        العلاقة تصف **كيف تتفاعل الكيانات مع بعضها البعض**. تُظهر الارتباط المنطقي بين كيانين أو أكثر.
+                    </p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-arrow-alt-circle-right me-2"></i> **تمثيلها:** تُرمز العلاقات عادةً **بالمعين (Diamond)** متصل بخطوط بالكيانات المشاركة. على الخطوط، يتم تحديد **عددية العلاقة (Cardinality)**.</li>
+                    </ul>
+                    <h4 class="sub-heading">أنواع العلاقات (Cardinality):</h4>
+                    <div class="table-responsive">
+                        <table class="table table-bordered text-right">
+                            <thead>
+                                <tr>
+                                    <th>الرمز</th>
+                                    <th>العلاقة</th>
+                                    <th>الشرح</th>
+                                    <th>مثال</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1:1</td>
+                                    <td>**واحد لواحد (One-to-One)**</td>
+                                    <td>سجل واحد في الكيان الأول يرتبط بسجل واحد فقط في الكيان الثاني، والعكس صحيح.</td>
+                                    <td>**موظف ↔ سيارة الشركة** (كل موظف له سيارة شركة واحدة، وكل سيارة مخصصة لموظف واحد).</td>
+                                </tr>
+                                <tr>
+                                    <td>1:N</td>
+                                    <td>**واحد لكثير (One-to-Many)**</td>
+                                    <td>سجل واحد في الكيان الأول يمكن أن يرتبط بسجلات متعددة في الكيان الثاني، ولكن سجل واحد في الكيان الثاني يرتبط بسجل واحد فقط في الكيان الأول.</td>
+                                    <td>**قسم ↔ موظفين** (القسم الواحد يمكن أن يعمل به عدة موظفين، ولكن الموظف الواحد يعمل في قسم واحد فقط).</td>
+                                </tr>
+                                <tr>
+                                    <td>M:N</td>
+                                    <td>**كثير لكثير (Many-to-Many)**</td>
+                                    <td>سجل واحد في الكيان الأول يمكن أن يرتبط بسجلات متعددة في الكيان الثاني، وسجل واحد في الكيان الثاني يمكن أن يرتبط بسجلات متعددة في الكيان الأول.</td>
+                                    <td>**طالب ↔ مقرر** (الطالب الواحد يسجل في عدة مقررات، والمقرر الواحد يسجل به عدة طلاب). تتطلب هذه العلاقة جدولاً وسيطاً (جدول الربط) في التنفيذ الفعلي لقاعدة البيانات.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                ---
+
+                <!-- 3. فوائد استخدام ERD -->
+                <div class="content-card" id="benefits-erd">
+                    <h2 class="section-title"><i class="fas fa-heart-circle-check me-2"></i>3. فوائد استخدام ERD</h2>
+                    <p>
+                        تُعد مخططات ERD أداة لا غنى عنها في عالم تحليل وتصميم الأنظمة وقواعد البيانات لعدة أسباب جوهرية:
+                    </p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-eye me-2"></i> **التصميم المرئي والوضوح:**
+                            <ul>
+                                <li>تُقدم تمثيلاً رسوميًا واضحًا ومنظمًا لهيكل قاعدة البيانات، مما يسهل فهم البيانات وكيفية ارتباطها ببعضها البعض.</li>
+                                <li>**مثال:** تصور علاقة **العميل** مع **الفاتورة** في نظام مبيعات يوضح فورًا أن العميل الواحد قد يكون لديه عدة فواتير، وكل فاتورة تخص عميلاً واحدًا.</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-ban me-2"></i> **تجنب الأخطاء الشائعة في التصميم:**
+                            <ul>
+                                <li>تساعد في تحديد وإزالة التكرار غير الضروري للبيانات (Data Redundancy) قبل بناء قاعدة البيانات فعليًا.</li>
+                                <li>**مثال:** إذا كان تصميمك الأولي يتضمن تكرار بيانات العملاء في كل سجل معاملة، فإن ERD سيكشف ذلك، ويقودك إلى استخدام **التطبيع (Normalization)** لتقسيم الجداول بشكل سليم.</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-comments me-2"></i> **التواصل الفعّال:**
+                            <ul>
+                                <li>توفر لغة مشتركة يمكن لجميع أصحاب المصلحة (مدراء المشاريع، محللي النظم، المبرمجين، وحتى المستخدمين النهائيين) فهمها ومناقشتها.</li>
+                                <li>يمكن لغير التقنيين فهم هيكل قاعدة البيانات بسهولة أكبر من مجرد جداول نصية.</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-file-invoice me-2"></i> **أساس لتوثيق قاعدة البيانات:**
+                            <ul>
+                                <li>تُعد وثيقة أساسية للمشروع، تُستخدم كمرجع أثناء التطوير والصيانة والتحديثات المستقبلية.</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-code me-2"></i> **تحويل سهل إلى نموذج فيزيائي:**
+                            <ul>
+                                <li>يمكن تحويل ERD بسهولة إلى مخططات قواعد بيانات فعلية (Physical Database Design) وجداول SQL، مما يسرع عملية التنفيذ.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                ---
+
+                <!-- 4. مثال تطبيقي: نظام الجامعة -->
+                <div class="content-card" id="practical-example">
+                    <h2 class="section-title"><i class="fas fa-university me-2"></i>4. مثال تطبيقي: نظام الجامعة</h2>
+                    <p>لنُطبق المفاهيم التي تعلمناها على نظام جامع يضم الطلاب والمقررات.</p>
+                    
+                    <h3 class="sub-heading">الكيانات الرئيسية:</h3>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-user-graduate me-2"></i> **الطالب (Student):**
+                            <ul>
+                                <li>السمات: <span class="concept-highlight">رقم_الطالب</span> (PK)، الاسم_الأول، الاسم_الأخير، تاريخ_الميلاد، التخصص.</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-book-open me-2"></i> **المقرر (Course):**
+                            <ul>
+                                <li>السمات: <span class="concept-highlight">رمز_المقرر</span> (PK)، اسم_المقرر، عدد_الساعات.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <h3 class="sub-heading">العلاقات:</h3>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-link me-2"></i> **علاقة كثير لكثير (M:N) بين الطالب والمقرر:**
+                            <ul>
+                                <li>الطالب الواحد يمكن أن يسجل في **عدة** مقررات.</li>
+                                <li>المقرر الواحد يمكن أن يسجل به **عدة** طلاب.</li>
+                                <li>**كيفية التعامل معها في قاعدة البيانات:** في التصميم الفعلي (الفيزيائي)، تُحوّل علاقة M:N إلى **جدول وسيط (Junction Table)** أو **جدول ربط**. في هذه الحالة، سننشئ كيانًا جديدًا يسمى **التسجيل (Enrollment)**.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <h3 class="sub-heading">الكيان الوسيط: التسجيل (Enrollment)</h3>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-clipboard-check me-2"></i> **التسجيل (Enrollment):**
+                            <ul>
+                                <li>السمات: <span class="concept-highlight">رقم_الطالب</span> (FK, جزء من PK مركب)، <span class="concept-highlight">رمز_المقرر</span> (FK, جزء من PK مركب)، تاريخ_التسجيل، الدرجة.</li>
+                                <li>يُصبح المفتاح الأساسي لجدول التسجيل مركبًا من (رقم_الطالب، رمز_المقرر).</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <p>
+                        بهذا التصميم، يمكننا تتبع أي طالب مسجل في أي مقرر، وأي مقرر مسجل فيه أي طالب، بالإضافة إلى تفاصيل التسجيل مثل التاريخ والدرجة.
+                    </p>
+                </div>
+
+                ---
+
+                <!-- 5. خطوات إنشاء ERD -->
+                <div class="content-card" id="creation-steps">
+                    <h2 class="section-title"><i class="fas fa-list-ol me-2"></i>5. خطوات إنشاء ERD</h2>
+                    <p>
+                        يتضمن بناء مخطط ERD فعال سلسلة من الخطوات المنهجية لضمان تغطية جميع جوانب البيانات المطلوبة للنظام:
+                    </p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-lightbulb me-2"></i> **1. تحديد الكيانات (Entities):**
+                            <ul>
+                                <li>ابدأ بتحليل المتطلبات الوظيفية للنظام. ما هي "الأشياء" الرئيسية التي يحتاج النظام لتخزين معلومات عنها؟ (مثال: مستخدمون، منتجات، طلبات، فواتير، أقسام، موظفون).</li>
+                                <li>كل اسم فريد يُشير إلى "شيء" مهم هو مرشح ليكون كيانًا.</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-pencil-alt me-2"></i> **2. إضافة السمات (Attributes) والمفاتيح:**
+                            <ul>
+                                <li>لكل كيان، حدد السمات التي تصفه. ما هي المعلومات التي تحتاج لتخزينها عن هذا الكيان؟ (مثال: للكيان "منتج": اسم المنتج، سعره، وصفه، تاريخ انتهاء صلاحيته).</li>
+                                <li>حدد المفتاح الأساسي (Primary Key) لكل كيان: السمة (أو مجموعة السمات) التي تُعرف كل سجل بشكل فريد.</li>
+                                <li>حدد السمات الأخرى (عادية، مشتقة، مركبة، متعددة القيم) حسب الحاجة.</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-link me-2"></i> **3. رسم العلاقات (Relationships) وتحديد نوعها:**
+                            <ul>
+                                <li>بين كل كيانين، فكر: "هل يوجد ارتباط منطقي بينهما؟". إذا كان نعم، ارسم علاقة.</li>
+                                <li>حدد نوع العلاقة (Cardinality): هل هي واحد لواحد (1:1)، واحد لكثير (1:N)، أو كثير لكثير (M:N)؟</li>
+                                <li>ضع المفاتيح الأجنبية (Foreign Keys) اللازمة لتطبيق العلاقات في التصميم الفيزيائي.</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-sort-numeric-up me-2"></i> **4. التطبيع (Normalization):**
+                            <ul>
+                                <li>هي عملية تحليل تصميم قاعدة البيانات لإزالة التكرار غير الضروري للبيانات وتحسين سلامة البيانات.</li>
+                                <li>تتضمن تقسيم الجداول الكبيرة إلى جداول أصغر وإعادة تنظيم العلاقات بينها.</li>
+                                <li>هناك مستويات مختلفة من التطبيع (1NF, 2NF, 3NF, BCNF...) تهدف جميعها إلى تقليل التكرار وتعزيز الاتساق.</li>
+                                <li>هذه الخطوة حاسمة لتحسين أداء قاعدة البيانات وسهولة صيانتها.</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-magnifying-glass-chart me-2"></i> **5. المراجعة والتحسين:**
+                            <ul>
+                                <li>راجع ERD مع أصحاب المصلحة للتأكد من أنه يمثل متطلبات العمل بدقة.</li>
+                                <li>ابحث عن أي سمات أو كيانات مفقودة، أو علاقات خاطئة، أو فرص لتحسين التصميم.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                ---
+
+                <!-- 6. أدوات مساعدة -->
+                <div class="content-card" id="tools">
+                    <h2 class="section-title"><i class="fas fa-tools me-2"></i>6. أدوات مساعدة</h2>
+                    <p>تتوفر العديد من الأدوات لمساعدتك في رسم وتصميم مخططات ERD، بعضها مجاني والبعض الآخر مدفوع ويوفر ميزات متقدمة:</p>
+                    <div class="table-responsive">
+                        <table class="table table-bordered text-right">
+                            <thead>
+                                <tr>
+                                    <th>الأداة</th>
+                                    <th>الاستخدام الرئيسي</th>
+                                    <th>ملاحظات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><a href="https://www.lucidchart.com/" target="_blank" class="resource-link">Lucidchart</a></td>
+                                    <td>تصميم ERD تفاعلي، مخططات تدفق، UML، وغيرها.</td>
+                                    <td>أداة سحابية شهيرة، واجهة سهلة الاستخدام، توفر قوالب جاهزة.</td>
+                                </tr>
+                                <tr>
+                                    <td><a href="https://www.mysql.com/products/workbench/" target="_blank" class="resource-link">MySQL Workbench</a></td>
+                                    <td>تصميم قواعد بيانات MySQL، تحويل ERD إلى كود SQL، إدارة الخوادم.</td>
+                                    <td>أداة قوية ومتكاملة لمطوري MySQL، تسمح بالتصميم المنطقي والفيزيائي.</td>
+                                </tr>
+                                <tr>
+                                    <td><a href="https://app.diagrams.net/" target="_blank" class="resource-link">Draw.io (Diagrams.net)</a></td>
+                                    <td>أداة رسم عامة للمخططات، تدعم ERD، DFD، UML.</td>
+                                    <td>مجاني، مفتوح المصدر، يمكن استخدامه عبر الإنترنت أو كتطبيق سطح مكتب. سهل للمبتدئين.</td>
+                                </tr>
+                                <tr>
+                                    <td><a href="https://www.visual-paradigm.com/" target="_blank" class="resource-link">Visual Paradigm</a></td>
+                                    <td>أداة نمذجة شاملة تدعم UML، ERD، BPMN وغيرها.</td>
+                                    <td>توجد منها نسخة مجانية للمجتمع (Community Edition) مناسبة للتعلم والمشاريع الصغيرة.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                ---
+
+                <!-- 7. أنشطة مقترحة -->
+                <div class="content-card" id="suggested-activities">
+                    <h2 class="section-title"><i class="fas fa-puzzle-piece me-2"></i>7. أنشطة مقترحة</h2>
+                    <p>لترسيخ فهمك لمخططات ERD وتصميم قواعد البيانات:</p>
+
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-bank me-2 text-info"></i> **تمرين عملي: بناء ERD لنظام بنكي**
+                            <ul>
+                                <li>قوموا بتصميم ERD لنظام بنكي بسيط يتضمن الكيانات التالية: **العميل**، **الحساب**، **المعاملة**.</li>
+                                <li>حددوا السمات الرئيسية لكل كيان والمفاتيح الأساسية والأجنبية.</li>
+                                <li>ارسموا العلاقات بين هذه الكيانات وحددوا عددية كل علاقة (1:1, 1:N, M:N).</li>
+                                <li>يمكنكم استخدام أي من الأدوات المذكورة أعلاه.</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-xmark-circle me-2 text-info"></i> **تحليل أخطاء: تحديد مشكلات التطبيع**
+                            <ul>
+                                <li>تخيل جدولاً واحداً يحتوي على جميع بيانات العملاء ومعاملاتهم في نظام مبيعات (اسم العميل، عنوان العميل، رقم الفاتورة، تاريخ الفاتورة، تفاصيل المنتجات، كمياتها، أسعارها).</li>
+                                <li>ناقشوا المشاكل التي قد تنشأ عن هذا التصميم (تكرار البيانات، صعوبة التحديث، مشاكل في الحذف).</li>
+                                <li>اقترحوا كيف يمكن تحويل هذا الجدول إلى تصميم مطبع باستخدام ERD (أي تقسيم الجداول).</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-comments me-2 text-info"></i> **مناقشة: العلاقة M:N والتطبيع**
+                            <ul>
+                                <li>في مجموعات، ناقشوا السيناريوهات التي يكون فيها استخدام العلاقة M:N ضروريًا في ERD.</li>
+                                <li>اشرحوا بالتفصيل كيف يتم "حل" (Resolve) العلاقة M:N إلى جداول في قاعدة البيانات العلائقية (من خلال جدول وسيط) ولماذا هذا ضروري.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                ---
+
+                <!-- 8. التقييم -->
+                <div class="content-card" id="assessment-methods">
+                    <h2 class="section-title"><i class="fas fa-marker me-2"></i>8. التقييم</h2>
+                    <p>لتقييم مدى استيعابك للمفاهيم في هذه الوحدة:</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-diagram-project me-2 text-success"></i> **مشروع عملي: تصميم ERD لتطبيق حجز فنادق (30%)**
+                            <ul>
+                                <li>يُطلب من كل طالب (أو مجموعة صغيرة) تصميم ERD كامل لتطبيق حجز فنادق، يتضمن كيانات مثل: **الفندق، الغرفة، العميل، الحجز**.</li>
+                                <li>يجب توضيح جميع السمات، المفاتيح، والعلاقات مع عددية كل علاقة. يجب أن يُظهر التصميم فهماً لمبادئ التطبيع.</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-file-alt me-2 text-success"></i> **اختبار قصير: تحديد نوع العلاقة (20%)**
+                            <ul>
+                                <li>اختبار يتضمن سيناريوهات مختلفة تُطلب فيها تحديد الكيانات، السمات، ونوع العلاقة الصحيح بين الكيانات.</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-chalkboard-user me-2 text-success"></i> **عرض ومناقشة: تحليل ERD (15%)**
+                            <ul>
+                                <li>تقوم المجموعات بتقديم ERD المشروع العملي الذي قاموا بتصميمه، مع شرح منطق التصميم، وكيفية تطبيق مبادئ التطبيع، وكيف يُلبي ERD متطلبات النظام.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                ---
+
+                <!-- الربط بالذكاء الاصطناعي -->
+                <div class="content-card" id="ai-integration">
+                    <h2 class="section-title"><i class="fas fa-robot me-2"></i>الربط بالذكاء الاصطناعي</h2>
+                    <p>
+                        تُعد البيانات هي وقود أنظمة الذكاء الاصطناعي وتعلم الآلة. تصميم قاعدة بيانات قوية ومنظمة باستخدام ERD أمر بالغ الأهمية لفعالية هذه الأنظمة.
+                    </p>
+                    <h3 class="sub-heading">كيف يُستخدم ERD في أنظمة الذكاء الاصطناعي؟</h3>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-brain me-2"></i> **تنظيم بيانات التدريب:** تحتاج نماذج الذكاء الاصطناعي إلى كميات هائلة من البيانات المنظمة للتدريب. ERD يساعد في تصميم قواعد بيانات تُخزن هذه البيانات بطريقة يسهل الوصول إليها، ومعالجتها، وربطها، مما يُحسن من جودة البيانات التي تُغذى للنماذج.</li>
+                        <li class="list-group-item"><i class="fas fa-tag me-2"></i> **تسمية البيانات (Data Labeling):** في مهام مثل التعرف على الصور أو معالجة اللغة الطبيعية، تُستخدم ERD لتصميم قواعد بيانات تُخزن البيانات الخام وعلاقاتها مع التسميات (Labels) أو التعليقات التوضيحية (Annotations) التي أضافها البشر، وهي ضرورية للتعلم الخاضع للإشراف (Supervised Learning).</li>
+                        <li class="list-group-item"><i class="fas fa-sitemap me-2"></i> **تصميم أنظمة التوصية (Recommendation Systems):** تعتمد هذه الأنظمة بشكل كبير على بيانات المستخدمين، المنتجات، والتفاعلات بينهم. تصميم ERD يُساعد في نمذجة هذه العلاقات المعقدة بكفاءة لتمكين خوارزميات التوصية من العمل بفعالية.</li>
+                    </ul>
+                    <div class="example-box">
+                        <i class="fas fa-image"></i> <strong>مثال: تصميم قاعدة بيانات لتدريب نموذج التعرف على الصور</strong>
+                        <p>
+                            إذا أردنا تدريب نموذج AI على التعرف على كائنات مختلفة في الصور، سنحتاج إلى قاعدة بيانات تُخزن:
+                            <ul class="list-group list-group-flush no-bullet">
+                                <li class="list-group-item"><i class="fas fa-circle-notch me-2"></i> **الكيانات:**
+                                    <ul>
+                                        <li>**صورة (Image):** (سماته: معرف_الصورة، مسار_الصورة، تاريخ_التحميل، حجم_الصورة).</li>
+                                        <li>**تسمية (Label):** (سماته: معرف_التسمية، اسم_التسمية، وصف).</li>
+                                        <li>**مستخدم (User):** (الذي أجرى عملية التسمية) (سماته: معرف_المستخدم، اسم_المستخدم).</li>
+                                    </ul>
+                                </li>
+                                <li class="list-group-item"><i class="fas fa-circle-notch me-2"></i> **العلاقات:**
+                                    <ul>
+                                        <li>**M:N بين صورة وتسمية:** الصورة الواحدة قد تحتوي على **عدة** تسميات (مثلاً، "سيارة" و "شجرة" في نفس الصورة)، والتسمية الواحدة قد تُطبق على **عدة** صور. (ستحتاج لجدول وسيط يربط الصور بالتسميات).</li>
+                                        <li>**1:N بين مستخدم وتسمية:** المستخدم الواحد يمكن أن يضيف **عدة** تسميات، لكن التسمية الواحدة أضافها مستخدم واحد.</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </p>
+                    </div>
+                </div>
+
+                ---
+
+                <!-- المراجع -->
+                <div class="content-card" id="references">
+                    <h2 class="section-title"><i class="fas fa-book-reader me-2"></i>المراجع</h2>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-book me-2 text-secondary"></i> كتاب "Database Systems Design, Implementation, and Management" لـ Carlos Coronel و Steven Morris.</li>
+                        <li class="list-group-item"><i class="fas fa-book me-2 text-secondary"></i> كتاب "Fundamentals of Database Systems" لـ Ramez Elmasri و Shamkant B. Navathe.</li>
+                        <li class="list-group-item"><i class="fas fa-globe me-2 text-secondary"></i> معيار UML (Unified Modeling Language) لنمذجة البيانات.</li>
+                    </ul>
+                </div>
+
+                ---
+
+                <!-- ملخص الوحدة -->
+                <div class="content-card" id="unit-summary">
+                    <h2 class="section-title"><i class="fas fa-check-double me-2"></i>ملخص الوحدة</h2>
+                    <p>
+                        في هذه الوحدة الهامة، خطوتَ خطوة كبيرة نحو إتقان **تحليل وتصميم البيانات** من خلال التعرف على **مخططات الكيانات والعلاقات (ERD)**.
+                    </p>
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> فهمتَ أن ERD هو أداة بصرية أساسية لنمذجة هيكل قاعدة البيانات وتنظيمها، مما يُسهل الربط بين المتطلبات الوظيفية والتصميم التقني.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> تعرفتَ على المكونات الرئيسية لـ ERD: **الكيانات** (قوية وضعيفة)، **السمات** (بأنواعها المختلفة بما في ذلك المفاتيح الأساسية والأجنبية)، و**العلاقات** (واحد لواحد، واحد لكثير، كثير لكثير).</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> أدركتَ أهمية ERD في تجنب الأخطاء الشائعة مثل تكرار البيانات، وتحسين التواصل، وتوثيق تصميم قاعدة البيانات.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> استعرضتَ الخطوات المنهجية لإنشاء ERD فعال، بدءًا من تحديد الكيانات وصولاً إلى تطبيق قواعد التطبيع.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> رأيتَ كيف يمكن استخدام ERD في سياق الذكاء الاصطناعي لتنظيم بيانات التدريب لأنظمة تعلم الآلة.</li>
+                    </ul>
+                    <p>
+                        إن إتقان ERD سيُمكنك من تصميم قواعد بيانات قوية وفعالة تُشكل العمود الفقري لأي نظام معلومات حديث. في الوحدة القادمة، سنتعلم عن **تصميم النظام وتنفيذه**، حيث ستربط كل هذه المفاهيم معًا لتحويل المتطلبات والتحليلات إلى نظام عملي.
+                    </p>
+                </div>
+
+                <!-- أزرار التنقل بين الوحدات -->
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="unit-6.html" class="unit-nav-btn"><i class="fas fa-arrow-left"></i>الوحدة السابقة: النمذجة الكائنية باستخدام UML</a>
+                    <a href="unit-8.html" class="unit-nav-btn">الوحدة التالية: تصميم النظام وتنفيذه<i class="fas fa-arrow-right"></i></a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- الفوتر (Footer) -->
+    <footer class="text-center text-lg-start mt-5" style="background-color: var(--primary-color);">
+        <div class="container p-4">
+            <div class="row">
+                <!-- قسم مسار الأمن السيبراني -->
+                <div class="col-lg-6 col-md-12 mb-4 mb-md-0">
+                    <h5 class="text-uppercase">مسار الأمن السيبراني</h5>
+                    <p>
+                        نحن نقدم محتوى تعليميًا شاملاً ومُحدثًا لمساعدتك على بناء أساس قوي في الأمن السيبراني وشبكات الحاسوب.
+                    </p>
+                </div>
+
+                <!-- قسم روابط مفيدة -->
+                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                    <h5 class="text-uppercase">روابط مفيدة</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li>
+                            <a href="#!" class="text-white">عن المسار</a>
+                        </li>
+                        <li>
+                            <a href="#!" class="text-white">اتصل بنا</a>
+                        </li>
+                        <li>
+                            <a href="#!" class="text-white">الأسئلة الشائعة</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- قسم تابعنا -->
+                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                    <h5 class="text-uppercase">تابعنا</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li>
+                            <a href="#!" class="text-white"><i class="fab fa-facebook-f me-2"></i>فيسبوك</a>
+                        </li>
+                        <li>
+                            <a href="#!" class="text-white"><i class="fab fa-twitter me-2"></i>تويتر</a>
+                        </li>
+                        <li>
+                            <a href="#!" class="text-white"><i class="fab fa-linkedin-in me-2"></i>لينكد إن</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- حقوق النشر -->
+        <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
+            © 2025 مسار الأمن السيبراني. جميع الحقوق محفوظة.
+        </div>
+    </footer>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
 
