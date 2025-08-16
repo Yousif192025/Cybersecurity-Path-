@@ -1,0 +1,1637 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الوحدة 10: المصفوفات (أحادية البعد وثنائية البعد) | أساسيات البرمجة بلغة الجافا</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts - Tajawal for Arabic font -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <!-- MathJax for mathematical equations -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        /* تعريف المتغيرات لألوان موحدة */
+        :root {
+            --primary-color: #2c3e50; /* لون أساسي غامق */
+            --secondary-color: #e74c3c; /* لون مميز للجافا (أحمر / برتقالي محروق) */
+            --accent-color: #f39c12; /* لون ثانوي مميز (برتقالي) */
+            --light-bg: #f8f9fa; /* خلفية فاتحة */
+            --dark-text: #2c3e50; /* نص غامق */
+            --light-text: #7f8c8d; /* نص فاتح */
+        }
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            line-height: 1.8;
+            direction: rtl; /* اتجاه النص من اليمين لليسار */
+            text-align: right; /* محاذاة النص لليمين */
+        }
+
+        /* تنسيقات شريط التنقل */
+        .navbar {
+            background-color: var(--primary-color);
+        }
+        .navbar-brand {
+            color: white !important;
+        }
+        .btn-outline-light {
+            border-color: rgba(255, 255, 255, 0.7) !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .btn-outline-light:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        /* تنسيقات رأس الوحدة */
+        .unit-header {
+            background: linear-gradient(135deg, var(--secondary-color), #c0392b); /* تدرج أحمر / برتقالي للجافا */
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 1rem 1rem; /* زوايا دائرية سفلية */
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        /* تنسيقات بطاقة المحتوى الرئيسية */
+        .content-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            padding: 2rem;
+            border-right: 4px solid var(--secondary-color); /* شريط جانبي بلون ثانوي */
+            transition: transform 0.3s ease, box-shadow 0.3s ease; /* تأثير التحويم */
+        }
+        .content-card:hover {
+            transform: translateY(-5px); /* رفع البطاقة قليلاً عند التحويم */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); /* ظل أكبر عند التحويم */
+        }
+
+        /* تنسيقات عنوان القسم */
+        .section-title {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+        }
+
+        /* تنسيقات العناوين الفرعية */
+        h3.sub-heading {
+            color: var(--primary-color);
+            border-bottom: 1px dashed var(--light-text);
+            padding-bottom: 0.3rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.75rem;
+        }
+        h4.sub-heading {
+            color: var(--primary-color);
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 1.5rem;
+        }
+
+
+        /* تنسيقات صناديق الأمثلة والملاحظات */
+        .example-box, .note-box {
+            background-color: #ffe0b2; /* لون برتقالي فاتح */
+            border-right: 5px solid var(--accent-color); /* حدود بلون مميز */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        .example-box i, .note-box i {
+            color: var(--accent-color);
+            margin-left: 0.5rem; /* مسافة بين الأيقونة والنص */
+        }
+
+        /* تنسيقات صناديق الأنشطة */
+        .activity-box {
+            background-color: #e9f7ef; /* لون أخضر فاتح للأنشطة */
+            border-right: 5px solid #28a745; /* حدود خضراء */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            color: var(--dark-text);
+        }
+        .activity-box i {
+            color: #28a745; /* لون أيقونة خضراء */
+            margin-left: 0.5rem;
+        }
+
+        /* تنسيقات تنبيهات المعلومات المخصصة */
+        .alert-info-custom {
+            background-color: #d1ecf1; /* أزرق فاتح جداً */
+            border-left: 5px solid #17a2b8; /* أزرق سماوي */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        .alert-info-custom i {
+            color: #17a2b8;
+            margin-right: 0.5rem;
+        }
+
+        /* تمييز المفاهيم الهامة */
+        .concept-highlight {
+            background-color: #fff3cd; /* لون أصفر فاتح للتمييز */
+            padding: 0.3rem 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        /* تنسيقات القوائم */
+        ul {
+            padding-right: 25px; /* مسافة داخلية لترقيم القوائم */
+        }
+        ul.no-bullet {
+            list-style: none;
+            padding-right: 0;
+        }
+        ul li {
+            margin-bottom: 0.5rem;
+        }
+        .list-group-item {
+            border: none;
+            padding-right: 0;
+            background-color: transparent;
+        }
+        .list-group-item i {
+            margin-left: 8px; /* مسافة بين الأيقونة والنص */
+        }
+
+        /* تنسيقات الجداول */
+        .table thead th {
+            background-color: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+        .table tbody tr:hover {
+            background-color: #fff5e6; /* تأثير التحويم على صفوف الجدول */
+        }
+        .table-bordered th, .table-bordered td {
+            border-color: #dee2e6;
+        }
+
+        /* تنسيق أزرار التنقل بين الوحدات */
+        .unit-nav-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: bold;
+            transition: background-color 0.2s, transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+        }
+        .unit-nav-btn:hover {
+            background-color: #c0392b; /* درجة أغمق من الأحمر */
+            color: white;
+            transform: translateY(-2px);
+        }
+        /* لتحديد اتجاه الأيقونات في أزرار التنقل لليسار واليمين */
+        .unit-nav-btn .fa-arrow-left {
+            margin-right: 0;
+            margin-left: 8px; /* أيقونة السهم الأيسر تظهر قبل النص في اتجاه RTL */
+        }
+        .unit-nav-btn .fa-arrow-right {
+            margin-right: 8px; /* أيقونة السهم الأيمن تظهر بعد النص في اتجاه RTL */
+            margin-left: 0;
+        }
+
+        /* تنسيقات الفوتر */
+        footer {
+            background-color: var(--primary-color) !important;
+            color: white;
+            padding: 2.5rem 0;
+        }
+        footer h5 {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        footer .list-unstyled li a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        footer .list-unstyled li a:hover {
+            color: var(--secondary-color);
+        }
+        footer .fab, footer .fas {
+            color: white;
+            transition: color 0.2s;
+        }
+        footer .fab:hover, footer .fas:hover {
+            color: var(--secondary-color);
+        }
+
+        /* تنسيقات الشريط الجانبي */
+        .sidebar {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            color: var(--dark-text);
+        }
+        .sidebar h4 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .sidebar .module-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+            margin-left: 10px;
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .sidebar .progress-container {
+            height: 25px;
+            margin-bottom: 1.5rem;
+        }
+        .sidebar .progress-bar {
+            background-color: var(--secondary-color);
+        }
+        /* تنسيقات الأكورديون في الشريط الجانبي */
+        .sidebar .accordion-button:not(.collapsed) {
+            background-color: #ffe0b2; /* لون برتقالي فاتح جداً */
+            color: var(--primary-color);
+            box-shadow: none;
+        }
+        .sidebar .accordion-button:not(.collapsed) .module-icon {
+            background-color: var(--primary-color);
+        }
+        .sidebar .accordion-button {
+            border-radius: 0.5rem !important;
+        }
+        .sidebar .accordion-item {
+            margin-bottom: 0.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(0, 0, 0, 0.125);
+            overflow: hidden;
+        }
+        .sidebar .accordion-body ul {
+            padding-right: 0;
+        }
+        .sidebar .accordion-body ul li a {
+            padding: 0.25rem 0.5rem;
+            display: block;
+            border-radius: 0.25rem;
+            color: var(--dark-text);
+        }
+        .sidebar .accordion-body ul li a:hover,
+        .sidebar .accordion-body ul li a.active-link {
+            background-color: #ffe0b2;
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+        .sidebar .accordion-body .btn-primary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .sidebar .accordion-body .btn-primary:hover {
+            background-color: #c0392b;
+            border-color: #c0392b;
+        }
+
+        /* ضبط الاستجابة (Responsive adjustments) */
+        @media (max-width: 991px) { /* نقطة توقف تتوافق مع col-lg- */
+            .sidebar {
+                margin-top: 1rem;
+                margin-bottom: 1rem; /* إضافة هامش لتحسين التباعد على الشاشات الأصغر */
+            }
+            .unit-header {
+                padding: 2rem 0;
+            }
+            .content-card {
+                padding: 1.5rem;
+            }
+            .section-title {
+                font-size: 1.75rem;
+            }
+            h3.sub-heading {
+                font-size: 1.5rem;
+            }
+            .unit-nav-btn {
+                width: 100%;
+                justify-content: center;
+                margin-bottom: 0.5rem;
+            }
+            .d-flex.justify-content-between.mt-4 {
+                flex-direction: column;
+            }
+        }
+
+        /* كود خاص بالـ pre و code لـ Java */
+        pre, pre code {
+            direction: ltr; /* لضمان أن يكون اتجاه الكود من اليسار لليمين */
+            text-align: left; /* لضمان أن يكون محاذاة النص لليسار */
+            background-color: #282c34; /* خلفية داكنة مثل محرر الأكواد */
+            color: #abb2bf; /* لون نص فاتح */
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            overflow-x: auto; /* للسماح بالتمرير الأفقي للأكواد الطويلة */
+            font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace; /* خط أحادي المسافة */
+            font-size: 0.95rem;
+            line-height: 1.6;
+            tab-size: 4;
+            margin-top: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        pre code {
+            display: block; /* لجعل كل سطر من الكود يظهر في سطر جديد */
+            white-space: pre-wrap; /* للحفاظ على تنسيق المسافات والأسطر */
+            word-break: break-all; /* لكسر الكلمات الطويلة جداً */
+        }
+        
+    </style>
+</head>
+<body>
+    <!-- شريط التنقل (Navbar) -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--primary-color);">
+        <div class="container">
+            <a class="navbar-brand" href="../../../index.html">مسار الأمن السيبراني</a>
+            <a href="../index.html" class="btn btn-outline-light">العودة إلى مقرر الجافا</a>
+        </div>
+    </nav>
+
+    <!-- رأس الوحدة (Unit Header) -->
+    <header class="unit-header text-center">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-3">الوحدة 10: المصفوفات (أحادية البعد وثنائية البعد)</h1>
+            <p class="lead">تنظيم البيانات المتشابهة في مجموعات يسهل التعامل معها</p>
+            <div class="mt-4">
+                <span class="badge bg-light text-primary p-2 mx-1"><i class="fas fa-clock me-1"></i> المدة: أسبوعان</span>
+                <span class="badge bg-light text-primary p-2 mx-1"><i class="fas fa-laptop-code me-1"></i> 6 ساعات نظرية</span>
+                <span class="badge bg-light text-primary p-2 mx-1"><i class="fas fa-flask me-1"></i> 6 ساعات عملية</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container-fluid py-5">
+        <div class="row">
+            <!-- الشريط الجانبي لتنقل الوحدات (Sidebar) -->
+            <div class="col-lg-3">
+                <div class="sidebar p-4">
+                    <h4 class="mb-3">
+                        <i class="fas fa-list-ul me-2"></i>
+                        وحدات المقرر
+                    </h4>
+                    <div class="progress progress-container mb-4">
+                        <div class="progress-bar" role="progressbar" style="width: 95%;" aria-valuenow="95" aria-valuemin="0" aria-valuemax="100">جاري التقدم</div>
+                    </div>
+                    <div class="accordion" id="unitsAccordion">
+                        <!-- الوحدة التمهيدية (مقرر الجافا) -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaCourse">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaCourse" aria-expanded="false" aria-controls="collapseJavaCourse">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-book-open"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">مقرر أساسيات الجافا</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaCourse" class="accordion-collapse collapse" aria-labelledby="headingJavaCourse" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="index.html#course-description" class="text-decoration-none">وصف المقرر</a></li>
+                                        <li><a href="index.html#course-objectives" class="text-decoration-none">أهداف المقرر</a></li>
+                                        <li><a href="index.html#learning-outcomes" class="text-decoration-none">مخرجات التعلم</a></li>
+                                        <li><a href="index.html#teaching-assessment" class="text-decoration-none">طرق التدريس والتقييم</a></li>
+                                        <li><a href="index.html#references-resources" class="text-decoration-none">المراجع والمصادر</a></li>
+                                    </ul>
+                                    <a href="index.html" class="btn btn-sm btn-primary mt-2">الانتقال للمقرر</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 1 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaUnit1">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaUnit1" aria-expanded="false" aria-controls="collapseJavaUnit1">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-laptop-code"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 1: مقدمة في البرمجة والحاسب</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaUnit1" class="accordion-collapse collapse" aria-labelledby="headingJavaUnit1" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-1.html#unit-objectives" class="text-decoration-none">أهداف الوحدة</a></li>
+                                        <li><a href="unit-1.html#basic-concepts" class="text-decoration-none">مفاهيم أساسية في البرمجة</a></li>
+                                        <li><a href="unit-1.html#programming-languages" class="text-decoration-none">لغات البرمجة والمترجمات</a></li>
+                                        <li><a href="unit-1.html#java-introduction" class="text-decoration-none">مقدمة في لغة الجافا</a></li>
+                                        <li><a href="unit-1.html#practical-section" class="text-decoration-none">الجانب العملي: أول برنامج جافا</a></li>
+                                        <li><a href="unit-1.html#security-applications" class="text-decoration-none">تطبيقات أمنية أولية</a></li>
+                                        <li><a href="unit-1.html#exercises-evaluation" class="text-decoration-none">تمارين وتقييم الوحدة</a></li>
+                                        <li><a href="unit-1.html#references" class="text-decoration-none">المراجع</a></li>
+                                        <li><a href="unit-1.html#unit-summary" class="text-decoration-none">ملخص الوحدة</a></li>
+                                    </ul>
+                                    <a href="unit-1.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 2 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaUnit2">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaUnit2" aria-expanded="false" aria-controls="collapseJavaUnit2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fab fa-java"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 2: أساسيات جافا والمتغيرات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaUnit2" class="accordion-collapse collapse" aria-labelledby="headingJavaUnit2" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-2.html#unit-objectives" class="text-decoration-none">أهداف الوحدة</a></li>
+                                        <li><a href="unit-2.html#java-definition" class="text-decoration-none">تعريف لغة الجافا وميزاتها</a></li>
+                                        <li><a href="unit-2.html#data-types-variables" class="text-decoration-none">أنواع البيانات والمتغيرات</a></li>
+                                        <li><a href="unit-2.html#comments" class="text-decoration-none">التعليقات (Comments)</a></li>
+                                        <li><a href="unit-2.html#keywords-punctuation" class="text-decoration-none">الكلمات المحجوزة وعلامات الترقيم</a></li>
+                                        <li><a href="unit-2.html#practical-print" class="text-decoration-none">الجانب العملي: أوامر الطباعة</a></li>
+                                        <li><a href="unit-2.html#practical-average" class="text-decoration-none">تطبيق عملي: برنامج حساب المتوسط</a></li>
+                                        <li><a href="unit-2.html#exercises-evaluation" class="text-decoration-none">تمارين وتقييم الوحدة</a></li>
+                                        <li><a href="unit-2.html#references" class="text-decoration-none">المراجع</a></li>
+                                        <li><a href="unit-2.html#unit-summary" class="text-decoration-none">ملخص الوحدة</a></li>
+                                    </ul>
+                                    <a href="unit-2.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 3 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaUnit3">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaUnit3" aria-expanded="false" aria-controls="collapseJavaUnit3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-bezier-curve"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 3: الخوارزميات وخرائط التدفق</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaUnit3" class="accordion-collapse collapse" aria-labelledby="headingJavaUnit3" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-3.html#unit-objectives" class="text-decoration-none">أهداف الوحدة</a></li>
+                                        <li><a href="unit-3.html#problem-solving" class="text-decoration-none">طريقة حل المشكلات (Problem Solving)</a></li>
+                                        <li><a href="unit-3.html#algorithms" class="text-decoration-none">الخوارزميات (Algorithms)</a></li>
+                                        <li><a href="unit-3.html#flowcharts" class="text-decoration-none">خرائط تدفق البيانات (Flowcharts)</a></li>
+                                        <li><a href="unit-3.html#practical" class="text-decoration-none">الجانب العملي</a></li>
+                                        <li><a href="unit-3.html#exercises-evaluation" class="text-decoration-none">تمارين وتقييم</a></li>
+                                        <li><a href="unit-3.html#conclusion" class="text-decoration-none">الخلاصة</a></li>
+                                        <li><a href="unit-3.html#references" class="text-decoration-none">المراجع</a></li>
+                                    </ul>
+                                    <a href="unit-3.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 4 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaUnit4">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaUnit4" aria-expanded="false" aria-controls="collapseJavaUnit4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-exchange-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 4: المتغيرات، إسناد القيم، والدوال الأساسية</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaUnit4" class="accordion-collapse collapse" aria-labelledby="headingJavaUnit4" data-bs-parent="#unitsAccordion">
+                                <ul class="list-unstyled">
+                                    <li><a href="unit-4.html#unit-objectives" class="text-decoration-none">المقدمة والأهداف التعليمية</a></li>
+                                    <li><a href="unit-4.html#part1-variables-assignment" class="text-decoration-none">الجزء الأول: المتغيرات وإسناد القيم</a></li>
+                                    <li><a href="unit-4.html#part2-methods-intro" class="text-decoration-none">الجزء الثاني: مقدمة في الدوال (Methods)</a></li>
+                                    <li><a href="unit-4.html#part3-joptionpane" class="text-decoration-none">الجزء الثالث: الطباعة والإدخال باستخدام JOptionPane</a></li>
+                                    <li><a href="unit-4.html#conclusion" class="text-decoration-none">الخلاصة</a></li>
+                                    <li><a href="unit-4.html#exercises-evaluation" class="text-decoration-none">تمارين مقترحة للطلاب</a></li>
+                                    <li><a href="unit-4.html#references" class="text-decoration-none">المراجع</a></li>
+                                </ul>
+                                <a href="unit-4.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 5 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaUnit5">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaUnit5" aria-expanded="false" aria-controls="collapseJavaUnit5">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-keyboard"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 5: التفاعل مع المستخدم: الطباعة والإدخال عبر Console (Scanner) و GUI (JOptionPane)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaUnit5" class="accordion-collapse collapse" aria-labelledby="headingJavaUnit5" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-5.html#unit-objectives" class="text-decoration-none">المقدمة والأهداف التعليمية</a></li>
+                                        <li><a href="unit-5.html#input-introduction" class="text-decoration-none">مدخل إلى إدخال البيانات في جافا</a></li>
+                                        <li><a href="unit-5.html#scanner-class" class="text-decoration-none">الكلاس Scanner</a></li>
+                                        <li><a href="unit-5.html#data-types-scanner" class="text-decoration-none">أنواع البيانات التي يمكن استقبالها باستخدام Scanner</a></li>
+                                        <li><a href="unit-5.html#technical-terms" class="text-decoration-none">مصطلحات تقنية مهمة</a></li>
+                                        <li><a href="unit-5.html#input-steps" class="text-decoration-none">خطوات جعل البرنامج يستقبل بيانات من المستخدم</a></li>
+                                        <li><a href="unit-5.html#comprehensive-examples" class="text-decoration-none">أمثلة شاملة حول إدخال البيانات</a></li>
+                                        <li><a href="unit-5.html#scanner-constructors" class="text-decoration-none">كونستركتورات الكلاس Scanner</a></li>
+                                        <li><a href="unit-5.html#scanner-methods" class="text-decoration-none">أهم دوال الإدخال في الكلاس Scanner</a></li>
+                                        <li><a href="unit-5.html#scanner-searching-methods" class="text-decoration-none">دوال البحث (Searching Methods)</a></li>
+                                        <li><a href="unit-5.html#scanner-checking-methods" class="text-decoration-none">دوال التحقق (Checking Methods)</a></li>
+                                        <li><a href="unit-5.html#joptionpane-intro" class="text-decoration-none">مقدمة إلى JOptionPane</a></li>
+                                        <li><a href="unit-5.html#show-message-dialog" class="text-decoration-none">عرض الرسائل: showMessageDialog</a></li>
+                                        <li><a href="unit-5.html#show-input-dialog" class="text-decoration-none">أخذ المدخلات: showInputDialog</a></li>
+                                        <li><a href="unit-5.html#data-conversion" class="text-decoration-none">تحويل أنواع البيانات</a></li>
+                                        <li><a href="unit-5.html#practical-applications" class="text-decoration-none">تطبيقات عملية (JOptionPane)</a></li>
+                                        <li><a href="unit-5.html#common-errors" class="text-decoration-none">الأخطاء الشائعة وحلولها</a></li>
+                                        <li><a href="unit-5.html#exercises-evaluation" class="text-decoration-none">تمارين وتحديات</a></li>
+                                        <li><a href="unit-5.html#references" class="text-decoration-none">المراجع</a></li>
+                                        <li><a href="unit-5.html#unit-summary" class="text-decoration-none">ملخص الوحدة</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 6 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaUnit6">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaUnit6" aria-expanded="false" aria-controls="collapseJavaUnit6">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-code-branch"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 6: العوامل (Operators) والحلقات (Loops) في Java</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaUnit6" class="accordion-collapse collapse" aria-labelledby="headingJavaUnit6" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-6.html#unit-objectives" class="text-decoration-none">المقدمة والأهداف التعليمية</a></li>
+                                        <li><a href="unit-6.html#operators-intro" class="text-decoration-none">مفهوم العوامل (Operators)</a></li>
+                                        <li><a href="unit-6.html#arithmetic-operators" class="text-decoration-none">العوامل الحسابية (Arithmetic Operators)</a></li>
+                                        <li><a href="unit-6.html#comparison-operators" class="text-decoration-none">عوامل المقارنة (Comparison Operators)</a></li>
+                                        <li><a href="unit-6.html#logical-operators" class="text-decoration-none">العوامل المنطقية (Logical Operators)</a></li>
+                                        <li><a href="unit-6.html#bitwise-operators" class="text-decoration-none">العوامل على البتات (Bitwise Operators)</a></li>
+                                        <li><a href="unit-6.html#assignment-operators" class="text-decoration-none">عوامل الإسناد (Assignment Operators)</a></li>
+                                        <li><a href="unit-6.html#other-operators" class="text-decoration-none">عوامل أخرى مهمة</a></li>
+                                        <li><a href="unit-6.html#loops-intro" class="text-decoration-none">الحلقات (Loops) في Java</a></li>
+                                        <li><a href="unit-6.html#loop-types" class="text-decoration-none">أنواع الحلقات في Java</a></li>
+                                        <li><a href="unit-6.html#control-statements" class="text-decoration-none">جمل التحكم مع الحلقات (Control Statements)</a></li>
+                                        <li><a href="unit-6.html#exercises-evaluation" class="text-decoration-none">تمارين وتحديات</a></li>
+                                        <li><a href="unit-6.html#references" class="text-decoration-none">المراجع</a></li>
+                                        <li><a href="unit-6.html#unit-summary" class="text-decoration-none">ملخص الوحدة</a></li>
+                                    </ul>
+                                    <a href="unit-6.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 7 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaUnit7">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaUnit7" aria-expanded="false" aria-controls="collapseJavaUnit7">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-sync-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 7: جمل التحكم الشرطية (If-Else, Switch)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaUnit7" class="accordion-collapse collapse" aria-labelledby="headingJavaUnit7" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-7.html#unit-objectives" class="text-decoration-none">المقدمة والأهداف التعليمية</a></li>
+                                        <li><a href="unit-7.html#conditions-intro" class="text-decoration-none">مقدمة عن الشروط في جافا</a></li>
+                                        <li><a href="unit-7.html#if-else-advanced" class="text-decoration-none">جمل if-else الأساسية والمتقدمة</a></li>
+                                        <li><a href="unit-7.html#switch-statement" class="text-decoration-none">جملة switch</a></li>
+                                        <li><a href="unit-7.html#comparison-if-switch" class="text-decoration-none">مقارنة بين if-else و switch</a></li>
+                                        <li><a href="unit-7.html#practical-examples" class="text-decoration-none">أمثلة تطبيقية</a></li>
+                                        <li><a href="unit-7.html#exercises-challenges" class="text-decoration-none">تمارين وتحديات</a></li>
+                                        <li><a href="unit-7.html#references" class="text-decoration-none">المراجع</a></li>
+                                        <li><a href="unit-7.html#unit-summary" class="text-decoration-none">ملخص الوحدة</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 8 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaUnit8">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaUnit8" aria-expanded="false" aria-controls="collapseJavaUnit8">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-redo"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 8: حلقات التكرار (for, while, do-while)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaUnit8" class="accordion-collapse collapse" aria-labelledby="headingJavaUnit8" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-8.html#unit-objectives" class="text-decoration-none">المقدمة والأهداف التعليمية</a></li>
+                                        <li><a href="unit-8.html#loops-intro-unit8" class="text-decoration-none">مقدمة عن الحلقات في البرمجة</a></li>
+                                        <li><a href="unit-8.html#loop-types-unit8" class="text-decoration-none">أنواع الحلقات في جافا</a></li>
+                                        <li><a href="unit-8.html#for-loop" class="text-decoration-none">الحلقة for</a></li>
+                                        <li><a href="unit-8.html#while-loop" class="text-decoration-none">الحلقة while</a></li>
+                                        <li><a href="unit-8.html#do-while-loop" class="text-decoration-none">الحلقة do-while</a></li>
+                                        <li><a href="unit-8.html#loop-differences" class="text-decoration-none">الفروق بين الحلقات</a></li>
+                                        <li><a href="unit-8.html#break-continue" class="text-decoration-none">استخدام continue و break</a></li>
+                                        <li><a href="unit-8.html#practical-examples-unit8" class="text-decoration-none">أمثلة عملية</a></li>
+                                        <li><a href="unit-8.html#exercises-challenges-unit8" class="text-decoration-none">تمارين وتحديات</a></li>
+                                        <li><a href="unit-8.html#unit8-summary" class="text-decoration-none">الخلاصة</a></li>
+                                        <li><a href="unit-8.html#references-unit8" class="text-decoration-none">المراجع</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 9 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaUnit9">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaUnit9" aria-expanded="false" aria-controls="collapseJavaUnit9">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-code"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 9: الدوال (Methods) في جافا</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaUnit9" class="accordion-collapse collapse" aria-labelledby="headingJavaUnit9" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-9.html#unit-objectives" class="text-decoration-none">المقدمة والأهداف التعليمية</a></li>
+                                        <li><a href="unit-9.html#methods-intro-unit9" class="text-decoration-none">مفهوم الدوال في جافا</a></li>
+                                        <li><a href="unit-9.html#building-methods" class="text-decoration-none">بناء الدوال في جافا</a></li>
+                                        <li><a href="unit-9.html#practical-methods" class="text-decoration-none">أمثلة عملية حول تعريف دوال جديدة</a></li>
+                                        <li><a href="unit-9.html#return-values-methods" class="text-decoration-none">القيم المرجعة (Return Values)</a></li>
+                                        <li><a href="unit-9.html#exercises-unit9" class="text-decoration-none">تمارين مقترحة</a></li>
+                                        <li><a href="unit-9.html#unit9-summary" class="text-decoration-none">الخلاصة</a></li>
+                                        <li><a href="unit-9.html#references-unit9" class="text-decoration-none">المراجع</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 10 (الوحدة النشطة) -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaUnit10">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaUnit10" aria-expanded="true" aria-controls="collapseJavaUnit10">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-grip-lines"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 10: المصفوفات (ذات البعد الواحد والثنائي)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaUnit10" class="accordion-collapse collapse show" aria-labelledby="headingJavaUnit10" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="#unit-objectives" class="text-decoration-none active-link">المقدمة والأهداف التعليمية</a></li>
+                                        <li><a href="#array-intro" class="text-decoration-none">تمهيد: لماذا نحتاج المصفوفات؟</a></li>
+                                        <li><a href="#array-definition-props" class="text-decoration-none">تعريف المصفوفة وخصائصها</a></li>
+                                        <li><a href="#array-benefits" class="text-decoration-none">فوائد استخدام المصفوفات</a></li>
+                                        <li><a href="#array-limitation" class="text-decoration-none">مشكلة المصفوفات: الحجم الثابت</a></li>
+                                        <li><a href="#array-declaration" class="text-decoration-none">تعريف المصفوفات في Java</a></li>
+                                        <li><a href="#array-creation" class="text-decoration-none">إنشاء المصفوفة (Create Array)</a></li>
+                                        <li><a href="#array-memory-layout" class="text-decoration-none">شكل المصفوفة في الذاكرة</a></li>
+                                        <li><a href="#array-loops" class="text-decoration-none">استخدام الحلقات مع المصفوفات</a></li>
+                                        <li><a href="#array-methods-passing" class="text-decoration-none">الدوال والمصفوفات (تمرير وإرجاع)</a></li>
+                                        <li><a href="#two-d-arrays" class="text-decoration-none">المصفوفات ثنائية البعد (2D Arrays)</a></li>
+                                        <li><a href="#builtin-array-methods" class="text-decoration-none">دوال جاهزة للتعامل مع المصفوفات</a></li>
+                                        <li><a href="#unit10-exercises" class="text-decoration-none">تمارين مقترحة</a></li>
+                                        <li><a href="#unit10-summary" class="text-decoration-none">ملخص الوحدة</a></li>
+                                        <li><a href="#references-unit10" class="text-decoration-none">المراجع</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 11 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaUnit11">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaUnit11" aria-expanded="false" aria-controls="collapseJavaUnit11">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-cube"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 11: الكائنات والكلاسات (Objects and Classes)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaUnit11" class="accordion-collapse collapse" aria-labelledby="headingJavaUnit11" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-11.html#oop-concepts" class="text-decoration-none">مفاهيم الكلاس والكائن والكونستركتور</a></li>
+                                        <li><a href="unit-11.html#properties-methods" class="text-decoration-none">الخصائص والطرق (Properties and Methods)</a></li>
+                                    </ul>
+                                    <a href="unit-11.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- تمارين ومراجعة -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaExercises">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaExercises" aria-expanded="false" aria-controls="collapseJavaExercises">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-question-circle"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">تمارين عامة ومراجعة</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaExercises" class="accordion-collapse collapse" aria-labelledby="headingJavaExercises" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="exercises.html#overview" class="text-decoration-none">أسئلة نظرية وعملية شاملة</a></li>
+                                        <li><a href="exercises.html#code-correction" class="text-decoration-none">تصحيح الأكواد وتطبيقات متكاملة</a></li>
+                                    </ul>
+                                    <a href="exercises.html" class="btn btn-sm btn-primary mt-2">الانتقال للتمارين</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ملحقات -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaAppendices">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaAppendices" aria-expanded="false" aria-controls="collapseJavaAppendices">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-paperclip"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">ملحقات المقرر</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaAppendices" class="accordion-collapse collapse" aria-labelledby="headingJavaAppendices" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="glossary.html" class="text-decoration-none">مصطلحات إنجليزية</a></li>
+                                        <li><a href="references.html" class="text-decoration-none">المراجع والمصادر</a></li>
+                                        <!-- يمكنك إضافة المزيد مثل اختصارات لوحة المفاتيح هنا لاحقًا -->
+                                    </ul>
+                                    <a href="glossary.html" class="btn btn-sm btn-primary mt-2">عرض الملحقات</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة الختامية -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingJavaSummary">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseJavaSummary" aria-expanded="false" aria-controls="collapseJavaSummary">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-award"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة الختامية: ملخص وتوصيات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseJavaSummary" class="accordion-collapse collapse" aria-labelledby="headingJavaSummary" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <p>ملخص شامل للمقرر وتوصيات للتوسع في المجال.</p>
+                                    <a href="unit-summary.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة الختامية</a>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- منطقة المحتوى الرئيسية -->
+            <div class="col-lg-9">
+                <!-- المقدمة والأهداف التعليمية -->
+                <div class="content-card" id="unit-objectives">
+                    <h2 class="section-title"><i class="fas fa-bullseye me-2"></i>المقدمة والأهداف التعليمية</h2>
+                    <p>
+                        بعد إتقانك لمفاهيم التحكم في التدفق (الشروط والحلقات) وكيفية تنظيم الكود باستخدام الدوال، حان الوقت للانتقال إلى موضوع حيوي آخر في البرمجة: **هياكل البيانات (Data Structures)**. وتعتبر **المصفوفات (Arrays)** هي البوابة الأولى والأكثر شيوعًا لدخول هذا العالم.
+                    </p>
+                    <p>
+                        المصفوفات تمكنك من التعامل مع مجموعات كبيرة من البيانات المتشابهة بكفاءة، مما يفتح آفاقًا جديدة لبناء برامج أكثر قوة وقدرة على معالجة المعلومات المنظمة. ستتعلم في هذه الوحدة كيفية تعريف المصفوفات، التعامل مع عناصرها، واستخدامها في برامجك.
+                    </p>
+                    <h3 class="sub-heading">الأهداف:</h3>
+                    <p>بنهاية هذه الوحدة، ستكون قادرًا على:</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> فهم مفهوم المصفوفات وأهميتها في تخزين البيانات المتشابهة.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> التعرف على خصائص المصفوفات (مثل الفهرس الثابت والحجم الثابت).</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> تعريف وإنشاء المصفوفات أحادية البعد في جافا بطرق مختلفة.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> الوصول إلى عناصر المصفوفة وتعديلها باستخدام الفهارس.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> استخدام حلقات التكرار (`for` و `foreach`) للمرور على عناصر المصفوفة.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> فهم كيفية تمرير المصفوفات إلى الدوال وإرجاعها منها.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> التعامل مع المصفوفات ثنائية البعد (2D Arrays) واستخدامها لتمثيل البيانات الجدولية.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> استخدام بعض الدوال الجاهزة في جافا لتسهيل التعامل مع المصفوفات (مثل `Arrays.sort`، `Arrays.equals`).</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> حل المشكلات البرمجية التي تتطلب تخزين ومعالجة مجموعات من البيانات.</li>
+                    </ul>
+                </div>
+
+                ---
+
+                <!-- أولاً: تمهيد: لماذا نحتاج المصفوفات؟ -->
+                <div class="content-card" id="array-intro">
+                    <h2 class="section-title"><i class="fas fa-puzzle-piece me-2"></i>أولاً: تمهيد: لماذا نحتاج المصفوفات؟</h2>
+                    <p>
+                        عند بناء البرامج، نحتاج في كثير من الأحيان إلى التعامل مع **مجموعة من البيانات المتشابهة**. تخيل أن لديك قائمة بدرجات 10 طلاب، أو أسماء 50 موظفًا، أو بيانات لـ 1000 منتج. بدون مفهوم المصفوفات، كان سيتعين عليك تعريف متغير لكل قيمة على حدة، مما سيجعل الكود طويلاً جداً، صعب القراءة، وأكثر عرضة للأخطاء.
+                    </p>
+                    <div class="example-box">
+                        <i class="fas fa-exclamation-triangle"></i> <strong>المشكلة بدون مصفوفات:</strong>
+                        <pre><code class="language-java">// تخزين 3 درجات بدون مصفوفات
+int grade1 = 85;
+int grade2 = 92;
+int grade3 = 78;
+
+// ماذا لو كان لدينا 100 درجة؟ سيكون الكود طويلاً جداً!
+</code></pre>
+                    </div>
+                    <p>
+                        هنا جاء مفهوم **المصفوفة (Array)** ليحل هذه المشكلة. المصفوفة هي عبارة عن **حاوية** يمكنها الاحتفاظ بمجموعة من القيم **من نفس النوع**، وتكون هذه القيم مخزنة بشكل متجاور في الذاكرة. يمكننا الوصول إلى كل قيمة في المصفوفة بشكل فردي وسريع باستخدام رقم خاص يسمى **الفهرس (Index)**. يبدأ هذا الفهرس دائمًا من 0 ويستمر حتى 'طول المصفوفة ناقص واحد'.
+                    </p>
+                    <div class="note-box">
+                        <i class="fas fa-lightbulb"></i> <strong>فكر فيها هكذا:</strong>
+                        <p>تخيل المصفوفة كرف كتب طويل مقسم إلى خانات مرقمة، تبدأ من الخانة رقم 0. كل خانة مخصصة لنوع معين من الكتب (مثلاً، كتب الرياضيات فقط). لو أردت الوصول إلى الكتاب الخامس، ستذهب إلى الخانة رقم 4 (بسبب البدء من الصفر).</p>
+                    </div>
+                </div>
+
+                ---
+
+                <!-- ثانياً: تعريف المصفوفة وخصائصها -->
+                <div class="content-card" id="array-definition-props">
+                    <h2 class="section-title"><i class="fas fa-info-circle me-2"></i>ثانياً: تعريف المصفوفة وخصائصها</h2>
+                    <p>لنغوص أكثر في طبيعة المصفوفات في جافا:</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-cubes me-2"></i> **المصفوفة كائن (Object):** في جافا، المصفوفات هي كائنات (Objects)، وهذا يعني أنها تتمتع بخصائص معينة (مثل خاصية `length` التي تخبرنا عن حجمها) وتتصرف ككائنات في الذاكرة.</li>
+                        <li class="list-group-item"><i class="fas fa-layer-group me-2"></i> **تخزين قيم من نفس النوع:** هذه نقطة جوهرية. المصفوفة مخصصة لتخزين قيم من نوع بيانات واحد فقط. لا يمكنك وضع أعداد صحيحة ونصوص في نفس المصفوفة. فمثلاً، مصفوفة من نوع `int` ستخزن أعدادًا صحيحة فقط، ومصفوفة من نوع `String` ستخزن نصوصًا فقط.</li>
+                        <li class="list-group-item"><i class="fas fa-sort-numeric-up-alt me-2"></i> **الوصول بالفهرس (Index):** كل عنصر في المصفوفة يُميز عن الآخر برقم ترتيبي فريد (فهرس). أول عنصر له الفهرس `0`، والثاني `1`، وهكذا. آخر عنصر في المصفوفة سيكون فهرسه `طول_المصفوفة - 1`.
+                            <pre><code class="language-java">int[] grades = {90, 85, 95};
+// grades[0] هي 90
+// grades[1] هي 85
+// grades[2] هي 95
+</code></pre>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-lock me-2"></i> **حجم المصفوفة ثابت:** بمجرد إنشاء المصفوفة وتحديد حجمها (عدد العناصر التي ستحتويها)، لا يمكن تغيير هذا الحجم. إذا أنشأت مصفوفة بحجم 5، فستبقى بحجم 5.
+                            <div class="note-box">
+                                <i class="fas fa-info-circle"></i> <strong>ملاحظة مهمة:</strong>
+                                <p>هذا لا يعني أن القيم المخزنة داخل المصفوفة لا يمكن تغييرها. يمكنك تغيير قيمة أي عنصر في أي وقت، لكن عدد العناصر (الحجم) يظل ثابتًا.</p>
+                            </div>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-asterisk me-2"></i> **القيم الابتدائية الافتراضية:** عندما تُنشئ مصفوفة ولا تُعطي قيمًا ابتدائية صريحة لعناصرها، فإن جافا تُعين لها قيمًا افتراضية بناءً على نوع البيانات:
+                            <ul>
+                                <li>لأنواع الأعداد الصحيحة (`int`, `long`, `short`, `byte`): القيمة الافتراضية هي **`0`**.</li>
+                                <li>لأنواع الأعداد العشرية (`double`, `float`): القيمة الافتراضية هي **`0.0`**.</li>
+                                <li>لنوع القيم المنطقية (`boolean`): القيمة الافتراضية هي **`false`**.</li>
+                                <li>للنصوص أو أي كائن آخر (`String` أو أي كلاس): القيمة الافتراضية هي **`null`** (وهي تعني "لا شيء" أو "لا يشير إلى أي كائن").</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                ---
+
+                <!-- ثالثاً: فوائد استخدام المصفوفات -->
+                <div class="content-card" id="array-benefits">
+                    <h2 class="section-title"><i class="fas fa-star me-2"></i>ثالثاً: فوائد استخدام المصفوفات</h2>
+                    <p>تقدم المصفوفات العديد من الفوائد التي تجعلها أداة لا غنى عنها في البرمجة:</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-compress-alt me-2"></i> **تقليل عدد المتغيرات المتشابهة:** بدلًا من تعريف متغيرات فردية لكل قطعة بيانات، يمكن جمعها في مصفوفة واحدة مما يجعل الكود أكثر إيجازًا ووضوحًا.</li>
+                        <li class="list-group-item"><i class="fas fa-cogs me-2"></i> **سهولة تعديل القيم ومعالجتها:** باستخدام حلقات التكرار، يمكن بسهولة المرور على جميع عناصر المصفوفة وتعديلها أو معالجتها (مثل حساب مجموعها، إيجاد أكبر قيمة، أو ترتيبها).</li>
+                        <li class="list-group-item"><i class="fas fa-fast-forward me-2"></i> **إمكانية الوصول السريع لأي عنصر:** بفضل الفهرسة، يمكن الوصول إلى أي عنصر داخل المصفوفة مباشرةً في وقت ثابت، بغض النظر عن حجم المصفوفة.</li>
+                        <li class="list-group-item"><i class="fas fa-flask me-2"></i> **أساس لهياكل البيانات الأكثر تعقيدًا:** فهم المصفوفات هو خطوة أولى ضرورية لفهم هياكل البيانات الأكثر تقدمًا مثل القوائم المتصلة (Linked Lists) وجداول التجزئة (Hash Tables) وغيرها.</li>
+                    </ul>
+                </div>
+
+                ---
+
+                <!-- رابعاً: مشكلة المصفوفات: الحجم الثابت -->
+                <div class="content-card" id="array-limitation">
+                    <h2 class="section-title"><i class="fas fa-exclamation-circle me-2"></i>رابعاً: مشكلة المصفوفات: الحجم الثابت</h2>
+                    <p>على الرغم من مزاياها العديدة، إلا أن المصفوفات تعاني من قيد رئيسي وحيوي يجب الانتباه إليه:</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-times-circle text-danger me-2"></i> **حجمها ثابت ولا يمكن تغييره بعد إنشائها.** هذا يعني أنه إذا أنشأت مصفوفة بحجم معين (مثل 10 عناصر)، فلا يمكنك إضافة عنصر حادي عشر إليها أو إزالة عنصر لتقليص حجمها بعد ذلك.</li>
+                    </ul>
+                    <p>
+                        هذا القيد يمكن أن يكون مشكلة في التطبيقات التي تحتاج إلى التعامل مع كميات غير معروفة أو متغيرة من البيانات.
+                    </p>
+                    <div class="alert-info-custom">
+                        <i class="fas fa-info-circle"></i> <strong>الحل في جافا: مكتبة Collections</strong>
+                        <p>
+                            لمعالجة هذه المشكلة وتوفير مرونة أكبر في إدارة مجموعات البيانات، وفرت لغة جافا مكتبة قوية تسمى **Collections Framework**. هذه المكتبة تحتوي على هياكل بيانات ديناميكية (مثل `ArrayList` و `LinkedList`) التي تسمح لك بإضافة أو إزالة العناصر بعد الإنشاء، وتعديل حجمها تلقائياً حسب الحاجة. سيتم دراسة هذه المكتبة لاحقاً في مقرر البرمجة المتقدمة.
+                        </p>
+                    </div>
+                </div>
+
+                ---
+
+                <!-- خامساً: تعريف المصفوفات في Java (Declaration) -->
+                <div class="content-card" id="array-declaration">
+                    <h2 class="section-title"><i class="fas fa-code me-2"></i>خامساً: تعريف المصفوفات في Java (Declaration)</h2>
+                    <p>
+                        قبل استخدام المصفوفة، يجب عليك تعريفها (Declaration)، وهو ما يخبر المترجم بنوع البيانات التي ستخزنها هذه المصفوفة. يوجد أكثر من طريقة لتعريف المصفوفة في جافا:
+                    </p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-check me-2"></i> **الطريقة المفضلة والأكثر شيوعًا:** ضع الأقواس المربعة `[]` بعد نوع البيانات مباشرة.
+                            <pre><code class="language-java">int[] numbers;        // مصفوفة من الأعداد الصحيحة
+String[] names;       // مصفوفة من النصوص
+double[] values;      // مصفوفة من الأعداد العشرية
+</code></pre>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-check me-2"></i> **طرق مقبولة أيضًا (لكن الأقل شيوعًا):**
+                            <pre><code class="language-java">int [] numbers;       // الأقواس بعد نوع البيانات مع مسافة
+int numbers[];        // الأقواس بعد اسم المتغير (تأتي من لغة C/C++)
+</code></pre>
+                        </li>
+                    </ul>
+                    <p>
+                        يمكنك أيضًا تعريف مصفوفات **متعددة الأبعاد**، وأكثرها شيوعًا هي **المصفوفات ثنائية البعد (2D Arrays)**، والتي تتطلب زوجين من الأقواس:
+                    </p>
+                    <pre><code class="language-java">int[][] matrix;       // مصفوفة ثنائية البعد (جدول من الأعداد الصحيحة)
+</code></pre>
+                    <div class="alert-info-custom">
+                        <i class="fas fa-info-circle"></i> <strong>ملاحظة:</strong>
+                        <p>عملية التعريف (Declaration) تخبر جافا بأنك ستستخدم مصفوفة، ولكنها **لا تُنشئ المصفوفة فعليًا في الذاكرة** ولا تُخصص لها مساحة بعد. لإنشاء المصفوفة، تحتاج إلى استخدام الكلمة المحجوزة `new`، وهو ما سنتناوله في القسم التالي.</p>
+                    </div>
+                </div>
+
+                ---
+
+                <!-- سادساً: إنشاء المصفوفة (Create Array) -->
+                <div class="content-card" id="array-creation">
+                    <h2 class="section-title"><i class="fas fa-boxes me-2"></i>سادساً: إنشاء المصفوفة (Create Array)</h2>
+                    <p>
+                        بعد تعريف المصفوفة، الخطوة التالية هي **إنشاؤها (Initialization)**، أي تخصيص مساحة لها في الذاكرة وإعدادها للاستخدام. يتم ذلك باستخدام الكلمة المحجوزة `new`. يوجد طريقتان رئيسيتان لإنشاء المصفوفة:
+                    </p>
+
+                    <h3 class="sub-heading">1. إنشاء مصفوفة بحجم محدد وتعبئتها لاحقًا (Empty Creation):</h3>
+                    <p>
+                        في هذه الطريقة، تحدد حجم المصفوفة (عدد العناصر) عند إنشائها. جميع عناصر المصفوفة ستحصل على قيمها الافتراضية بناءً على نوع البيانات.
+                    </p>
+                    <pre><code class="language-java">int[] numbers = new int[5]; 
+// تُنشئ مصفوفة اسمها 'numbers' يمكنها تخزين 5 أعداد صحيحة.
+// قيمها الابتدائية ستكون {0, 0, 0, 0, 0}
+</code></pre>
+                    <div class="note-box">
+                        <i class="fas fa-lightbulb"></i> <strong>مثال عملي:</strong>
+                        <pre><code class="language-java">public class CreateArrayExample1 {
+    public static void main(String[] args) {
+        // تعريف وإنشاء مصفوفة من 3 عناصر لتخزين درجات الطلاب
+        String[] studentNames = new String[3]; 
+
+        // تعبئة القيم لاحقًا
+        studentNames[0] = "علي";
+        studentNames[1] = "فاطمة";
+        studentNames[2] = "خالد";
+
+        System.out.println("اسم الطالب الأول: " + studentNames[0]);
+        System.out.println("اسم الطالب الثاني: " + studentNames[1]);
+        System.out.println("اسم الطالب الثالث: " + studentNames[2]);
+    }
+}
+</code></pre>
+                        <p><strong>الناتج:</strong></p>
+                        <pre><code>اسم الطالب الأول: علي
+اسم الطالب الثاني: فاطمة
+اسم الطالب الثالث: خالد
+</code></pre>
+                    </div>
+
+                    <h3 class="sub-heading">2. إنشاء مصفوفة مع إعطاء قيم مباشرة (Direct Initialization):</h3>
+                    <p>
+                        هنا، تقوم بتعريف المصفوفة وتعبئة قيمها الأولية مباشرةً في نفس السطر. في هذه الحالة، يقوم المترجم بتحديد حجم المصفوفة تلقائيًا بناءً على عدد القيم التي قدمتها.
+                    </p>
+                    <pre><code class="language-java">int[] scores = {10, 20, 30, 40, 50}; 
+// تُنشئ مصفوفة اسمها 'scores' بحجم 5 عناصر وتُعين لها القيم المحددة.
+</code></pre>
+                    <div class="note-box">
+                        <i class="fas fa-lightbulb"></i> <strong>مثال عملي:</strong>
+                        <pre><code class="language-java">public class CreateArrayExample2 {
+    public static void main(String[] args) {
+        // تعريف وإنشاء مصفوفة تحتوي على درجات الطلاب مباشرةً
+        int[] studentGrades = {95, 88, 76, 91, 80};
+
+        System.out.println("درجة الطالب الأول: " + studentGrades[0]);
+        System.out.println("درجة الطالب الثالث: " + studentGrades[2]);
+        System.out.println("درجة الطالب الأخير: " + studentGrades[4]);
+    }
+}
+</code></pre>
+                    <p><strong>الناتج:</strong></p>
+                    <pre><code>درجة الطالب الأول: 95
+درجة الطالب الثالث: 76
+درجة الطالب الأخير: 80
+</code></pre>
+                    </div>
+                </div>
+
+                ---
+
+                <!-- سابعاً: شكل المصفوفة في الذاكرة -->
+                <div class="content-card" id="array-memory-layout">
+                    <h2 class="section-title"><i class="fas fa-memory me-2"></i>سابعاً: شكل المصفوفة في الذاكرة</h2>
+                    <p>
+                        لفهم كيفية عمل المصفوفات، من المفيد أن نتخيل كيف يتم تخزينها في ذاكرة الحاسوب. عندما تُنشئ مصفوفة، تُخصص لها جافا مساحة **متجاورة** (Contiguous) في الذاكرة. كل "خلية" في هذه المساحة مخصصة لعنصر واحد من عناصر المصفوفة.
+                    </p>
+                    <p>
+                        الفهرس (Index) هو ما يسمح لجافا بالقفز مباشرة إلى الموقع الصحيح في الذاكرة للوصول إلى العنصر المطلوب.
+                    </p>
+                    <div class="example-box">
+                        <i class="fas fa-cogs"></i> <strong>مثال: مصفوفة `int[] a = {10, 20, 30, 40, 50};`</strong>
+                        <p>
+                            سيتم تخزين هذه القيم في الذاكرة بهذا الشكل (تخيل أن كل مربع هو "خلية" في الذاكرة):
+                        </p>
+                        <pre><code>موقع الذاكرة  | القيمة   | الفهرس
+-------------|----------|--------
+  (عنوان بدء المصفوفة)
+             | 10       | a[0]
+             | 20       | a[1]
+             | 30       | a[2]
+             | 40       | a[3]
+             | 50       | a[4]
+</code></pre>
+                        <p>
+                            إذا أردت الوصول إلى `a[2]` (القيمة 30)، فإن جافا تعرف فوراً مكانها في الذاكرة بناءً على موقع بداية المصفوفة ونوع حجم البيانات والفهرس المطلوب.
+                        </p>
+                    </div>
+                </div>
+
+                ---
+
+                <!-- ثامناً: استخدام الحلقات مع المصفوفات -->
+                <div class="content-card" id="array-loops">
+                    <h2 class="section-title"><i class="fas fa-sync-alt me-2"></i>ثامناً: استخدام الحلقات مع المصفوفات</h2>
+                    <p>
+                        الحلقات (Loops) هي الأداة المثالية للمرور على جميع عناصر المصفوفة أو جزء منها وتنفيذ عملية معينة عليها (مثل طباعة قيمها، جمعها، أو البحث عن قيمة معينة).
+                    </p>
+
+                    <h3 class="sub-heading">1. الحلقة `for` التقليدية:</h3>
+                    <p>
+                        هذه الطريقة شائعة جدًا وتُستخدم عندما تحتاج إلى الوصول إلى **الفهرس** نفسه لكل عنصر، سواء لطباعته، أو لتعديل قيمة العنصر في ذلك الفهرس. يمكنك استخدام خاصية **`.length`** للمصفوفة للحصول على عدد عناصرها.
+                    </p>
+                    <div class="example-box">
+                        <i class="fas fa-code"></i> <strong>مثال: طباعة عناصر مصفوفة وجمعها</strong>
+                        <pre><code class="language-java">public class ForLoopWithArray {
+    public static void main(String[] args) {
+        int[] numbers = {10, 20, 30, 40, 50};
+        int sum = 0;
+
+        System.out.println("طباعة عناصر المصفوفة باستخدام for التقليدية:");
+        for(int i = 0; i < numbers.length; i++) { // يبدأ i من 0 ويستمر حتى أقل من numbers.length (أي 4)
+            System.out.println("العنصر في الفهرس " + i + " هو: " + numbers[i]);
+            sum += numbers[i]; // sum = sum + numbers[i];
+        }
+        System.out.println("مجموع عناصر المصفوفة هو: " + sum);
+    }
+}
+</code></pre>
+                        <p><strong>الناتج المتوقع:</strong></p>
+                        <pre><code>طباعة عناصر المصفوفة باستخدام for التقليدية:
+العنصر في الفهرس 0 هو: 10
+العنصر في الفهرس 1 هو: 20
+العنصر في الفهرس 2 هو: 30
+العنصر في الفهرس 3 هو: 40
+العنصر في الفهرس 4 هو: 50
+مجموع عناصر المصفوفة هو: 150
+</code></pre>
+                    </div>
+
+                    <h3 class="sub-heading">2. الحلقة `foreach` (Enhanced for loop - منذ Java 1.5):</h3>
+                    <p>
+                        هذه الحلقة أبسط وأكثر إيجازًا وهي مثالية عندما تحتاج فقط للمرور على **كل عنصر** في المصفوفة دون الاهتمام بالفهرس. لا يمكنك استخدامها لتعديل عناصر المصفوفة مباشرةً (إلا إذا كانت عناصر كائنات قابلة للتعديل).
+                    </p>
+                    <p><strong>البنية:</strong> `for (DataType elementVariable : arrayName) { ... }`</p>
+                    <div class="example-box">
+                        <i class="fas fa-code"></i> <strong>مثال: طباعة عناصر مصفوفة باستخدام foreach</strong>
+                        <pre><code class="language-java">public class ForEachLoopWithArray {
+    public static void main(String[] args) {
+        String[] names = {"علي", "سارة", "خالد", "ليلى"};
+
+        System.out.println("طباعة عناصر المصفوفة باستخدام foreach:");
+        for(String name : names) { // لكل عنصر (name) من نوع String في مصفوفة names
+            System.out.println("الاسم: " + name);
+        }
+    }
+}
+</code></pre>
+                        <p><strong>الناتج المتوقع:</strong></p>
+                        <pre><code>طباعة عناصر المصفوفة باستخدام foreach:
+الاسم: علي
+الاسم: سارة
+الاسم: خالد
+الاسم: ليلى
+</code></pre>
+                    </div>
+                </div>
+
+                ---
+
+                <!-- تاسعاً: الدوال والمصفوفات -->
+                <div class="content-card" id="array-methods-passing">
+                    <h2 class="section-title"><i class="fas fa-handshake me-2"></i>تاسعاً: الدوال والمصفوفات (تمرير وإرجاع)</h2>
+                    <p>
+                        المصفوفات، كونها كائنات في جافا، يمكن تمريرها إلى الدوال كـ **وسائط (Arguments)**، كما يمكن للدوال أن ترجع مصفوفات كـ **قيم مرجعة (Return Values)**. هذا يعزز من تنظيم الكود وقابليته لإعادة الاستخدام.
+                    </p>
+
+                    <h3 class="sub-heading">1. تمرير المصفوفة كوسيط (Passing Array as Argument):</h3>
+                    <p>
+                        عندما تمرر مصفوفة إلى دالة، فإن ما يتم تمريره هو **مرجع (Reference)** للمصفوفة، وليس نسخة منها. هذا يعني أن أي تغييرات تُجرى على عناصر المصفوفة داخل الدالة ستنعكس على المصفوفة الأصلية في دالة `main` (أو الدالة التي استدعتها).
+                    </p>
+                    <pre><code class="language-java">public class PassArrayToMethod {
+
+    // دالة تستقبل مصفوفة من الأعداد الصحيحة وتطبع عناصرها
+    // لاحظ أننا نُمرر 'int[] array' كباراميتر
+    public static void printArray(int[] array) {
+        System.out.print("عناصر المصفوفة هي: ");
+        for (int i = 0; i < array.length; i++) {
+            System.out.print(array[i] + " ");
+        }
+        System.out.println(); // لسطر جديد بعد الطباعة
+    }
+
+    // دالة لتعديل العنصر الأول في المصفوفة
+    public static void modifyFirstElement(int[] arr) {
+        System.out.println("تعديل العنصر الأول في المصفوفة داخل الدالة...");
+        arr[0] = 99; // تغيير قيمة العنصر الأول
+    }
+
+    public static void main(String[] args) {
+        int[] myNumbers = {1, 2, 3, 4, 5};
+        
+        System.out.print("قبل التعديل: ");
+        printArray(myNumbers); // طباعة المصفوفة قبل التعديل
+
+        modifyFirstElement(myNumbers); // استدعاء دالة التعديل
+        
+        System.out.print("بعد التعديل: ");
+        printArray(myNumbers); // طباعة المصفوفة بعد التعديل (ستلاحظ أن العنصر الأول تغير)
+    }
+}
+</code></pre>
+                    <p><strong>الناتج المتوقع:</strong></p>
+                    <pre><code>قبل التعديل: عناصر المصفوفة هي: 1 2 3 4 5 
+تعديل العنصر الأول في المصفوفة داخل الدالة...
+بعد التعديل: عناصر المصفوفة هي: 99 2 3 4 5 
+</code></pre>
+
+                    <h3 class="sub-heading">2. إرجاع مصفوفة من دالة (Returning Array from Method):</h3>
+                    <p>
+                        يمكن لدالة أن تُنشئ مصفوفة جديدة داخلها، أو تعدّل على مصفوفة موجودة ثم تُعيدها كقيمة مرجعة. يجب أن يكون نوع الإرجاع للدالة هو نوع المصفوفة (مثال: `int[]` أو `String[]`).
+                    </p>
+                    <pre><code class="language-java">public class ReturnArrayFromMethod {
+
+    // دالة تستقبل مصفوفة وتعيد مصفوفة جديدة معكوسة الترتيب
+    public static int[] reverseArray(int[] originalArray) {
+        // إنشاء مصفوفة جديدة بنفس حجم المصفوفة الأصلية
+        int[] reversedResult = new int[originalArray.length];
+        
+        // تعبئة المصفوفة الجديدة بالترتيب العكسي
+        for (int i = 0; i < originalArray.length; i++) {
+            reversedResult[i] = originalArray[originalArray.length - 1 - i];
+        }
+        return reversedResult; // إرجاع المصفوفة الجديدة
+    }
+
+    // دالة مساعدة لطباعة المصفوفة (يمكن استخدامها من المثال السابق)
+    public static void printArray(int[] array) {
+        System.out.print("عناصر المصفوفة هي: ");
+        for (int num : array) { 
+            System.out.print(num + " "); 
+        }
+        System.out.println();
+    }
+
+    public static void main(String[] args) {
+        int[] original = {10, 20, 30, 40, 50};
+        
+        System.out.print("المصفوفة الأصلية: ");
+        printArray(original);
+
+        int[] reversed = reverseArray(original); // استدعاء الدالة وتخزين المصفوفة المرجعة
+
+        System.out.print("المصفوفة المعكوسة: ");
+        printArray(reversed);
+    }
+}
+</code></pre>
+                    <p><strong>الناتج المتوقع:</strong></p>
+                    <pre><code>المصفوفة الأصلية: عناصر المصفوفة هي: 10 20 30 40 50 
+المصفوفة المعكوسة: عناصر المصفوفة هي: 50 40 30 20 10 
+</code></pre>
+                </div>
+
+                ---
+
+                <!-- عاشراً: المصفوفات ثنائية البعد (2D Arrays) -->
+                <div class="content-card" id="two-d-arrays">
+                    <h2 class="section-title"><i class="fas fa-th me-2"></i>عاشراً: المصفوفات ثنائية البعد (2D Arrays)</h2>
+                    <p>
+                        المصفوفة ثنائية البعد هي في الواقع **مصفوفة من المصفوفات**. يمكن تخيلها كـ **جدول (Table)** أو شبكة تتكون من **صفوف (Rows)** و **أعمدة (Columns)**. تُستخدم لتخزين البيانات التي لها علاقة ثنائية أو تحتاج إلى تمثيل شبكي، مثل مصفوفة لعبة الشطرنج، أو درجات الطلاب في عدة مواد.
+                    </p>
+                    <p>
+                        لتعريف مصفوفة ثنائية البعد، نستخدم زوجين من الأقواس المربعة `[][]`.
+                    </p>
+                    <h3 class="sub-heading">تعريف وإنشاء المصفوفات ثنائية البعد:</h3>
+                    <p>يمكن تهيئتها مباشرةً بالشكل التالي:</p>
+                    <pre><code class="language-java">int[][] matrix = {
+    {1, 2, 3},   // الصف 0
+    {4, 5, 6},   // الصف 1
+    {7, 8, 9}    // الصف 2
+};
+</code></pre>
+                    <p>
+                        للوصول إلى عنصر معين، نستخدم فهرس الصف ثم فهرس العمود:
+                        <br>
+                        * `matrix[0][0]` &rarr; العنصر في الصف الأول، العمود الأول (القيمة 1).
+                        * `matrix[1][1]` &rarr; العنصر في الصف الثاني، العمود الثاني (القيمة 5).
+                        * `matrix[2][0]` &rarr; العنصر في الصف الثالث، العمود الأول (القيمة 7).
+                    </p>
+                    <h3 class="sub-heading">المرور على عناصر مصفوفة ثنائية البعد باستخدام حلقات متداخلة:</h3>
+                    <p>
+                        عادةً ما نستخدم حلقتين **`for` متداخلتين (Nested loops)** للمرور على جميع عناصر المصفوفة ثنائية البعد: الحلقة الخارجية للصفوف، والحلقة الداخلية للأعمدة.
+                    </p>
+                    <div class="example-box">
+                        <i class="fas fa-code"></i> <strong>مثال: طباعة مصفوفة ثنائية البعد</strong>
+                        <pre><code class="language-java">public class TwoDArrayExample {
+    public static void main(String[] args) {
+        int[][] gameBoard = {
+            {1, 0, 1},
+            {0, 1, 0},
+            {1, 0, 1}
+        };
+
+        System.out.println("طباعة عناصر لوحة اللعب:");
+        // الحلقة الخارجية للصفوف
+        for (int row = 0; row < gameBoard.length; row++) { 
+            // الحلقة الداخلية للأعمدة في الصف الحالي
+            for (int col = 0; col < gameBoard[row].length; col++) { 
+                System.out.print(gameBoard[row][col] + " ");
+            }
+            System.out.println(); // بعد الانتهاء من كل صف، ننتقل لسطر جديد
+        }
+    }
+}
+</code></pre>
+                        <p><strong>الناتج المتوقع:</strong></p>
+                        <pre><code>طباعة عناصر لوحة اللعب:
+1 0 1 
+0 1 0 
+1 0 1 
+</code></pre>
+                    </div>
+                </div>
+
+                ---
+
+                <!-- حادي عشر: دوال جاهزة للتعامل مع المصفوفات -->
+                <div class="content-card" id="builtin-array-methods">
+                    <h2 class="section-title"><i class="fas fa-toolbox me-2"></i>حادي عشر: دوال جاهزة للتعامل مع المصفوفات</h2>
+                    <p>
+                        توفّر جافا بعض الكلاسات المساعدة التي تحتوي على دوال جاهزة (Built-in Methods) لتسهيل التعامل مع المصفوفات وإجراء عمليات شائعة عليها. أبرز هذه الكلاسات هي **`java.util.Arrays`** و **`java.lang.System`**.
+                    </p>
+
+                    <h3 class="sub-heading">1. الكلاس `java.util.Arrays`</h3>
+                    <p>
+                        هذا الكلاس يقدم مجموعة واسعة من دوال الخدمة الثابتة (static methods) للعمليات على المصفوفات أحادية البعد. لاستخدامه، تحتاج عادةً إلى استيراده في بداية ملف جافا الخاص بك: `import java.util.Arrays;`
+                    </p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-sort-amount-up me-2"></i> **`Arrays.sort(array)`:** تقوم بترتيب عناصر المصفوفة تصاعديًا.
+                            <pre><code class="language-java">import java.util.Arrays;
+
+public class ArraySortExample {
+    public static void main(String[] args) {
+        int[] nums = {5, 2, 8, 1, 9};
+        Arrays.sort(nums); // ترتب المصفوفة: الآن nums ستكون {1, 2, 5, 8, 9}
+        System.out.println("المصفوفة بعد الترتيب: " + Arrays.toString(nums));
+    }
+}
+</code></pre>
+                            <p><strong>الناتج:</strong> `المصفوفة بعد الترتيب: [1, 2, 5, 8, 9]`</p>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-equals me-2"></i> **`Arrays.equals(a1, a2)`:** تقارن بين مصفوفتين وتُرجع `true` إذا كانتا متطابقتين تمامًا في المحتوى والترتيب، و `false` بخلاف ذلك.
+                            <pre><code class="language-java">import java.util.Arrays;
+
+public class ArrayEqualsExample {
+    public static void main(String[] args) {
+        int[] arr1 = {1, 2, 3};
+        int[] arr2 = {1, 2, 3};
+        int[] arr3 = {3, 2, 1};
+        System.out.println("هل arr1 تساوي arr2؟ " + Arrays.equals(arr1, arr2)); // الناتج: true
+        System.out.println("هل arr1 تساوي arr3؟ " + Arrays.equals(arr1, arr3)); // الناتج: false
+    }
+}
+</code></pre>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-fill-drip me-2"></i> **`Arrays.fill(array, value)`:** تقوم بتعبئة جميع عناصر المصفوفة بقيمة معينة.
+                            <pre><code class="language-java">import java.util.Arrays;
+
+public class ArrayFillExample {
+    public static void main(String[] args) {
+        int[] data = new int[5]; // مصفوفة بحجم 5 عناصر
+        Arrays.fill(data, 100); // تعبئة جميع العناصر بالقيمة 100
+        System.out.println("المصفوفة بعد التعبئة: " + Arrays.toString(data)); // الناتج: [100, 100, 100, 100, 100]
+    }
+}
+</code></pre>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-list me-2"></i> **`Arrays.toString(array)`:** تُعد هذه الدالة مفيدة جدًا لطباعة محتوى المصفوفة بشكل سهل القراءة. تُرجع تمثيلاً نصيًا للمصفوفة (مثل `[1, 2, 3]`).
+                            <pre><code class="language-java">import java.util.Arrays;
+
+public class ArrayToStringExample {
+    public static void main(String[] args) {
+        int[] numbers = {10, 20, 30};
+        System.out.println("المصفوفة كنص: " + Arrays.toString(numbers)); // الناتج: المصفوفة كنص: [10, 20, 30]
+    }
+}
+</code></pre>
+                        </li>
+                    </ul>
+
+                    <h3 class="sub-heading">2. الكلاس `java.lang.System`</h3>
+                    <p>
+                        يحتوي هذا الكلاس على دالة واحدة مهمة لنسخ المصفوفات، وهي دالة ثابتة (static) لا تحتاج لاستيرادها صراحةً لأنها جزء من حزمة `java.lang` التي تُستورد تلقائيًا.
+                    </p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-copy me-2"></i> **`System.arraycopy(src, srcPos, dest, destPos, length)`:** تقوم بنسخ جزء من مصفوفة المصدر (`src`) إلى مصفوفة الوجهة (`dest`).
+                            <ul>
+                                <li>`src`: المصفوفة المصدر التي ستُنسخ منها العناصر.</li>
+                                <li>`srcPos`: الفهرس البدء للنسخ من المصفوفة المصدر.</li>
+                                <li>`dest`: المصفوفة الوجهة التي ستُلصق فيها العناصر.</li>
+                                <li>`destPos`: الفهرس البدء للنسخ إلى المصفوفة الوجهة.</li>
+                                <li>`length`: عدد العناصر المراد نسخها.</li>
+                            </ul>
+                            <pre><code class="language-java">import java.util.Arrays; // نحتاجها لطباعة المصفوفة بشكل سهل
+
+public class ArrayCopyExample {
+    public static void main(String[] args) {
+        int[] source = {1, 2, 3, 4, 5};
+        int[] destination = new int[5]; // يجب أن تكون مصفوفة الوجهة موجودة مسبقًا
+
+        // نسخ جميع العناصر من source (بدءًا من الفهرس 0) إلى destination (بدءًا من الفهرس 0)، بطول source.length
+        System.arraycopy(source, 0, destination, 0, source.length);
+        
+        System.out.println("المصفوفة المصدر: " + Arrays.toString(source));
+        System.out.println("المصفوفة الوجهة بعد النسخ: " + Arrays.toString(destination));
+    }
+}
+</code></pre>
+                            <p><strong>الناتج:</strong></p>
+                            <pre><code>المصفوفة المصدر: [1, 2, 3, 4, 5]
+المصفوفة الوجهة بعد النسخ: [1, 2, 3, 4, 5]
+</code></pre>
+                        </li>
+                    </ul>
+                </div>
+
+                ---
+
+                <!-- ثاني عشر: تمارين مقترحة -->
+                <div class="content-card" id="unit10-exercises">
+                    <h2 class="section-title"><i class="fas fa-puzzle-piece me-2"></i>ثاني عشر: تمارين مقترحة 💡</h2>
+                    <p>اختبر فهمك لمفهوم المصفوفات من خلال حل التمارين التالية. حاول كتابة الكود بنفسك قبل البحث عن الحلول!</p>
+
+                    <h3 class="sub-heading">1. تمرين: حساب مجموع عناصر مصفوفة</h3>
+                    <p>
+                        اكتب برنامج جافا يُنشئ مصفوفة من الأعداد الصحيحة (مثلاً بحجم 5 عناصر) ويقوم بتعبئتها بقيم من اختيارك. ثم استخدم حلقة لحساب مجموع جميع العناصر في هذه المصفوفة واطبعه.
+                    </p>
+                    <pre><code class="language-java">public class ArraySum {
+    public static void main(String[] args) {
+        // إنشاء وتعبئة المصفوفة
+        int[] numbers = {10, 20, 30, 40, 50}; // مثال
+        
+        int sum = 0;
+        // اكتب الكود هنا لحساب المجموع باستخدام حلقة for أو foreach
+        
+        System.out.println("مجموع عناصر المصفوفة هو: " + sum);
+    }
+}
+</code></pre>
+
+                    <h3 class="sub-heading">2. تمرين: البحث عن أكبر عنصر في مصفوفة</h3>
+                    <p>
+                        اكتب دالة اسمها `findMax` تستقبل مصفوفة من الأعداد الصحيحة كباراميتر، وترجع أكبر قيمة موجودة في هذه المصفوفة. ثم استدعِ هذه الدالة من `main` واطبع القيمة الكبرى.
+                    </p>
+                    <pre><code class="language-java">public class FindMaxInArray {
+
+    // اكتب الدالة findMax هنا
+    // مثال: public static int findMax(int[] arr) { ... }
+
+    public static void main(String[] args) {
+        int[] data = {15, 7, 22, 9, 30, 1};
+        // استدعِ الدالة findMax واطبع النتيجة
+        // مثال: System.out.println("أكبر قيمة في المصفوفة هي: " + findMax(data));
+    }
+}
+</code></pre>
+
+                    <h3 class="sub-heading">3. تمرين: طباعة مصفوفة ثنائية البعد بشكل منظم</h3>
+                    <p>
+                        اكتب برنامج جافا يُنشئ مصفوفة ثنائية البعد تمثل جدولاً بسيطاً (مثلاً 3 صفوف و 3 أعمدة). قم بتعبئتها بقيم من اختيارك (مثل أعداد صحيحة). ثم استخدم حلقات متداخلة لطباعة محتويات المصفوفة بحيث تبدو كجدول منظم على الكونسول.
+                    </p>
+                    <pre><code class="language-java">public class PrintTwoDArray {
+    public static void main(String[] args) {
+        int[][] myMatrix = {
+            {10, 11, 12},
+            {20, 21, 22},
+            {30, 31, 32}
+        };
+
+        System.out.println("طباعة المصفوفة ثنائية البعد:");
+        // اكتب الكود هنا لطباعة المصفوفة باستخدام حلقات متداخلة
+    }
+}
+</code></pre>
+
+                    <h3 class="sub-heading">4. تمرين تحدي: عكس ترتيب مصفوفة (دون إنشاء مصفوفة جديدة)</h3>
+                    <p>
+                        اكتب دالة اسمها `reverseInPlace` تستقبل مصفوفة من الأعداد الصحيحة كباراميتر، وتقوم بعكس ترتيب عناصر هذه المصفوفة **دون إنشاء مصفوفة جديدة**. أي يجب أن يتم التعديل على المصفوفة الأصلية مباشرةً. (تلميح: استخدم متغيرًا مؤقتًا لتبديل القيم).
+                    </p>
+                    <pre><code class="language-java">import java.util.Arrays;
+
+public class ReverseArrayInPlace {
+
+    // اكتب الدالة reverseInPlace هنا
+    // مثال: public static void reverseInPlace(int[] arr) { ... }
+
+    public static void main(String[] args) {
+        int[] originalArray = {1, 2, 3, 4, 5, 6};
+        System.out.println("المصفوفة الأصلية: " + Arrays.toString(originalArray));
+        
+        // استدعِ الدالة reverseInPlace
+        // مثال: reverseInPlace(originalArray);
+        
+        System.out.println("المصفوفة بعد العكس: " + Arrays.toString(originalArray));
+    }
+}
+```</pre>
+                </div>
+
+                ---
+
+                <!-- ثالث عشر: ملخص الوحدة -->
+                <div class="content-card" id="unit10-summary">
+                    <h2 class="section-title"><i class="fas fa-check-double me-2"></i>ثالث عشر: ملخص الوحدة</h2>
+                    <p>
+                        لقد اكتسبتَ في هذه الوحدة الحاسمة فهمًا قوياً لمفهوم **المصفوفات (Arrays)** في جافا، وهي حجر الزاوية في التعامل مع البيانات المجمعة.
+                    </p>
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> تعلمنا أن المصفوفات هي كائنات تخزن مجموعة من القيم من **نفس النوع** في مواقع ذاكرة متجاورة، ويتم الوصول إليها عبر **الفهارس** التي تبدأ من الصفر.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> فهمنا أن **حجم المصفوفة ثابت** بعد إنشائها، ولكن يمكن التغلب على هذا القيد باستخدام هياكل بيانات ديناميكية (مثل `ArrayList`) في مكتبة Collections Framework التي ستدرسها لاحقًا.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> استكشفنا طرق **تعريف وإنشاء المصفوفات** أحادية البعد (سواء بتحديد الحجم أو بالتهيئة المباشرة للقيم).</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> أتقنا استخدام **حلقات `for` التقليدية و `foreach`** للمرور على عناصر المصفوفة بكفاءة.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> عرفنا كيف يمكن **تمرير المصفوفات كـوسائط للدوال** وكيف يمكن **للدوال أن ترجع مصفوفات** كقيم.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> تعرفنا على **المصفوفات ثنائية البعد (2D Arrays)** وكيفية التعامل معها باستخدام الحلقات المتداخلة لتمثيل البيانات الجدولية.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> استعرضنا بعض **الدوال الجاهزة والمفيدة** في الكلاسات `java.util.Arrays` و `java.lang.System` لتسهيل العمليات على المصفوفات (مثل الترتيب والمقارنة والنسخ).</li>
+                    </ul>
+                    <p>
+                        تُعد المصفوفات أداة أساسية لأي مبرمج، وستجدها مستخدمة بكثرة في مختلف أنواع التطبيقات. إن إتقانك لها سيفتح لك الباب لفهم هياكل بيانات أكثر تعقيدًا.
+                    </p>
+                    <p>
+                        في الوحدة القادمة، سننتقل إلى أحد أهم وأقوى مفاهيم البرمجة الكائنية (OOP) في جافا: **الكائنات والكلاسات (Objects and Classes)**، وهو ما سيأخذ قدراتك البرمجية إلى مستوى جديد تماماً.
+                    </p>
+                </div>
+
+                ---
+
+                <!-- المراجع (Unit 10) -->
+                <div class="content-card" id="references-unit10">
+                    <h2 class="section-title"><i class="fas fa-book-reader me-2"></i>المراجع</h2>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-book me-2 text-secondary"></i> موقع <a href="[https://docs.oracle.com/en/java/](https://docs.oracle.com/en/java/)" target="_blank" class="resource-link">Oracle Java Documentation</a>.</li>
+                        <li class="list-group-item"><i class="fas fa-book me-2 text-secondary"></i> "Java: A Beginner's Guide" – Herbert Schildt.</li>
+                        <li class="list-group-item"><i class="fas fa-book me-2 text-secondary"></i> "Head First Java" – Kathy Sierra, Bert Bates.</li>
+                    </ul>
+                </div>
+
+                <!-- أزرار التنقل بين الوحدات (Unit 10) -->
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="unit-9.html" class="unit-nav-btn"><i class="fas fa-arrow-left"></i>الوحدة السابقة: الدوال في جافا</a>
+                    <a href="unit-11.html" class="unit-nav-btn">الوحدة التالية: الكائنات والكلاسات<i class="fas fa-arrow-right"></i></a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- الفوتر (Footer) -->
+    <footer class="text-center text-lg-start mt-5" style="background-color: var(--primary-color);">
+        <div class="container p-4">
+            <div class="row">
+                <!-- قسم مسار الأمن السيبراني -->
+                <div class="col-lg-6 col-md-12 mb-4 mb-md-0">
+                    <h5 class="text-uppercase">مسار الأمن السيبراني</h5>
+                    <p>
+                        نحن نقدم محتوى تعليميًا شاملاً ومُحدثًا لمساعدتك على بناء أساس قوي في الأمن السيبراني وشبكات الحاسوب.
+                    </p>
+                </div>
+
+                <!-- قسم روابط مفيدة -->
+                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                    <h5 class="text-uppercase">روابط مفيدة</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li>
+                            <a href="#!" class="text-white">عن المسار</a>
+                        </li>
+                        <li>
+                            <a href="#!" class="text-white">اتصل بنا</a>
+                        </li>
+                        <li>
+                            <a href="#!" class="text-white">الأسئلة الشائعة</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- قسم تابعنا -->
+                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                    <h5 class="text-uppercase">تابعنا</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li>
+                            <a href="#!" class="text-white"><i class="fab fa-facebook-f me-2"></i>فيسبوك</a>
+                        </li>
+                        <li>
+                            <a href="#!" class="text-white"><i class="fab fa-twitter me-2"></i>تويتر</a>
+                        </li>
+                        <li>
+                            <a href="#!" class="text-white"><i class="fab fa-linkedin-in me-2"></i>لينكد إن</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- حقوق النشر -->
+        <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
+            © 2025 مسار الأمن السيبراني. جميع الحقوق محفوظة.
+        </div>
+    </footer>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="[https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js](https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js)"></script>
+</body>
+</html>
