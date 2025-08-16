@@ -1,1 +1,1083 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الوحدة 6: النمذجة الكائنية باستخدام UML (Use Case) | مقرر تحليل وتصميم النظم</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts - Tajawal for Arabic font -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* تعريف المتغيرات لألوان موحدة */
+        :root {
+            --primary-color: #2c3e50; /* لون أساسي غامق */
+            --secondary-color: #3498db; /* لون مميز للأنظمة (أزرق) */
+            --accent-color: #2ecc71; /* لون ثانوي مميز (أخضر) */
+            --light-bg: #f8f9fa; /* خلفية فاتحة */
+            --dark-text: #2c3e50; /* نص غامق */
+            --light-text: #7f8c8d; /* نص فاتح */
+        }
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            line-height: 1.8;
+            direction: rtl; /* اتجاه النص من اليمين لليسار */
+            text-align: right; /* محاذاة النص لليمين */
+        }
+
+        /* تنسيقات شريط التنقل */
+        .navbar {
+            background-color: var(--primary-color);
+        }
+        .navbar-brand {
+            color: white !important;
+        }
+        .btn-outline-light {
+            border-color: rgba(255, 255, 255, 0.7) !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .btn-outline-light:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        /* تنسيقات رأس الوحدة */
+        .unit-header {
+            background: linear-gradient(135deg, var(--secondary-color), #2980b9); /* تدرج أزرق للأنظمة */
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 1rem 1rem; /* زوايا دائرية سفلية */
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        /* تنسيقات بطاقة المحتوى الرئيسية */
+        .content-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            padding: 2rem;
+            border-right: 4px solid var(--secondary-color); /* شريط جانبي بلون ثانوي */
+            transition: transform 0.3s ease, box-shadow 0.3s ease; /* تأثير التحويم */
+        }
+        .content-card:hover {
+            transform: translateY(-5px); /* رفع البطاقة قليلاً عند التحويم */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); /* ظل أكبر عند التحويم */
+        }
+
+        /* تنسيقات عنوان القسم */
+        .section-title {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+        }
+
+        /* تنسيقات العناوين الفرعية */
+        h3.sub-heading {
+            color: var(--primary-color);
+            border-bottom: 1px dashed var(--light-text);
+            padding-bottom: 0.3rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.75rem;
+        }
+        h4.sub-heading {
+            color: var(--primary-color);
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 1.5rem;
+        }
+
+
+        /* تنسيقات صناديق الأمثلة والملاحظات */
+        .example-box, .note-box {
+            background-color: #e3f2fd; /* لون أزرق فاتح جداً */
+            border-right: 5px solid var(--secondary-color); /* حدود بلون مميز */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        .example-box i, .note-box i {
+            color: var(--secondary-color);
+            margin-left: 0.5rem; /* مسافة بين الأيقونة والنص */
+        }
+
+        /* تنسيقات صناديق الأنشطة */
+        .activity-box {
+            background-color: #e9f7ef; /* لون أخضر فاتح للأنشطة */
+            border-right: 5px solid var(--accent-color); /* حدود خضراء */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            color: var(--dark-text);
+        }
+        .activity-box i {
+            color: var(--accent-color); /* لون أيقونة خضراء */
+            margin-left: 0.5rem;
+        }
+
+        /* تنسيقات تنبيهات المعلومات المخصصة */
+        .alert-info-custom {
+            background-color: #d1ecf1; /* أزرق فاتح جداً */
+            border-left: 5px solid #17a2b8; /* أزرق سماوي */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+        .alert-info-custom i {
+            color: #17a2b8;
+            margin-right: 0.5rem;
+        }
+
+        /* تمييز المفاهيم الهامة */
+        .concept-highlight {
+            background-color: #e0f7fa; /* لون فاتح للتمييز */
+            padding: 0.3rem 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        /* تنسيقات القوائم */
+        ul {
+            padding-right: 25px; /* مسافة داخلية لترقيم القوائم */
+        }
+        ul.no-bullet {
+            list-style: none;
+            padding-right: 0;
+        }
+        ul li {
+            margin-bottom: 0.5rem;
+        }
+        .list-group-item {
+            border: none;
+            padding-right: 0;
+            background-color: transparent;
+        }
+        .list-group-item i {
+            margin-left: 8px; /* مسافة بين الأيقونة والنص */
+        }
+
+        /* تنسيقات الجداول */
+        .table thead th {
+            background-color: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+        .table tbody tr:hover {
+            background-color: #f0f8ff; /* تأثير التحويم على صفوف الجدول */
+        }
+        .table-bordered th, .table-bordered td {
+            border-color: #dee2e6;
+        }
+
+        /* تنسيق أزرار التنقل بين الوحدات */
+        .unit-nav-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: bold;
+            transition: background-color 0.2s, transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+        }
+        .unit-nav-btn:hover {
+            background-color: #2980b9; /* درجة أغمق من الأزرق */
+            color: white;
+            transform: translateY(-2px);
+        }
+        /* لتحديد اتجاه الأيقونات في أزرار التنقل لليسار واليمين */
+        .unit-nav-btn .fa-arrow-left {
+            margin-right: 0;
+            margin-left: 8px; /* أيقونة السهم الأيسر تظهر قبل النص في اتجاه RTL */
+        }
+        .unit-nav-btn .fa-arrow-right {
+            margin-right: 8px; /* أيقونة السهم الأيمن تظهر بعد النص في اتجاه RTL */
+            margin-left: 0;
+        }
+
+        /* تنسيقات الفوتر */
+        footer {
+            background-color: var(--primary-color) !important;
+            color: white;
+            padding: 2.5rem 0;
+        }
+        footer h5 {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        footer .list-unstyled li a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        footer .list-unstyled li a:hover {
+            color: var(--secondary-color);
+        }
+        footer .fab, footer .fas {
+            color: white;
+            transition: color 0.2s;
+        }
+        footer .fab:hover, footer .fas:hover {
+            color: var(--secondary-color);
+        }
+
+        /* تنسيقات الشريط الجانبي */
+        .sidebar {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            color: var(--dark-text);
+        }
+        .sidebar h4 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .sidebar .module-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+            margin-left: 10px;
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .sidebar .progress-container {
+            height: 25px;
+            margin-bottom: 1.5rem;
+        }
+        .sidebar .progress-bar {
+            background-color: var(--secondary-color);
+        }
+        /* تنسيقات الأكورديون في الشريط الجانبي */
+        .sidebar .accordion-button:not(.collapsed) {
+            background-color: #e3f2fd; /* لون أزرق فاتح جداً */
+            color: var(--primary-color);
+            box-shadow: none;
+        }
+        .sidebar .accordion-button:not(.collapsed) .module-icon {
+            background-color: var(--primary-color);
+        }
+        .sidebar .accordion-button {
+            border-radius: 0.5rem !important;
+        }
+        .sidebar .accordion-item {
+            margin-bottom: 0.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(0, 0, 0, 0.125);
+            overflow: hidden;
+        }
+        .sidebar .accordion-body ul {
+            padding-right: 0;
+        }
+        .sidebar .accordion-body ul li a {
+            padding: 0.25rem 0.5rem;
+            display: block;
+            border-radius: 0.25rem;
+            color: var(--dark-text);
+        }
+        .sidebar .accordion-body ul li a:hover,
+        .sidebar .accordion-body ul li a.active-link {
+            background-color: #e3f2fd;
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+        .sidebar .accordion-body .btn-primary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .sidebar .accordion-body .btn-primary:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+        }
+
+        /* ضبط الاستجابة (Responsive adjustments) */
+        @media (max-width: 991px) { /* نقطة توقف تتوافق مع col-lg- */
+            .sidebar {
+                margin-top: 1rem;
+                margin-bottom: 1rem; /* إضافة هامش لتحسين التباعد على الشاشات الأصغر */
+            }
+            .unit-header {
+                padding: 2rem 0;
+            }
+            .content-card {
+                padding: 1.5rem;
+            }
+            .section-title {
+                font-size: 1.75rem;
+            }
+            h3.sub-heading {
+                font-size: 1.5rem;
+            }
+            .unit-nav-btn {
+                width: 100%;
+                justify-content: center;
+                margin-bottom: 0.5rem;
+            }
+            .d-flex.justify-content-between.mt-4 {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- شريط التنقل (Navbar) -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--primary-color);">
+        <div class="container">
+            <a class="navbar-brand" href="../../../index.html">مسار الأمن السيبراني</a>
+            <a href="index.html" class="btn btn-outline-light">العودة إلى مقرر تحليل النظم</a>
+        </div>
+    </nav>
+
+    <!-- رأس الوحدة (Unit Header) -->
+    <header class="unit-header text-center">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-3">الوحدة 6: النمذجة الكائنية باستخدام UML</h1>
+            <p class="lead">رؤية النظام من منظور المستخدم عبر رسوم Use Case</p>
+            <div class="mt-4">
+                <span class="badge bg-light text-primary p-2 mx-1"><i class="fas fa-sitemap me-1"></i> UML</span>
+                <span class="badge bg-light text-primary p-2 mx-1"><i class="fas fa-cube me-1"></i> Use Case Diagrams</span>
+                <span class="badge bg-light text-primary p-2 mx-1"><i class="fas fa-users me-1"></i> Actors & Scenarios</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container-fluid py-5">
+        <div class="row">
+            <!-- الشريط الجانبي لتنقل الوحدات (Sidebar) -->
+            <div class="col-lg-3">
+                <div class="sidebar p-4">
+                    <h4 class="mb-3">
+                        <i class="fas fa-list-ul me-2"></i>
+                        وحدات المقرر
+                    </h4>
+                    <div class="progress progress-container mb-4">
+                        <div class="progress-bar" role="progressbar" style="width: 60%;" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100">60% مكتمل</div>
+                    </div>
+                    <div class="accordion" id="unitsAccordion">
+                        <!-- الوحدة التمهيدية (مقرر تحليل وتصميم النظم) -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingCourseInfo">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCourseInfo" aria-expanded="false" aria-controls="collapseCourseInfo">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-book-open"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">مقرر تحليل وتصميم النظم</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseCourseInfo" class="accordion-collapse collapse" aria-labelledby="headingCourseInfo" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="index.html#course-description" class="text-decoration-none">وصف المقرر</a></li>
+                                        <li><a href="index.html#course-objectives" class="text-decoration-none">أهداف المقرر</a></li>
+                                        <li><a href="index.html#learning-outcomes" class="text-decoration-none">مخرجات التعلم</a></li>
+                                        <li><a href="index.html#course-content" class="text-decoration-none">محتوى المقرر (خطة دراسية)</a></li>
+                                        <li><a href="index.html#teaching-methods" class="text-decoration-none">طرق التدريس</a></li>
+                                        <li><a href="index.html#assessment-methods" class="text-decoration-none">أساليب التقييم</a></li>
+                                        <li><a href="index.html#references" class="text-decoration-none">المراجع</a></li>
+                                        <li><a href="index.html#additional-notes" class="text-decoration-none">ملاحظات إضافية</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 1 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit1">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit1" aria-expanded="false" aria-controls="collapseUnit1">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-desktop"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 1: مدخل إلى النظم وأنظمة المعلومات</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit1" class="accordion-collapse collapse" aria-labelledby="headingUnit1" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-1.html#unit-objectives" class="text-decoration-none">أهداف التعلم</a></li>
+                                        <li><a href="unit-1.html#basic-concepts" class="text-decoration-none">مفاهيم أساسية</a></li>
+                                        <li><a href="unit-1.html#practical-examples" class="text-decoration-none">أمثلة تطبيقية</a></li>
+                                        <li><a href="unit-1.html#information-systems" class="text-decoration-none">أنظمة المعلومات</a></li>
+                                        <li><a href="unit-1.html#case-study" class="text-decoration-none">دراسة حالة</a></li>
+                                        <li><a href="unit-1.html#learning-activities" class="text-decoration-none">الأنشطة التعليمية</a></li>
+                                        <li><a href="unit-1.html#assessment-tools" class="text-decoration-none">أدوات التقييم</a></li>
+                                        <li><a href="unit-1.html#visual-references" class="text-decoration-none">المراجع البصرية المقترحة</a></li>
+                                        <li><a href="unit-1.html#unit-summary" class="text-decoration-none">ملخص الوحدة</a></li>
+                                    </ul>
+                                    <a href="unit-1.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 2 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit2">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit2" aria-expanded="false" aria-controls="collapseUnit2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-recycle"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 2: دورة حياة تطوير النظام (SDLC)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit2" class="accordion-collapse collapse" aria-labelledby="headingUnit2" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-2.html#unit-objectives" class="text-decoration-none">أهداف التعلم</a></li>
+                                        <li><a href="unit-2.html#planning-phase" class="text-decoration-none">مرحلة التخطيط</a></li>
+                                        <li><a href="unit-2.html#analysis-phase" class="text-decoration-none">مرحلة التحليل</a></li>
+                                        <li><a href="unit-2.html#design-phase" class="text-decoration-none">مرحلة التصميم</a></li>
+                                        <li><a href="unit-2.html#implementation-phase" class="text-decoration-none">مرحلة التنفيذ</a></li>
+                                        <li><a href="unit-2.html#testing-phase" class="text-decoration-none">مرحلة الاختبار</a></li>
+                                        <li><a href="unit-2.html#maintenance-phase" class="text-decoration-none">مرحلة الصيانة</a></li>
+                                        <li><a href="unit-2.html#development-models" class="text-decoration-none">نماذج تطوير النظام</a></li>
+                                        <li><a href="unit-2.html#ai-integration" class="text-decoration-none">الربط بالذكاء الاصطناعي (AI)</a></li>
+                                        <li><a href="unit-2.html#references" class="text-decoration-none">المراجع</a></li>
+                                        <li><a href="unit-2.html#unit-summary" class="text-decoration-none">ملخص الوحدة</a></li>
+                                    </ul>
+                                    <a href="unit-2.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 3 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit3">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit3" aria-expanded="false" aria-controls="collapseUnit3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-chart-line"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 3: دراسة الجدوى وتخطيط المشروع</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit3" class="accordion-collapse collapse" aria-labelledby="headingUnit3" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-3.html#unit-objectives" class="text-decoration-none">أهداف التعلم</a></li>
+                                        <li><a href="unit-3.html#intro-feasibility" class="text-decoration-none">مدخل إلى دراسة الجدوى</a></li>
+                                        <li><a href="unit-3.html#types-feasibility" class="text-decoration-none">أنواع دراسة الجدوى</a></li>
+                                        <li><a href="unit-3.html#project-planning" class="text-decoration-none">تخطيط المشروع</a></li>
+                                        <li><a href="unit-3.html#learning-activities" class="text-decoration-none">الأنشطة التعليمية</a></li>
+                                        <li><a href="unit-3.html#assessment-tools" class="text-decoration-none">أدوات التقييم</a></li>
+                                        <li><a href="unit-3.html#visual-references" class="text-decoration-none">المراجع البصرية المقترحة</a></li>
+                                        <li><a href="unit-3.html#references" class="text-decoration-none">المراجع</a></li>
+                                        <li><a href="unit-3.html#unit-summary" class="text-decoration-none">ملخص الوحدة</a></li>
+                                    </ul>
+                                    <a href="unit-3.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 4 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit4">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit4" aria-expanded="false" aria-controls="collapseUnit4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-clipboard-list"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 4: جمع المتطلبات وتحليلها</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit4" class="accordion-collapse collapse" aria-labelledby="headingUnit4" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-4.html#unit-objectives" class="text-decoration-none">أهداف التعلم</a></li>
+                                        <li><a href="unit-4.html#intro-requirements" class="text-decoration-none">مقدمة في جمع المتطلبات</a></li>
+                                        <li><a href="unit-4.html#gathering-techniques" class="text-decoration-none">تقنيات جمع المتطلبات</a></li>
+                                        <li><a href="unit-4.html#classifying-requirements" class="text-decoration-none">تصنيف المتطلبات</a></li>
+                                        <li><a href="unit-4.html#documenting-requirements" class="text-decoration-none">توثيق المتطلبات</a></li>
+                                        <li><a href="unit-4.html#learning-activities" class="text-decoration-none">الأنشطة التعليمية</a></li>
+                                        <li><a href="unit-4.html#assessment-tools" class="text-decoration-none">أدوات التقييم</a></li>
+                                        <li><a href="unit-4.html#visual-references" class="text-decoration-none">المراجع البصرية المقترحة</a></li>
+                                        <li><a href="unit-4.html#references" class="text-decoration-none">المراجع</a></li>
+                                        <li><a href="unit-4.html#unit-summary" class="text-decoration-none">ملخص الوحدة</a></li>
+                                    </ul>
+                                    <a href="unit-4.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 5 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit5">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit5" aria-expanded="false" aria-controls="collapseUnit5">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-chart-area"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 5: أدوات التحليل (DFD)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit5" class="accordion-collapse collapse" aria-labelledby="headingUnit5" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-5.html#unit-objectives" class="text-decoration-none">أهداف التعلم</a></li>
+                                        <li><a href="unit-5.html#what-is-dfd" class="text-decoration-none">ما هو مخطط تدفق البيانات (DFD)؟</a></li>
+                                        <li><a href="unit-5.html#why-dfd-important" class="text-decoration-none">لماذا تعتبر مخططات DFD مهمة؟</a></li>
+                                        <li><a href="unit-5.html#dfd-components" class="text-decoration-none">مكونات مخطط تدفق البيانات</a></li>
+                                        <li><a href="unit-5.html#dfd-levels" class="text-decoration-none">مستويات مخططات DFD</a></li>
+                                        <li><a href="unit-5.html#learning-activities" class="text-decoration-none">الأنشطة التعليمية</a></li>
+                                        <li><a href="unit-5.html#assessment-tools" class="text-decoration-none">أدوات التقييم</a></li>
+                                        <li><a href="unit-5.html#visual-references" class="text-decoration-none">المراجع البصرية المقترحة</a></li>
+                                        <li><a href="unit-5.html#references" class="text-decoration-none">المراجع</a></li>
+                                        <li><a href="unit-5.html#unit-summary" class="text-decoration-none">ملخص الوحدة</a></li>
+                                    </ul>
+                                    <a href="unit-5.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 6 (الوحدة النشطة) -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit6">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit6" aria-expanded="true" aria-controls="collapseUnit6">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-object-group"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 6: النمذجة الكائنية باستخدام UML (Use Case)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit6" class="accordion-collapse collapse show" aria-labelledby="headingUnit6" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="#unit-objectives" class="text-decoration-none active-link">أهداف التعلم</a></li>
+                                        <li><a href="#uml-intro" class="text-decoration-none">مقدمة في UML</a></li>
+                                        <li><a href="#use-case-diagrams" class="text-decoration-none">رسوم Use Case</a></li>
+                                        <li><a href="#actors" class="text-decoration-none">الأدوار (Actors)</a></li>
+                                        <li><a href="#scenarios" class="text-decoration-none">سيناريوهات التفاعل (Scenarios)</a></li>
+                                        <li><a href="#importance-use-case" class="text-decoration-none">أهمية رسوم Use Case</a></li>
+                                        <li><a href="#practical-example" class="text-decoration-none">مثال تطبيقي: نظام حجز تذاكر طيران</a></li>
+                                        <li><a href="#learning-activities" class="text-decoration-none">الأنشطة التعليمية</a></li>
+                                        <li><a href="#assessment-tools" class="text-decoration-none">أدوات التقييم</a></li>
+                                        <li><a href="#visual-references" class="text-decoration-none">المراجع البصرية المقترحة</a></li>
+                                        <li><a href="#references" class="text-decoration-none">المراجع</a></li>
+                                        <li><a href="#unit-summary" class="text-decoration-none">ملخص الوحدة</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 7 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit7">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit7" aria-expanded="false" aria-controls="collapseUnit7">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-database"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 7: تحليل وتصميم البيانات (ERD)</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit7" class="accordion-collapse collapse" aria-labelledby="headingUnit7" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-7.html#erd-components" class="text-decoration-none">مكونات مخطط الكيانات والعلاقات (ERD)</a></li>
+                                        <li><a href="unit-7.html#db-design" class="text-decoration-none">تصميم قواعد البيانات المنطقية</a></li>
+                                    </ul>
+                                    <a href="unit-7.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة 8 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUnit8">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnit8" aria-expanded="false" aria-controls="collapseUnit8">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-laptop-code"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة 8: تصميم النظام وتنفيذه</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseUnit8" class="accordion-collapse collapse" aria-labelledby="headingUnit8" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-8.html#system-design" class="text-decoration-none">ترجمة المتطلبات إلى مخططات هيكلية</a></li>
+                                        <li><a href="unit-8.html#implementation" class="text-decoration-none">التنفيذ العملي للنظام واختباره</a></li>
+                                    </ul>
+                                    <a href="unit-8.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوحدة الختامية -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingSummary">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSummary" aria-expanded="false" aria-controls="collapseSummary">
+                                    <div class="d-flex align-items-center">
+                                        <div class="module-icon me-3">
+                                            <i class="fas fa-award"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">الوحدة الختامية: التلخيص والمراجعة</h5>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseSummary" class="accordion-collapse collapse" aria-labelledby="headingSummary" data-bs-parent="#unitsAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-unstyled">
+                                        <li><a href="unit-summary.html#summary" class="text-decoration-none">استعراض شامل للمقرر</a></li>
+                                        <li><a href="unit-summary.html#projects" class="text-decoration-none">مناقشة المشاريع العملية</a></li>
+                                        <li><a href="unit-summary.html#recommendations" class="text-decoration-none">التوصيات النهائية</a></li>
+                                    </ul>
+                                    <a href="unit-summary.html" class="btn btn-sm btn-primary mt-2">الانتقال للوحدة</a>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- منطقة المحتوى الرئيسية -->
+            <div class="col-lg-9">
+                <!-- أهداف التعلم -->
+                <div class="content-card" id="unit-objectives">
+                    <h2 class="section-title"><i class="fas fa-bullseye me-2"></i>أهداف التعلم</h2>
+                    <p>
+                        "رؤية النظام من منظور المستخدم عبر رسوم Use Case"
+                    </p>
+                    <p>بنهاية هذه الوحدة سيكون الطالب قادرًا على:</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> التعرف على **لغة النمذجة الموحدة (UML)** ودورها في تطوير الأنظمة.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> فهم مفهوم **رسوم Use Case** كأداة لتوضيح وظائف النظام.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> التمييز بين **الأدوار (Actors)** و**السيناريوهات (Scenarios)**.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> القدرة على رسم **مخطط Use Case** يوضح التفاعل بين المستخدم والنظام.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> إدراك أهمية هذه الرسوم في تحديد نطاق النظام وتحسين التواصل مع أصحاب المصلحة.</li>
+                    </ul>
+                </div>
+
+                ---
+
+                <!-- المحتوى التفصيلي: 1. مقدمة في UML -->
+                <div class="content-card" id="uml-intro">
+                    <h2 class="section-title"><i class="fas fa-sitemap me-2"></i>1. مقدمة في UML</h2>
+                    <p>
+                        بعد أن تعلمنا في الوحدات السابقة كيفية تحليل تدفق البيانات باستخدام DFDs وجمع المتطلبات، سننتقل الآن إلى أداة نمذجة أخرى قوية ومتكاملة تُستخدم على نطاق واسع في هندسة البرمجيات وتصميم الأنظمة: **لغة النمذجة الموحدة (Unified Modeling Language - UML)**.
+                    </p>
+                    <h3 class="sub-heading">ما هي UML؟</h3>
+                    <p>
+                        **UML** هي لغة رسومية موحدة تُستخدم **لنمذجة، وتحديد، وتصميم، وتوثيق** الأنظمة البرمجية. إنها ليست لغة برمجة، بل هي مجموعة من الرموز والمخططات القياسية التي تساعد محللي النظم والمطورين على تصور وتوثيق بنية وسلوك النظام بطريقة مفهومة للجميع.
+                    </p>
+                    <h3 class="sub-heading">أهمية UML</h3>
+                    <p>
+                        تُقدم UML فوائد عظيمة في دورة حياة تطوير النظام (SDLC):
+                    </p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-file-alt me-2"></i> **توثيق شامل:** توفر طريقة موحدة لتوثيق جميع جوانب النظام، من متطلبات المستخدم إلى تصميم الكود الداخلي.</li>
+                        <li class="list-group-item"><i class="fas fa-search me-2"></i> **تحليل دقيق:** تساعد في تحليل الأنظمة المعقدة من خلال تقسيمها إلى نماذج بصرية أبسط.</li>
+                        <li class="list-group-item"><i class="fas fa-drafting-compass me-2"></i> **تصميم منهجي:** تُمكن من تصميم هيكل النظام وسلوكه قبل البدء في البرمجة الفعلية.</li>
+                        <li class="list-group-item"><i class="fas fa-comments me-2"></i> **تواصل فعال:** توفر لغة بصرية مشتركة تٌقلل من سوء الفهم بين أصحاب المصلحة (العملاء، المحللين، المبرمجين، المختبرين).</li>
+                    </ul>
+                    <h3 class="sub-heading">أنواع الرسوم في UML</h3>
+                    <p>
+                        تتكون UML من أنواع متعددة من المخططات (Diagrams)، كل منها يركز على جانب معين من النظام. تشمل هذه المخططات على سبيل المثال لا الحصر:
+                    </p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-cube me-2"></i> **مخططات حالات الاستخدام (Use Case Diagrams):** تُظهر وظائف النظام من منظور المستخدم.</li>
+                        <li class="list-group-item"><i class="fas fa-project-diagram me-2"></i> **مخططات الفئات (Class Diagrams):** تُظهر بنية النظام من حيث الفئات والعلاقات بينها.</li>
+                        <li class="list-group-item"><i class="fas fa-exchange-alt me-2"></i> **مخططات التسلسل (Sequence Diagrams):** تُظهر ترتيب الرسائل المتبادلة بين الكائنات.</li>
+                        <li class="list-group-item"><i class="fas fa-chart-line me-2"></i> **مخططات الأنشطة (Activity Diagrams):** تُظهر تدفق العمليات والأنشطة.</li>
+                    </ul>
+                    <div class="note-box">
+                        <i class="fas fa-info-circle"></i> <strong>ملاحظة:</strong>
+                        <p>في هذه الوحدة، سنركز بشكل خاص على **مخططات حالات الاستخدام (Use Case Diagrams)** لأنها تُعد نقطة البداية لفهم متطلبات النظام من منظور المستخدم.</p>
+                    </div>
+                </div>
+
+                ---
+
+                <!-- 2. رسوم Use Case -->
+                <div class="content-card" id="use-case-diagrams">
+                    <h2 class="section-title"><i class="fas fa-cube me-2"></i>2. رسوم Use Case</h2>
+                    <p>
+                        تُعد **مخططات حالات الاستخدام (Use Case Diagrams)** واحدة من أبسط وأقوى مخططات UML. هدفها الرئيسي هو **توضيح وظائف النظام من منظور المستخدمين (Actors)** وماذا يمكنهم فعله بالنظام. إنها تقدم نظرة "سلوكية" أو "خارجية" للنظام، بمعنى أنها تُركز على الوظائف التي يقدمها النظام للمستخدمين وليس كيفية تنفيذ هذه الوظائف داخليًا.
+                    </p>
+                    <h3 class="sub-heading">تعريف مخطط Use Case</h3>
+                    <p>
+                        هو تمثيل رسومي يُظهر العلاقة بين **المستخدمين الخارجيين (Actors)** و**وظائف النظام (Use Cases)** التي يستخدمونها. كل Use Case يمثل وظيفة أو خدمة معينة يقدمها النظام لتحقيق هدف معين للمستخدم.
+                    </p>
+                    <h3 class="sub-heading">مكوناته الأساسية</h3>
+                    <p>يتكون مخطط Use Case من ثلاثة مكونات رئيسية:</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-user-circle me-2"></i> **الأدوار (Actors):** يمثلون الأشخاص أو الأنظمة الأخرى التي تتفاعل مع النظام.</li>
+                        <li class="list-group-item"><i class="fas fa-box me-2"></i> **حالات الاستخدام (Use Cases):** تمثل وظيفة محددة أو خدمة يقدمها النظام.</li>
+                        <li class="list-group-item"><i class="fas fa-link me-2"></i> **العلاقات (Relationships):** توضح كيفية تفاعل الأدوار مع حالات الاستخدام والعلاقات بين حالات الاستخدام نفسها.</li>
+                    </ul>
+                    
+                </div>
+
+                ---
+
+                <!-- 3. الأدوار (Actors) -->
+                <div class="content-card" id="actors">
+                    <h2 class="section-title"><i class="fas fa-users me-2"></i>3. الأدوار (Actors)</h2>
+                    <p>
+                        في مخططات Use Case، **الدور (Actor)** هو كيان (شخص، نظام آخر، جهاز) يتفاعل مع النظام الذي نقوم بتحليله أو تصميمه. يمثل الدور **فئة** من المستخدمين أو الأنظمة ذات سلوك متشابه تجاه النظام، وليس فردًا معينًا.
+                    </p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-arrow-alt-circle-right me-2"></i> **التمثيل:** يُرسم الدور عادةً على شكل "شخص عصا" (Stick figure).</li>
+                        <li class="list-group-item"><i class="fas fa-info-circle me-2"></i> **التسمية:** يُعطى اسماً يعبر عن الدور الذي يؤديه (مثال: "طالب"، "مدير"، "نظام الدفع").</li>
+                    </ul>
+                    <h3 class="sub-heading">أنواع الأدوار</h3>
+                    <p>يمكن تصنيف الأدوار إلى نوعين رئيسيين:</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-user-tie me-2"></i> **أدوار رئيسية (Primary Actors):**
+                            <ul>
+                                <li>هم المستخدمون الذين يبدأون (Initiate) حالة الاستخدام لتحقيق هدف معين.</li>
+                                <li>هم المستفيدون الرئيسيون من وظيفة النظام.</li>
+                                <li>مثال: **الطالب** في نظام تسجيل الطلاب (يبدأ عملية التسجيل).</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-user-cog me-2"></i> **أدوار ثانوية (Secondary Actors):**
+                            <ul>
+                                <li>هم الكيانات التي تدعم (Support) النظام أو تُقدم له خدمة.</li>
+                                <li>لا يبدأون حالة الاستخدام بشكل مباشر، ولكن النظام يتفاعل معهم لإكمال وظيفة معينة.</li>
+                                <li>مثال: **نظام الدفع الإلكتروني** في نظام التجارة الإلكترونية (يُقدم خدمة الدفع للنظام).</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <div class="example-box">
+                        <i class="fas fa-book"></i> <strong>مثال: الأدوار في نظام مكتبة جامعية</strong>
+                        <ul class="list-group list-group-flush no-bullet">
+                            <li class="list-group-item"><i class="fas fa-user me-2"></i> **Actor رئيسي:** **الطالب** (يريد استعارة كتاب، البحث عن كتاب).</li>
+                            <li class="list-group-item"><i class="fas fa-user-check me-2"></i> **Actor رئيسي:** **أمين المكتبة** (يدير الكتب، يسجل الاستعارات).</li>
+                            <li class="list-group-item"><i class="fas fa-building-columns me-2"></i> **Actor ثانوي:** **نظام الدفع الإلكتروني** (يستقبل المدفوعات من الطلاب على الغرامات).</li>
+                            <li class="list-group-item"><i class="fas fa-network-wired me-2"></i> **Actor ثانوي:** **نظام الجامعة المركزي** (يوفر معلومات الطلاب للتأكد من هويتهم).</li>
+                        </ul>
+                    </div>
+                </div>
+
+                ---
+
+                <!-- 4. سيناريوهات التفاعل (Scenarios) -->
+                <div class="content-card" id="scenarios">
+                    <h2 class="section-title"><i class="fas fa-file-invoice me-2"></i>4. سيناريوهات التفاعل (Scenarios)</h2>
+                    <p>
+                        بينما تُظهر مخططات Use Case الوظائف (Use Cases) والأدوار (Actors) وعلاقاتها بصريًا، فإنها لا تُقدم التفاصيل الدقيقة لكيفية حدوث التفاعل. هنا يأتي دور **السيناريوهات (Scenarios)**.
+                    </p>
+                    <h3 class="sub-heading">تعريف السيناريو</h3>
+                    <p>
+                        السيناريو هو **وصف نصي مفصل لخطوات التفاعل** التي تحدث بين الدور والنظام لتحقيق هدف حالة استخدام معينة. بعبارة أخرى، هو "قصة" تُروى خطوة بخطوة لما يحدث عندما يقوم دور ما باستخدام وظيفة معينة في النظام.
+                    </p>
+                    <p>
+                        كتابة السيناريوهات تُساعد على فهم المتطلبات بشكل أعمق، وتحديد جميع الخطوات الممكنة، وتوقع المشاكل المحتملة.
+                    </p>
+                    <h3 class="sub-heading">أنواع السيناريوهات</h3>
+                    <p>عادة ما يتم تقسيم السيناريوهات إلى نوعين رئيسيين:</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-check-circle me-2"></i> **السيناريو الأساسي (Main Flow / Happy Path):**
+                            <ul>
+                                <li>يصف المسار الطبيعي والناجح للتفاعل بين الدور والنظام.</li>
+                                <li>هو السيناريو الذي يحدث في معظم الحالات دون وجود أي أخطاء أو شروط استثنائية.</li>
+                                <li>مثال: <span class="concept-highlight">المسافر يقوم بحجز تذكرة</span> (جميع الخطوات تسير بسلاسة ويتم الحجز بنجاح).</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-exclamation-triangle me-2"></i> **السيناريو البديل (Alternative Flow):**
+                            <ul>
+                                <li>يصف مسارًا بديلاً يحدث عند وجود خطأ، أو شرط استثنائي، أو خيار مختلف.</li>
+                                <li>يمكن أن يؤدي إلى نجاح حالة الاستخدام بطريقة مختلفة، أو إلى فشلها.</li>
+                                <li>مثال: في حالة حجز التذكرة، <span class="concept-highlight">إذا لم تتوفر مقاعد في الرحلة المطلوبة، يتم اقتراح رحلات بديلة.</span></li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <div class="example-box">
+                        <i class="fas fa-plane"></i> <strong>مثال: سيناريو "حجز تذكرة طيران"</strong>
+                        <h4 class="sub-heading">السيناريو الأساسي:</h4>
+                        <ol>
+                            <li>المسافر يدخل معلومات الرحلة المطلوبة (وجهة، تاريخ، عدد المسافرين).</li>
+                            <li>النظام يعرض الرحلات المتاحة بناءً على المدخلات.</li>
+                            <li>المسافر يختار رحلة معينة ومقاعد.</li>
+                            <li>المسافر يدخل بيانات الدفع.</li>
+                            <li>النظام يتحقق من الدفع ويؤكد الحجز.</li>
+                            <li>النظام يرسل تأكيد الحجز وتفاصيل التذكرة إلى المسافر.</li>
+                        </ol>
+                        <h4 class="sub-heading">السيناريو البديل (عدم توفر مقاعد):</h4>
+                        <ol>
+                            <li>(الخطوة 3 من السيناريو الأساسي): المسافر يختار رحلة ومقاعد.</li>
+                            <li>النظام يكتشف عدم توفر عدد المقاعد المطلوب في هذه الرحلة.</li>
+                            <li>النظام يعرض رسالة "المقاعد غير متوفرة" ويقترح رحلات بديلة في نفس اليوم أو أيام أخرى قريبة.</li>
+                            <li>المسافر يختار رحلة بديلة (أو يقرر إلغاء العملية).</li>
+                            <li>(العودة إلى الخطوة 4 من السيناريو الأساسي).</li>
+                        </ol>
+                    </div>
+                </div>
+
+                ---
+
+                <!-- 5. أهمية رسوم Use Case -->
+                <div class="content-card" id="importance-use-case">
+                    <h2 class="section-title"><i class="fas fa-chart-line me-2"></i>5. أهمية رسوم Use Case</h2>
+                    <p>
+                        تُقدم مخططات Use Case فوائد متعددة في مراحل تحليل وتصميم الأنظمة، مما يجعلها أداة محورية لمحللي النظم والمطورين:
+                    </p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-compass me-2"></i> **تحديد نطاق النظام (System Scope):** تُساعد في تحديد الوظائف الأساسية التي يجب أن يقدمها النظام بوضوح، وما هو خارج نطاقه. هذا يمنع "زحف المتطلبات" (Scope Creep).</li>
+                        <li class="list-group-item"><i class="fas fa-comments me-2"></i> **تحسين التواصل:** لأنها بسيطة ومرئية، يمكن لأصحاب المصلحة غير التقنيين (مثل العملاء والمديرين) فهمها بسهولة، مما يسهل المناقشات والتأكد من أن النظام يلبي احتياجاتهم الحقيقية.</li>
+                        <li class="list-group-item"><i class="fas fa-lightbulb me-2"></i> **تسهيل التطوير:** توفر أساسًا واضحًا للمراحل اللاحقة مثل التصميم (مثلاً، يمكن تحويل Use Cases إلى فئات Classes أو مكونات Components)، والتنفيذ.</li>
+                        <li class="list-group-item"><i class="fas fa-shield-alt me-2"></i> **تقليل المخاطر:** الكشف المبكر عن أي تعارضات في المتطلبات، أو وظائف مفقودة، أو سوء فهم بين الأطراف المختلفة، مما يقلل من تكلفة التعديلات لاحقًا.</li>
+                        <li class="list-group-item"><i class="fas fa-vial me-2"></i> **دعم الاختبارات:** كل حالة استخدام (Use Case) يمكن أن تُعد أساسًا لتصميم حالات اختبار (Test Cases) وظيفية، مما يضمن اختبار جميع وظائف النظام.</li>
+                    </ul>
+                </div>
+
+                ---
+
+                <!-- 6. مثال تطبيقي: نظام حجز تذاكر طيران -->
+                <div class="content-card" id="practical-example">
+                    <h2 class="section-title"><i class="fas fa-plane-departure me-2"></i>6. مثال تطبيقي: نظام حجز تذاكر طيران</h2>
+                    <p>لنُطبق ما تعلمناه برسم مخطط Use Case بسيط لنظام حجز تذاكر الطيران.</p>
+
+                    <h3 class="sub-heading">الأدوار (Actors):</h3>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-user me-2"></i> **المسافر:** (Primary Actor) هو الشخص الذي يقوم بحجز التذاكر، إلغائها، أو طباعتها.</li>
+                        <li class="list-group-item"><i class="fas fa-user-friends me-2"></i> **موظف الحجز:** (Primary Actor) قد يكون موظفًا في شركة الطيران يساعد المسافرين أو يدير الحجوزات.</li>
+                        <li class="list-group-item"><i class="fas fa-money-bill-transfer me-2"></i> **نظام الدفع الإلكتروني:** (Secondary Actor) نظام خارجي يتعامل مع عمليات الدفع.</li>
+                        <li class="list-group-item"><i class="fas fa-database me-2"></i> **قاعدة بيانات الرحلات:** (Secondary Actor) قد تكون نظامًا أو مخزن بيانات خارجي يوفر معلومات الرحلات المتاحة.</li>
+                    </ul>
+
+                    <h3 class="sub-heading">حالات الاستخدام (Use Cases):</h3>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-ticket-alt me-2"></i> **حجز تذكرة:** (Booking a Ticket) يقوم بها المسافر أو موظف الحجز.</li>
+                        <li class="list-group-item"><i class="fas fa-ban me-2"></i> **إلغاء حجز:** (Cancelling a Booking) يقوم بها المسافر أو موظف الحجز.</li>
+                        <li class="list-group-item"><i class="fas fa-print me-2"></i> **طباعة التذكرة:** (Printing Ticket) يقوم بها المسافر أو موظف الحجز.</li>
+                        <li class="list-group-item"><i class="fas fa-dollar-sign me-2"></i> **إجراء الدفع:** (Making Payment) جزء من عملية حجز التذكرة، ويتفاعل مع نظام الدفع الإلكتروني. (يمكن أن يكون Use Case منفصلاً أو متضمنًا).</li>
+                        <li class="list-group-item"><i class="fas fa-search me-2"></i> **البحث عن رحلات:** (Searching for Flights) يقوم بها المسافر أو موظف الحجز.</li>
+                        <li class="list-group-item"><i class="fas fa-user-edit me-2"></i> **تعديل الحجز:** (Modifying Booking) يقوم بها المسافر أو موظف الحجز.</li>
+                    </ul>
+
+                    <h3 class="sub-heading">العلاقات (Relationships):</h3>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-arrow-right me-2"></i> **المسافر:** يرتبط بـ (حجز تذكرة، إلغاء حجز، طباعة التذكرة، البحث عن رحلات، تعديل الحجز).</li>
+                        <li class="list-group-item"><i class="fas fa-arrow-right me-2"></i> **موظف الحجز:** يرتبط بـ (حجز تذكرة، إلغاء حجز، طباعة التذكرة، البحث عن رحلات، تعديل الحجز).</li>
+                        <li class="list-group-item"><i class="fas fa-arrow-right me-2"></i> **حجز تذكرة** <i class="fas fa-long-arrow-alt-left me-2"></i> <<span class="concept-highlight">include</span>>> <i class="fas fa-long-arrow-alt-right me-2"></i> **إجراء الدفع:** (عملية الدفع متضمنة دائمًا في الحجز).</li>
+                        <li class="list-group-item"><i class="fas fa-arrow-right me-2"></i> **البحث عن رحلات:** <<span class="concept-highlight">extend</span>>> **حجز تذكرة** (يمكن البحث عن رحلات بشكل مستقل أو كجزء من عملية الحجز).</li>
+                        <li class="list-group-item"><i class="fas fa-arrow-right me-2"></i> **إجراء الدفع:** يتفاعل مع **نظام الدفع الإلكتروني**.</li>
+                        <li class="list-group-item"><i class="fas fa-arrow-right me-2"></i> **حجز تذكرة / البحث عن رحلات:** تتفاعل مع **قاعدة بيانات الرحلات**.</li>
+                    </ul>
+
+                    
+                </div>
+
+                ---
+
+                <!-- الأنشطة التعليمية -->
+                <div class="content-card" id="learning-activities">
+                    <h2 class="section-title"><i class="fas fa-users-cog me-2"></i>الأنشطة التعليمية</h2>
+                    <p>لترسيخ فهمك لمخططات Use Case، إليك بعض الأنشطة المقترحة:</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-paint-brush me-2 text-info"></i> **ورشة عمل: رسم Use Case Diagram لنظام تسجيل جامعي**
+                            <ul>
+                                <li>قسّموا أنفسكم إلى مجموعات (4-5 طلاب).</li>
+                                <li>قوموا بتحديد الأدوار (Actors) وحالات الاستخدام (Use Cases) لنظام <span class="concept-highlight">تسجيل طلاب جامعيين</span> (يتضمن تسجيل المقررات، دفع الرسوم، عرض الجداول).</li>
+                                <li>استخدموا أداة رسم مجانية مثل <a href="https://app.diagrams.net/" target="_blank">Draw.io</a> أو <a href="https://www.lucidchart.com/" target="_blank">Lucidchart</a> لرسم مخطط Use Case Diagram لهذا النظام.</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-file-alt me-2 text-info"></i> **تمرين فردي: كتابة سيناريو نصي**
+                            <ul>
+                                <li>اختاروا حالة استخدام واحدة من نظام <span class="concept-highlight">طلب قرض بنكي</span> (مثلاً: "تقديم طلب قرض جديد").</li>
+                                <li>اكتبوا السيناريو الأساسي (Main Flow) بالتفصيل خطوة بخطوة.</li>
+                                <li>اكتبوا سيناريو بديل واحد على الأقل (Alternative Flow) (مثلاً: "رفض طلب القرض بسبب نقص المستندات").</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-shopping-cart me-2 text-info"></i> **نشاط جماعي: تحديد Actors و Use Cases لنظام تجارة إلكترونية**
+                            <ul>
+                                <li>بالتعاون مع زملاء المجموعة، قوموا بتحديد أكبر عدد ممكن من الأدوار (Actors) وحالات الاستخدام (Use Cases) التي تتوقعونها في نظام <span class="concept-highlight">تجارة إلكترونية متكاملة</span> (تشمل العميل، البائع، المدير، نظام الدفع، نظام الشحن، إلخ).</li>
+                                <li>لا ترسموا المخطط، فقط أعدوا قائمة منظمة.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                ---
+
+                <!-- أدوات التقييم -->
+                <div class="content-card" id="assessment-tools">
+                    <h2 class="section-title"><i class="fas fa-marker me-2"></i>أدوات التقييم</h2>
+                    <p>لتقييم مدى استيعابك للمفاهيم في هذه الوحدة:</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-file-alt me-2 text-success"></i> **اختبار قصير (10 درجات):**
+                            <ul>
+                                <li>يغطي تعريف UML، ومكونات Use Case Diagram، والتمييز بين الأدوار وحالات الاستخدام والعلاقات الأساسية.</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-diagram-project me-2 text-success"></i> **مهمة عملية: رسم Use Case Diagram لنظام افتراضي (30%)**
+                            <ul>
+                                <li>يُطلب من كل طالب (أو مجموعة صغيرة) رسم مخطط Use Case Diagram كامل لمشروع نظام افتراضي (يمكن أن يكون مشروعًا من اختيار الطالب أو يُحدد من قبل المدرس). يجب أن يتضمن المخطط على الأقل 3 أدوار و 5 حالات استخدام، مع توضيح العلاقات الأساسية.</li>
+                            </ul>
+                        </li>
+                        <li class="list-group-item"><i class="fas fa-chalkboard-teacher me-2 text-success"></i> **عرض جماعي: تقديم وتحليل Use Case (20%)**
+                            <ul>
+                                <li>تقوم المجموعات بتقديم مخططات Use Case التي أعدوها في ورشة العمل أو المهمة العملية. يجب أن يتضمن العرض شرحًا واضحًا للأدوار، وحالات الاستخدام، والعلاقات، مع تحليل لسبب اختيار كل مكون.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                ---
+
+                <!-- المراجع البصرية المقترحة -->
+                <div class="content-card" id="visual-references">
+                    <h2 class="section-title"><i class="fas fa-palette me-2"></i>المراجع البصرية المقترحة</h2>
+                    <p>
+                        لتعزيز فهمك البصري للمفاهيم، يمكنك البحث عن المخططات التالية:
+                    </p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-chart-bar me-2"></i> **رسم يوضح الفرق بين Actor وUse Case:** يوضح بشكل مرئي كيف يتم تمثيل كل منهما وعلاقتهما.</li>
+                        <li class="list-group-item"><i class="fas fa-university me-2"></i> **مثال Use Case Diagram مبسط (مثل ATM أو مكتبة جامعية):** يوفر نماذج جاهزة لكيفية بناء المخططات.</li>
+                        <li class="list-group-item"><i class="fas fa-table me-2"></i> **جداول تربط السيناريو النصي بالمخطط الرسومي:** توضح كيفية ترجمة الخطوات النصية إلى مكونات رسومية.</li>
+                    </ul>
+                </div>
+
+                ---
+
+                <!-- المراجع -->
+                <div class="content-card" id="references">
+                    <h2 class="section-title"><i class="fas fa-book-reader me-2"></i>المراجع</h2>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-book me-2 text-secondary"></i> "UML Distilled: A Brief Guide to the Standard Object Modeling Language" – Martin Fowler.</li>
+                        <li class="list-group-item"><i class="fas fa-book me-2 text-secondary"></i> "Systems Analysis and Design" – Kenneth Kendall & Julie Kendall.</li>
+                        <li class="list-group-item"><i class="fas fa-globe me-2 text-secondary"></i> أدوات رسم مجانية عبر الإنترنت: <a href="https://www.lucidchart.com/" target="_blank" class="resource-link">Lucidchart</a>، <a href="https://app.diagrams.net/" target="_blank" class="resource-link">Draw.io</a>، <a href="https://www.visual-paradigm.com/" target="_blank" class="resource-link">Visual Paradigm Community Edition</a>.</li>
+                    </ul>
+                </div>
+
+                ---
+
+                <!-- ملخص الوحدة -->
+                <div class="content-card" id="unit-summary">
+                    <h2 class="section-title"><i class="fas fa-check-double me-2"></i>ملخص الوحدة</h2>
+                    <p>
+                        لقد أكملتَ هذه الوحدة الشيقة في مقرر "تحليل وتصميم النظم"، حيث تعلمتَ كيف ترى النظام من زاوية المستخدم وتُنمذجه بصريًا.
+                    </p>
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> تعرفتَ على **لغة النمذجة الموحدة (UML)** كأداة قياسية لنمذجة وتوثيق الأنظمة.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> فهمتَ جوهر **مخططات حالات الاستخدام (Use Case Diagrams)**، وكيف تُظهر الوظائف التي يقدمها النظام للمستخدمين.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> ميزتَ بوضوح بين **الأدوار (Actors)** بأنواعها المختلفة (رئيسية وثانوية) و**حالات الاستخدام (Use Cases)**.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> تعلمتَ كيفية وصف **سيناريوهات التفاعل** تفصيليًا، بما في ذلك المسار الأساسي والمسارات البديلة.</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> أدركتَ الأهمية القصوى لرسوم Use Case في تحديد نطاق المشروع، وتحسين التواصل، وتقليل المخاطر، ودعم مراحل التطوير والاختبار.</li>
+                    </ul>
+                    <p>
+                        تُعد مخططات Use Case نقطة انطلاق ممتازة لأي مشروع نظام، حيث تساعد على ضمان أن النظام سيُلبي الاحتياجات الحقيقية للمستخدمين. في الوحدة القادمة، سنتعمق في جانب آخر مهم من تصميم الأنظمة وهو **تحليل وتصميم البيانات باستخدام مخططات ERD**، حيث ستتعلم كيفية نمذجة بنية البيانات وعلاقاتها.
+                    </p>
+                </div>
+
+                <!-- أزرار التنقل بين الوحدات -->
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="unit-5.html" class="unit-nav-btn"><i class="fas fa-arrow-left"></i>الوحدة السابقة: أدوات التحليل (DFD)</a>
+                    <a href="unit-7.html" class="unit-nav-btn">الوحدة التالية: تحليل وتصميم البيانات (ERD)<i class="fas fa-arrow-right"></i></a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- الفوتر (Footer) -->
+    <footer class="text-center text-lg-start mt-5" style="background-color: var(--primary-color);">
+        <div class="container p-4">
+            <div class="row">
+                <!-- قسم مسار الأمن السيبراني -->
+                <div class="col-lg-6 col-md-12 mb-4 mb-md-0">
+                    <h5 class="text-uppercase">مسار الأمن السيبراني</h5>
+                    <p>
+                        نحن نقدم محتوى تعليميًا شاملاً ومُحدثًا لمساعدتك على بناء أساس قوي في الأمن السيبراني وشبكات الحاسوب.
+                    </p>
+                </div>
+
+                <!-- قسم روابط مفيدة -->
+                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                    <h5 class="text-uppercase">روابط مفيدة</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li>
+                            <a href="#!" class="text-white">عن المسار</a>
+                        </li>
+                        <li>
+                            <a href="#!" class="text-white">اتصل بنا</a>
+                        </li>
+                        <li>
+                            <a href="#!" class="text-white">الأسئلة الشائعة</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- قسم تابعنا -->
+                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                    <h5 class="text-uppercase">تابعنا</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li>
+                            <a href="#!" class="text-white"><i class="fab fa-facebook-f me-2"></i>فيسبوك</a>
+                        </li>
+                        <li>
+                            <a href="#!" class="text-white"><i class="fab fa-twitter me-2"></i>تويتر</a>
+                        </li>
+                        <li>
+                            <a href="#!" class="text-white"><i class="fab fa-linkedin-in me-2"></i>لينكد إن</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- حقوق النشر -->
+        <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
+            © 2025 مسار الأمن السيبراني. جميع الحقوق محفوظة.
+        </div>
+    </footer>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
 
