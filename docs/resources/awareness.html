@@ -747,6 +747,7 @@
         </section>
         <hr>
 <!-- 🌍 قسم خريطة الهجمات السيبرانية الحية -->
+<!-- 🌍 قسم خريطة الهجمات السيبرانية الحية -->
 <section id="live-threat-map" class="mb-5">
   <h2 class="text-secondary text-center mb-4 section-title">
     🌍 خريطة الهجمات السيبرانية الحية
@@ -757,17 +758,7 @@
       
       <!-- الخريطة -->
       <div class="col-md-8">
-        <div class="threat-map-container bg-dark text-light p-4 rounded position-relative">
-          <div class="map-placeholder text-center py-5">
-            <i class="bi bi-globe fs-1 text-info"></i>
-            <p class="mt-3">خريطة تفاعلية تعرض الهجمات السيبرانية حول العالم في الوقت الفعلي</p>
-            <button class="btn btn-outline-info mt-2" onclick="showLiveMap()">
-              🚀 عرض الخريطة الحية
-            </button>
-          </div>
-          <!-- تأثير وميض -->
-          <div id="map-flash" class="position-absolute top-0 start-0 w-100 h-100 d-none bg-info bg-opacity-25"></div>
-        </div>
+        <div id="threat-map" class="rounded" style="height: 400px;"></div>
       </div>
 
       <!-- الإحصائيات -->
@@ -797,34 +788,64 @@
   <!-- شريط أخبار -->
   <div class="bg-dark text-light mt-3 p-2 rounded small overflow-hidden">
     <marquee behavior="scroll" direction="right" scrollamount="5">
-      🔴 محاولة DDoS على خادم في ألمانيا | 🟠 تصيد احتيالي مستهدف في الإمارات | 🟢 هجوم برمجيات خبيثة في أمريكا | 🟡 مسح منافذ في اليابان
+      🔴 محاولة DDoS على خادم في ألمانيا | 🟠 تصيد احتيالي في السعودية | 🟢 هجوم برمجيات خبيثة في أمريكا | 🟡 مسح منافذ في اليابان
     </marquee>
   </div>
 </section>
 
+<!-- استدعاء مكتبة Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 <script>
-  // محاكاة تحديث الأرقام
-  function randomInt(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+  // إنشاء الخريطة
+  var map = L.map('threat-map').setView([20, 0], 2); // مركز الخريطة
+
+  // تحميل خريطة من OpenStreetMap
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  // بيانات محاكاة للهجمات
+  const countries = [
+    { name: "🇺🇸 أمريكا", coords: [37.0902, -95.7129] },
+    { name: "🇸🇦 السعودية", coords: [23.8859, 45.0792] },
+    { name: "🇩🇪 ألمانيا", coords: [51.1657, 10.4515] },
+    { name: "🇯🇵 اليابان", coords: [36.2048, 138.2529] },
+    { name: "🇨🇳 الصين", coords: [35.8617, 104.1954] }
+  ];
+
+  const attacks = ["DDoS", "Phishing", "Malware", "Brute Force", "SQL Injection"];
+
+  // تحديث الإحصائيات + إضافة نقطة جديدة على الخريطة
+  function updateStats() {
+    // تحديث الأرقام
+    document.getElementById("live-attacks").innerText = Math.floor(Math.random() * (200 - 80) + 80);
+
+    // اختيار عشوائي
+    const randomCountry = countries[Math.floor(Math.random() * countries.length)];
+    const randomAttack = attacks[Math.floor(Math.random() * attacks.length)];
+
+    // تحديث النصوص
+    document.getElementById("top-country").innerText = randomCountry.name;
+    document.getElementById("attack-type").innerText = randomAttack;
+
+    // إضافة نقطة على الخريطة
+    L.circleMarker(randomCountry.coords, {
+      radius: 8,
+      fillColor: "red",
+      color: "darkred",
+      weight: 1,
+      opacity: 1,
+      fillOpacity: 0.6
+    }).addTo(map)
+      .bindPopup(`🚨 هجوم: ${randomAttack}<br>📍 الدولة: ${randomCountry.name}`);
   }
 
-  setInterval(() => {
-    document.getElementById("live-attacks").innerText = randomInt(80, 200);
-    const countries = ["🇺🇸 أمريكا", "🇸🇦 السعودية", "🇩🇪 ألمانيا", "🇯🇵 اليابان", "🇨🇳 الصين"];
-    document.getElementById("top-country").innerText = countries[randomInt(0, countries.length-1)];
-    const attacks = ["DDoS", "Phishing", "Malware", "Brute Force", "SQL Injection"];
-    document.getElementById("attack-type").innerText = attacks[randomInt(0, attacks.length-1)];
-  }, 3000);
-
-  // وميض عند الضغط
-  function showLiveMap() {
-    let flash = document.getElementById("map-flash");
-    flash.classList.remove("d-none");
-    setTimeout(() => {
-      flash.classList.add("d-none");
-    }, 500);
-  }
+  // تحديث كل 3 ثواني
+  setInterval(updateStats, 3000);
 </script>
+
 
         <!-- قسم الإحصائيات المضافة -->
        <section id="cyber-stats" class="mb-5">
