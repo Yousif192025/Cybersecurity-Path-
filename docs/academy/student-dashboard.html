@@ -332,5 +332,42 @@
             }
         });
     </script>
+    <script>
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const res = await fetch('/api/student?id=1'); // الطالب 1 كمثال
+        const { student, courses } = await res.json();
+
+        // تحديث اسم الطالب
+        document.getElementById('studentName').textContent = student.name;
+
+        // تحديث الإحصائيات
+        document.getElementById('coursesRegistered').textContent = student.registered_courses;
+        document.getElementById('certificatesCompleted').textContent = student.completed_certificates;
+        document.getElementById('completionRate').textContent = student.completion_rate + '%';
+
+        // تحديث الدورات
+        const coursesGrid = document.getElementById('coursesGrid');
+        coursesGrid.innerHTML = '';
+
+        courses.forEach(course => {
+            const courseCard = document.createElement('div');
+            courseCard.className = 'course-card';
+
+            const buttonText = course.certificate ? "عرض الشهادة" : "متابعة";
+
+            courseCard.innerHTML = `
+                <h4>${course.title}</h4>
+                <p>التقدم: <span class="progress-value">${course.progress}%</span></p>
+                <a href="${course.link}">${buttonText}</a>
+            `;
+            coursesGrid.appendChild(courseCard);
+        });
+    } catch (err) {
+        console.error("خطأ في جلب بيانات الطالب:", err);
+    }
+});
+</script>
+
 </body>
 </html>
