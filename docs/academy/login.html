@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -269,12 +268,12 @@
             <div id="successMessage" class="success-message"></div>
             
             <div class="form-group">
-                <label for="email">البريد الإلكتروني</label>
-                <input type="email" id="email" placeholder="أدخل بريدك الإلكتروني" required>
+                <label for="user_id">رقم الهوية</label>
+                <input type="text" id="user_id" placeholder="أدخل رقم الهوية" required>
             </div>
             
             <div class="form-group">
-                <label for="password">كلمة المرور</label>
+                <label for="password">كلمة المرور (نفس رقم الهوية)</label>
                 <div class="password-input">
                     <input type="password" id="password" placeholder="أدخل كلمة المرور" required>
                     <span class="toggle-password" id="togglePassword">
@@ -285,9 +284,8 @@
             
             <button type="submit" class="btn-login" id="loginBtn">تسجيل الدخول</button>
             
-            <div class="separator">أو</div>
-            
-            <div class="social-login">
+            <div class="separator" style="display: none;">أو</div>
+            <div class="social-login" style="display: none;">
                 <div class="social-btn google" id="googleLogin">
                     <i class="fab fa-google"></i>
                 </div>
@@ -298,7 +296,7 @@
             
             <div class="login-footer">
                 <p>ليس لديك حساب؟ <a href="./enrollment.html">أنشئ حساب جديد</a></p>
-                <p><a href="./forgot-password.html">نسيت كلمة المرور?</a></p>
+                <p style="display: none;"><a href="./forgot-password.html">نسيت كلمة المرور?</a></p>
             </div>
         </div>
     </div>
@@ -307,24 +305,21 @@
         <a href="../index.html"><i class="fas fa-arrow-right"></i> العودة إلى الصفحة الرئيسية</a>
     </div>
 
-    <!-- إضافة مكتبة Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // تهيئة Supabase
-        const supabaseUrl = 'https://kjsggojrsratkwlblcqq.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtqc2dnb2pyc3JhdGt3bGJsY3FxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTgxNzQ0MjgsImV4cCI6MjAzMzc1MDQyOH0.abc123yourSupabaseAnonKeyHere';
+        // خطوة 1: تهيئة Supabase
+        const supabaseUrl = 'https://YOUR_SUPABASE_PROJECT_URL.supabase.co'; // ضع رابط مشروعك من Supabase
+        const supabaseKey = 'YOUR_ANON_PUBLIC_KEY'; // ضع مفتاح anon key الخاص بك
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         document.addEventListener('DOMContentLoaded', function() {
-            const emailInput = document.getElementById('email');
+            const userIdInput = document.getElementById('user_id');
             const passwordInput = document.getElementById('password');
             const loginBtn = document.getElementById('loginBtn');
             const togglePassword = document.getElementById('togglePassword');
             const errorMessage = document.getElementById('errorMessage');
             const successMessage = document.getElementById('successMessage');
-            const googleLogin = document.getElementById('googleLogin');
-            const githubLogin = document.getElementById('githubLogin');
-            
+
             // إظهار/إخفاء كلمة المرور
             togglePassword.addEventListener('click', function() {
                 if (passwordInput.type === 'password') {
@@ -336,112 +331,71 @@
                 }
             });
             
-            // تسجيل الدخول بالبريد الإلكتروني وكلمة المرور
-            loginBtn.addEventListener('click', async function() {
-                const email = emailInput.value.trim();
+            // تسجيل الدخول برقم الهوية
+            loginBtn.addEventListener('click', async function(e) {
+                e.preventDefault(); // منع السلوك الافتراضي للزر
+                
+                const userId = userIdInput.value.trim();
                 const password = passwordInput.value.trim();
                 
                 // التحقق من صحة المدخلات
-                if (!email || !password) {
+                if (!userId || !password) {
                     showError('يرجى ملء جميع الحقول');
                     return;
                 }
-                
-                if (!isValidEmail(email)) {
-                    showError('يرجى إدخال بريد إلكتروني صحيح');
+
+                // التحقق من أن رقم الهوية وكلمة المرور متطابقان
+                if (userId !== password) {
+                    showError('كلمة المرور يجب أن تكون نفس رقم الهوية');
                     return;
                 }
-                
+
                 try {
-                    // إظهار حالة التحميل
-                    loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري تسجيل الدخول...';
+                    loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحقق...';
                     loginBtn.disabled = true;
-                    
-                    // محاولة تسجيل الدخول
-                    const { data, error } = await supabase.auth.signInWithPassword({
-                        email: email,
-                        password: password
-                    });
-                    
+
+                    // خطوة 2: الاتصال بقاعدة البيانات للبحث عن رقم الهوية
+                    const { data, error } = await supabase
+                        .from('users') // استبدل 'users' باسم جدولك
+                        .select('id_number') // استبدل 'id_number' باسم عمود الهوية
+                        .eq('id_number', userId);
+
                     if (error) {
                         throw error;
                     }
                     
-                    // تسجيل الدخول ناجح
-                    showSuccess('تم تسجيل الدخول بنجاح! يتم توجيهك الآن...');
-                    
-                    // توجيه المستخدم إلى لوحة التحكم بعد تسجيل الدخول بنجاح
-                    setTimeout(() => {
-                        window.location.href = './student-dashboard.html';
-                    }, 1500);
-                    
-                } catch (error) {
-                    console.error('Error signing in:', error);
-                    
-                    // عرض رسالة الخطأ المناسبة
-                    if (error.message.includes('Invalid login credentials')) {
-                        showError('البريد الإلكتروني أو كلمة المرور غير صحيحة');
-                    } else if (error.message.includes('Email not confirmed')) {
-                        showError('يرجى تأكيد بريدك الإلكتروني أولاً');
+                    // خطوة 3: التحقق من وجود رقم الهوية في البيانات
+                    if (data && data.length > 0) {
+                        // رقم الهوية موجود، تسجيل الدخول ناجح
+                        showSuccess('تم تسجيل الدخول بنجاح! يتم توجيهك الآن...');
+                        setTimeout(() => {
+                            window.location.href = './student-dashboard.html';
+                        }, 1500);
                     } else {
-                        showError('حدث خطأ أثناء تسجيل الدخول: ' + error.message);
+                        // رقم الهوية غير موجود
+                        showError('رقم الهوية غير صحيح أو غير موجود');
+                        loginBtn.innerHTML = 'تسجيل الدخول';
+                        loginBtn.disabled = false;
                     }
-                    
-                    // إعادة تمكين زر تسجيل الدخول
+
+                } catch (error) {
+                    console.error('Error during login:', error);
+                    showError('حدث خطأ أثناء تسجيل الدخول: ' + error.message);
                     loginBtn.innerHTML = 'تسجيل الدخول';
                     loginBtn.disabled = false;
                 }
             });
             
-            // تسجيل الدخول باستخدام Google - التصحيح هنا
-            googleLogin.addEventListener('click', async function() {
-                try {
-                    // استخدام redirectTo الصحيح الذي يتوافق مع إعدادات Google Cloud Console
-                    const { data, error } = await supabase.auth.signInWithOAuth({
-                        provider: 'google',
-                        options: {
-                            redirectTo: 'https://kjsggojrsratkwlblcqq.supabase.co/auth/v1/callback'
-                        }
-                    });
-                    
-                    if (error) throw error;
-                } catch (error) {
-                    console.error('Error with Google login:', error);
-                    showError('حدث خطأ أثناء تسجيل الدخول باستخدام Google: ' + error.message);
-                }
-            });
-            
-            // تسجيل الدخول باستخدام GitHub - التصحيح هنا
-            githubLogin.addEventListener('click', async function() {
-                try {
-                    // استخدام redirectTo الصحيح الذي يتوافق مع إعدادات GitHub
-                    const { data, error } = await supabase.auth.signInWithOAuth({
-                        provider: 'github',
-                        options: {
-                            redirectTo: 'https://kjsggojrsratkwlblcqq.supabase.co/auth/v1/callback'
-                        }
-                    });
-                    
-                    if (error) throw error;
-                } catch (error) {
-                    console.error('Error with GitHub login:', error);
-                    showError('حدث خطأ أثناء تسجيل الدخول باستخدام GitHub: ' + error.message);
-                }
-            });
-            
-            // دالة للتحقق من صحة البريد الإلكتروني
-            function isValidEmail(email) {
-                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                return re.test(email);
-            }
-            
+            // إزالة وظائف تسجيل الدخول الاجتماعي
+            // googleLogin.addEventListener...
+            // githubLogin.addEventListener...
+
             // دالة لعرض رسائل الخطأ
             function showError(message) {
                 errorMessage.textContent = message;
                 errorMessage.style.display = 'block';
                 successMessage.style.display = 'none';
                 
-                // إخفاء رسالة الخطأ بعد 5 ثوان
                 setTimeout(() => {
                     errorMessage.style.display = 'none';
                 }, 5000);
@@ -453,14 +407,13 @@
                 successMessage.style.display = 'block';
                 errorMessage.style.display = 'none';
                 
-                // إخفاء رسالة النجاح بعد 3 ثوان
                 setTimeout(() => {
                     successMessage.style.display = 'none';
                 }, 3000);
             }
             
             // السماح بتسجيل الدخول عند الضغط على Enter
-            emailInput.addEventListener('keypress', function(e) {
+            userIdInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     loginBtn.click();
                 }
