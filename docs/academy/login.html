@@ -420,13 +420,11 @@
                     loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري تسجيل الدخول...';
                     loginBtn.disabled = true;
 
-                    // في Supabase، لا يوجد تسجيل دخول مباشر برقم هوية.
-                    // يجب البحث عن المستخدم أولاً باستخدام رقم الهوية، ثم استخدام البريد الإلكتروني الخاص به لتسجيل الدخول.
-                    // هذه الطريقة تتطلب أن تكون "رقم الهوية" مخزنة في جدول عام يمكن الوصول إليه.
+                    // البحث عن البريد الإلكتروني باستخدام رقم الهوية
                     const { data: userData, error: userError } = await supabase
-                        .from('users_table') // استبدل 'users_table' باسم جدول المستخدمين الخاص بك
+                        .from('users')
                         .select('email')
-                        .eq('identity_number', identifier) // استبدل 'identity_number' باسم العمود الخاص برقم الهوية
+                        .eq('idnumber', identifier)
                         .single();
 
                     if (userError || !userData) {
@@ -475,7 +473,7 @@
                     const { data, error } = await supabase.auth.signInWithOAuth({
                         provider: 'google',
                         options: {
-                            redirectTo: window.location.origin + '/student-dashboard.html' // يمكنك تعديل هذا الرابط
+                            redirectTo: window.location.origin + '/student-dashboard.html'
                         }
                     });
                     if (error) throw error;
@@ -491,7 +489,7 @@
                     const { data, error } = await supabase.auth.signInWithOAuth({
                         provider: 'github',
                         options: {
-                            redirectTo: window.location.origin + '/student-dashboard.html' // يمكنك تعديل هذا الرابط
+                            redirectTo: window.location.origin + '/student-dashboard.html'
                         }
                     });
                     if (error) throw error;
@@ -509,8 +507,6 @@
 
             // دالة للتحقق من صحة رقم الهوية (مثال بسيط)
             function isValidIdentityNumber(id) {
-                // يمكنك تعديل هذا النمط للتحقق من تنسيق رقم الهوية الخاص بدولتك
-                // هذا مثال بسيط يتأكد من أن الرقم يتكون من 10 أرقام فقط
                 const re = /^\d{10}$/;
                 return re.test(id);
             }
