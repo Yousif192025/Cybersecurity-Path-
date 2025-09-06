@@ -163,6 +163,38 @@
             margin-left: .5em;
         }
 
+        .social-login {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .social-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .social-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .google {
+            background-color: #DB4437;
+        }
+
+        .github {
+            background-color: #333;
+        }
+
         .login-footer {
             text-align: center;
             margin-top: 20px;
@@ -259,6 +291,17 @@
             
             <button type="submit" class="btn-login" id="loginBtn">تسجيل الدخول</button>
             
+            <div class="separator">أو</div>
+            
+            <div class="social-login">
+                <div class="social-btn google" id="googleLogin">
+                    <i class="fab fa-google"></i>
+                </div>
+                <div class="social-btn github" id="githubLogin">
+                    <i class="fab fa-github"></i>
+                </div>
+            </div>
+            
             <div class="login-footer">
                 <p><a href="./forgot-password.html">نسيت كلمة المرور؟</a></p>
             </div>
@@ -283,6 +326,8 @@
             const togglePassword = document.getElementById('togglePassword');
             const errorMessage = document.getElementById('errorMessage');
             const successMessage = document.getElementById('successMessage');
+            const googleLogin = document.getElementById('googleLogin');
+            const githubLogin = document.getElementById('githubLogin');
             
             // إظهار/إخفاء كلمة المرور
             togglePassword.addEventListener('click', function() {
@@ -325,8 +370,6 @@
                     }
                     
                     // التحقق من دور المستخدم (Admin)
-                    // ملاحظة: هذا يتطلب وجود جدول إضافي لتخزين أدوار المستخدمين
-                    // يجب عليك إعداد هذا الجدول في Supabase وتسميته مثلاً 'user_roles'
                     const { data: profileData, error: profileError } = await supabase
                         .from('profiles') // استبدل 'profiles' باسم جدول ملفات المستخدمين
                         .select('role')
@@ -361,6 +404,38 @@
                     
                     loginBtn.innerHTML = 'تسجيل الدخول';
                     loginBtn.disabled = false;
+                }
+            });
+
+            // تسجيل الدخول باستخدام Google
+            googleLogin.addEventListener('click', async function() {
+                try {
+                    const { data, error } = await supabase.auth.signInWithOAuth({
+                        provider: 'google',
+                        options: {
+                            redirectTo: window.location.origin + '/admin-dashboard.html'
+                        }
+                    });
+                    if (error) throw error;
+                } catch (error) {
+                    console.error('Error with Google login:', error);
+                    showError('حدث خطأ أثناء تسجيل الدخول باستخدام Google: ' + error.message);
+                }
+            });
+            
+            // تسجيل الدخول باستخدام GitHub
+            githubLogin.addEventListener('click', async function() {
+                try {
+                    const { data, error } = await supabase.auth.signInWithOAuth({
+                        provider: 'github',
+                        options: {
+                            redirectTo: window.location.origin + '/admin-dashboard.html'
+                        }
+                    });
+                    if (error) throw error;
+                } catch (error) {
+                    console.error('Error with GitHub login:', error);
+                    showError('حدث خطأ أثناء تسجيل الدخول باستخدام GitHub: ' + error.message);
                 }
             });
             
