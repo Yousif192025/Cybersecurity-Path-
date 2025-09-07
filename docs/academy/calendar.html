@@ -11,15 +11,54 @@
     <link rel="stylesheet" href="../assets/css/main.css" />
     <link rel="stylesheet" href="../assets/css/responsive.css" />
     <style>
-        /* أنماط أساسية لصفحة التقويم */
+        :root {
+            --primary-blue: #1a73e8;
+            --accent-blue: #0d47a1;
+            --primary-dark: #2c3e50;
+            --text-dark: #34495e;
+            --white: #ffffff;
+            --light-grey: #f8f9fa;
+            --border-light: #e0e6e9;
+            --shadow-medium: rgba(0, 0, 0, 0.1);
+            --success-color: #2e7d32;
+            --error-color: #c62828;
+            --info-color: #1565c0;
+            --course-color: #2e7d32;
+            --workshop-color: #ff9800;
+            --exam-color: #d32f2f;
+            --holiday-color: #7b1fa2;
+            --event-color: #1976d2;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e9f0f4 0%, #d6e4f0 100%);
+            font-family: 'Tajawal', sans-serif;
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
         .calendar-container {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 50px auto;
             padding: 40px;
             background-color: var(--white);
-            border-radius: 10px;
-            box-shadow: 0 8px 20px var(--shadow-medium);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
             text-align: right;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .calendar-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary-blue), var(--accent-blue));
         }
 
         .calendar-container h2 {
@@ -27,30 +66,54 @@
             text-align: center;
             margin-bottom: 30px;
             font-size: 2.5em;
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        .calendar-container h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 50%;
+            transform: translateX(50%);
+            width: 120px;
+            height: 4px;
+            background: var(--primary-blue);
+            border-radius: 3px;
+        }
+
+        .calendar-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         .calendar-nav-buttons {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            direction: ltr; /* Ensure buttons are left-to-right for consistent navigation */
+            gap: 10px;
         }
 
         .calendar-nav-buttons button {
             background-color: var(--primary-blue);
             color: var(--white);
             border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 12px 20px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 1em;
-            transition: background-color 0.3s ease, transform 0.2s ease;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .calendar-nav-buttons button:hover {
             background-color: var(--accent-blue);
             transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(26, 115, 232, 0.3);
         }
 
         .calendar-nav-buttons h3 {
@@ -58,42 +121,89 @@
             color: var(--primary-dark);
             font-size: 1.8em;
             text-align: center;
-            direction: rtl; /* Ensure month name is RTL */
+            font-weight: 700;
+        }
+
+        .today-button {
+            background: linear-gradient(90deg, var(--primary-blue), var(--accent-blue));
+            color: var(--white);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .today-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(26, 115, 232, 0.3);
+        }
+
+        .view-toggle {
+            display: flex;
+            background: var(--light-grey);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .view-toggle button {
+            padding: 10px 15px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .view-toggle button.active {
+            background: var(--primary-blue);
+            color: var(--white);
         }
 
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
+            gap: 8px;
             border: 1px solid var(--border-light);
-            border-radius: 8px;
+            border-radius: 12px;
             overflow: hidden;
-            direction: rtl; /* Full calendar grid RTL */
+            background: var(--white);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
         }
 
         .calendar-day-header {
-            background-color: var(--primary-dark);
+            background: linear-gradient(90deg, var(--primary-blue), var(--accent-blue));
             color: var(--white);
-            padding: 10px 5px;
+            padding: 15px 5px;
             text-align: center;
             font-weight: 600;
-            font-size: 0.9em;
+            font-size: 1em;
         }
 
         .calendar-day {
-            background-color: var(--light-bg);
+            background-color: var(--light-grey);
             border: 1px solid var(--border-light);
-            padding: 10px;
-            min-height: 100px;
+            padding: 12px;
+            min-height: 120px;
             text-align: right;
             position: relative;
             font-size: 0.9em;
-            overflow: hidden; /* Hide overflowing events */
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .calendar-day:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            z-index: 1;
         }
 
         .calendar-day.empty {
-            background-color: #f0f0f0;
-            opacity: 0.7;
+            background-color: #f5f5f5;
+            opacity: 0.5;
         }
 
         .calendar-day.current-month {
@@ -101,7 +211,7 @@
         }
 
         .calendar-day.current-day {
-            background-color: var(--primary-blue);
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-blue));
             color: var(--white);
             font-weight: 700;
             border-color: var(--accent-blue);
@@ -109,46 +219,119 @@
 
         .calendar-day.current-day .day-number {
             color: var(--white);
+            background: rgba(0, 0, 0, 0.2);
         }
 
-
         .day-number {
-            font-size: 1.2em;
+            font-size: 1.3em;
             font-weight: 700;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             color: var(--primary-blue);
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(26, 115, 232, 0.1);
         }
 
         .calendar-event {
-            background-color: #e6f2ff; /* Light blue for events */
-            color: var(--accent-blue);
-            padding: 5px 8px;
-            border-radius: 4px;
+            padding: 6px 10px;
+            border-radius: 6px;
             margin-top: 5px;
-            font-size: 0.8em;
+            font-size: 0.85em;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
             cursor: pointer;
-            transition: background-color 0.2s ease;
+            transition: all 0.2s ease;
+            border-left: 4px solid;
         }
 
         .calendar-event:hover {
-            background-color: #d0e7ff;
+            transform: translateX(-3px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
         }
 
         .calendar-event.course-event {
-            background-color: #d4edda; /* Light green */
-            color: #155724;
+            background-color: rgba(46, 125, 50, 0.1);
+            color: var(--course-color);
+            border-left-color: var(--course-color);
         }
+
+        .calendar-event.workshop-event {
+            background-color: rgba(255, 152, 0, 0.1);
+            color: var(--workshop-color);
+            border-left-color: var(--workshop-color);
+        }
+
+        .calendar-event.exam-event {
+            background-color: rgba(211, 47, 47, 0.1);
+            color: var(--exam-color);
+            border-left-color: var(--exam-color);
+        }
+
         .calendar-event.holiday-event {
-            background-color: #f8d7da; /* Light red */
-            color: #721c24;
+            background-color: rgba(123, 31, 162, 0.1);
+            color: var(--holiday-color);
+            border-left-color: var(--holiday-color);
         }
+
+        .calendar-event.general-event {
+            background-color: rgba(25, 118, 210, 0.1);
+            color: var(--event-color);
+            border-left-color: var(--event-color);
+        }
+
+        .events-count {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: var(--primary-blue);
+            color: var(--white);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7em;
+            font-weight: bold;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 25px;
+            padding: 20px;
+            background: var(--light-grey);
+            border-radius: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+        }
+
+        .legend-course { background-color: var(--course-color); }
+        .legend-workshop { background-color: var(--workshop-color); }
+        .legend-exam { background-color: var(--exam-color); }
+        .legend-holiday { background-color: var(--holiday-color); }
+        .legend-event { background-color: var(--event-color); }
 
         /* Modal for event details */
         .event-modal {
-            display: none; /* Hidden by default */
+            display: none;
             position: fixed;
             z-index: 1000;
             left: 0;
@@ -165,67 +348,133 @@
             background-color: var(--white);
             margin: auto;
             padding: 30px;
-            border-radius: 10px;
+            border-radius: 15px;
             max-width: 500px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             position: relative;
             text-align: right;
+            width: 90%;
         }
 
         .close-button {
             color: #aaa;
-            float: left; /* Position to the left for RTL */
+            float: left;
             font-size: 28px;
             font-weight: bold;
             cursor: pointer;
+            position: absolute;
+            top: 15px;
+            left: 15px;
         }
 
         .close-button:hover,
         .close-button:focus {
             color: #000;
-            text-decoration: none;
         }
 
         .event-modal-content h3 {
             color: var(--primary-dark);
             margin-top: 0;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             text-align: center;
+            font-size: 1.5em;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-light);
         }
 
-        .event-modal-content p {
-            margin-bottom: 10px;
+        .event-detail {
+            margin-bottom: 15px;
             line-height: 1.6;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
         }
-        .event-modal-content p strong {
+
+        .event-detail strong {
             color: var(--accent-blue);
+            min-width: 80px;
+        }
+
+        .event-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .event-actions button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .event-actions .btn-primary {
+            background: var(--primary-blue);
+            color: var(--white);
+        }
+
+        .event-actions .btn-primary:hover {
+            background: var(--accent-blue);
+        }
+
+        .event-actions .btn-secondary {
+            background: var(--light-grey);
+            color: var(--text-dark);
+        }
+
+        .event-actions .btn-secondary:hover {
+            background: #e0e0e0;
         }
 
         @media (max-width: 768px) {
             .calendar-container {
-                padding: 20px;
+                padding: 20px 15px;
                 margin: 30px auto;
             }
+            
             .calendar-container h2 {
                 font-size: 2em;
             }
+            
+            .calendar-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .calendar-nav-buttons {
+                justify-content: center;
+            }
+            
             .calendar-nav-buttons h3 {
                 font-size: 1.5em;
             }
+            
             .calendar-day {
-                min-height: 80px;
+                min-height: 100px;
                 padding: 8px;
             }
+            
             .calendar-day-header {
-                font-size: 0.8em;
+                font-size: 0.85em;
+                padding: 10px 5px;
             }
+            
             .calendar-event {
                 font-size: 0.75em;
-                padding: 3px 6px;
+                padding: 4px 8px;
             }
+            
             .event-modal-content {
                 max-width: 90%;
                 padding: 20px;
+            }
+            
+            .legend {
+                flex-direction: column;
+                gap: 10px;
             }
         }
     </style>
@@ -266,10 +515,21 @@
         <div class="calendar-container">
             <h2 data-text="calendar-heading">تقويم الدورات والفعاليات</h2>
 
-            <div class="calendar-nav-buttons">
-                <button id="prevMonth"><i class="fas fa-chevron-left"></i></button>
-                <h3 id="currentMonthYear">يناير 2025</h3>
-                <button id="nextMonth"><i class="fas fa-chevron-right"></i></button>
+            <div class="calendar-controls">
+                <div class="calendar-nav-buttons">
+                    <button id="prevMonth"><i class="fas fa-chevron-right"></i> الشهر السابق</button>
+                    <h3 id="currentMonthYear">يناير 2025</h3>
+                    <button id="nextMonth">الشهر التالي <i class="fas fa-chevron-left"></i></button>
+                </div>
+                
+                <button class="today-button" id="todayButton">
+                    <i class="fas fa-calendar-day"></i> اليوم
+                </button>
+                
+                <div class="view-toggle">
+                    <button class="active" data-view="month"><i class="fas fa-calendar-alt"></i> شهري</button>
+                    <button data-view="week"><i class="fas fa-calendar-week"></i> أسبوعي</button>
+                </div>
             </div>
 
             <div class="calendar-grid" id="calendarGrid">
@@ -280,7 +540,30 @@
                 <div class="calendar-day-header" data-text="thu">الخميس</div>
                 <div class="calendar-day-header" data-text="fri">الجمعة</div>
                 <div class="calendar-day-header" data-text="sat">السبت</div>
+            </div>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color legend-course"></div>
+                    <span>دورات</span>
                 </div>
+                <div class="legend-item">
+                    <div class="legend-color legend-workshop"></div>
+                    <span>ورش عمل</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color legend-exam"></div>
+                    <span>اختبارات</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color legend-holiday"></div>
+                    <span>إجازات</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color legend-event"></div>
+                    <span>فعاليات</span>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -288,36 +571,52 @@
         <div class="event-modal-content">
             <span class="close-button">&times;</span>
             <h3 id="modalEventTitle">عنوان الحدث</h3>
-            <p><strong data-text="event-date-label">التاريخ:</strong> <span id="modalEventDate"></span></p>
-            <p><strong data-text="event-time-label">الوقت:</strong> <span id="modalEventTime"></span></p>
-            <p><strong data-text="event-description-label">الوصف:</strong> <span id="modalEventDescription"></span></p>
-            <p><strong data-text="event-type-label">النوع:</strong> <span id="modalEventType"></span></p>
-            <p><strong data-text="event-link-label">الرابط:</strong> <a href="#" id="modalEventLink" target="_blank"></a></p>
+            
+            <div class="event-detail">
+                <strong data-text="event-date-label">التاريخ:</strong>
+                <span id="modalEventDate"></span>
+            </div>
+            
+            <div class="event-detail">
+                <strong data-text="event-time-label">الوقت:</strong>
+                <span id="modalEventTime"></span>
+            </div>
+            
+            <div class="event-detail">
+                <strong data-text="event-type-label">النوع:</strong>
+                <span id="modalEventType"></span>
+            </div>
+            
+            <div class="event-detail">
+                <strong data-text="event-description-label">الوصف:</strong>
+                <span id="modalEventDescription"></span>
+            </div>
+            
+            <div class="event-actions">
+                <button class="btn-primary" id="modalEventLinkBtn">عرض التفاصيل</button>
+                <button class="btn-secondary" id="closeModalBtn">إغلاق</button>
+            </div>
         </div>
     </div>
 
-
     <button id="scrollToTopBtn" class="scroll-button scroll-to-top" title="العودة للأعلى">
         <i class="fas fa-arrow-up"></i>
-    </button>
-    <button id="scrollToBottomBtn" class="scroll-button scroll-to-bottom" title="العودة للأسفل">
-        <i class="fas fa-arrow-down"></i>
     </button>
 
     <footer>
         <div>
             <h4 data-text="platform-footer">المنصة</h4>
             <a href="../about.html" data-text="about-platform-footer">عن المنصة</a>
-            <a href="../policies.html" data-text="policies-footer">السياسات</a>
-            <a href="../terms.html" data-text="terms-footer">الشروط والأحكام</a>
-            <a href="../privacy.html" data-text="privacy-footer">سياسة الخصوصية</a>
+            <a href="../legal/privacy-policy.html" data-text="policies-footer">السياسات</a>
+            <a href="../legal/terms.html" data-text="terms-footer">الشروط والأحكام</a>
+            <a href="../legal/privacy-policy.html" data-text="privacy-footer">سياسة الخصوصية</a>
         </div>
         <div>
             <h4 data-text="contact-us-footer">تواصل معنا</h4>
             <a href="https://api.whatsapp.com/send?phone=966502161465" target="_blank" class="whatsapp-btn">
                 <i class="fab fa-whatsapp"></i> <span data-text="whatsapp-number">0502161465</span>
             </a>
-            <a href="../support.html" data-text="support-center-footer">مركز الدعم والمساعدة</a>
+            <a href="../legal/support.html" data-text="support-center-footer">مركز الدعم والمساعدة</a>
         </div>
         <div>
             <h4 data-text="more-links-footer">روابط أخرى</h4>
@@ -336,40 +635,99 @@
     <script src="../assets/js/main.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // تهيئة نظام اللغة وتفعيل قائمة الجوال وأزرار التمرير من main.js
-            // (يفترض أن main.js يقوم بـ langManager.init() وتجهيز header/footer JS)
-
             const calendarGrid = document.getElementById('calendarGrid');
             const currentMonthYearElem = document.getElementById('currentMonthYear');
             const prevMonthBtn = document.getElementById('prevMonth');
             const nextMonthBtn = document.getElementById('nextMonth');
-
+            const todayButton = document.getElementById('todayButton');
+            const viewToggleButtons = document.querySelectorAll('.view-toggle button');
+            
             const eventModal = document.getElementById('eventModal');
             const closeButton = document.querySelector('.close-button');
+            const closeModalBtn = document.getElementById('closeModalBtn');
             const modalEventTitle = document.getElementById('modalEventTitle');
             const modalEventDate = document.getElementById('modalEventDate');
             const modalEventTime = document.getElementById('modalEventTime');
             const modalEventDescription = document.getElementById('modalEventDescription');
             const modalEventType = document.getElementById('modalEventType');
-            const modalEventLink = document.getElementById('modalEventLink');
+            const modalEventLinkBtn = document.getElementById('modalEventLinkBtn');
 
             let currentMonth = new Date().getMonth();
             let currentYear = new Date().getFullYear();
+            let currentView = 'month';
 
             // بيانات الأحداث (يمكن تحميلها من API في تطبيق حقيقي)
             const events = [
-                { date: '2025-07-15', title: 'بداية دورة أساسيات الأمن السيبراني', description: 'انطلاق الدورة الأولى للمبتدئين', time: '10:00 صباحًا', type: 'دورة', link: '../courses/course-details.html?id=info-sec-fundamentals' },
-                { date: '2025-07-22', title: 'ورشة عمل: حماية البيانات الشخصية', description: 'ورشة توعوية حول أهمية حماية البيانات', time: '02:00 مساءً', type: 'ورشة', link: '#' },
-                { date: '2025-08-01', title: 'اختبار نهاية دورة أمن الشبكات', description: 'اختبار شامل لتقييم مهارات أمن الشبكات', time: '09:00 صباحًا', type: 'اختبار', link: '#' },
-                { date: '2025-08-10', title: 'عيد الأضحى المبارك', description: 'إجازة رسمية بمناسبة عيد الأضحى', time: 'طوال اليوم', type: 'إجازة', link: '#', class: 'holiday-event' },
-                { date: '2025-09-05', title: 'بداية دورة اختبار الاختراق', description: 'دورة متقدمة في اختبار الاختراق', time: '01:00 مساءً', type: 'دورة', link: '../courses/course-details.html?id=pentesting-beginner', class: 'course-event' },
-                { date: '2025-09-23', title: 'اليوم الوطني السعودي', description: 'احتفال باليوم الوطني للمملكة', time: 'طوال اليوم', type: 'فعالية وطنية', link: '#', class: 'holiday-event' }
+                { 
+                    date: '2025-07-15', 
+                    title: 'بداية دورة أساسيات الأمن السيبراني', 
+                    description: 'انطلاق الدورة الأولى للمبتدئين في مجال الأمن السيبراني والتي تغطي المفاهيم الأساسية والتطبيقات العملية.', 
+                    time: '10:00 صباحًا', 
+                    type: 'دورة', 
+                    link: '../courses/course-details.html?id=info-sec-fundamentals',
+                    class: 'course-event'
+                },
+                { 
+                    date: '2025-07-22', 
+                    title: 'ورشة عمل: حماية البيانات الشخصية', 
+                    description: 'ورشة توعوية حول أهمية حماية البيانات الشخصية وكيفية تجنب مخاطر الاختراق.', 
+                    time: '02:00 مساءً', 
+                    type: 'ورشة', 
+                    link: '#',
+                    class: 'workshop-event'
+                },
+                { 
+                    date: '2025-08-01', 
+                    title: 'اختبار نهاية دورة أمن الشبكات', 
+                    description: 'اختبار شامل لتقييم مهارات أمن الشبكات التي تم تعلمها خلال الدورة.', 
+                    time: '09:00 صباحًا', 
+                    type: 'اختبار', 
+                    link: '#',
+                    class: 'exam-event'
+                },
+                { 
+                    date: '2025-08-10', 
+                    title: 'عيد الأضحى المبارك', 
+                    description: 'إجازة رسمية بمناسبة عيد الأضحى المبارك.', 
+                    time: 'طوال اليوم', 
+                    type: 'إجازة', 
+                    link: '#', 
+                    class: 'holiday-event' 
+                },
+                { 
+                    date: '2025-09-05', 
+                    title: 'بداية دورة اختبار الاختراق', 
+                    description: 'دورة متقدمة في اختبار الاختراق تغطي أحدث التقنيات والأدوات المستخدمة في مجال الأمن السيبراني.', 
+                    time: '01:00 مساءً', 
+                    type: 'دورة', 
+                    link: '../courses/course-details.html?id=pentesting-beginner', 
+                    class: 'course-event' 
+                },
+                { 
+                    date: '2025-09-23', 
+                    title: 'اليوم الوطني السعودي', 
+                    description: 'احتفال باليوم الوطني للمملكة العربية السعودية.', 
+                    time: 'طوال اليوم', 
+                    type: 'فعالية وطنية', 
+                    link: '#', 
+                    class: 'holiday-event' 
+                },
+                { 
+                    date: '2025-09-30', 
+                    title: 'ندوة التوعية الأمنية', 
+                    description: 'ندوة حول أهمية التوعية الأمنية في المؤسسات والشركات.', 
+                    time: '11:00 صباحًا', 
+                    type: 'فعالية', 
+                    link: '#', 
+                    class: 'general-event' 
+                }
             ];
 
             const monthNames = {
                 ar: ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"],
                 en: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
             };
+            
             const dayNames = {
                 ar: ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"],
                 en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
@@ -377,7 +735,8 @@
 
             function renderCalendar() {
                 calendarGrid.innerHTML = '';
-                // Add day headers (they are static in HTML but for dynamic generation, we'd add them here)
+                
+                // إضافة عناوين الأيام
                 dayNames[langManager.currentLang].forEach(day => {
                     const header = document.createElement('div');
                     header.className = 'calendar-day-header';
@@ -392,38 +751,27 @@
                 const todayMonth = today.getMonth();
                 const todayYear = today.getFullYear();
 
-                // Get the starting day of the week (0 for Sunday, 6 for Saturday)
-                // For RTL (Sunday starts on the right), we adjust
-                let startDay = firstDayOfMonth.getDay(); // This will be 0 for Sunday
-                // If we want the calendar to start from Sunday on the right for RTL,
-                // and Sunday is the first column, we might not need to adjust the startDay here.
-                // However, standard JavaScript getDay() is 0=Sun, 1=Mon, ..., 6=Sat.
-                // For a grid that starts visually with Sunday as the first cell on the right (RTL),
-                // the `startDay` value directly corresponds to how many empty cells we need.
-                // For RTL, we fill from right to left, so the first day of the month
-                // should appear in the correct column based on `startDay`.
-                // A common calendar grid setup might have Sunday as the last column for RTL,
-                // or the first. Let's assume the HTML `calendar-grid` is ordered Sun-Sat visually.
-                // If we want to simulate a calendar that starts its week on Sunday (الأحد), and fills right-to-left.
-                // The first day of the month might fall on a Monday (الإثنين), which is day 1.
-                // So, we need 1 empty cell before it if Sunday is index 0.
-                // If the grid starts from right (الأحد) to left (السبت), and Sunday is 0:
-                // Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday
-                //  0       1        2         3          4         5        6
-                // If month starts on Monday (1), we need 1 empty div before. If it starts on Wednesday (3), 3 empty divs.
-                // This seems correct for a grid that just flows.
-
+                // حساب اليوم الأول من الشهر
+                let startDay = firstDayOfMonth.getDay();
+                
+                // إضافة الأيام الفارغة قبل بداية الشهر
                 for (let i = 0; i < startDay; i++) {
                     const emptyDay = document.createElement('div');
                     emptyDay.className = 'calendar-day empty';
                     calendarGrid.appendChild(emptyDay);
                 }
 
+                // إضافة أيام الشهر
                 for (let i = 1; i <= daysInMonth; i++) {
                     const dayElem = document.createElement('div');
                     dayElem.className = 'calendar-day current-month';
-                    dayElem.innerHTML = `<div class="day-number">${i}</div>`;
+                    
+                    const dayNumber = document.createElement('div');
+                    dayNumber.className = 'day-number';
+                    dayNumber.textContent = i;
+                    dayElem.appendChild(dayNumber);
 
+                    // تمييز اليوم الحالي
                     if (i === todayDate && currentMonth === todayMonth && currentYear === todayYear) {
                         dayElem.classList.add('current-day');
                     }
@@ -431,9 +779,18 @@
                     const dateString = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
                     const dailyEvents = events.filter(event => event.date === dateString);
 
+                    // إضافة عدد الأحداث إذا كان هناك أكثر من حدث
+                    if (dailyEvents.length > 0) {
+                        const eventsCount = document.createElement('div');
+                        eventsCount.className = 'events-count';
+                        eventsCount.textContent = dailyEvents.length;
+                        dayElem.appendChild(eventsCount);
+                    }
+
+                    // إضافة الأحداث
                     dailyEvents.forEach(event => {
                         const eventElem = document.createElement('div');
-                        eventElem.className = `calendar-event ${event.class || ''}`;
+                        eventElem.className = `calendar-event ${event.class || 'general-event'}`;
                         eventElem.textContent = event.title;
                         eventElem.dataset.title = event.title;
                         eventElem.dataset.date = event.date;
@@ -467,6 +824,27 @@
                 renderCalendar();
             }
 
+            function goToToday() {
+                const today = new Date();
+                currentMonth = today.getMonth();
+                currentYear = today.getFullYear();
+                renderCalendar();
+            }
+
+            function changeView(view) {
+                currentView = view;
+                viewToggleButtons.forEach(btn => {
+                    if (btn.dataset.view === view) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+                
+                // يمكن إضافة منطق لعرض مختلف (شهري/أسبوعي) هنا
+                renderCalendar();
+            }
+
             function showEventDetails(e) {
                 const eventData = e.target.dataset;
                 modalEventTitle.textContent = eventData.title;
@@ -474,34 +852,45 @@
                 modalEventTime.textContent = eventData.time;
                 modalEventDescription.textContent = eventData.description;
                 modalEventType.textContent = eventData.type;
+                
                 if (eventData.link && eventData.link !== '#') {
-                    modalEventLink.href = eventData.link;
-                    modalEventLink.textContent = eventData.link;
-                    modalEventLink.style.display = 'inline';
+                    modalEventLinkBtn.style.display = 'block';
+                    modalEventLinkBtn.onclick = () => {
+                        window.location.href = eventData.link;
+                    };
                 } else {
-                    modalEventLink.href = '#';
-                    modalEventLink.textContent = '';
-                    modalEventLink.style.display = 'none';
+                    modalEventLinkBtn.style.display = 'none';
                 }
-                eventModal.style.display = 'flex'; // Use flex to center
+                
+                eventModal.style.display = 'flex';
             }
 
-            closeButton.addEventListener('click', () => {
+            function closeModal() {
                 eventModal.style.display = 'none';
-            });
+            }
 
+            // إضافة event listeners
+            closeButton.addEventListener('click', closeModal);
+            closeModalBtn.addEventListener('click', closeModal);
             window.addEventListener('click', (e) => {
                 if (e.target === eventModal) {
-                    eventModal.style.display = 'none';
+                    closeModal();
                 }
             });
 
             prevMonthBtn.addEventListener('click', () => changeMonth(-1));
             nextMonthBtn.addEventListener('click', () => changeMonth(1));
+            todayButton.addEventListener('click', goToToday);
+            
+            viewToggleButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    changeView(button.dataset.view);
+                });
+            });
 
-            renderCalendar(); // Initial render
+            renderCalendar();
 
-            // إضافة ترجمات خاصة بصفحة التقويم إلى langManager في main.js
+            // إضافة ترجمات خاصة بصفحة التقويم
             if (typeof langManager !== 'undefined' && langManager.translations) {
                 Object.assign(langManager.translations.ar, {
                     'calendar-page-title': 'تقويم الدورات والفعاليات',
@@ -516,10 +905,10 @@
                     'event-date-label': 'التاريخ:',
                     'event-time-label': 'الوقت:',
                     'event-description-label': 'الوصف:',
-                    'event-type-label': 'النوع:',
-                    'event-link-label': 'الرابط:'
+                    'event-type-label': 'النوع:'
                 });
-                 Object.assign(langManager.translations.en, {
+                
+                Object.assign(langManager.translations.en, {
                     'calendar-page-title': 'Courses & Events Calendar',
                     'calendar-heading': 'Courses & Events Calendar',
                     'sun': 'Sun',
@@ -532,10 +921,10 @@
                     'event-date-label': 'Date:',
                     'event-time-label': 'Time:',
                     'event-description-label': 'Description:',
-                    'event-type-label': 'Type:',
-                    'event-link-label': 'Link:'
+                    'event-type-label': 'Type:'
                 });
-                langManager.applyTranslations(); // إعادة تطبيق الترجمات بعد إضافة الجديدة
+                
+                langManager.applyTranslations();
             }
         });
     </script>
