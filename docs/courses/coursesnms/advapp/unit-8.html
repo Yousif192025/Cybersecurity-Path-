@@ -1,1 +1,900 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الوحدة 8: Access المتقدم - الجزء 1 | إنشاء قواعد البيانات</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #8048a3;
+            --secondary-color: #9b6bb8;
+            --accent-color: #c5a3d8;
+            --light-bg: #f8f9fa;
+            --dark-text: #2d3436;
+            --light-text: #636e72;
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --hover-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+            --access-color: #8048a3;
+        }
 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            min-height: 100vh;
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            line-height: 1.8;
+        }
+
+        /* Navigation */
+        .navbar {
+            background: linear-gradient(135deg, var(--access-color), #9263b0);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 12px 0;
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .navbar-brand i {
+            font-size: 1.8rem;
+            color: white;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.85) !important;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            padding: 8px 15px !important;
+            border-radius: 6px;
+        }
+
+        .nav-link:hover {
+            color: white !important;
+            background-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                        url('https://images.unsplash.com/photo-1542744173-8e7e53415bb0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') no-repeat center center/cover;
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+            border-radius: 16px;
+            margin: 30px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--access-color) 10%, transparent);
+            opacity: 0.4;
+        }
+
+        .hero-section h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .hero-section p {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto 30px auto;
+            opacity: 0.9;
+        }
+
+        /* Main Content */
+        .content-section {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .content-section:hover {
+            box-shadow: var(--hover-shadow);
+        }
+
+        .course-title {
+            color: var(--access-color);
+            border-bottom: 3px solid var(--accent-color);
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .sidebar-title {
+            color: var(--access-color);
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-container {
+            height: 25px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 25px;
+            background-color: #e9ecef;
+        }
+
+        .progress-bar {
+            background: linear-gradient(135deg, var(--access-color), #9263b0);
+            transition: width 0.5s ease;
+        }
+
+        /* Content Styles */
+        .content-block {
+            margin-bottom: 40px;
+        }
+
+        .content-block h2, .content-block h3, .content-block h4 {
+            color: var(--access-color);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .content-block ul {
+            padding-right: 20px;
+            margin-bottom: 20px;
+        }
+
+        .content-block li {
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .content-block li::before {
+            content: "•";
+            color: var(--accent-color);
+            font-weight: bold;
+            display: inline-block;
+            width: 1em;
+            margin-left: 10px;
+            font-size: 1.2rem;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #f0e6f5, #e2d1ec);
+            border-right: 4px solid var(--access-color);
+            padding: 25px;
+            border-radius: 12px;
+            margin: 25px 0;
+        }
+
+        .step-box {
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            border-right: 4px solid var(--accent-color);
+        }
+
+        .step-number {
+            background: var(--access-color);
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            padding-top: 25px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        /* Practice Section */
+        .practice-section {
+            background: linear-gradient(135deg, #f0e6f5, #e2d1ec);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+
+        /* Footer */
+        .footer {
+            background: linear-gradient(135deg, var(--access-color), #9263b0);
+            color: white;
+            padding: 50px 0 25px;
+            margin-top: 60px;
+        }
+
+        .footer h5 {
+            font-weight: 700;
+            margin-bottom: 20px;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        .footer h5::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 50px;
+            height: 3px;
+            background-color: var(--accent-color);
+        }
+
+        .footer a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .footer a:hover {
+            color: white;
+            transform: translateX(-5px);
+        }
+
+        .social-links a {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            margin-left: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .social-links a:hover {
+            background: var(--accent-color);
+            transform: translateY(-3px);
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .hero-section h1 {
+                font-size: 2.3rem;
+            }
+            
+            .hero-section p {
+                font-size: 1.1rem;
+            }
+            
+            .sidebar {
+                position: static;
+                margin-bottom: 30px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 60px 0;
+            }
+            
+            .hero-section h1 {
+                font-size: 2rem;
+            }
+            
+            .content-section {
+                padding: 25px;
+            }
+            
+            .nav-buttons {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .nav-buttons .btn {
+                width: 100%;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fadein {
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        /* Badges */
+        .badge-module {
+            background: linear-gradient(135deg, var(--access-color), #9263b0);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        
+        /* Database specific styles */
+        .concept-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+        
+        .concept-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: var(--card-shadow);
+            border-right: 4px solid var(--accent-color);
+            transition: all 0.3s ease;
+        }
+        
+        .concept-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--hover-shadow);
+        }
+        
+        .concept-card h4 {
+            color: var(--access-color);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .table-design {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: monospace;
+        }
+        
+        .data-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .data-type {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            border-right: 3px solid var(--accent-color);
+        }
+        
+        .data-type h5 {
+            color: var(--access-color);
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="../index.html">
+                <i class="fas fa-laptop-code"></i>
+                تطبيقات الحاسب المتقدمة
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../../../pathways/tvtc-cs-security.html">
+                            <i class="fas fa-arrow-right me-1"></i>
+                            العودة إلى المقررات
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">
+                            <i class="fas fa-home me-1"></i>
+                            الصفحة الرئيسية
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="unit-9.html">
+                            الوحدة التالية
+                            <i class="fas fa-arrow-left me-1"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container my-5">
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <div class="container position-relative">
+                <h1><i class="fas fa-database"></i> الوحدة 8: Access المتقدم - الجزء 1</h1>
+                <p>تعلم أساسيات إنشاء قواعد البيانات وتصميم الجداول في Microsoft Access</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-lg-4 col-md-5 mb-4">
+                <div class="sidebar">
+                    <h4 class="sidebar-title">
+                        <i class="fas fa-stream"></i>
+                        أقسام الوحدة
+                    </h4>
+                    
+                    <div class="progress progress-container">
+                        <div class="progress-bar" role="progressbar" style="width: 33%;" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100">33%</div>
+                    </div>
+                    
+                    <div class="list-group">
+                        <a href="#introduction" class="list-group-item list-group-item-action active">
+                            <i class="fas fa-play-circle me-2"></i>
+                            مقدمة في قواعد البيانات
+                        </a>
+                        <a href="#design" class="list-group-item list-group-item-action">
+                            <i class="fas fa-play-circle me-2"></i>
+                            تصميم قواعد البيانات
+                        </a>
+                        <a href="#tables" class="list-group-item list-group-item-action">
+                            <i class="fas fa-play-circle me-2"></i>
+                            إنشاء الجداول
+                        </a>
+                        <a href="#fields" class="list-group-item list-group-item-action">
+                            <i class="fas fa-play-circle me-2"></i>
+                            أنواع الحقول
+                        </a>
+                        <a href="#keys" class="list-group-item list-group-item-action">
+                            <i class="fas fa-play-circle me-2"></i>
+                            المفاتيح الأساسية
+                        </a>
+                        <a href="#practice" class="list-group-item list-group-item-action">
+                            <i class="fas fa-play-circle me-2"></i>
+                            التطبيق العملي
+                        </a>
+                    </div>
+                    
+                    <h4 class="sidebar-title mt-4">
+                        <i class="fas fa-download"></i>
+                        موارد للتحميل
+                    </h4>
+                    
+                    <div class="list-group">
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="fas fa-file me-2"></i>
+                            ملف قاعدة بيانات نموذجية
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="fas fa-book me-2"></i>
+                            دليل تصميم قواعد البيانات
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="fas fa-video me-2"></i>
+                            فيديو تعليمي
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-lg-8 col-md-7">
+                <div class="content-section animate-fadein">
+                    <h1 class="course-title">
+                        <i class="fas fa-database"></i>
+                        الوحدة 8: Access المتقدم - الجزء 1
+                    </h1>
+                    <span class="badge-module">إنشاء قواعد البيانات</span>
+                    
+                    <div id="introduction" class="content-block mt-4">
+                        <h2><i class="fas fa-info-circle"></i> مقدمة في قواعد البيانات</h2>
+                        <p>قاعدة البيانات هي مجموعة منظمة من البيانات المخزنة وإدارتها إلكترونيًا. تسمح لنا قواعد البيانات بتخزين كميات كبيرة من المعلومات وإدارتها واسترجاعها بكفاءة عالية.</p>
+                        
+                        <div class="highlight-box">
+                            <h4><i class="fas fa-lightbulb"></i> أهمية قواعد البيانات</h4>
+                            <p>قواعد البيانات تساعد في تنظيم المعلومات بشكل منطقي، تقليل تكرار البيانات، تحسين دقة المعلومات، وتسهيل عملية استرجاع البيانات وتحليلها. تستخدم قواعد البيانات في جميع المجالات تقريبًا من الأعمال إلى التعليم إلى الرعاية الصحية.</p>
+                        </div>
+                        
+                        <h3>مكونات قاعدة البيانات في Access</h3>
+                        <div class="concept-grid">
+                            <div class="concept-card">
+                                <h4><i class="fas fa-table"></i> الجداول</h4>
+                                <p>هي المكون الأساسي لقاعدة البيانات حيث تخزن البيانات في صفوف وأعمدة.</p>
+                            </div>
+                            <div class="concept-card">
+                                <h4><i class="fas fa-search"></i> الاستعلامات</h4>
+                                <p>تستخدم لاسترجاع البيانات من الجداول وفق شروط محددة.</p>
+                            </div>
+                            <div class="concept-card">
+                                <h4><i class="fas fa-window-restore"></i> النماذج</h4>
+                                <p>واجهات مستخدم لإدخال وعرض البيانات بشكل سهل.</p>
+                            </div>
+                            <div class="concept-card">
+                                <h4><i class="fas fa-file-alt"></i> التقارير</h4>
+                                <p>تستخدم لعرض البيانات وطباعتها بتنسيق احترافي.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="design" class="content-block">
+                        <h2><i class="fas fa-pencil-ruler"></i> تصميم قواعد البيانات</h2>
+                        <p>التصميم الجيد لقاعدة البيانات هو أساس إنشاء نظام فعال. يتضمن التصميم تحديد الجداول اللازمة والحقول المناسبة والعلاقات بينها.</p>
+                        
+                        <div class="step-box">
+                            <h4><span class="step-number">1</span> تحليل المتطلبات</h4>
+                            <p>حدد الغرض من قاعدة البيانات والبيانات التي تحتاج إلى تخزينها والتقارير التي تريد إنشاءها.</p>
+                        </div>
+                        
+                        <div class="step-box">
+                            <h4><span class="step-number">2</span> تنظيم البيانات في جداول</h4>
+                            <p>قسّم البيانات إلى مواضيع منفصلة، كل موضوع يصبح جدولاً منفصلاً في قاعدة البيانات.</p>
+                        </div>
+                        
+                        <div class="step-box">
+                            <h4><span class="step-number">3</span> تحديد الحقول</h4>
+                            <p>لكل جدول، حدد الحقول (الأعمدة) اللازمة لتخزين البيانات.</p>
+                        </div>
+                        
+                        <div class="step-box">
+                            <h4><span class="step-number">4</span> تحديد المفاتيح الأساسية</h4>
+                            <p>اختر حقلًا فريدًا في كل جدول لتحديد كل记录 بشكل فريد.</p>
+                        </div>
+                        
+                        <div class="step-box">
+                            <h4><span class="step-number">5</span> إنشاء العلاقات</h4>
+                            <p>أنشئ روابط بين الجداول باستخدام المفاتيح الأساسية والأجنبية.</p>
+                        </div>
+                    </div>
+
+                    <div id="tables" class="content-block">
+                        <h2><i class="fas fa-table"></i> إنشاء الجداول</h2>
+                        <p>الجداول هي اللبنات الأساسية لأي قاعدة بيانات. تحتوي على البيانات المنظمة في صفوف وأعمدة.</p>
+                        
+                        <div class="step-box">
+                            <h4><span class="step-number">1</span> إنشاء جدول جديد</h4>
+                            <p>في Access، انتقل إلى علامة التبويب "إنشاء" وانقر على "جدول". سيتم إنشاء جدول جديد يمكنك تخصيصه.</p>
+                        </div>
+                        
+                        <div class="step-box">
+                            <h4><span class="step-number">2</span> إضافة الحقول</h4>
+                            <p>أضف الحقول إلى الجدول عن طريق النقر على "إضافة حقل جديد" أو عن طريق إدخال أسماء الحقول في طريقة عرض التصميم.</p>
+                        </div>
+                        
+                        <div class="step-box">
+                            <h4><span class="step-number">3</span> تحديد خصائص الحقول</h4>
+                            <p>لكل حقل، حدد نوع البيانات (نص، رقم، تاريخ/وقت، إلخ) والخصائص الأخرى مثل الحجم والتنسيق.</p>
+                        </div>
+                        
+                        <div class="step-box">
+                            <h4><span class="step-number">4</span> تعيين المفتاح الأساسي</h4>
+                            <p>اختر الحقل الذي سيخدم كمفتاح أساسي للجدول وانقر على "المفتاح الأساسي" في شريط الأدوات.</p>
+                        </div>
+                        
+                        <div class="step-box">
+                            <h4><span class="step-number">5</span> حفظ الجدول</h4>
+                            <p>احفظ الجدول وأعطه اسمًا ذا معنى يعكس محتواه.</p>
+                        </div>
+                        
+                        <div class="highlight-box">
+                            <h4><i class="fas fa-lightbulb"></i> أفضل الممارسات لتصميم الجداول</h4>
+                            <ul>
+                                <li>استخدم أسماء واضحة وذات معنى للجداول والحقول</li>
+                                <li>تجنب استخدام المسافات في الأسماء (استخدم الشرطة السفلية بدلاً منها)</li>
+                                <li>احتفظ بالأسماء قصيرة ولكن وصفيّة</li>
+                                <li>استخدم الجمع لأسماء الجداول (مثل "العملاء" بدلاً من "عميل")</li>
+                                <li>استخدم المفرد لأسماء الحقول (مثل "الاسم_الأول" بدلاً من "الأسماء_الأولى")</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div id="fields" class="content-block">
+                        <h2><i class="fas fa-list-alt"></i> أنواع الحقول في Access</h2>
+                        <p>يقدم Access العديد من أنواع الحقول المختلفة لتخزين أنواع البيانات المختلفة. اختيار نوع الحقل المناسب مهم لضمان دقة وكفاءة قاعدة البيانات.</p>
+                        
+                        <div class="data-types">
+                            <div class="data-type">
+                                <h5><i class="fas fa-font"></i> نص</h5>
+                                <p>لتخزين البيانات النصية مثل الأسماء والعناوين. يمكن تحديد طول máximo للنص.</p>
+                            </div>
+                            <div class="data-type">
+                                <h5><i class="fas fa-hashtag"></i> رقم</h5>
+                                <p>لتخزين البيانات الرقمية لإجراء العمليات الحسابية عليها.</p>
+                            </div>
+                            <div class="data-type">
+                                <h5><i class="fas fa-calendar"></i> تاريخ/وقت</h5>
+                                <p>لتخزين التواريخ والأوقات. يدعم عمليات حسابية على التواريخ.</p>
+                            </div>
+                            <div class="data-type">
+                                <h5><i class="fas fa-check-circle"></i> نعم/لا</h5>
+                                <p>لتخزين القيم المنطقية (صواب/خطأ، نعم/لا).</p>
+                            </div>
+                            <div class="data-type">
+                                <h5><i class="fas fa-file-alt"></i> مذكرة</h5>
+                                <p>لتخزين كميات كبيرة من النص (حتى 65,535 حرفًا).</p>
+                            </div>
+                            <div class="data-type">
+                                <h5><i class="fas fa-money-bill-wave"></i> عملة</h5>
+                                <p>لتخزين القيم النقدية مع تنسيق العملة المناسب.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="keys" class="content-block">
+                        <h2><i class="fas fa-key"></i> المفاتيح الأساسية والأجنبية</h2>
+                        <p>المفاتيح هي عناصر أساسية في تصميم قواعد البيانات العلائقية. تساعد في ضمان تكامل البيانات وإنشاء العلاقات بين الجداول.</p>
+                        
+                        <div class="concept-grid">
+                            <div class="concept-card">
+                                <h4><i class="fas fa-key"></i> المفتاح الأساسي</h4>
+                                <p>حقل (أو مجموعة حقول) يحدد بشكل فريد كل سجل في الجدول. يجب أن تكون قيمته فريدة ولا يمكن أن تكون فارغة.</p>
+                            </div>
+                            <div class="concept-card">
+                                <h4><i class="fas fa-key"></i> المفتاح الأجنبي</h4>
+                                <p>حقل في جدول يشير إلى المفتاح الأساسي في جدول آخر. يستخدم لإنشاء العلاقات بين الجداول.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="step-box">
+                            <h4><span class="step-number">1</span> إنشاء مفتاح أساسي تلقائي</h4>
+                            <p>استخدم نوع الحقل "ترقيم تلقائي" لإنشاء مفتاح أساسي يتم إنشاؤه تلقائيًا لكل سجل جديد.</p>
+                        </div>
+                        
+                        <div class="step-box">
+                            <h4><span class="step-number">2</span> إنشاء مفتاح أساسي يدوي</h4>
+                            <p>يمكنك استخدام حقل موجود (مثل رقم الهوية) كمفتاح أساسي إذا كان فريدًا لكل سجل.</p>
+                        </div>
+                        
+                        <div class="step-box">
+                            <h4><span class="step-number">3</span> إضافة مفتاح أجنبي</h4>
+                            <p>أضف حقلًا في الجدول الفرعي بنفس نوع بيانات المفتاح الأساسي في الجدول الرئيسي.</p>
+                        </div>
+                    </div>
+
+                    <div id="practice" class="content-block">
+                        <h2><i class="fas fa-laptop-code"></i> التطبيق العملي: إنشاء قاعدة بيانات بسيطة</h2>
+                        
+                        <div class="practice-section">
+                            <h3><i class="fas fa-tasks"></i> تمرين: قاعدة بيانات لإدارة العملاء</h3>
+                            <p>قم بتنفيذ الخطوات التالية لإنشاء قاعدة بيانات بسيطة لإدارة العملاء:</p>
+                            
+                            <div class="step-box">
+                                <h4><span class="step-number">1</span> إنشاء قاعدة بيانات جديدة</h4>
+                                <p>افتح Access وأنشئ قاعدة بيانات جديدة باسم "إدارة_العملاء".</p>
+                            </div>
+                            
+                            <div class="step-box">
+                                <h4><span class="step-number">2</span> إنشاء جدول العملاء</h4>
+                                <p>أنشئ جدولاً باسم "العملاء" يحتوي على الحقول التالية:</p>
+                                <div class="table-design">
+                                    - رقم_العميل (ترقيم تلقائي، مفتاح أساسي)<br>
+                                    - الاسم_الأول (نص، الطول: 50)<br>
+                                    - الاسم_الأخير (نص، الطول: 50)<br>
+                                    - البريد_الإلكتروني (نص، الطول: 100)<br>
+                                    - الهاتف (نص، الطول: 20)<br>
+                                    - تاريخ_التسجيل (تاريخ/وقت)
+                                </div>
+                            </div>
+                            
+                            <div class="step-box">
+                                <h4><span class="step-number">3</span> إنشاء جدول الطلبات</h4>
+                                <p>أنشئ جدولاً باسم "الطلبات" يحتوي على الحقول التالية:</p>
+                                <div class="table-design">
+                                    - رقم_الطلب (ترقيم تلقائي، مفتاح أساسي)<br>
+                                    - رقم_العميل (رقم، مفتاح أجنبي)<br>
+                                    - تاريخ_الطلب (تاريخ/وقت)<br>
+                                    - المنتج (نص، الطول: 100)<br>
+                                    - الكمية (رقم)<br>
+                                    - السعر (عملة)
+                                </div>
+                            </div>
+                            
+                            <div class="step-box">
+                                <h4><span class="step-number">4</span> إنشاء العلاقة</h4>
+                                <p>أنشئ علاقة بين جدول "العملاء" و"الطلبات" باستخدام الحقل "رقم_العميل".</p>
+                            </div>
+                            
+                            <div class="step-box">
+                                <h4><span class="step-number">5</span> إدخال بيانات تجريبية</h4>
+                                <p>أدخل بعض البيانات التجريبية في الجدولين لتجربة قاعدة البيانات.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <h2><i class="fas fa-check-circle"></i> اختبار ذاتي</h2>
+                        <p>اختبر فهمك للوحدة الثامنة بالإجابة على الأسئلة التالية:</p>
+                        
+                        <div class="practice-section">
+                            <ol>
+                                <li>ما هي المكونات الأساسية لقاعدة البيانات في Access؟</li>
+                                <li>ما الفرق بين المفتاح الأساسي والمفتاح الأجنبي؟</li>
+                                <li>ما هي خطوات تصميم قاعدة بيانات جيدة؟</li>
+                                <li>ما أهمية استخدام نوع الحقل المناسب لكل بيانات؟</li>
+                                <li>كيف تنشئ علاقة بين جدولين في Access؟</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <div class="nav-buttons">
+                        <a href="../unit-7.html" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-right me-1"></i>
+                            الوحدة السابقة: المشروع الختامي
+                        </a>
+                        <a href="unit-9.html" class="btn btn-primary">
+                            الوحدة التالية: Access المتقدم - الجزء 2
+                            <i class="fas fa-arrow-left ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <h5>مقرر تطبيقات الحاسب المتقدمة</h5>
+                    <p>منصة تعليمية متخصصة في تقديم محتوى أكاديمي وعملي في تطبيقات الحاسب للمستوى المتقدم.</p>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h5>روابط سريعة</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="../index.html">الرئيسية</a></li>
+                        <li><a href="#">جميع المقررات</a></li>
+                        <li><a href="#">الدعم الفني</a></li>
+                        <li><a href="#">الأسئلة الشائعة</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5>اتصل بنا</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> info@advapp.com</li>
+                        <li><i class="fas fa-phone me-2"></i> 0501234567</li>
+                        <li><i class="fas fa-map-marker-alt me-2"></i> المملكة العربية السعودية</li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5>تابعنا</h5>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2025 تطبيقات الحاسب المتقدمة. جميع الحقوق محفوظة.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="me-3">سياسة الخصوصية</a>
+                    <a href="#">شروط الاستخدام</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // تتبع التقدم في دراسة المقرر
+            const completedUnits = JSON.parse(localStorage.getItem('adv_app_completed_units')) || {};
+            const currentUnitId = 'unit-8';
+
+            // وضع علامة على الوحدة الحالية كمكتملة
+            if (!completedUnits[currentUnitId]) {
+                completedUnits[currentUnitId] = true;
+                localStorage.setItem('adv_app_completed_units', JSON.stringify(completedUnits));
+            }
+
+            // تحديث شريط التقدم
+            function updateProgress() {
+                const allUnitIds = [
+                    'unit-8', 'unit-9', 'unit-10'
+                ];
+                
+                let completedCount = 0;
+                allUnitIds.forEach(id => {
+                    if (completedUnits[id]) {
+                        completedCount++;
+                    }
+                });
+
+                const progressPercentage = (completedCount / allUnitIds.length) * 100;
+                const progressBar = document.querySelector('.progress-bar');
+                
+                progressBar.style.width = `${progressPercentage}%`;
+                progressBar.setAttribute('aria-valuenow', progressPercentage);
+                progressBar.textContent = `${Math.round(progressPercentage)}% مكتمل`;
+            }
+
+            updateProgress();
+
+            // إضافة تأثيرات عند التمرير
+            const animatedElements = document.querySelectorAll('.animate-fadein');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = 1;
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            animatedElements.forEach(element => {
+                element.style.opacity = 0;
+                element.style.transform = 'translateY(20px)';
+                element.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(element);
+            });
+
+            // تمييز الروابط النشطة في القائمة الجانبية
+            const currentHash = window.location.hash || '#introduction';
+            const sidebarLinks = document.querySelectorAll('.list-group-item');
+            
+            sidebarLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === currentHash) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
