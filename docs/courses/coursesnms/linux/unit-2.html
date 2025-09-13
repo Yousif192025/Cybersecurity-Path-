@@ -3,280 +3,674 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الوحدة 2: أوامر إعداد الشبكة | أوامر لينكس</title>
+    <title>الوحدة 2: أوامر إعداد الشبكة | منصة الأمن السيبراني</title>
+    <!-- تضمين Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- تضمين Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- تضمين خط Tajawal من Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <!-- تضمين highlight.js لتلوين الشفرات -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
     <style>
         :root {
             --primary-color: #2c3e50;
             --secondary-color: #3498db;
             --accent-color: #e74c3c;
-            --light-color: #ecf0f1;
-            --dark-color: #2c3e50;
-            --success-color: #27ae60;
-            --warning-color: #f39c12;
-            --info-color: #3498db;
+            --light-bg: #f8f9fa;
+            --dark-text: #2c3e50;
+            --light-text: #7f8c8d;
+            --terminal-bg: #1e1e1e;
+            --terminal-text: #d4d4d4;
+            --terminal-prompt: #3cce56;
+            --terminal-command: #569cd6;
         }
-        
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f5f5f5;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 1.5rem;
-            text-align: center;
-            border-radius: 5px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        
-        header h1 {
-            margin-bottom: 10px;
-            font-size: 2.5rem;
-        }
-        
-        header p {
-            font-size: 1.1rem;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        
-        .breadcrumb {
-            background-color: var(--light-color);
-            padding: 10px 20px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-        }
-        
-        .breadcrumb a {
-            color: var(--secondary-color);
-            text-decoration: none;
-        }
-        
-        .breadcrumb a:hover {
-            text-decoration: underline;
-        }
-
-        .content-section {
-            background-color: white;
-            border-radius: 8px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .content-section h2 {
-            color: var(--primary-color);
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--secondary-color);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .content-section p {
-            margin-bottom: 15px;
-        }
-
-        .commands-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        .commands-table th, .commands-table td {
-            border: 1px solid #ddd;
-            padding: 12px;
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            line-height: 1.8;
+            direction: rtl;
             text-align: right;
         }
 
-        .commands-table th {
+        .navbar {
             background-color: var(--primary-color);
+        }
+        .navbar-brand {
+            color: white !important;
+        }
+        .btn-outline-light {
+            border-color: rgba(255, 255, 255, 0.7) !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .btn-outline-light:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .unit-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
-            font-weight: bold;
+            padding: 2.5rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 1rem 1rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
 
-        .commands-table tr:nth-child(even) {
-            background-color: #f2f2f2;
+        .content-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            padding: 2rem;
+            border-right: 4px solid var(--secondary-color);
         }
 
-        .commands-table tr:hover {
-            background-color: #ddd;
+        .content-title {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
         }
 
-        .code-block {
-            background-color: var(--dark-color);
-            color: #e7e7e7;
-            padding: 15px;
-            border-radius: 8px;
+        .terminal {
+            background-color: var(--terminal-bg);
+            color: var(--terminal-text);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            font-family: 'Courier New', monospace;
+            margin: 1.5rem 0;
             overflow-x: auto;
-            font-family: 'Courier New', Courier, monospace;
-            margin-top: 20px;
-            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
 
-        .alert-note {
-            background-color: #e9f7ef;
-            border-right: 5px solid var(--success-color);
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.1rem;
-        }
-
-        .alert-warning {
-            background-color: #fcf8e3;
-            border-right: 5px solid var(--warning-color);
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.1rem;
-        }
-
-        .navigation-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 30px;
-        }
-        
-        .btn {
-            display: inline-block;
-            background-color: var(--secondary-color);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            text-decoration: none;
+        .terminal .prompt {
+            color: var(--terminal-prompt);
             font-weight: bold;
-            transition: background-color 0.3s ease;
         }
-        
-        .btn:hover {
-            background-color: #2980b9;
+
+        .terminal .command {
+            color: var(--terminal-command);
         }
-        
+
+        .terminal .comment {
+            color: #6a9955;
+            font-style: italic;
+        }
+
+        .terminal .output {
+            color: var(--terminal-text);
+        }
+
+        .command-explanation {
+            background-color: #f0f8ff;
+            border-left: 4px solid var(--secondary-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .command-structure {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .note {
+            background-color: #e7f5ff;
+            border-left: 4px solid var(--secondary-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
         footer {
-            text-align: center;
-            padding: 20px;
-            background-color: var(--dark-color);
+            background-color: var(--primary-color) !important;
             color: white;
-            border-radius: 5px;
-            margin-top: 30px;
+            padding: 2.5rem 0;
+        }
+        footer h5 {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        footer .list-unstyled li a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        footer .list-unstyled li a:hover {
+            color: var(--secondary-color);
+        }
+        footer .fab, footer .fas {
+            color: white;
+            transition: color 0.2s;
+        }
+        footer .fab:hover, footer .fas:hover {
+            color: var(--secondary-color);
+        }
+
+        @media (max-width: 768px) {
+            .unit-header {
+                padding: 2rem 0;
+            }
+            .content-card {
+                padding: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- شريط التنقل -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="../../../index.html">منصة الأمن السيبراني</a>
+            <a href="../index.html" class="btn btn-outline-light">العودة إلى المقرر</a>
+        </div>
+    </nav>
+
+    <!-- رأس الوحدة -->
+    <header class="unit-header text-center">
+        <div class="container">
+            <h1 class="display-5 fw-bold mb-3">الوحدة 2: أوامر إعداد الشبكة</h1>
+            <p class="lead">تعلم الأوامر الأساسية لإدارة الشبكات والتشخيص والاستعلام عن معلومات النطاقات</p>
+        </div>
+    </header>
+
     <div class="container">
-        <header>
-            <h1>الوحدة 2: أوامر إعداد الشبكة</h1>
-            <p>أتقن الأوامر الضرورية لإدارة وفحص إعدادات الشبكة في نظام لينكس</p>
-        </header>
-        
-        <div class="breadcrumb">
-            <a href="index.html">الرئيسية</a> &gt;
-            <span>الوحدة 2</span>
-        </div>
-        
-        <div class="content-section">
-            <h2><i class="fas fa-network-wired"></i> نظرة عامة</h2>
-            <p>تعد إدارة الشبكة جزءًا حيويًا من عمل أي مسؤول نظام أو متخصص في الأمن السيبراني. في هذه الوحدة، ستتعلم كيفية استخدام الأوامر لفحص حالة الشبكة، والتحقق من الاتصال، والحصول على معلومات عن النطاقات والمنافذ المفتوحة.</p>
-        </div>
-
-        <div class="content-section">
-            <h2><i class="fas fa-list-ul"></i> قائمة أوامر الشبكة</h2>
-            <table class="commands-table">
-                <thead>
-                    <tr>
-                        <th>الأمر</th>
-                        <th>الوصف</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><code>ip addr</code></td>
-                        <td>يعرض معلومات عن جميع واجهات الشبكة، بما في ذلك عناوين IP.</td>
-                    </tr>
-                    <tr>
-                        <td><code>ifconfig</code></td>
-                        <td>أمر قديم ولكنه لا يزال شائعًا لعرض وتكوين واجهات الشبكة.</td>
-                    </tr>
-                    <tr>
-                        <td><code>netstat</code></td>
-                        <td>يعرض اتصالات الشبكة النشطة، وجداول التوجيه، وإحصائيات الواجهة.</td>
-                    </tr>
-                    <tr>
-                        <td><code>ping</code></td>
-                        <td>يختبر الاتصال بجهاز آخر على الشبكة أو بالإنترنت.</td>
-                    </tr>
-                    <tr>
-                        <td><code>whois</code></td>
-                        <td>يسترجع معلومات تسجيل النطاق مثل مالكه وتاريخ إنشائه.</td>
-                    </tr>
-                    <tr>
-                        <td><code>dig</code></td>
-                        <td>أداة قوية للاستعلام عن خوادم نظام أسماء النطاقات (DNS).</td>
-                    </tr>
-                    <tr>
-                        <td><code>host</code></td>
-                        <td>أداة بسيطة للبحث عن أسماء النطاقات وعناوين IP.</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="content-section">
-            <h2><i class="fas fa-search"></i> سيناريو عملي: كيف تتحقق من الاتصال بخادم؟</h2>
-            <p>لنفترض أنك تريد التحقق من الاتصال بخادم جوجل. يمكنك استخدام أمر <code>ping</code> لمعرفة ما إذا كان الخادم يعمل ومتصل بالشبكة.</p>
-            <div class="code-block">
-                <pre><code>ping google.com</code></pre>
-            </div>
-            <p>الناتج سيعرض أوقات الاستجابة (latency) من الخادم، مما يشير إلى أن الاتصال ناجح.</p>
-
-            <p>إذا كنت ترغب في فحص المنافذ المفتوحة على جهازك، يمكنك استخدام <code>netstat</code>:</p>
-            <div class="code-block">
-                <pre><code>netstat -tuln</code></pre>
-            </div>
-            <div class="alert-note">
-                <i class="fas fa-info-circle"></i>
-                <strong>ملاحظة:</strong>
-                الوسائط <code>-tuln</code> مع أمر <code>netstat</code> تعني: <strong>t</strong>cp, <strong>u</strong>dp, <strong>l</strong>istening, <strong>n</strong>umeric.
+        <!-- مقدمة الوحدة -->
+        <div class="content-card">
+            <h2 class="content-title">مقدمة</h2>
+            <p>في هذه الوحدة، ستتعلم الأوامر الأساسية لإدارة الشبكات في لينكس، والتي تمكنك من عرض معلومات واجهات الشبكة، تشخيص مشاكل الاتصال، والاستعلام عن معلومات النطاقات وخوادم DNS. هذه المهارات أساسية لأي مسؤول أنظمة أو متخصص في الأمن السيبراني.</p>
+            
+            <div class="note">
+                <i class="fas fa-lightbulb me-2"></i> <strong>ملاحظة:</strong> في أمثلة الأوامر أدناه، يشير الرمز <code>$</code> إلى موجه الأوامر (prompt) ولا يجب كتابته عند تنفيذ الأوامر.
             </div>
         </div>
-        
-        <div class="navigation-buttons">
-            <a href="unit-1.html" class="btn"><i class="fas fa-arrow-right"></i> الوحدة السابقة: الأوامر الأساسية</a>
-            <a href="unit-3.html" class="btn">الوحدة التالية: أوامر أذونات الملفات <i class="fas fa-arrow-left"></i></a>
+
+        <!-- الأمر ip addr show -->
+        <div class="content-card">
+            <h2 class="content-title">عرض معلومات واجهات الشبكة: <code>ip addr show</code></h2>
+            <p>يستخدم هذا الأمر لعرض معلومات مفصلة عن جميع واجهات الشبكة المتاحة على النظام.</p>
+            
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">ip addr show</div>
+                <div class="output">
+1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000<br>
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00<br>
+    inet 127.0.0.1/8 scope host lo<br>
+       valid_lft forever preferred_lft forever<br>
+    inet6 ::1/128 scope host <br>
+       valid_lft forever preferred_lft forever<br>
+2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc pfifo_fast state UP group default qlen 1000<br>
+    link/ether 08:00:27:4e:66:a1 brd ff:ff:ff:ff:ff:ff<br>
+    inet 192.168.1.100/24 brd 192.168.1.255 scope global dynamic eth0<br>
+       valid_lft 86382sec preferred_lft 86382sec<br>
+    inet6 fe80::a00:27ff:fe4e:66a1/64 scope link <br>
+       valid_lft forever preferred_lft forever<br>
+                </div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
+                <p>يعرض <code>ip addr show</code> معلومات مفصلة عن جميع واجهات الشبكة في النظام، بما في ذلك:</p>
+                <ul>
+                    <li>اسم الواجهة (مثل lo, eth0)</li>
+                    <li>عنوان MAC (عنوان الجهاز الفريد)</li>
+                    <li>عنوان IPv4 و IPv6</li>
+                    <li>حالة الواجهة (UP أو DOWN)</li>
+                    <li>وغيرها من المعلومات التقنية</li>
+                </ul>
+            </div>
+            
+            <div class="command-structure">
+                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
+                <div class="command">ip addr show eth0</div>
+                <div class="comment"># عرض معلومات واجهة شبكة محددة (eth0)</div>
+                <div class="command">ip a</div>
+                <div class="comment"># اختصار للأمر ip addr show</div>
+                <div class="command">ip -4 addr show</div>
+                <div class="comment"># عرض عناوين IPv4 فقط</div>
+                <div class="command">ip -6 addr show</div>
+                <div class="comment"># عرض عناوين IPv6 فقط</div>
+            </div>
         </div>
-        
-        <footer>
-            <p>© 2025 المسار الأمني للسيبراني. جميع الحقوق محفوظة.</p>
-        </footer>
+
+        <!-- الأمر ifconfig -->
+        <div class="content-card">
+            <h2 class="content-title">عرض معلومات الشبكة (الطريقة التقليدية): <code>ifconfig</code></h2>
+            <p>أمر تقليدي لعرض معلومات واجهات الشبكة، لا يزال مستخدمًا على نطاق واسع رغم وجود بدائل حديثة.</p>
+            
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">ifconfig</div>
+                <div class="output">
+eth0: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1500<br>
+        inet 192.168.1.100  netmask 255.255.255.0  broadcast 192.168.1.255<br>
+        inet6 fe80::a00:27ff:fe4e:66a1  prefixlen 64  scopeid 0x20&lt;link&gt;<br>
+        ether 08:00:27:4e:66:a1  txqueuelen 1000  (Ethernet)<br>
+        RX packets 123456  bytes 123456789 (117.7 MiB)<br>
+        RX errors 0  dropped 0  overruns 0  frame 0<br>
+        TX packets 98765  bytes 98765432 (94.2 MiB)<br>
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0<br>
+<br>
+lo: flags=73&lt;UP,LOOPBACK,RUNNING&gt;  mtu 65536<br>
+        inet 127.0.0.1  netmask 255.0.0.0<br>
+        inet6 ::1  prefixlen 128  scopeid 0x10&lt;host&gt;<br>
+        loop  txqueuelen 1000  (Local Loopback)<br>
+        RX packets 1234  bytes 123456 (120.5 KiB)<br>
+        RX errors 0  dropped 0  overruns 0  frame 0<br>
+        TX packets 1234  bytes 123456 (120.5 KiB)<br>
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0<br>
+                </div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
+                <p>يعرض <code>ifconfig</code> معلومات مفصلة عن واجهات الشبكة، بما في ذلك:</p>
+                <ul>
+                    <li>عنوان IP والماسك الشبكي (netmask)</li>
+                    <li>عنوان البث (broadcast)</li>
+                    <li>عنوان MAC (Ethernet)</li>
+                    <li>إحصاءات حركة المرور (الرزم المرسلة والمستقبلة)</li>
+                </ul>
+            </div>
+            
+            <div class="warning">
+                <i class="fas fa-exclamation-triangle me-2"></i> <strong>ملاحظة:</strong> في بعض توزيعات لينكس الحديثة، لم يعد <code>ifconfig</code> مثبتًا افتراضيًا، حيث تم استبداله بأمر <code>ip</code> الأكثر تطورًا. يمكن تثبيته يدويًا عبر حزمة net-tools إذا لزم الأمر.
+            </div>
+        </div>
+
+        <!-- الأمر ip addr add -->
+        <div class="content-card">
+            <h2 class="content-title">إضافة عنوان IP مؤقت: <code>ip addr add</code></h2>
+            <p>يستخدم لإضافة عنوان IP مؤقت لواجهة شبكة معينة.</p>
+            
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">sudo ip addr add 192.168.1.150/24 dev eth0</div>
+                <div class="comment"># إضافة عنوان IP مؤقت للواجهة eth0</div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">ip addr show eth0</div>
+                <div class="output">
+2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc pfifo_fast state UP group default qlen 1000<br>
+    link/ether 08:00:27:4e:66:a1 brd ff:ff:ff:ff:ff:ff<br>
+    inet 192.168.1.100/24 brd 192.168.1.255 scope global dynamic eth0<br>
+       valid_lft 86382sec preferred_lft 86382sec<br>
+    inet 192.168.1.150/24 scope global secondary eth0<br>
+       valid_lft forever preferred_lft forever<br>
+    inet6 fe80::a00:27ff:fe4e:66a1/64 scope link <br>
+       valid_lft forever preferred_lft forever<br>
+                </div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
+                <p>يضيف <code>ip addr add</code> عنوان IP مؤقت لواجهة شبكة محددة. هذا التغيير مؤقت وسيختفي عند إعادة تشغيل النظام.</p>
+                <p>لجعل التغيير دائمًا، يجب تعديل ملفات التكوين الخاصة بتوزيعة لينكس المستخدمة.</p>
+            </div>
+            
+            <div class="command-structure">
+                <h5><i class="fas fa-code me-2"></i> بنية الأمر:</h5>
+                <div class="command">sudo ip addr add [عنوان_IP/البادئة] dev [اسم_الواجهة]</div>
+                <div class="comment"># الصيغة العامة للأمر</div>
+            </div>
+            
+            <div class="note">
+                <i class="fas fa-lightbulb me-2"></i> <strong>ملاحظة:</strong> تحتاج إلى صلاحيات root (استخدام sudo) لتعديل إعدادات الشبكة.
+            </div>
+        </div>
+
+        <!-- الأمر netstat -->
+        <div class="content-card">
+            <h2 class="content-title">عرض اتصالات الشبكة: <code>netstat</code></h2>
+            <p>يعرض اتصالات الشبكة النشطة، وجداول التوجيه، وإحصائيات الواجهة، والمنافذ التي تستمع للاتصالات.</p>
+            
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">netstat -tuln</div>
+                <div class="output">
+Active Internet connections (only servers)<br>
+Proto Recv-Q Send-Q Local Address           Foreign Address         State<br>
+tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN<br>
+tcp        0      0 127.0.0.1:631           0.0.0.0:*               LISTEN<br>
+tcp6       0      0 :::80                   :::*                    LISTEN<br>
+tcp6       0      0 :::22                   :::*                    LISTEN<br>
+udp        0      0 0.0.0.0:68              0.0.0.0:*<br>
+udp        0      0 0.0.0.0:5353            0.0.0.0:*<br>
+                </div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
+                <p>يعرض <code>netstat</code> معلومات عن اتصالات الشبكة النشطة والمنافذ التي تستمع للاتصالات. الخيارات المستخدمة:</p>
+                <ul>
+                    <li><code>-t</code>: عرض اتصالات TCP</li>
+                    <li><code>-u</code>: عرض اتصالات UDP</li>
+                    <li><code>-l</code>: عرض المقابس (Sockets) التي تستمع للاتصالات فقط</li>
+                    <li><code>-n</code>: عرض العناوين والأرقام بدلاً من الأسماء (أسرع)</li>
+                </ul>
+            </div>
+            
+            <div class="command-structure">
+                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
+                <div class="command">netstat -tulnp</div>
+                <div class="comment"># عرض العمليات المرتبطة بالاتصالات (يحتاج صلاحيات root)</div>
+                <div class="command">netstat -r</div>
+                <div class="comment"># عرض جدول التوجيه (Routing Table)</div>
+                <div class="command">netstat -s</div>
+                <div class="comment"># عرض إحصاءات الشبكة حسب البروتوكول</div>
+                <div class="command">ss -tuln</div>
+                <div class="comment"># استخدام الأمر ss (بديل أكثر حداثة لـ netstat)</div>
+            </div>
+            
+            <div class="note">
+                <i class="fas fa-lightbulb me-2"></i> <strong>ملاحظة:</strong> في الأنظمة الحديثة، يُنصح باستخدام الأمر <code>ss</code> بدلاً من <code>netstat</code> لأنه أسرع ويعرض معلومات أكثر تفصيلاً.
+            </div>
+        </div>
+
+        <!-- الأمر ping -->
+        <div class="content-card">
+            <h2 class="content-title">اختبار الاتصال: <code>ping</code></h2>
+            <p>يستخدم لاختبار إمكانية الوصول إلى مضيف على شبكة IP وقياس وقت الاستجابة.</p>
+            
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">ping google.com -c 4</div>
+                <div class="output">
+PING google.com (142.250.191.46) 56(84) bytes of data.<br>
+64 bytes from muc11s09-in-f14.1e100.net (142.250.191.46): icmp_seq=1 ttl=117 time=15.3 ms<br>
+64 bytes from muc11s09-in-f14.1e100.net (142.250.191.46): icmp_seq=2 ttl=117 time=15.6 ms<br>
+64 bytes from muc11s09-in-f14.1e100.net (142.250.191.46): icmp_seq=3 ttl=117 time=15.4 ms<br>
+64 bytes from muc11s09-in-f14.1e100.net (142.250.191.46): icmp_seq=4 ttl=117 time=15.7 ms<br>
+<br>
+--- google.com ping statistics ---<br>
+4 packets transmitted, 4 received, 0% packet loss, time 3005ms<br>
+rtt min/avg/max/mdev = 15.342/15.525/15.721/0.162 ms<br>
+                </div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
+                <p>يرسل <code>ping</code> حزم طلبات ICMP Echo Request إلى المضيف المحدد ويقيس وقت استجابة الحزمة (Round-Trip Time).</p>
+                <p>يستخدم بشكل شائع ل:</p>
+                <ul>
+                    <li>فحص اتصال الشبكة</li>
+                    <li>قياس جودة الاتصال (فقدان الحزم، وقت الاستجابة)</li>
+                    <li>تشخيص مشاكل الشبكة</li>
+                </ul>
+            </div>
+            
+            <div class="command-structure">
+                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
+                <div class="command">ping 8.8.8.8</div>
+                <div class="comment"># اختبار الاتصال بعنوان IP مباشرة (خادم DNS لجوجل)</div>
+                <div class="command">ping -c 10 example.com</div>
+                <div class="comment"># إرسال 10 حزم فقط ثم التوقف</div>
+                <div class="command">ping -i 2 example.com</div>
+                <div class="comment"># إرسال حزمة كل ثانيتين (بدلاً من 1 ثانية افتراضيًا)</div>
+                <div class="command">ping -s 1000 example.com</div>
+                <div class="comment"># إرسال حزم بحجم 1000 بايت</div>
+            </div>
+            
+            <div class="note">
+                <i class="fas fa-lightbulb me-2"></i> <strong>ملاحظة:</strong> للخروج من وضع ping المستمر، اضغط <code>Ctrl+C</code>.
+            </div>
+        </div>
+
+        <!-- الأمر whois -->
+        <div class="content-card">
+            <h2 class="content-title">الاستعلام عن معلومات النطاق: <code>whois</code></h2>
+            <p>يستخدم للحصول على معلومات التسجيل الخاصة باسم نطاق (Domain Name).</p>
+            
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">whois example.com</div>
+                <div class="output">
+Domain Name: EXAMPLE.COM<br>
+Registry Domain ID: 2336799_DOMAIN_COM-VRSN<br>
+Registrar WHOIS Server: whois.iana.org<br>
+Registrar URL: http://res-dom.iana.org<br>
+Updated Date: 2022-08-14T07:01:31Z<br>
+Creation Date: 1995-08-14T04:00:00Z<br>
+Registry Expiry Date: 2023-08-13T04:00:00Z<br>
+Registrar: IANA Registrar<br>
+Registrar IANA ID: 376<br>
+Domain Status: clientDeleteProhibited https://icann.org/epp#clientDeleteProhibited<br>
+Name Server: A.IANA-SERVERS.NET<br>
+Name Server: B.IANA-SERVERS.NET<br>
+DNSSEC: unsigned<br>
+                </div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
+                <p>يستعلم <code>whois</code> من قواعد البيانات العامة لمعلومات التسجيل عن اسم النطاق المحدد، ويعرض معلومات مثل:</p>
+                <ul>
+                    <li>المسجل (Registrar) وتاريخ التسجيل</li>
+                    <li>معلومات جهة الاتصال (قد تكون مخفية لحماية الخصوصية)</li>
+                    <li>خوادم الأسماء (Name Servers)</li>
+                    <li>حالة النطاق وتاريخ الانتهاء</li>
+                </ul>
+            </div>
+            
+            <div class="warning">
+                <i class="fas fa-exclamation-triangle me-2"></i> <strong>ملاحظة:</strong> قد لا يكون الأمر <code>whois</code> مثبتًا افتراضيًا في بعض توزيعات لينكس. يمكن تثبيته عبر مدير الحزم الخاص بتوزيعتك (مثل: <code>sudo apt install whois</code> في ديبيان/أوبونتو).
+            </div>
+        </div>
+
+        <!-- الأمر dig -->
+        <div class="content-card">
+            <h2 class="content-title">الاستعلام عن DNS: <code>dig</code></h2>
+            <p>أداة قوية للاستعلام عن خوادم نظام أسماء النطاقات (DNS) والحصول على معلومات مفصلة عن النطاقات.</p>
+            
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">dig example.com</div>
+                <div class="output">
+; &lt;&lt;&gt;&gt; DiG 9.16.1-Ubuntu &lt;&lt;&gt;&gt; example.com<br>
+;; global options: +cmd<br>
+;; Got answer:<br>
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 12345<br>
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1<br>
+<br>
+;; OPT PSEUDOSECTION:<br>
+; EDNS: version: 0, flags:; udp: 65494<br>
+;; QUESTION SECTION:<br>
+;example.com.                   IN      A<br>
+<br>
+;; ANSWER SECTION:<br>
+example.com.            86400   IN      A       93.184.216.34<br>
+<br>
+;; Query time: 20 msec<br>
+;; SERVER: 8.8.8.8#53(8.8.8.8)<br>
+;; WHEN: Mon Sep 13 10:45:30 +03 2023<br>
+;; MSG SIZE  rcvd: 56<br>
+                </div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
+                <p>يستخدم <code>dig</code> للاستعلام عن سجلات DNS المختلفة للنطاق المحدد. يعرض معلومات مفصلة عن عملية الاستعلام والنتيجة.</p>
+                <p>بعض أنواع سجلات DNS الشائعة:</p>
+                <ul>
+                    <li><strong>A</strong>: عنوان IPv4 للنطاق</li>
+                    <li><strong>AAAA</strong>: عنوان IPv6 للنطاق</li>
+                    <li><strong>MX</strong>: خوادم البريد الإلكتروني</li>
+                    <li><strong>NS</strong>: خوادم الأسماء</li>
+                    <li><strong>TXT</strong>: سجلات نصية (غالبًا للتحقق)</li>
+                    <li><strong>CNAME</strong>: اسم نطاق مشير إلى نطاق آخر</li>
+                </ul>
+            </div>
+            
+            <div class="command-structure">
+                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
+                <div class="command">dig example.com MX</div>
+                <div class="comment"># الاستعلام عن سجلات MX (خوادم البريد)</div>
+                <div class="command">dig example.com NS</div>
+                <div class="comment"># الاستعلام عن سجلات NS (خوادم الأسماء)</div>
+                <div class="command">dig example.com +short</div>
+                <div class="comment"># عرض النتيجة بشكل مختصر (العنوان فقط)</div>
+                <div class="command">dig @8.8.8.8 example.com</div>
+                <div class="comment"># استخدام خادم DNS محدد للاستعلام (خادم جوجل)</div>
+                <div class="command">dig -x 8.8.8.8</div>
+                <div class="comment"># البحث العكسي لعنوان IP (Reverse DNS Lookup)</div>
+            </div>
+        </div>
+
+        <!-- الأمر host -->
+        <div class="content-card">
+            <h2 class="content-title">البحث عن معلومات النطاق: <code>host</code></h2>
+            <p>أداة بسيطة للبحث عن أسماء النطاقات وعناوين IP، تعرض معلومات DNS بشكل مبسط.</p>
+            
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">host example.com</div>
+                <div class="output">
+example.com has address 93.184.216.34<br>
+example.com has IPv6 address 2606:2800:220:1:248:1893:25c8:1946<br>
+example.com mail is handled by 0 .<br>
+                </div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
+                <p>يقدم <code>host</code> واجهة أبسط لاستعلامات DNS مقارنة بـ <code>dig</code>، ويعرض المعلومات بشكل مباشر وسهل القراءة.</p>
+                <p>مفيد للحصول على معلومات سريعة عن نطاق دون التفاصيل التقنية الكثيرة التي يوفرها <code>dig</code>.</p>
+            </div>
+            
+            <div class="command-structure">
+                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
+                <div class="command">host -t MX example.com</div>
+                <div class="comment"># البحث عن سجلات MX محددة</div>
+                <div class="command">host -t NS example.com</div>
+                <div class="comment"># البحث عن سجلات NS محددة</div>
+                <div class="command">host 93.184.216.34</div>
+                <div class="comment"># البحث العكسي (من IP إلى اسم النطاق)</div>
+                <div class="command">host -a example.com</div>
+                <div class="comment"># عرض جميع سجلات النطاق (مشابه لـ dig)</div>
+            </div>
+            
+            <div class="note">
+                <i class="fas fa-lightbulb me-2"></i> <strong>ملاحظة:</strong> <code>host</code> يعتبر أسهل للمبتدئين، بينما <code>dig</code> يوتح تحكمًا أكبر ومعلومات أكثر تفصيلاً للمستخدمين المتقدمين.
+            </div>
+        </div>
+
+        <!-- تمرين عملي -->
+        <div class="content-card">
+            <h2 class="content-title">تمرين عملي: تشخيص مشكلة شبكة</h2>
+            <p>لنفترض أنك تواجه مشكلة في الوصول إلى موقع ويب. استخدم الأوامر التي تعلمتها لتشخيص المشكلة خطوة بخطوة:</p>
+            
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">ping google.com</div>
+                <div class="comment"># التحقق من الاتصال بالإنترنت</div>
+                <div class="output">
+PING google.com (142.250.191.46) 56(84) bytes of data.<br>
+64 bytes from muc11s09-in-f14.1e100.net (142.250.191.46): icmp_seq=1 ttl=117 time=15.3 ms<br>
+                </div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">ping example.com</div>
+                <div class="comment"># التحقق من الاتصال بالموقع المحدد</div>
+                <div class="output">
+ping: example.com: Name or service not known<br>
+                </div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">dig example.com</div>
+                <div class="comment"># البحث عن معلومات DNS للموقع</div>
+                <div class="output">
+;; Got answer:<br>
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NXDOMAIN, id: 12345<br>
+;; flags: qr rd ra; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1<br>
+                </div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">nslookup example.com</div>
+                <div class="comment"># طريقة بديلة للتحقق من DNS</div>
+                <div class="output">
+Server:         8.8.8.8<br>
+Address:        8.8.8.8#53<br>
+<br>
+** server can't find example.com: NXDOMAIN<br>
+                </div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> تحليل النتائج:</h5>
+                <p>من خلال هذا التمرين، نستنتج أن:</p>
+                <ol>
+                    <li>الاتصال بالإنترنت يعمل (نجاح ping لجوجل)</li>
+                    <li>المشكلة ليست في الاتصال بالشبكة المحلية أو الإنترنت</li>
+                    <li>الموقع المطلوب (example.com) غير موجود (حالة NXDOMAIN في DNS)</li>
+                    <li>المشكلة إما في اسم النطاق (قد يكون مكتوبًا بشكل خاطئ) أو أن النطاق غير مسجل</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- التنقل بين الصفحات -->
+        <div class="d-flex justify-content-between mb-4">
+            <a href="unit-1.html" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-right me-1"></i> العودة إلى الوحدة الأولى
+            </a>
+            <a href="unit-3.html" class="btn btn-primary">
+                الانتقال إلى الوحدة الثالثة <i class="fas fa-arrow-left me-1"></i>
+            </a>
+        </div>
     </div>
+
+    <!-- الفوتر -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>مسار الأمن السيبراني</h5>
+                    <p>منصة تعليمية متخصصة في تقديم محتوى أكاديمي وعملي في مجال الأمن السيبراني.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>روابط سريعة</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="../../../index.html" class="text-white">الرئيسية</a></li>
+                        <li><a href="../index.html" class="text-white">مقرر أوامر لينكس</a></li>
+                        <li><a href="#" class="text-white">الدعم الفني</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>تواصل معنا</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> info@cyberpath.com</li>
+                        <li><i class="fas fa-phone me-2"></i> 0502161465</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2023 مسار الأمن السيبراني. جميع الحقوق محفوظة.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-linkedin fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-youtube fa-lg"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-github fa-lg"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- تضمين Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
