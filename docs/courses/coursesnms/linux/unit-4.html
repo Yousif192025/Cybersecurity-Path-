@@ -3,284 +3,764 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الوحدة 4: أوامر إدارة المستخدم والمجموعة | أوامر لينكس</title>
+    <title>الوحدة 4: أوامر إدارة المستخدم والمجموعة | منصة الأمن السيبراني</title>
+    <!-- تضمين Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- تضمين Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- تضمين خط Tajawal من Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <!-- تضمين highlight.js لتلوين الشفرات -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
     <style>
         :root {
             --primary-color: #2c3e50;
             --secondary-color: #3498db;
             --accent-color: #e74c3c;
-            --light-color: #ecf0f1;
-            --dark-color: #2c3e50;
-            --success-color: #27ae60;
-            --warning-color: #f39c12;
-            --info-color: #3498db;
+            --light-bg: #f8f9fa;
+            --dark-text: #2c3e50;
+            --light-text: #7f8c8d;
+            --terminal-bg: #1e1e1e;
+            --terminal-text: #d4d4d4;
+            --terminal-prompt: #3cce56;
+            --terminal-command: #569cd6;
         }
-        
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f5f5f5;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 1.5rem;
-            text-align: center;
-            border-radius: 5px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        
-        header h1 {
-            margin-bottom: 10px;
-            font-size: 2.5rem;
-        }
-        
-        header p {
-            font-size: 1.1rem;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        
-        .breadcrumb {
-            background-color: var(--light-color);
-            padding: 10px 20px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-        }
-        
-        .breadcrumb a {
-            color: var(--secondary-color);
-            text-decoration: none;
-        }
-        
-        .breadcrumb a:hover {
-            text-decoration: underline;
-        }
-
-        .content-section {
-            background-color: white;
-            border-radius: 8px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .content-section h2 {
-            color: var(--primary-color);
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--secondary-color);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .content-section p {
-            margin-bottom: 15px;
-        }
-
-        .commands-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        .commands-table th, .commands-table td {
-            border: 1px solid #ddd;
-            padding: 12px;
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            line-height: 1.8;
+            direction: rtl;
             text-align: right;
         }
 
-        .commands-table th {
+        .navbar {
             background-color: var(--primary-color);
+        }
+        .navbar-brand {
+            color: white !important;
+        }
+        .btn-outline-light {
+            border-color: rgba(255, 255, 255, 0.7) !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .btn-outline-light:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .unit-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
+            padding: 2.5rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 1rem 1rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .content-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            padding: 2rem;
+            border-right: 4px solid var(--secondary-color);
+        }
+
+        .content-title {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .terminal {
+            background-color: var(--terminal-bg);
+            color: var(--terminal-text);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            font-family: 'Courier New', monospace;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            direction: ltr; /* اتجاه النص من اليسار لليمين */
+            text-align: left;
+        }
+
+        .terminal .prompt {
+            color: var(--terminal-prompt);
             font-weight: bold;
         }
 
-        .commands-table tr:nth-child(even) {
+        .terminal .command {
+            color: var(--terminal-command);
+        }
+
+        .terminal .comment {
+            color: #6a9955;
+            font-style: italic;
+        }
+
+        .terminal .output {
+            color: var(--terminal-text);
+        }
+
+        .command-explanation {
+            background-color: #f0f8ff;
+            border-left: 4px solid var(--secondary-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .command-structure {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+            font-family: 'Courier New', monospace;
+            direction: ltr; /* اتجاه النص من اليسار لليمين */
+            text-align: left;
+        }
+
+        .note {
+            background-color: #e7f5ff;
+            border-left: 4px solid var(--secondary-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .activity-box {
+            background-color: #e6f7ff;
+            border-left: 5px solid #1890ff;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        .user-table th, .user-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .user-table th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .user-table tr:nth-child(even) {
             background-color: #f2f2f2;
         }
 
-        .commands-table tr:hover {
-            background-color: #ddd;
-        }
-
-        .code-block {
-            background-color: var(--dark-color);
-            color: #e7e7e7;
-            padding: 15px;
-            border-radius: 8px;
-            overflow-x: auto;
-            font-family: 'Courier New', Courier, monospace;
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
-
-        .alert-note {
-            background-color: #e9f7ef;
-            border-right: 5px solid var(--success-color);
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.1rem;
-        }
-
-        .alert-warning {
-            background-color: #fcf8e3;
-            border-right: 5px solid var(--warning-color);
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.1rem;
-        }
-
-        .navigation-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 30px;
-        }
-        
-        .btn {
-            display: inline-block;
-            background-color: var(--secondary-color);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            text-decoration: none;
-            font-weight: bold;
-            transition: background-color 0.3s ease;
-        }
-        
-        .btn:hover {
-            background-color: #2980b9;
-        }
-        
         footer {
-            text-align: center;
-            padding: 20px;
-            background-color: var(--dark-color);
+            background-color: var(--primary-color) !important;
             color: white;
-            border-radius: 5px;
-            margin-top: 30px;
+            padding: 2.5rem 0;
+        }
+        footer h5 {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        footer .list-unstyled li a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        footer .list-unstyled li a:hover {
+            color: var(--secondary-color);
+        }
+        footer .fab, footer .fas {
+            color: white;
+            transition: color 0.2s;
+        }
+        footer .fab:hover, footer .fas:hover {
+            color: var(--secondary-color);
+        }
+
+        @media (max-width: 768px) {
+            .unit-header {
+                padding: 2rem 0;
+            }
+            .content-card {
+                padding: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>الوحدة 4: أوامر إدارة المستخدم والمجموعة</h1>
-            <p>تعلم كيفية إضافة، تعديل، وحذف المستخدمين والمجموعات في نظام لينكس</p>
-        </header>
-        
-        <div class="breadcrumb">
-            <a href="index.html">الرئيسية</a> &gt;
-            <span>الوحدة 4</span>
+    <!-- شريط التنقل -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="../../../index.html">منصة الأمن السيبراني</a>
+            <a href="../index.html" class="btn btn-outline-light">العودة إلى المقرر</a>
         </div>
-        
-        <div class="content-section">
-            <h2><i class="fas fa-users-cog"></i> نظرة عامة</h2>
+    </nav>
+
+    <!-- رأس الوحدة -->
+    <header class="unit-header text-center">
+        <div class="container">
+            <h1 class="display-5 fw-bold mb-3">الوحدة 4: أوامر إدارة المستخدم والمجموعة</h1>
+            <p class="lead">تعلم كيفية إضافة، تعديل، وحذف المستخدمين والمجموعات في نظام لينكس</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- مقدمة الوحدة -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-users-cog me-2"></i> نظرة عامة</h2>
             <p>تُعد إدارة المستخدمين والمجموعات من المهام الأساسية لأي مسؤول نظام. في لينكس، يتم التعامل مع المستخدمين والمجموعات من خلال سطر الأوامر، مما يمنحك تحكمًا كاملاً في صلاحيات الوصول إلى الملفات والخدمات.</p>
+            
+            <div class="note">
+                <i class="fas fa-lightbulb me-2"></i> <strong>ملاحظة:</strong> في أمثلة الأوامر أدناه، يشير الرمز <code>$</code> إلى موجه الأوامر (prompt) ولا يجب كتابته عند تنفيذ الأوامر.
+            </div>
+
+            <div class="warning">
+                <i class="fas fa-exclamation-triangle me-2"></i> <strong>تحذير:</strong> تتطلب معظم أوامر إدارة المستخدمين والمجموعات صلاحيات الجذر (root)، لذا يجب استخدامها بحذر ومع الأمر <code>sudo</code>.
+            </div>
         </div>
 
-        <div class="content-section">
-            <h2><i class="fas fa-list-ul"></i> قائمة الأوامر</h2>
-            <table class="commands-table">
+        <!-- فهم نظام المستخدمين في لينكس -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-user-friends me-2"></i> فهم نظام المستخدمين في لينكس</h2>
+            <p>في نظام لينكس، يتم إدارة المستخدمين والمجموعات من خلال عدة ملفات مهمة:</p>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>ملفات إدارة المستخدمين:</h4>
+                    <ul>
+                        <li><strong>/etc/passwd</strong>: يحتوي على معلومات الحسابات</li>
+                        <li><strong>/etc/shadow</strong>: يحتوي على كلمات المرور المشفرة</li>
+                        <li><strong>/etc/group</strong>: يحتوي على معلومات المجموعات</li>
+                        <li><strong>/etc/gshadow</strong>: يحتوي على كلمات مرور المجموعات</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h4>أنواع المستخدمين:</h4>
+                    <ul>
+                        <li><strong>المستخدم العادي</strong>: لديه صلاحيات محدودة</li>
+                        <li><strong>مستخدم root</strong>: لديه جميع الصلاحيات</li>
+                        <li><strong>مستخدم النظام</strong>: حسابات تستخدمها التطبيقات والخدمات</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <h4 class="mt-4">هيكل ملف /etc/passwd:</h4>
+            <div class="terminal">
+                <div class="output">username:x:1001:1001:User Name:/home/username:/bin/bash</div>
+            </div>
+            <p>كل حقل مفصول بنقطتين (:) ويمثل:</p>
+            <ol>
+                <li>اسم المستخدم</li>
+                <li>كلمة المرور (عادة x، حيث تخزن في /etc/shadow)</li>
+                <li>معرف المستخدم (UID)</li>
+                <li>معرف المجموعة الأساسية (GID)</li>
+                <li>الاسم الكامل أو الوصف</li>
+                <li>المجلد الرئيسي</li>
+                <li>الصدفة الافتراضية (shell)</li>
+            </ol>
+        </div>
+
+        <!-- الأمر useradd -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-user-plus me-2"></i> إنشاء مستخدم جديد: <code>useradd</code></h2>
+            <p>يستخدم لإنشاء مستخدم جديد في النظام.</p>
+            
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">sudo useradd newuser</div>
+                <div class="comment"># إنشاء مستخدم جديد باسم newuser</div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">sudo useradd -m -d /home/newuser -s /bin/bash -c "New User" -U newuser</div>
+                <div class="comment"># إنشاء مستخدم مع خيارات متقدمة</div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
+                <p>ينشئ <code>useradd</code> مستخدمًا جديدًا في النظام. بعض الخيارات الشائعة:</p>
+                <ul>
+                    <li><strong>-m</strong>: إنشاء المجلد الرئيسي للمستخدم</li>
+                    <li><strong>-d</strong>: تحديد المسار للمجلد الرئيسي</li>
+                    <li><strong>-s</strong>: تحديد الصدفة الافتراضية</li>
+                    <li><strong>-c</strong>: إضافة تعليق أو وصف</li>
+                    <li><strong>-U</strong>: إنشاء مجموعة تحمل نفس اسم المستخدم</li>
+                    <li><strong>-G</strong>: إضافة المستخدم إلى مجموعات إضافية</li>
+                </ul>
+            </div>
+            
+            <div class="command-structure">
+                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
+                <div class="command">sudo useradd -m -s /bin/bash john</div>
+                <div class="comment"># إنشاء مستخدم مع مجلد رئيسي وصدفة bash</div>
+                <div class="command">sudo useradd -G developers,admins alice</div>
+                <div class="comment"># إنشاء مستخدم وإضافته إلى مجموعات متعددة</div>
+                <div class="command">sudo useradd -u 1500 -g developers bob</div>
+                <div class="comment"># إنشاء مستخدم بمعرف محدد ومجموعة أساسية</div>
+            </div>
+            
+            <div class="note">
+                <i class="fas fa-lightbulb me-2"></i> <strong>ملاحظة:</strong> بعد إنشاء المستخدم، تحتاج إلى تعيين كلمة مرور باستخدام الأمر <code>passwd</code> لتمكين المستخدم من تسجيل الدخول.
+            </div>
+        </div>
+
+        <!-- الأمر passwd -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-key me-2"></i> إدارة كلمات المرور: <code>passwd</code></h2>
+            <p>يستخدم لتغيير كلمة مرور المستخدم أو إدارتها.</p>
+            
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">passwd</div>
+                <div class="comment"># تغيير كلمة مرور المستخدم الحالي</div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">sudo passwd newuser</div>
+                <div class="comment"># تغيير كلمة مرور مستخدم آخر (يتطلب صلاحيات)</div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">sudo passwd -l username</div>
+                <div class="comment"># قفل حساب مستخدم</div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">sudo passwd -u username</div>
+                <div class="comment"># فتح حساب مستخدم</div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
+                <p>يدير <code>passwd</code> كلمات مرور المستخدمين. بعض الخيارات المفيدة:</p>
+                <ul>
+                    <li><strong>-l</strong>: قفل حساب مستخدم</li>
+                    <li><strong>-u</strong>: فتح حساب مستخدم</li>
+                    <li><strong>-d</strong>: حذف كلمة مرور المستخدم (جعل الحساب بلا كلمة مرور)</li>
+                    <li><strong>-e</strong>: جعل كلمة المرور منتهية الصلاحية (إجبار المستخدم على تغييرها)</li>
+                    <li><strong>-S</strong>: عرض حالة كلمة مرور المستخدم</li>
+                </ul>
+            </div>
+            
+            <div class="command-structure">
+                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
+                <div class="command">sudo passwd -d testuser</div>
+                <div class="comment"># حذف كلمة مرور المستخدم (غير آمن)</div>
+                <div class="command">sudo passwd -e john</div>
+                <div class="comment"># إجبار المستخدم على تغيير كلمة المرور عند next login</div>
+                <div class="command">sudo passwd -S alice</div>
+                <div class="comment"># عرض حالة كلمة مرور المستخدم</div>
+            </div>
+        </div>
+
+        <!-- الأمر usermod -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-user-edit me-2"></i> تعديل المستخدم: <code>usermod</code></h2>
+            <p>يستخدم لتعديل خصائص مستخدم موجود.</p>
+            
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">sudo usermod -aG sudo username</div>
+                <div class="comment"># إضافة مستخدم إلى مجموعة sudo</div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">sudo usermod -d /new/home/dir -m username</div>
+                <div class="comment"># تغيير المجلد الرئيسي للمستخدم ونقل المحتويات</div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">sudo usermod -s /sbin/nologin username</div>
+                <div class="comment"># تغيير الصدفة الافتراضية إلى nologin (لحسابات الخدمة)</div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
+                <p>يعدل <code>usermod</code> خصائص مستخدم موجود. بعض الخيارات المهمة:</p>
+                <ul>
+                    <li><strong>-aG</strong>: إضافة المستخدم إلى مجموعات إضافية (بدون إزالة المجموعات الحالية)</li>
+                    <li><strong>-d</strong>: تغيير المجلد الرئيسي للمستخدم</li>
+                    <li><strong>-m</strong>: نقل محتويات المجلد القديم إلى الجديد (يستخدم مع -d)</li>
+                    <li><strong>-s</strong>: تغيير الصدفة الافتراضية</li>
+                    <li><strong>-L</strong>: قفل حساب المستخدم</li>
+                    <li><strong>-U</strong>: فتح حساب مستخدم</li>
+                    <li><strong>-e</strong>: تعيين تاريخ انتهاء للحساب</li>
+                </ul>
+            </div>
+            
+            <div class="command-structure">
+                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
+                <div class="command">sudo usermod -c "John Doe" johndoe</div>
+                <div class="comment"># تغيير الاسم الكامل أو التعليق</div>
+                <div class="command">sudo usermod -u 1005 username</div>
+                <div class="comment"># تغيير UID للمستخدم</div>
+                <div class="command">sudo usermod -G "" username</div>
+                <div class="comment"># إزالة المستخدم من جميع المجموعات الثانوية</div>
+            </div>
+            
+            <div class="warning">
+                <i class="fas fa-exclamation-triangle me-2"></i> <strong>تحذير:</strong> كن حذرًا عند تغيير UID أو GID للمستخدم، فقد يؤدي ذلك إلى مشاكل في ملكية الملفات.
+            </div>
+        </div>
+
+        <!-- الأمر userdel -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-user-times me-2"></i> حذف المستخدم: <code>userdel</code></h2>
+            <p>يستخدم لحذف مستخدم من النظام.</p>
+            
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">sudo userdel olduser</div>
+                <div class="comment"># حذف مستخدم مع الاحتفاظ بملفاته</div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">sudo userdel -r olduser</div>
+                <div class="comment"># حذف مستخدم ومجلده الرئيسي وملفات البريد</div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
+                <p>يحذف <code>userdel</code> مستخدمًا من النظام. الخيارات المتاحة:</p>
+                <ul>
+                    <li><strong>-r</strong>: حذف المجلد الرئيسي للمستخدم وملفات البريد</li>
+                    <li><strong>-f</strong>: حذف قسري حتى إذا كان المستخدم مسجلاً دخوله</li>
+                </ul>
+            </div>
+            
+            <div class="warning">
+                <i class="fas fa-exclamation-triangle me-2"></i> <strong>تحذير:</strong> كن حذرًا عند استخدام الخيار <code>-r</code>، فسيتم حذف جميع ملفات المستخدم بشكل دائم ولا يمكن استعادتها.
+            </div>
+            
+            <div class="command-structure">
+                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
+                <div class="command">sudo userdel -f lockeduser</div>
+                <div class="comment"># حذف قسري لمستخدم مقفل</div>
+                <div class="command">sudo userdel -r -f problematicuser</div>
+                <div class="comment"># حذف قسري مع إزالة الملفات</div>
+            </div>
+        </div>
+
+        <!-- الأمر groupadd -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-layer-group me-2"></i> إنشاء مجموعة: <code>groupadd</code></h2>
+            <p>يستخدم لإنشاء مجموعة جديدة في النظام.</p>
+            
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">sudo groupadd developers</div>
+                <div class="comment"># إنشاء مجموعة جديدة باسم developers</div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">sudo groupadd -g 1005 admins</div>
+                <div class="comment"># إنشاء مجموعة بمعرف محدد</div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
+                <p>ينشئ <code>groupadd</code> مجموعة جديدة في النظام. بعض الخيارات المتاحة:</p>
+                <ul>
+                    <li><strong>-g</strong>: تحديد معرف المجموعة (GID) يدويًا</li>
+                    <li><strong>-r</strong>: إنشاء مجموعة نظام (بمعرف أقل من 1000 عادة)</li>
+                    <li><strong>-f</strong>: الخروج بصمت إذا كانت المجموعة موجودة بالفعل</li>
+                </ul>
+            </div>
+            
+            <div class="command-structure">
+                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
+                <div class="command">sudo groupadd -r systemgroup</div>
+                <div class="comment"># إنشاء مجموعة نظام</div>
+                <div class="command">sudo groupadd -g 2000 -f developers</div>
+                <div class="comment"># إنشاء مجموعة بمعرف محدد، دون خطأ إذا كانت موجودة</div>
+            </div>
+        </div>
+
+        <!-- الأمر groupdel -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-trash-alt me-2"></i> حذف مجموعة: <code>groupdel</code></h2>
+            <p>يستخدم لحذف مجموعة من النظام.</p>
+            
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">sudo groupdel oldgroup</div>
+                <div class="comment"># حذف مجموعة من النظام</div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
+                <p>يحذف <code>groupdel</code> مجموعة من النظام. لا يمكن حذف مجموعة إذا كانت المجموعة الأساسية لأي مستخدم.</p>
+            </div>
+            
+            <div class="warning">
+                <i class="fas fa-exclamation-triangle me-2"></i> <strong>تحذير:</strong> لا يمكن حذف مجموعة إذا كانت المجموعة الأساسية لأي مستخدم. يجب أولاً تغيير المجموعة الأساسية للمستخدمين أو حذفهم.
+            </div>
+        </div>
+
+        <!-- الأمر id -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-id-card me-2"></i> عرض معلومات الهوية: <code>id</code></h2>
+            <p>يعرض معلومات الهوية (UID و GID) للمستخدم.</p>
+            
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">id</div>
+                <div class="comment"># عرض معلومات المستخدم الحالي</div>
+                <div class="output">
+uid=1000(user) gid=1000(user) groups=1000(user),4(adm),24(cdrom),27(sudo),30(dip),46(plugdev),116(lpadmin),126(sambashare)
+                </div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">id username</div>
+                <div class="comment"># عرض معلومات مستخدم محدد</div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
+                <p>يعرض <code>id</code> معلومات الهوية للمستخدم، بما في ذلك:</p>
+                <ul>
+                    <li>معرف المستخدم (UID)</li>
+                    <li>معرف المجموعة الأساسية (GID)</li>
+                    <li>قائمة المجموعات التي ينتمي إليها المستخدم</li>
+                </ul>
+            </div>
+            
+            <div class="command-structure">
+                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
+                <div class="command">id -u</div>
+                <div class="comment"># عرض UID فقط</div>
+                <div class="command">id -g</div>
+                <div class="comment"># عرض GID فقط</div>
+                <div class="command">id -Gn</div>
+                <div class="comment"># عرض أسماء المجموعات فقط</div>
+                <div class="command">id -u username</div>
+                <div class="comment"># عرض UID لمستخدم محدد</div>
+            </div>
+        </div>
+
+        <!-- الأمر who -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-user-check me-2"></i> عرض المستخدمين المتصلين: <code>who</code></h2>
+            <p>يعرض قائمة بالمستخدمين المتصلين حاليًا بالنظام.</p>
+            
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">who</div>
+                <div class="output">
+user     pts/0        2023-09-13 10:30 (192.168.1.100)
+admin    pts/1        2023-09-13 11:15 (192.168.1.101)
+                </div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
+                <p>يعرض <code>who</code> معلومات عن المستخدمين المتصلين حاليًا بالنظام، بما في ذلك:</p>
+                <ul>
+                    <li>اسم المستخدم</li>
+                    <li>نقطة الاتصال (terminal)</li>
+                    <li>وقت وتاريخ الاتصال</li>
+                    <li>عنوان IP للمستخدم (إذا كان متصلاً عن بعد)</li>
+                </ul>
+            </div>
+            
+            <div class="command-structure">
+                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
+                <div class="command">who -u</div>
+                <div class="comment"># عرض مع معرف العملية ووقت الخمول</div>
+                <div class="command">who -H</div>
+                <div class="comment"># عرض العناوين (رؤوس الأعمدة)</div>
+                <div class="command">who -q</div>
+                <div class="comment"># عرض عدد المستخدمين المتصلين فقط</div>
+            </div>
+        </div>
+
+        <!-- الأمر last -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-history me-2"></i> عرض سجل تسجيلات الدخول: <code>last</code></h2>
+            <p>يعرض قائمة بآخر المستخدمين الذين قاموا بتسجيل الدخول إلى النظام.</p>
+            
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">last</div>
+                <div class="output">
+user     pts/0        192.168.1.100    Tue Sep 13 10:30   still logged in
+admin    pts/1        192.168.1.101    Tue Sep 13 11:15 - 11:45  (00:30)
+reboot   system boot  5.4.0-42-generic Tue Sep 13 09:15   still running
+                </div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
+                <p>يعرض <code>last</code> سجل تسجيلات الدخول من ملف <code>/var/log/wtmp</code>. يعرض المعلومات التالية:</p>
+                <ul>
+                    <li>اسم المستخدم</li>
+                    <li>نقطة الاتصال</li>
+                    <li>عنوان IP المصدر</li>
+                    <li>وقت وتاريخ تسجيل الدخول</li>
+                    <li>مدة الجلسة (إذا انتهت)</li>
+                </ul>
+            </div>
+            
+            <div class="command-structure">
+                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
+                <div class="command">last -n 5</div>
+                <div class="comment"># عرض آخر 5 تسجيلات دخول فقط</div>
+                <div class="command">last username</div>
+                <div class="comment"># عرض سجل تسجيلات الدخول لمستخدم محدد</div>
+                <div class="command">last reboot</div>
+                <div class="comment"># عرض سجل عمليات إعادة التشغيل</div>
+            </div>
+        </div>
+
+        <!-- تمرين عملي -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-tasks me-2"></i> تمرين عملي: إدارة المستخدمين والمجموعات</h2>
+            <p>لنفترض أنك مسؤول نظام وتحتاج إلى إعداد بيئة تطوير لفريق جديد:</p>
+            
+            <div class="activity-box">
+                <h4>التمرين 1: إنشاء مجموعة ومستخدمين</h4>
+                <p>أنشئ مجموعة باسم <code>developers</code> ثم أنشئ مستخدمين جديدين وأضفهما إلى هذه المجموعة.</p>
+                <p><strong>الحل:</strong></p>
+                <div class="terminal">
+                    <div class="command">sudo groupadd developers</div>
+                    <div class="command">sudo useradd -m -G developers dev1</div>
+                    <div class="command">sudo useradd -m -G developers dev2</div>
+                    <div class="command">sudo passwd dev1</div>
+                    <div class="command">sudo passwd dev2</div>
+                </div>
+            </div>
+            
+            <div class="activity-box">
+                <h4>التمرين 2: منح صلاحيات إدارية</h4>
+                <p>أضف مستخدمًا إلى مجموعة <code>sudo</code> لتمكينه من تنفيذ أوامر بإذونات root.</p>
+                <p><strong>الحل:</strong></p>
+                <div class="terminal">
+                    <div class="command">sudo usermod -aG sudo dev1</div>
+                    <div class="comment"># إضافة dev1 إلى مجموعة sudo</div>
+                    <div class="command">id dev1</div>
+                    <div class="comment"># التحقق من المجموعات</div>
+                </div>
+            </div>
+            
+            <div class="activity-box">
+                <h4>التمرين 3: إعداد مجلد مشترك</h4>
+                <p>أنشئ مجلدًا مشتركًا يمكن لأعضاء مجموعة <code>developers</code> الكتابة فيه.</p>
+                <p><strong>الحل:</strong></p>
+                <div class="terminal">
+                    <div class="command">sudo mkdir /opt/devproject</div>
+                    <div class="command">sudo chgrp developers /opt/devproject</div>
+                    <div class="command">sudo chmod 2775 /opt/devproject</div>
+                    <div class="comment"># 2 = setgid, 7 = rwx للمالك, 7 = rwx للمجموعة, 5 = rx للآخرين</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- أفضل الممارسات -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-graduation-cap me-2"></i> أفضل الممارسات لإدارة المستخدمين</h2>
+            
+            <div class="note">
+                <i class="fas fa-check-circle me-2"></i> <strong>مبدأ الامتياز الأقل:</strong> منح المستخدمين فقط الصلاحيات التي يحتاجونها لأداء مهامهم.
+            </div>
+            
+            <div class="note">
+                <i class="fas fa-check-circle me-2"></i> <strong>استخدام المجموعات:</strong> إدارة الصلاحيات عبر المجموعات بدلاً من منح صلاحيات فردية.
+            </div>
+            
+            <div class="note">
+                <i class="fas fa-check-circle me-2"></i> <strong>كلمات مرور قوية:</strong> تطبيق سياسة كلمات مرور قوية وتغييرها定期يًا.
+            </div>
+
+            <div class="note">
+                <i class="fas fa-check-circle me-2"></i> <strong>مراجعة دورية:</strong> مراجعة الحسابات والمجموعات بشكل دوري وإزالة ما لم يعد ضروريًا.
+            </div>
+            
+            <div class="warning">
+                <i class="fas fa-exclamation-triangle me-2"></i> <strong>تحذير:</strong> تجنب استخدام حساب root للأنشطة اليومية. استخدم حسابات عادية مع sudo عندما تحتاج إلى صلاحيات إدارية.
+            </div>
+            
+            <h4 class="mt-4">إعدادات UID/GID الموصى بها:</h4>
+            <table class="user-table">
                 <thead>
                     <tr>
-                        <th>الأمر</th>
-                        <th>الوصف</th>
+                        <th>نوع الحساب</th>
+                        <th>نطاق UID</th>
+                        <th>نطاق GID</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td><code>useradd</code></td>
-                        <td>لإنشاء مستخدم جديد. مثال: <code>sudo useradd newuser</code>.</td>
+                        <td>حسابات النظام</td>
+                        <td>0-999</td>
+                        <td>0-999</td>
                     </tr>
                     <tr>
-                        <td><code>userdel</code></td>
-                        <td>لحذف مستخدم. مثال: <code>sudo userdel olduser</code>.</td>
+                        <td>المستخدمون العاديون</td>
+                        <td>1000-60000</td>
+                        <td>1000-60000</td>
                     </tr>
                     <tr>
-                        <td><code>usermod</code></td>
-                        <td>لتعديل بيانات مستخدم موجود. مثال: <code>sudo usermod -aG groupname username</code>.</td>
-                    </tr>
-                    <tr>
-                        <td><code>groupadd</code></td>
-                        <td>لإنشاء مجموعة جديدة. مثال: <code>sudo groupadd newgroup</code>.</td>
-                    </tr>
-                    <tr>
-                        <td><code>groupdel</code></td>
-                        <td>لحذف مجموعة. مثال: <code>sudo groupdel oldgroup</code>.</td>
-                    </tr>
-                    <tr>
-                        <td><code>id</code></td>
-                        <td>يعرض معلومات الهوية (UID و GID) لمستخدم معين.</td>
-                    </tr>
-                    <tr>
-                        <td><code>last</code></td>
-                        <td>يعرض قائمة بآخر المستخدمين الذين قاموا بتسجيل الدخول.</td>
+                        <td>حسابات الخدمات</td>
+                        <td>معرفة حسب التطبيق</td>
+                        <td>معرفة حسب التطبيق</td>
                     </tr>
                 </tbody>
             </table>
         </div>
 
-        <div class="content-section">
-            <h2><i class="fas fa-cogs"></i> أمثلة عملية</h2>
-            <p>لإنشاء مستخدم جديد باسم <code>testuser</code> و إعطائه كلمة مرور:</p>
-            <div class="code-block">
-                <pre><code>sudo useradd testuser
-sudo passwd testuser</code></pre>
-            </div>
-            <p>لإضافة المستخدم <code>testuser</code> إلى مجموعة <code>sudo</code>:</p>
-            <div class="code-block">
-                <pre><code>sudo usermod -aG sudo testuser</code></pre>
-            </div>
-            <p>للتحقق من المجموعات التي ينتمي إليها المستخدم <code>testuser</code>:</p>
-            <div class="code-block">
-                <pre><code>id testuser</code></pre>
-            </div>
+        <!-- التنقل بين الصفحات -->
+        <div class="d-flex justify-content-between mb-4">
+            <a href="unit-3.html" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-right me-1"></i> العودة إلى الوحدة الثالثة
+            </a>
+            <a href="unit-5.html" class="btn btn-primary">
+                الانتقال إلى الوحدة الخامسة <i class="fas fa-arrow-left me-1"></i>
+            </a>
         </div>
-
-        <div class="alert-warning">
-            <i class="fas fa-exclamation-triangle"></i>
-            <strong>تنبيه:</strong>
-            تتطلب معظم أوامر إدارة المستخدمين والمجموعات صلاحيات الجذر (root)، لذا يجب استخدامها بحذر ومع الأمر <code>sudo</code>.
-        </div>
-        
-        <div class="navigation-buttons">
-            <a href="unit-3.html" class="btn"><i class="fas fa-arrow-right"></i> الوحدة السابقة: أذونات الملفات</a>
-            <a href="unit-5.html" class="btn">الوحدة التالية: إدارة العمليات <i class="fas fa-arrow-left"></i></a>
-        </div>
-        
-        <footer>
-            <p>© 2025 المسار الأمني للسيبراني. جميع الحقوق محفوظة.</p>
-        </footer>
     </div>
+
+    <!-- الفوتر -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>مسار الأمن السيبراني</h5>
+                    <p>منصة تعليمية متخصصة في تقديم محتوى أكاديمي وعملي في مجال الأمن السيبراني.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>روابط سريعة</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="../../../index.html" class="text-white">الرئيسية</a></li>
+                        <li><a href="../index.html" class="text-white">مقرر أوامر لينكس</a></li>
+                        <li><a href="#" class="text-white">الدعم الفني</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>تواصل معنا</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> info@cyberpath.com</li>
+                        <li><i class="fas fa-phone me-2"></i> 0502161465</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2025 مسار الأمن السيبراني. جميع الحقوق محفوظة.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-linkedin fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-youtube fa-lg"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-github fa-lg"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- تضمين Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
