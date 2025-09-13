@@ -3,283 +3,574 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الوحدة 3: أوامر أذونات الملفات | أوامر لينكس</title>
+    <title>الوحدة 3: أوامر أذونات الملفات | منصة الأمن السيبراني</title>
+    <!-- تضمين Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- تضمين Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- تضمين خط Tajawal من Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <!-- تضمين highlight.js لتلوين الشفرات -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
     <style>
         :root {
             --primary-color: #2c3e50;
             --secondary-color: #3498db;
             --accent-color: #e74c3c;
-            --light-color: #ecf0f1;
-            --dark-color: #2c3e50;
-            --success-color: #27ae60;
-            --warning-color: #f39c12;
-            --info-color: #3498db;
+            --light-bg: #f8f9fa;
+            --dark-text: #2c3e50;
+            --light-text: #7f8c8d;
+            --terminal-bg: #1e1e1e;
+            --terminal-text: #d4d4d4;
+            --terminal-prompt: #3cce56;
+            --terminal-command: #569cd6;
         }
-        
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f5f5f5;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 1.5rem;
-            text-align: center;
-            border-radius: 5px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        
-        header h1 {
-            margin-bottom: 10px;
-            font-size: 2.5rem;
-        }
-        
-        header p {
-            font-size: 1.1rem;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        
-        .breadcrumb {
-            background-color: var(--light-color);
-            padding: 10px 20px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-        }
-        
-        .breadcrumb a {
-            color: var(--secondary-color);
-            text-decoration: none;
-        }
-        
-        .breadcrumb a:hover {
-            text-decoration: underline;
-        }
-
-        .content-section {
-            background-color: white;
-            border-radius: 8px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .content-section h2 {
-            color: var(--primary-color);
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--secondary-color);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .content-section p {
-            margin-bottom: 15px;
-        }
-
-        .commands-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        .commands-table th, .commands-table td {
-            border: 1px solid #ddd;
-            padding: 12px;
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            line-height: 1.8;
+            direction: rtl;
             text-align: right;
         }
 
-        .commands-table th {
+        .navbar {
             background-color: var(--primary-color);
+        }
+        .navbar-brand {
+            color: white !important;
+        }
+        .btn-outline-light {
+            border-color: rgba(255, 255, 255, 0.7) !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .btn-outline-light:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .unit-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
+            padding: 2.5rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 1rem 1rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .content-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            padding: 2rem;
+            border-right: 4px solid var(--secondary-color);
+        }
+
+        .content-title {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .terminal {
+            background-color: var(--terminal-bg);
+            color: var(--terminal-text);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            font-family: 'Courier New', monospace;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            direction: ltr; /* اتجاه النص من اليسار لليمين */
+            text-align: left;
+        }
+
+        .terminal .prompt {
+            color: var(--terminal-prompt);
             font-weight: bold;
         }
 
-        .commands-table tr:nth-child(even) {
-            background-color: #f2f2f2;
+        .terminal .command {
+            color: var(--terminal-command);
         }
 
-        .commands-table tr:hover {
-            background-color: #ddd;
+        .terminal .comment {
+            color: #6a9955;
+            font-style: italic;
         }
 
-        .code-block {
-            background-color: var(--dark-color);
-            color: #e7e7e7;
-            padding: 15px;
-            border-radius: 8px;
-            overflow-x: auto;
-            font-family: 'Courier New', Courier, monospace;
-            margin-top: 20px;
-            margin-bottom: 20px;
+        .terminal .output {
+            color: var(--terminal-text);
         }
 
-        .alert-note {
-            background-color: #e9f7ef;
-            border-right: 5px solid var(--success-color);
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.1rem;
+        .command-explanation {
+            background-color: #f0f8ff;
+            border-left: 4px solid var(--secondary-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
         }
 
-        .alert-warning {
-            background-color: #fcf8e3;
-            border-right: 5px solid var(--warning-color);
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.1rem;
+        .command-structure {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+            font-family: 'Courier New', monospace;
+            direction: ltr; /* اتجاه النص من اليسار لليمين */
+            text-align: left;
         }
-        
+
+        .note {
+            background-color: #e7f5ff;
+            border-left: 4px solid var(--secondary-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
         .activity-box {
             background-color: #e6f7ff;
-            border-right: 5px solid #1890ff;
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 20px;
-            margin-bottom: 20px;
-            font-size: 1.1rem;
+            border-left: 5px solid #1890ff;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin: 1.5rem 0;
         }
 
-        .navigation-buttons {
+        .permission-visual {
+            background-color: #f8f9fa;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border: 1px solid #dee2e6;
+        }
+
+        .permission-bits {
             display: flex;
-            justify-content: space-between;
-            margin-top: 30px;
+            justify-content: center;
+            margin: 1rem 0;
+            direction: ltr;
         }
-        
-        .btn {
-            display: inline-block;
-            background-color: var(--secondary-color);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            text-decoration: none;
+
+        .permission-bit {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 2px;
+            border-radius: 4px;
             font-weight: bold;
-            transition: background-color 0.3s ease;
+            font-family: 'Courier New', monospace;
         }
-        
-        .btn:hover {
-            background-color: #2980b9;
-        }
-        
+
+        .read-bit { background-color: #4caf50; color: white; }
+        .write-bit { background-color: #ff9800; color: white; }
+        .execute-bit { background-color: #f44336; color: white; }
+        .dash-bit { background-color: #e0e0e0; }
+
         footer {
-            text-align: center;
-            padding: 20px;
-            background-color: var(--dark-color);
+            background-color: var(--primary-color) !important;
             color: white;
-            border-radius: 5px;
-            margin-top: 30px;
+            padding: 2.5rem 0;
+        }
+        footer h5 {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        footer .list-unstyled li a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        footer .list-unstyled li a:hover {
+            color: var(--secondary-color);
+        }
+        footer .fab, footer .fas {
+            color: white;
+            transition: color 0.2s;
+        }
+        footer .fab:hover, footer .fas:hover {
+            color: var(--secondary-color);
+        }
+
+        @media (max-width: 768px) {
+            .unit-header {
+                padding: 2rem 0;
+            }
+            .content-card {
+                padding: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- شريط التنقل -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="../../../index.html">منصة الأمن السيبراني</a>
+            <a href="../index.html" class="btn btn-outline-light">العودة إلى المقرر</a>
+        </div>
+    </nav>
+
+    <!-- رأس الوحدة -->
+    <header class="unit-header text-center">
+        <div class="container">
+            <h1 class="display-5 fw-bold mb-3">الوحدة 3: أوامر أذونات الملفات</h1>
+            <p class="lead">تحكم في صلاحيات الوصول إلى الملفات والمجلدات في نظام لينكس</p>
+        </div>
+    </header>
+
     <div class="container">
-        <header>
-            <h1>الوحدة 3: أوامر أذونات الملفات</h1>
-            <p>تحكم في صلاحيات الوصول إلى الملفات والمجلدات في نظام لينكس</p>
-        </header>
-        
-        <div class="breadcrumb">
-            <a href="index.html">الرئيسية</a> &gt;
-            <span>الوحدة 3</span>
-        </div>
-        
-        <div class="content-section">
-            <h2><i class="fas fa-user-lock"></i> نظرة عامة</h2>
+        <!-- مقدمة الوحدة -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-user-lock me-2"></i> نظرة عامة</h2>
             <p>تعتبر إدارة أذونات الملفات جزءًا أساسيًا من الأمان في نظام لينكس. كل ملف ومجلد يمتلك مجموعة من الصلاحيات تحدد من يمكنه قراءته، كتابته، أو تنفيذه. في هذه الوحدة، ستتعلم كيفية عرض هذه الأذونات وتعديلها.</p>
-        </div>
-
-        <div class="content-section">
-            <h2><i class="fas fa-list-ul"></i> قائمة الأوامر</h2>
-            <table class="commands-table">
-                <thead>
-                    <tr>
-                        <th>الأمر</th>
-                        <th>الوصف</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><code>ls -l</code></td>
-                        <td>يعرض قائمة مفصلة بالملفات والمجلدات، مع إظهار الأذونات والملكية.</td>
-                    </tr>
-                    <tr>
-                        <td><code>chmod</code></td>
-                        <td>لتغيير أذونات الملفات والمجلدات.</td>
-                    </tr>
-                    <tr>
-                        <td><code>chown</code></td>
-                        <td>لتغيير مالك الملف أو المجلد.</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="content-section">
-            <h2><i class="fas fa-cogs"></i> أمثلة عملية</h2>
-            <p>لنفترض أن لديك ملفًا باسم <code>my_file.txt</code> وتريد أن تمنح كل المستخدمين صلاحية القراءة فقط:</p>
-            <div class="code-block">
-                <pre><code>chmod 444 my_file.txt</code></pre>
-            </div>
-            <p>لإعطاء المالك والمجموعة صلاحية القراءة والكتابة، وللآخرين صلاحية القراءة فقط:</p>
-            <div class="code-block">
-                <pre><code>chmod 664 my_file.txt</code></pre>
-            </div>
-            <p>لتغيير مالك الملف <code>my_file.txt</code> إلى المستخدم <code>newuser</code>:</p>
-            <div class="code-block">
-                <pre><code>chown newuser my_file.txt</code></pre>
-            </div>
-        </div>
-        
-        <div class="activity-box">
-            <h2><i class="fas fa-user-edit"></i> تمرين: اعط صلاحية تنفيذ لملف</h2>
-            <p>لديك ملف نصي باسم <code>script.sh</code> تريد أن تجعله قابلاً للتنفيذ. اكتب الأمر المناسب لتحقيق ذلك.</p>
-            <p><strong>الإجابة:</strong></p>
-            <div class="code-block">
-                <pre><code>chmod +x script.sh</code></pre>
-            </div>
-            <p>أو باستخدام الأرقام:</p>
-            <div class="code-block">
-                <pre><code>chmod 755 script.sh</code></pre>
+            
+            <div class="note">
+                <i class="fas fa-lightbulb me-2"></i> <strong>ملاحظة:</strong> في أمثلة الأوامر أدناه، يشير الرمز <code>$</code> إلى موجه الأوامر (prompt) ولا يجب كتابته عند تنفيذ الأوامر.
             </div>
         </div>
 
-        <div class="navigation-buttons">
-            <a href="unit-2.html" class="btn"><i class="fas fa-arrow-right"></i> الوحدة السابقة: أوامر إعداد الشبكة</a>
-            <a href="unit-4.html" class="btn">الوحدة التالية: إدارة المستخدم والمجموعة <i class="fas fa-arrow-left"></i></a>
+        <!-- فهم أذونات لينكس -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-key me-2"></i> فهم أذونات لينكس</h2>
+            <p>في نظام لينكس، كل ملف ومجلد له ثلاثة أنواع من الأذونات تمنح لثلاث فئات من المستخدمين:</p>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>أنواع الأذونات:</h4>
+                    <ul>
+                        <li><strong>القراءة (r)</strong>: الإذن بقراءة محتوى الملف أو عرض محتويات المجلد</li>
+                        <li><strong>الكتابة (w)</strong>: الإذن بتعديل الملف أو إنشاء/حذف ملفات في المجلد</li>
+                        <li><strong>التنفيذ (x)</strong>: الإذن بتنفيذ الملف (إذا كان برنامجًا) أو الدخول إلى المجلد</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h4>فئات المستخدمين:</h4>
+                    <ul>
+                        <li><strong>المالك (Owner)</strong>: المستخدم الذي يملك الملف/المجلد</li>
+                        <li><strong>المجموعة (Group)</strong>: المستخدمون المنتمون لمجموعة الملف/المجلد</li>
+                        <li><strong>الآخرين (Others)</strong>: جميع المستخدمين الآخرين في النظام</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="permission-visual">
+                <h4>تمثيل الأذونات:</h4>
+                <p>تمثل الأذونات عادة بـ 10 أحرف عند استخدام <code>ls -l</code>:</p>
+                <div class="terminal">
+                    <div class="output">-rwxr-xr--  1 user group  2048 Sep 13 10:30 script.sh</div>
+                </div>
+                <p>الحروف العشرة تمثل:</p>
+                <div class="permission-bits">
+                    <div class="permission-bit dash-bit">-</div>
+                    <div class="permission-bit read-bit">r</div>
+                    <div class="permission-bit write-bit">w</div>
+                    <div class="permission-bit execute-bit">x</div>
+                    <div class="permission-bit read-bit">r</div>
+                    <div class="permission-bit dash-bit">-</div>
+                    <div class="permission-bit execute-bit">x</div>
+                    <div class="permission-bit read-bit">r</div>
+                    <div class="permission-bit dash-bit">-</div>
+                    <div class="permission-bit dash-bit">-</div>
+                </div>
+                <div class="row text-center mt-2">
+                    <div class="col-md-3"><small>النوع<br>(1)</small></div>
+                    <div class="col-md-3"><small>المالك<br>(3)</small></div>
+                    <div class="col-md-3"><small>المجموعة<br>(3)</small></div>
+                    <div class="col-md-3"><small>الآخرين<br>(3)</small></div>
+                </div>
+            </div>
         </div>
-        
-        <footer>
-            <p>© 2025 المسار الأمني للسيبراني. جميع الحقوق محفوظة.</p>
-        </footer>
+
+        <!-- الأمر ls -l -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-list me-2"></i> عرض الأذونات: <code>ls -l</code></h2>
+            <p>يستخدم هذا الأمر لعرض معلومات مفصلة عن الملفات والمجلدات، بما في ذلك الأذونات والملكية.</p>
+            
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">ls -l</div>
+                <div class="output">
+total 24<br>
+-rw-r--r-- 1 user user  125 Sep 13 10:30 document.txt<br>
+drwxr-xr-x 2 user user 4096 Sep 12 14:22 my_directory<br>
+-rwxr-xr-x 1 user user 8192 Sep 11 09:15 script.sh<br>
+                </div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
+                <p>يعرض <code>ls -l</code> قائمة مفصلة بالمحتويات تشمل:</p>
+                <ul>
+                    <li>نوع الملف والمجموعة الأولى من الأذونات (10 أحرف في البداية)</li>
+                    <li>عدد الوصلات الصلبة (hard links)</li>
+                    <li>مالك الملف</li>
+                    <li>المجموعة المالكة للملف</li>
+                    <li>حجم الملف</li>
+                    <li>تاريخ ووقت آخر تعديل</li>
+                    <li>اسم الملف أو المجلد</li>
+                </ul>
+            </div>
+            
+            <div class="command-structure">
+                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
+                <div class="command">ls -la</div>
+                <div class="comment"># عرض جميع الملفات بما فيها المخفية مع التفاصيل</div>
+                <div class="command">ls -lh</div>
+                <div class="comment"># عرض الأحجام بصيغة مقروءة (KB, MB, GB)</div>
+                <div class="command">ls -l /var/www</div>
+                <div class="comment"># عرض محتويات مجلد معين بتفاصيل</div>
+            </div>
+        </div>
+
+        <!-- الأمر chmod -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-unlock-alt me-2"></i> تغيير الأذونات: <code>chmod</code></h2>
+            <p>يستخدم لتغيير أذونات الملفات والمجلدات. يمكن استخدامه بطريقتين: الرمزية (باستخدام الأحرف) أو الرقمية (باستخدام الأرقام).</p>
+            
+            <h4>الطريقة الرمزية (باستخدام الأحرف):</h4>
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">chmod u+x script.sh</div>
+                <div class="comment"># إضافة إذن التنفيذ للمالك</div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">chmod g-w document.txt</div>
+                <div class="comment"># إزالة إذن الكتابة من المجموعة</div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">chmod o=r document.txt</div>
+                <div class="comment"># جعل إذن الآخرين للقراءة فقط</div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">chmod a+x script.sh</div>
+                <div class="comment"># إضافة إذن التنفيذ للجميع (المالك، المجموعة، الآخرين)</div>
+            </div>
+            
+            <h4>الطريقة الرقمية (باستخدام الأرقام الثمانية):</h4>
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">chmod 755 script.sh</div>
+                <div class="comment"># rwxr-xr-x : المالك: قراءة، كتابة، تنفيذ | الآخرون: قراءة وتنفيذ</div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">chmod 644 document.txt</div>
+                <div class="comment"># rw-r--r-- : المالك: قراءة وكتابة | الآخرون: قراءة فقط</div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">chmod 600 secret.txt</div>
+                <div class="comment"># rw------- : المالك فقط: قراءة وكتابة | لا أحد آخر</div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
+                <p>يغير <code>chmod</code> أذونات الملفات والمجلدات. الرموز المستخدمة في الطريقة الرمزية:</p>
+                <ul>
+                    <li><strong>u</strong>: المستخدم/المالك (user/owner)</li>
+                    <li><strong>g</strong>: المجموعة (group)</li>
+                    <li><strong>o</strong>: الآخرين (others)</li>
+                    <li><strong>a</strong>: الكل (all)</li>
+                    <li><strong>+</strong>: إضافة إذن</li>
+                    <li><strong>-</strong>: إزالة إذن</li>
+                    <li><strong>=</strong>: تعيين إذن محدد</li>
+                    <li><strong>r</strong>: قراءة (read)</li>
+                    <li><strong>w</strong>: كتابة (write)</li>
+                    <li><strong>x</strong>: تنفيذ (execute)</li>
+                </ul>
+            </div>
+            
+            <div class="command-structure">
+                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
+                <div class="command">chmod -R 755 /path/to/directory</div>
+                <div class="comment"># تطبيق الأذونات بشكل متكرر على المجلد وجميع محتوياته</div>
+                <div class="command">chmod u=rwx,g=rx,o= file.txt</div>
+                <div class="comment"># المالك: قراءة، كتابة، تنفيذ | المجموعة: قراءة، تنفيذ | الآخرون: لا أذونات</div>
+                <div class="command">chmod +x script.sh</div>
+                <div class="comment"># إضافة إذن التنفيذ للجميع (مكافئ لـ a+x)</div>
+            </div>
+            
+            <div class="note">
+                <i class="fas fa-lightbulb me-2"></i> <strong>التحويل بين الطريقتين:</strong>
+                <p>كل رقم في الطريقة الرقمية يمثل مجموعة من 3 أذونات (قراءة، كتابة، تنفيذ) حيث:</p>
+                <ul>
+                    <li>4 = قراءة (r)</li>
+                    <li>2 = كتابة (w)</li>
+                    <li>1 = تنفيذ (x)</li>
+                    <li>0 = لا أذونات (-)</li>
+                </ul>
+                <p>مثال: 7 = 4+2+1 (قراءة، كتابة، تنفيذ) | 5 = 4+1 (قراءة، تنفيذ) | 6 = 4+2 (قراءة، كتابة)</p>
+            </div>
+        </div>
+
+        <!-- الأمر chown -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-user-tie me-2"></i> تغيير الملكية: <code>chown</code></h2>
+            <p>يستخدم لتغيير مالك الملف أو المجلد والمجموعة المالكة له.</p>
+            
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">sudo chown newuser file.txt</div>
+                <div class="comment"># تغيير مالك الملف إلى newuser</div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">sudo chown newuser:newgroup file.txt</div>
+                <div class="comment"># تغيير المالك والمجموعة</div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">sudo chown :newgroup file.txt</div>
+                <div class="comment"># تغيير المجموعة فقط</div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">sudo chown -R user:group /path/to/directory</div>
+                <div class="comment"># تغيير ملكية المجلد وجميع محتوياته بشكل متكرر</div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
+                <p>يغير <code>chown</code> مالك الملف أو المجلد والمجموعة المالكة له. الصيغة العامة:</p>
+                <p><code>chown [مالك][:مجموعة] ملف</code></p>
+                <p>يمكنك تغيير المالك فقط، أو المجموعة فقط، أو كليهما معًا.</p>
+            </div>
+            
+            <div class="warning">
+                <i class="fas fa-exclamation-triangle me-2"></i> <strong>ملاحظة:</strong> تحتاج عادةً إلى صلاحيات root (استخدام sudo) لتغيير ملكية الملفات، إلا إذا كنت المالك الحالي وتغير الملكية لمستخدم آخر ضمن مجموعتك.
+            </div>
+            
+            <div class="command-structure">
+                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
+                <div class="command">sudo chown user file.txt</div>
+                <div class="comment"># تغيير المالك إلى user (المجموعة تبقى كما هي)</div>
+                <div class="command">sudo chown user: file.txt</div>
+                <div class="comment"># تغيير المالك إلى user والمجموعة إلى المجموعة الافتراضية لـ user</div>
+                <div class="command">sudo chown :www-data file.txt</div>
+                <div class="comment"># تغيير المجموعة إلى www-data (المالك يبقى كما هو)</div>
+                <div class="command">sudo chown -R www-data:www-data /var/www/html</div>
+                <div class="comment"># تغيير ملكية مجلد موقع الويب إلى مستخدم وخادم الويب</div>
+            </div>
+        </div>
+
+        <!-- تمرين عملي -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-user-edit me-2"></i> تمرين عملي: إعداد أذونات الملفات</h2>
+            <p>لنفترض أنك مدير نظام وتحتاج إلى إعداد أذونات آمنة للملفات التالية:</p>
+            
+            <div class="activity-box">
+                <h4>التمرين 1: ملف سكريبت تنفيذي</h4>
+                <p>لديك ملف سكريبت باسم <code>backup.sh</code> تريد أن تجعله قابلاً للتنفيذ من قبل المالك فقط، مع السماح للآخرين بقراءته فقط.</p>
+                <p><strong>الحل:</strong></p>
+                <div class="terminal">
+                    <div class="command">chmod 755 backup.sh</div>
+                    <div class="comment"># أو</div>
+                    <div class="command">chmod u=rwx,go=rx backup.sh</div>
+                </div>
+            </div>
+            
+            <div class="activity-box">
+                <h4>التمرين 2: ملف配置 حساس</h4>
+                <p>لديك ملف配置 باسم <code>config.ini</code> يحتوي على معلومات حساسة. تريد أن يقتصر الوصول عليه على المالك فقط.</p>
+                <p><strong>الحل:</strong></p>
+                <div class="terminal">
+                    <div class="command">chmod 600 config.ini</div>
+                    <div class="comment"># أو</div>
+                    <div class="command">chmod u=rw,go= config.ini</div>
+                </div>
+            </div>
+            
+            <div class="activity-box">
+                <h4>التمرين 3: مجلد مشترك</h4>
+                <p>لديك مجلد باسم <code>shared</code> تريد أن يسمح لأعضاء المجموعة بإضافة وحذف الملفات، بينما يمكن للآخرين فقط قراءة المحتويات.</p>
+                <p><strong>الحل:</strong></p>
+                <div class="terminal">
+                    <div class="command">chmod 775 shared</div>
+                    <div class="comment"># أو</div>
+                    <div class="command">chmod u=rwx,g=rwx,o=rx shared</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- أفضل الممارسات -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-graduation-cap me-2"></i> أفضل الممارسات لأذونات الملفات</h2>
+            
+            <div class="note">
+                <i class="fas fa-check-circle me-2"></i> <strong>مبدأ الامتياز الأقل:</strong> منح فقط الأذونات الضرورية لأداء المهمة المطلوبة.
+            </div>
+            
+            <div class="note">
+                <i class="fas fa-check-circle me-2"></i> <strong>حماية الملفات الحساسة:</strong> استخدام أذونات مقيدة (مثل 600) للملفات التي تحتوي على معلومات حساسة.
+            </div>
+            
+            <div class="note">
+                <i class="fas fa-check-circle me-2"></i> <strong>أذونات المجلدات:</strong> تذكر أن إذن التنفيذ (x) ضروري للدخول إلى المجلدات.
+            </div>
+            
+            <div class="warning">
+                <i class="fas fa-exclamation-triangle me-2"></i> <strong>تحذير:</strong> تجنب منح أذونات 777 (الجميع يمكنه القراءة والكتابة والتنفيذ) إلا في حالات ضرورية جدًا، فهذا يشكل خطرًا أمنيًا كبيرًا.
+            </div>
+            
+            <div class="warning">
+                <i class="fas fa-exclamation-triangle me-2"></i> <strong>تحذير:</strong> كن حذرًا عند استخدام الخيار <code>-R</code> (تطبيق متكرر) مع <code>chmod</code> و<code>chown</code>، فتطبيق أذونات خاطئة على مجلدات النظام قد يعطل عمل النظام.
+            </div>
+        </div>
+
+        <!-- التنقل بين الصفحات -->
+        <div class="d-flex justify-content-between mb-4">
+            <a href="unit-2.html" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-right me-1"></i> العودة إلى الوحدة الثانية
+            </a>
+            <a href="unit-4.html" class="btn btn-primary">
+                الانتقال إلى الوحدة الرابعة <i class="fas fa-arrow-left me-1"></i>
+            </a>
+        </div>
     </div>
+
+    <!-- الفوتر -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>مسار الأمن السيبراني</h5>
+                    <p>منصة تعليمية متخصصة في تقديم محتوى أكاديمي وعملي في مجال الأمن السيبراني.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>روابط سريعة</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="../../../index.html" class="text-white">الرئيسية</a></li>
+                        <li><a href="../index.html" class="text-white">مقرر أوامر لينكس</a></li>
+                        <li><a href="#" class="text-white">الدعم الفني</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>تواصل معنا</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> info@cyberpath.com</li>
+                        <li><i class="fas fa-phone me-2"></i> 0502161465</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2023 مسار الأمن السيبراني. جميع الحقوق محفوظة.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-linkedin fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-youtube fa-lg"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-github fa-lg"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- تضمين Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
