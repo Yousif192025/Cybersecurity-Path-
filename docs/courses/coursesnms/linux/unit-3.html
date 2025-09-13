@@ -1,1 +1,286 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الوحدة 3: أوامر أذونات الملفات | أوامر لينكس</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --info-color: #3498db;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            border-radius: 5px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        header h1 {
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+        
+        header p {
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .breadcrumb {
+            background-color: var(--light-color);
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .breadcrumb a {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+        
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .content-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .content-section h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--secondary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .content-section p {
+            margin-bottom: 15px;
+        }
+
+        .commands-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .commands-table th, .commands-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: right;
+        }
+
+        .commands-table th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: bold;
+        }
+
+        .commands-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .commands-table tr:hover {
+            background-color: #ddd;
+        }
+
+        .code-block {
+            background-color: var(--dark-color);
+            color: #e7e7e7;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .alert-note {
+            background-color: #e9f7ef;
+            border-right: 5px solid var(--success-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+        }
+
+        .alert-warning {
+            background-color: #fcf8e3;
+            border-right: 5px solid var(--warning-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .activity-box {
+            background-color: #e6f7ff;
+            border-right: 5px solid #1890ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: var(--dark-color);
+            color: white;
+            border-radius: 5px;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>الوحدة 3: أوامر أذونات الملفات</h1>
+            <p>تحكم في صلاحيات الوصول إلى الملفات والمجلدات في نظام لينكس</p>
+        </header>
+        
+        <div class="breadcrumb">
+            <a href="index.html">الرئيسية</a> &gt;
+            <span>الوحدة 3</span>
+        </div>
+        
+        <div class="content-section">
+            <h2><i class="fas fa-user-lock"></i> نظرة عامة</h2>
+            <p>تعتبر إدارة أذونات الملفات جزءًا أساسيًا من الأمان في نظام لينكس. كل ملف ومجلد يمتلك مجموعة من الصلاحيات تحدد من يمكنه قراءته، كتابته، أو تنفيذه. في هذه الوحدة، ستتعلم كيفية عرض هذه الأذونات وتعديلها.</p>
+        </div>
+
+        <div class="content-section">
+            <h2><i class="fas fa-list-ul"></i> قائمة الأوامر</h2>
+            <table class="commands-table">
+                <thead>
+                    <tr>
+                        <th>الأمر</th>
+                        <th>الوصف</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>ls -l</code></td>
+                        <td>يعرض قائمة مفصلة بالملفات والمجلدات، مع إظهار الأذونات والملكية.</td>
+                    </tr>
+                    <tr>
+                        <td><code>chmod</code></td>
+                        <td>لتغيير أذونات الملفات والمجلدات.</td>
+                    </tr>
+                    <tr>
+                        <td><code>chown</code></td>
+                        <td>لتغيير مالك الملف أو المجلد.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="content-section">
+            <h2><i class="fas fa-cogs"></i> أمثلة عملية</h2>
+            <p>لنفترض أن لديك ملفًا باسم <code>my_file.txt</code> وتريد أن تمنح كل المستخدمين صلاحية القراءة فقط:</p>
+            <div class="code-block">
+                <pre><code>chmod 444 my_file.txt</code></pre>
+            </div>
+            <p>لإعطاء المالك والمجموعة صلاحية القراءة والكتابة، وللآخرين صلاحية القراءة فقط:</p>
+            <div class="code-block">
+                <pre><code>chmod 664 my_file.txt</code></pre>
+            </div>
+            <p>لتغيير مالك الملف <code>my_file.txt</code> إلى المستخدم <code>newuser</code>:</p>
+            <div class="code-block">
+                <pre><code>chown newuser my_file.txt</code></pre>
+            </div>
+        </div>
+        
+        <div class="activity-box">
+            <h2><i class="fas fa-user-edit"></i> تمرين: اعط صلاحية تنفيذ لملف</h2>
+            <p>لديك ملف نصي باسم <code>script.sh</code> تريد أن تجعله قابلاً للتنفيذ. اكتب الأمر المناسب لتحقيق ذلك.</p>
+            <p><strong>الإجابة:</strong></p>
+            <div class="code-block">
+                <pre><code>chmod +x script.sh</code></pre>
+            </div>
+            <p>أو باستخدام الأرقام:</p>
+            <div class="code-block">
+                <pre><code>chmod 755 script.sh</code></pre>
+            </div>
+        </div>
+
+        <div class="navigation-buttons">
+            <a href="unit-2.html" class="btn"><i class="fas fa-arrow-right"></i> الوحدة السابقة: أوامر إعداد الشبكة</a>
+            <a href="unit-4.html" class="btn">الوحدة التالية: إدارة المستخدم والمجموعة <i class="fas fa-arrow-left"></i></a>
+        </div>
+        
+        <footer>
+            <p>© 2025 المسار الأمني للسيبراني. جميع الحقوق محفوظة.</p>
+        </footer>
+    </div>
+</body>
+</html>
 
