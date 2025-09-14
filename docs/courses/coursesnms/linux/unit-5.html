@@ -3,285 +3,811 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الوحدة 5: أوامر إدارة العمليات | أوامر لينكس</title>
+    <title>الوحدة 5: أوامر إدارة العمليات | منصة الأمن السيبراني</title>
+    <!-- تضمين Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- تضمين Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- تضمين خط Tajawal من Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <!-- تضمين highlight.js لتلوين الشفرات -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
     <style>
         :root {
             --primary-color: #2c3e50;
             --secondary-color: #3498db;
             --accent-color: #e74c3c;
-            --light-color: #ecf0f1;
-            --dark-color: #2c3e50;
-            --success-color: #27ae60;
-            --warning-color: #f39c12;
-            --info-color: #3498db;
+            --light-bg: #f8f9fa;
+            --dark-text: #2c3e50;
+            --light-text: #7f8c8d;
+            --terminal-bg: #1e1e1e;
+            --terminal-text: #d4d4d4;
+            --terminal-prompt: #3cce56;
+            --terminal-command: #569cd6;
         }
-        
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f5f5f5;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 1.5rem;
-            text-align: center;
-            border-radius: 5px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        
-        header h1 {
-            margin-bottom: 10px;
-            font-size: 2.5rem;
-        }
-        
-        header p {
-            font-size: 1.1rem;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        
-        .breadcrumb {
-            background-color: var(--light-color);
-            padding: 10px 20px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-        }
-        
-        .breadcrumb a {
-            color: var(--secondary-color);
-            text-decoration: none;
-        }
-        
-        .breadcrumb a:hover {
-            text-decoration: underline;
-        }
-
-        .content-section {
-            background-color: white;
-            border-radius: 8px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .content-section h2 {
-            color: var(--primary-color);
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--secondary-color);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .content-section p {
-            margin-bottom: 15px;
-        }
-
-        .commands-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        .commands-table th, .commands-table td {
-            border: 1px solid #ddd;
-            padding: 12px;
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            line-height: 1.8;
+            direction: rtl;
             text-align: right;
         }
 
-        .commands-table th {
+        .navbar {
             background-color: var(--primary-color);
+        }
+        .navbar-brand {
+            color: white !important;
+        }
+        .btn-outline-light {
+            border-color: rgba(255, 255, 255, 0.7) !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .btn-outline-light:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .unit-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
+            padding: 2.5rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 1rem 1rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .content-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            padding: 2rem;
+            border-right: 4px solid var(--secondary-color);
+        }
+
+        .content-title {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .terminal {
+            background-color: var(--terminal-bg);
+            color: var(--terminal-text);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            font-family: 'Courier New', monospace;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            direction: ltr; /* اتجاه النص من اليسار لليمين */
+            text-align: left;
+        }
+
+        .terminal .prompt {
+            color: var(--terminal-prompt);
             font-weight: bold;
         }
 
-        .commands-table tr:nth-child(even) {
+        .terminal .command {
+            color: var(--terminal-command);
+        }
+
+        .terminal .comment {
+            color: #6a9955;
+            font-style: italic;
+        }
+
+        .terminal .output {
+            color: var(--terminal-text);
+        }
+
+        .command-explanation {
+            background-color: #f0f8ff;
+            border-left: 4px solid var(--secondary-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .command-structure {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+            font-family: 'Courier New', monospace;
+            direction: ltr; /* اتجاه النص من اليسار لليمين */
+            text-align: left;
+        }
+
+        .note {
+            background-color: #e7f5ff;
+            border-left: 4px solid var(--secondary-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .activity-box {
+            background-color: #e6f7ff;
+            border-left: 5px solid #1890ff;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .process-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        .process-table th, .process-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .process-table th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .process-table tr:nth-child(even) {
             background-color: #f2f2f2;
         }
 
-        .commands-table tr:hover {
-            background-color: #ddd;
-        }
-
-        .code-block {
-            background-color: var(--dark-color);
-            color: #e7e7e7;
-            padding: 15px;
-            border-radius: 8px;
-            overflow-x: auto;
-            font-family: 'Courier New', Courier, monospace;
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
-
-        .alert-note {
-            background-color: #e9f7ef;
-            border-right: 5px solid var(--success-color);
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.1rem;
-        }
-
-        .alert-warning {
-            background-color: #fcf8e3;
-            border-right: 5px solid var(--warning-color);
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.1rem;
-        }
-
-        .navigation-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 30px;
-        }
-        
-        .btn {
-            display: inline-block;
-            background-color: var(--secondary-color);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            text-decoration: none;
-            font-weight: bold;
-            transition: background-color 0.3s ease;
-        }
-        
-        .btn:hover {
-            background-color: #2980b9;
-        }
-        
         footer {
-            text-align: center;
-            padding: 20px;
-            background-color: var(--dark-color);
+            background-color: var(--primary-color) !important;
             color: white;
-            border-radius: 5px;
-            margin-top: 30px;
+            padding: 2.5rem 0;
+        }
+        footer h5 {
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        footer .list-unstyled li a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        footer .list-unstyled li a:hover {
+            color: var(--secondary-color);
+        }
+        footer .fab, footer .fas {
+            color: white;
+            transition: color 0.2s;
+        }
+        footer .fab:hover, footer .fas:hover {
+            color: var(--secondary-color);
+        }
+
+        @media (max-width: 768px) {
+            .unit-header {
+                padding: 2rem 0;
+            }
+            .content-card {
+                padding: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>الوحدة 5: أوامر إدارة العمليات</h1>
-            <p>مراقبة، التحكم، وإنهاء العمليات الجارية في نظام لينكس</p>
-        </header>
-        
-        <div class="breadcrumb">
-            <a href="index.html">الرئيسية</a> &gt;
-            <span>الوحدة 5</span>
+    <!-- شريط التنقل -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="../../../index.html">منصة الأمن السيبراني</a>
+            <a href="../index.html" class="btn btn-outline-light">العودة إلى المقرر</a>
         </div>
-        
-        <div class="content-section">
-            <h2><i class="fas fa-cogs"></i> نظرة عامة</h2>
+    </nav>
+
+    <!-- رأس الوحدة -->
+    <header class="unit-header text-center">
+        <div class="container">
+            <h1 class="display-5 fw-bold mb-3">الوحدة 5: أوامر إدارة العمليات</h1>
+            <p class="lead">مراقبة، التحكم، وإنهاء العمليات الجارية في نظام لينكس</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- مقدمة الوحدة -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-cogs me-2"></i> نظرة عامة</h2>
             <p>في نظام لينكس، كل برنامج أو خدمة تعمل كـ "عملية" (process). فهم كيفية إدارة هذه العمليات أمر بالغ الأهمية لمراقبة أداء النظام وحل المشكلات. ستتعلم في هذه الوحدة كيفية عرض العمليات، وفهم علاقاتها، وكيفية إيقافها.</p>
+            
+            <div class="note">
+                <i class="fas fa-lightbulb me-2"></i> <strong>ملاحظة:</strong> في أمثلة الأوامر أدناه، يشير الرمز <code>$</code> إلى موجه الأوامر (prompt) ولا يجب كتابته عند تنفيذ الأوامر.
+            </div>
+
+            <div class="warning">
+                <i class="fas fa-exclamation-triangle me-2"></i> <strong>تحذير:</strong> كن حذرًا عند إنهاء العمليات، خاصة تلك التي تحمل PID منخفض (عمليات النظام)، فقد يؤدي ذلك إلى عدم استقرار النظام.
+            </div>
         </div>
 
-        <div class="content-section">
-            <h2><i class="fas fa-list-ul"></i> قائمة الأوامر</h2>
-            <table class="commands-table">
+        <!-- فهم العمليات في لينكس -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-sitemap me-2"></i> فهم العمليات في لينكس</h2>
+            <p>في نظام لينكس، كل عملية تمتلك الخصائص التالية:</p>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>معلومات العملية:</h4>
+                    <ul>
+                        <li><strong>PID (Process ID)</strong>: رقم فريد يحدد كل عملية</li>
+                        <li><strong>PPID (Parent Process ID)</strong>: رقم العملية الأب</li>
+                        <li><strong>UID (User ID)</strong>: معرف المستخدم الذي بدأ العملية</li>
+                        <li><strong>GID (Group ID)</strong>: معرف المجموعة المالكة للعملية</li>
+                        <li><strong>الحالة</strong>: حالة العملية (قيد التشغيل، متوقفة، etc.)</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h4>أنواع العمليات:</h4>
+                    <ul>
+                        <li><strong>عمليات النظام</strong>: عمليات تبدأ مع تشغيل النظام</li>
+                        <li><strong>عمليات المستخدم</strong>: عمليات يبدأها المستخدمون</li>
+                        <li><strong>عمليات الخلفية</strong>: عمليات تعمل في الخلفية</li>
+                        <li><strong>عمليات الواجهة</strong>: عمليات مرتبطة بواجهة المستخدم</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <h4 class="mt-4">هيكل شجرة العمليات:</h4>
+            <div class="terminal">
+                <div class="output">systemd(1)─┬─systemd-journal(256)─┬─{sd-journal}(257)
+             ├─systemd-udevd(300)───{systemd-udevd}(301)
+             ├─sshd(500)───sshd(600)───bash(601)───vim(602)
+             └─cron(700)───cron(701)───sh(702)───backup.sh(703)</div>
+            </div>
+            <p>كل عملية في لينكس تنحدر من العملية الأولى <code>systemd</code> (أو <code>init</code> في الأنظمة القديمة) وتشكل هيكلاً شجرياً.</p>
+        </div>
+
+        <!-- الأمر ps -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-list me-2"></i> عرض العمليات: <code>ps</code></h2>
+            <p>يستخدم لعرض قائمة بالعمليات الجارية حاليًا في النظام.</p>
+            
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">ps</div>
+                <div class="output">
+  PID TTY          TIME CMD
+  601 pts/0    00:00:00 bash
+  802 pts/0    00:00:00 ps
+                </div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">ps aux</div>
+                <div class="output">
+USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root         1  0.0  0.1 169284  9264 ?        Ss   09:15   0:02 /sbin/init
+root       256  0.0  0.1 191728  5584 ?        Ss   09:15   0:00 /lib/systemd/systemd-journald
+user       601  0.0  0.2  29092  9880 pts/0    Ss   09:20   0:00 -bash
+user       803  0.0  0.1  37316  3308 pts/0    R+   10:30   0:00 ps aux
+                </div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
+                <p>يعرض <code>ps</code> لقطة للعمليات النشطة في لحظة تنفيذ الأمر. الخيارات الشائعة:</p>
+                <ul>
+                    <li><strong>a</strong>: عرض عمليات جميع المستخدمين</li>
+                    <li><strong>u</strong>: عرض معلومات مفصلة (المستخدم، استخدام CPU والذاكرة)</li>
+                    <li><strong>x</strong>: عرض العمليات التي لا تمتلك طرفية تحكم (TTY)</li>
+                    <li><strong>e</strong>: عرض بيئة العملية</li>
+                    <li><strong>f</strong>: عرض بتنسيق شجري</li>
+                </ul>
+            </div>
+            
+            <div class="command-structure">
+                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
+                <div class="command">ps -ef</div>
+                <div class="comment"># عرض جميع العمليات بتنسيق كامل</div>
+                <div class="command">ps -u username</div>
+                <div class="comment"># عرض عمليات مستخدم محدد</div>
+                <div class="command">ps -C firefox</div>
+                <div class="comment"># عرض عمليات تحمل اسم معين</div>
+                <div class="command">ps --forest</div>
+                <div class="comment"># عرض العمليات في شكل شجري</div>
+            </div>
+        </div>
+
+        <!-- الأمر top -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-chart-line me-2"></i> مراقبة العمليات: <code>top</code></h2>
+            <p>يعرض العمليات في الوقت الحقيقي مع تحديث مستمر، مفيد لمراقبة استهلاك الموارد.</p>
+            
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">top</div>
+                <div class="output">
+top - 10:35:15 up  1:20,  1 user,  load average: 0.05, 0.10, 0.15
+Tasks: 120 total,   1 running,  79 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  1.5 us,  0.5 sy,  0.0 ni, 98.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+MiB Mem :   1986.8 total,    245.2 free,    987.6 used,    754.0 buff/cache
+MiB Swap:   1024.0 total,   1024.0 free,      0.0 used.   1701.2 avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+  601 user      20   0   29092   9880   5480 S   0.0   0.5   0:00.05 bash
+    1 root      20   0  169284   9264   6704 S   0.0   0.5   0:02.15 systemd
+  256 root      20   0  191728   5584   4480 S   0.0   0.3   0:00.07 systemd-journal
+                </div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
+                <p>يوفر <code>top</code> عرضًا تفاعليًا للعمليات في الوقت الحقيقي مع معلومات عن استخدام الموارد. بعض الأوامر داخل <code>top</code>:</p>
+                <ul>
+                    <li><strong>P</strong>: ترتيب حسب استخدام CPU</li>
+                    <li><strong>M</strong>: ترتيب حسب استخدام الذاكرة</li>
+                    <li><strong>N</strong>: ترتيب حسب PID</li>
+                    <li><strong>k</strong>: إنهاء عملية (سيطلب PID)</li>
+                    <li><strong>r</strong>: تغيير أولوية عملية (nice value)</li>
+                    <li><strong>h</strong>: عرض المساعدة</li>
+                    <li><strong>q</strong>: الخروج من top</li>
+                </ul>
+            </div>
+            
+            <div class="command-structure">
+                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
+                <div class="command">top -u username</div>
+                <div class="comment"># عرض عمليات مستخدم محدد فقط</div>
+                <div class="command">top -p 123,456,789</div>
+                <div class="comment"># مراقبة عمليات محددة بأرقام PID</div>
+                <div class="command">top -d 5</div>
+                <div class="comment"># تحديث الشاشة كل 5 ثواني (بدلاً من 3 افتراضيًا)</div>
+            </div>
+            
+            <div class="note">
+                <i class="fas fa-lightbulb me-2"></i> <strong>ملاحظة:</strong> <code>htop</code> هو بديل محسن لـ <code>top</code> مع واجهة أكثر تفاعلية وألوان، لكنه غير مثبت افتراضيًا في معظم التوزيعات.
+            </div>
+        </div>
+
+        <!-- الأمر pstree -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-project-diagram me-2"></i> عرض شجرة العمليات: <code>pstree</code></h2>
+            <p>يعرض العمليات في هيكل شجري، مما يوضح علاقة الأبوة والبنوتة بين العمليات.</p>
+            
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">pstree</div>
+                <div class="output">
+systemd─┬─systemd-journal
+        ├─systemd-udevd
+        ├─sshd───sshd───bash───pstree
+        └─cron───cron───sh───backup.sh
+                </div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">pstree -p</div>
+                <div class="output">
+systemd(1)─┬─systemd-journal(256)
+           ├─systemd-udevd(300)
+           ├─sshd(500)───sshd(600)───bash(601)───pstree(804)
+           └─cron(700)───cron(701)───sh(702)───backup.sh(703)
+                </div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
+                <p>يعرض <code>pstree</code> العمليات في شكل شجري يوضح العلاقات بينها. بعض الخيارات المفيدة:</p>
+                <ul>
+                    <li><strong>-p</strong>: عرض أرقام PID مع أسماء العمليات</li>
+                    <li><strong>-u</strong>: عرض اسم المستخدم عند تغييره بين العمليات</li>
+                    <li><strong>-a</strong>: عرض وسيطات الأوامر</li>
+                    <li><strong>-h</strong>: تمييز العملية الحالية وأسلافها</li>
+                    <li><strong>-n</strong>: ترتيب العمليات numerically بدلاً من أبجديًا</li>
+                </ul>
+            </div>
+            
+            <div class="command-structure">
+                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
+                <div class="command">pstree -p 1234</div>
+                <div class="comment"># عرض شجرة العملية ذات PID 1234 وأبناءها</div>
+                <div class="command">pstree -a</div>
+                <div class="comment"># عرض وسيطات الأوامر للعمليات</div>
+                <div class="command">pstree -u</div>
+                <div class="comment"># عرض تغييرات المستخدم بين العمليات</div>
+            </div>
+        </div>
+
+        <!-- الأمر lsof -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-file me-2"></i> الملفات المفتوحة: <code>lsof</code></h2>
+            <p>يسرد جميع الملفات المفتوحة والعمليات التي تستخدمها.</p>
+            
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">lsof</div>
+                <div class="output">
+COMMAND  PID USER   FD   TYPE DEVICE SIZE/OFF    NODE NAME
+systemd    1 root  cwd    DIR  253,0     4096       2 /
+systemd    1 root  rtd    DIR  253,0     4096       2 /
+systemd    1 root  txt    REG  253,0  1611768 1310797 /lib/systemd/systemd
+systemd    1 root  mem    REG  253,0    18976 1447364 /lib/x86_64-linux-gnu/libuuid.so.1.3.0
+bash     601 user  cwd    DIR  253,0     4096 1572867 /home/user
+bash     601 user  rtd    DIR  253,0     4096       2 /
+bash     601 user  txt    REG  253,0  1113504 1448078 /usr/bin/bash
+                </div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
+                <p>يعرض <code>lsof</code> قائمة بجميع الملفات المفتوحة من قبل العمليات النشطة. هذا مفيد لتحديد:</p>
+                <ul>
+                    <li>أي عملية تستخدم ملفًا معينًا</li>
+                    <li>أي ملفات مفتوحة من قبل عملية معينة</li>
+                    <li>الاتصالات الشبكية النشطة</li>
+                    <li>العمليات التي تستخدم مكتبة معينة</li>
+                </ul>
+            </div>
+            
+            <div class="command-structure">
+                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
+                <div class="command">lsof -i</div>
+                <div class="comment"># عرض الاتصالات الشبكية المفتوحة</div>
+                <div class="command">lsof -p 1234</div>
+                <div class="comment"># عرض الملفات المفتوحة من قبل عملية مع PID 1234</div>
+                <div class="command">lsof -u username</div>
+                <div class="comment"># عرض الملفات المفتوحة من قبل مستخدم معين</div>
+                <div class="command">lsof /path/to/file</div>
+                <div class="comment"># عرض العمليات التي تستخدم ملفًا معينًا</div>
+                <div class="command">lsof -i :80</div>
+                <div class="comment"># عرض العمليات التي تستخدم منفذ 80</div>
+            </div>
+            
+            <div class="note">
+                <i class="fas fa-lightbulb me-2"></i> <strong>ملاحظة:</strong> <code>lsof</code> قد لا يكون مثبتًا افتراضيًا في بعض التوزيعات. يمكن تثبيته عبر مدير الحزم (مثل <code>sudo apt install lsof</code> في أوبونتو).
+            </div>
+        </div>
+
+        <!-- الأمر kill -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-skull me-2"></i> إنهاء العمليات: <code>kill</code></h2>
+            <p>لإرسال إشارة لإنهاء عملية معينة باستخدام رقم تعريف العملية (PID).</p>
+            
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">kill 1234</div>
+                <div class="comment"># إرسال إشارة TERM (افتراضي) للعملية 1234</div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">kill -9 1234</div>
+                <div class="comment"># إرسال إشارة KILL (إيقاف قسري) للعملية 1234</div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">kill -HUP 1234</div>
+                <div class="comment"># إرسال إشارة HUP (إعادة تحميل التconfig) للعملية 1234</div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
+                <p>يرسل <code>kill</code> إشارة إلى عملية محددة. بعض الإشارات الشائعة:</p>
+                <ul>
+                    <li><strong>TERM (15)</strong>: إنهاء لطيف (الافتراضي) - تطلب من العملية إنهاء نفسها</li>
+                    <li><strong>KILL (9)</strong>: إنهاء قسري - تقتل العملية فورًا</li>
+                    <li><strong>HUP (1)</strong>: إعادة تحميل - تطلب من العملية إعادة تحميل إعداداتها</li>
+                    <li><strong>INT (2)</strong>: مقاطعة - مثل الضغط على Ctrl+C</li>
+                    <li><strong>STOP (19)</strong>: إيقاف مؤقت للعملية</li>
+                    <li><strong>CONT (18)</strong>: استئناف عملية متوقفة</li>
+                </ul>
+            </div>
+            
+            <div class="command-structure">
+                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
+                <div class="command">kill -l</div>
+                <div class="comment"># عرض قائمة بجميع الإشارات المتاحة</div>
+                <div class="command">kill -TERM 1234</div>
+                <div class="comment"># إرسال إشارة TERM بالاسم بدلاً من الرقم</div>
+                <div class="command">kill -STOP 1234</div>
+                <div class="comment"># إيقاف عملية مؤقتًا</div>
+                <div class="command">kill -CONT 1234</div>
+                <div class="comment"># استئناف عملية متوقفة</div>
+            </div>
+            
+            <div class="warning">
+                <i class="fas fa-exclamation-triangle me-2"></i> <strong>تحذير:</strong> استخدام <code>kill -9</code> يجب أن يكون الملاذ الأخير فقط، لأنه لا يمنح العملية فرصة لتنظيف الموارد قبل إنهائها.
+            </div>
+        </div>
+
+        <!-- الأمر killall -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-ban me-2"></i> إنهاء العمليات بالاسم: <code>killall</code></h2>
+            <p>لإنهاء جميع العمليات التي تحمل اسمًا معينًا.</p>
+            
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">killall firefox</div>
+                <div class="comment"># إنهاء جميع عمليات firefox</div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">killall -9 apache2</div>
+                <div class="comment"># إنهاء قسري لجميع عمليات apache2</div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">killall -u username processname</div>
+                <div class="comment"># إنهاء عمليات لمستخدم محدد</div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
+                <p>يرسل <code>killall</code> إشارة إلى جميع العمليات التي تطابق الاسم المحدد. هذا مفيد عندما تريد إنهاء جميع نسخ عملية معينة.</p>
+            </div>
+            
+            <div class="command-structure">
+                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
+                <div class="command">killall -i firefox</div>
+                <div class="comment"># إنهاء عمليات firefox مع طلب تأكيد تفاعلي</div>
+                <div class="command">killall -v apache2</div>
+                <div class="comment"># إنهاء عمليات apache2 مع عرض verbose</div>
+                <div class="command">killall -r '^python.*'</div>
+                <div class="comment"># إنهاء العمليات التي تطابق regex</div>
+            </div>
+            
+            <div class="warning">
+                <i class="fas fa-exclamation-triangle me-2"></i> <strong>تحذير:</strong> كن حذرًا عند استخدام <code>killall</code> مع أسماء عمليات شائعة، فقد تقوم بإنهاء عمليات مهمة عن طريق الخطأ.
+            </div>
+        </div>
+
+        <!-- الأمر pidof -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-search me-2"></i> البحث عن PID: <code>pidof</code></h2>
+            <p>للعثور على رقم تعريف العملية (PID) لبرنامج معين.</p>
+            
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">pidof sshd</div>
+                <div class="output">500 600</div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">pidof -s bash</div>
+                <div class="output">601</div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
+                <p>يعرض <code>pidof</code> أرقام PID للعمليات التي تطابق الاسم المحدد. بعض الخيارات المفيدة:</p>
+                <ul>
+                    <li><strong>-s</strong>: إرجاع PID واحد فقط (المطابقة الأولى)</li>
+                    <li><strong>-x</strong>: تضمين البرامج النصية التي تطابق الاسم</li>
+                    <li><strong>-o</strong>: استبعاد عمليات معينة (مثل PID الخاص بpidof نفسه)</li>
+                </ul>
+            </div>
+            
+            <div class="command-structure">
+                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
+                <div class="command">pidof -o %PPID bash</div>
+                <div class="comment"># عرض PID لعمليات bash مع استبعاد عملية الأب</div>
+                <div class="command">pidof -x script.sh</div>
+                <div class="comment"># تضمين البرامج النصية في البحث</div>
+            </div>
+        </div>
+
+        <!-- الأوامر bg و fg -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-pause-circle me-2"></i> إدارة الوظائف: <code>bg</code> و <code>fg</code></h2>
+            <p>لإدارة العمليات في الخلفية والمقدمة.</p>
+            
+            <div class="terminal">
+                <div class="prompt">user@server:~$</div>
+                <div class="command">sleep 100</div>
+                <div class="comment"># تشغيل عملية ثم الضغط على Ctrl+Z لإيقافها مؤقتًا</div>
+                <div class="output">[1]+  Stopped                 sleep 100</div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">bg</div>
+                <div class="comment"># إرسال العملية المتوقفة إلى الخلفية لمواصلة العمل</div>
+                <div class="output">[1]+ sleep 100 &</div>
+                <div class="prompt">user@server:~$</div>
+                <div class="command">fg</div>
+                <div class="comment"># إحضار العملية من الخلفية إلى المقدمة</div>
+                <div class="output">sleep 100</div>
+            </div>
+            
+            <div class="command-explanation">
+                <h5><i class="fas fa-info-circle me-2"></i> شرح الأوامر:</h5>
+                <ul>
+                    <li><strong>Ctrl+Z</strong>: إيقاف العملية الحالية مؤقتًا وإعادتها إلى الخلفية</li>
+                    <li><strong>bg</strong>: استئناف العملية المتوقفة في الخلفية</li>
+                    <li><strong>fg</strong>: إحضار العملية من الخلفية إلى المقدمة</li>
+                    <li><strong>&amp;</strong>: تشغيل العملية في الخلفية منذ البداية (مثال: <code>sleep 100 &amp;</code>)</li>
+                    <li><strong>jobs</strong>: عرض قائمة الوظائف في الجلسة الحالية</li>
+                </ul>
+            </div>
+            
+            <div class="command-structure">
+                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
+                <div class="command">sleep 100 &</div>
+                <div class="comment"># تشغيل عملية في الخلفية منذ البداية</div>
+                <div class="command">jobs</div>
+                <div class="comment"># عرض قائمة الوظائف</div>
+                <div class="command">fg %1</div>
+                <div class="comment"># إحضار الوظيفة رقم 1 إلى المقدمة</div>
+                <div class="command">bg %2</div>
+                <div class="comment"># إرسال الوظيفة رقم 2 إلى الخلفية</div>
+            </div>
+        </div>
+
+        <!-- تمرين عملي -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-tasks me-2"></i> تمرين عملي: إدارة العمليات</h2>
+            <p>لنفترض أنك بحاجة إلى إدارة عمليات نظام تعمل بشكل غير طبيعي:</p>
+            
+            <div class="activity-box">
+                <h4>التمرين 1: البحث وإنهاء عملية</h4>
+                <p>ابحث عن جميع عمليات Apache وأوقفها بشكل لطيف.</p>
+                <p><strong>الحل:</strong></p>
+                <div class="terminal">
+                    <div class="command">pidof apache2</div>
+                    <div class="comment"># أو</div>
+                    <div class="command">pgrep apache2</div>
+                    <div class="command">sudo kill $(pidof apache2)</div>
+                    <div class="comment"># أو</div>
+                    <div class="command">sudo killall apache2</div>
+                </div>
+            </div>
+            
+            <div class="activity-box">
+                <h4>التمرين 2: مراقبة استخدام الموارد</h4>
+                <p>ابحث عن العمليات التي تستهلك أكبر قدر من الذاكرة وCPU.</p>
+                <p><strong>الحل:</strong></p>
+                <div class="terminal">
+                    <div class="command">top</div>
+                    <div class="comment"># ثم الضغط على M للترتيب حسب الذاكرة أو P للترتيب حسب CPU</div>
+                    <div class="comment"># أو</div>
+                    <div class="command">ps aux --sort=-%mem | head -5</div>
+                    <div class="comment"># أعلى 5 عمليات من حيث استخدام الذاكرة</div>
+                    <div class="command">ps aux --sort=-%cpu | head -5</div>
+                    <div class="comment"># أعلى 5 عمليات من حيث استخدام CPU</div>
+                </div>
+            </div>
+            
+            <div class="activity-box">
+                <h4>التمرين 3: التحقق من الملفات المفتوحة</h4>
+                <p>اكتشف أي عملية تمنعك من حذف ملف معين.</p>
+                <p><strong>الحل:</strong></p>
+                <div class="terminal">
+                    <div class="command">lsof /path/to/file</div>
+                    <div class="comment"># عرض العمليات التي تستخدم الملف</div>
+                    <div class="command">sudo kill -9 $(lsof -t /path/to/file)</div>
+                    <div class="comment"># إنهاء جميع العمليات التي تستخدم الملف</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- أفضل الممارسات -->
+        <div class="content-card">
+            <h2 class="content-title"><i class="fas fa-graduation-cap me-2"></i> أفضل الممارسات لإدارة العمليات</h2>
+            
+            <div class="note">
+                <i class="fas fa-check-circle me-2"></i> <strong>استخدم الإشارات المناسبة:</strong> ابدأ دائمًا بـ <code>kill</code> بدون إشارة أو بـ <code>TERM</code> قبل استخدام <code>KILL</code>.
+            </div>
+            
+            <div class="note">
+                <i class="fas fa-check-circle me-2"></i> <strong>تحقق مرتين:</strong> تأكد من PID الصحيح قبل إنهاء أي عملية، خاصة تلك التي تحمل أرقامًا منخفضة.
+            </div>
+            
+            <div class="note">
+                <i class="fas fa-check-circle me-2"></i> <strong>استخدم <code>lsof</code> للاستكشاف:</strong> عند مواجهة مشاكل في الملفات أو الشبكات، استخدم <code>lsof</code> للتحقق من العمليات النشطة.
+            </div>
+
+            <div class="note">
+                <i class="fas fa-check-circle me-2"></i> <strong>مراقبة مستمرة:</strong> استخدم <code>top</code> أو <code>htop</code> لمراقبة استخدام الموارد وتحديد المشاكل مبكرًا.
+            </div>
+            
+            <h4 class="mt-4">إشارات Linux الشائعة:</h4>
+            <table class="process-table">
                 <thead>
                     <tr>
-                        <th>الأمر</th>
+                        <th>الإشارة</th>
+                        <th>الرقم</th>
                         <th>الوصف</th>
+                        <th>الاستخدام</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td><code>ps</code></td>
-                        <td>يعرض قائمة بالعمليات الجارية حاليًا في نظامك.</td>
+                        <td>SIGHUP</td>
+                        <td>1</td>
+                        <td>إنهاء الجلسة</td>
+                        <td>إعادة تحميل التconfig للعمليات</td>
                     </tr>
                     <tr>
-                        <td><code>top</code></td>
-                        <td>يعرض العمليات في الوقت الحقيقي مع تحديث مستمر، مفيد لمراقبة استهلاك الموارد.</td>
+                        <td>SIGINT</td>
+                        <td>2</td>
+                        <td>مقاطعة</td>
+                        <td>مثل Ctrl+C</td>
                     </tr>
                     <tr>
-                        <td><code>pstree</code></td>
-                        <td>يعرض العمليات في هيكل شجري، مما يوضح علاقة الأبوة والبنوتة بين العمليات.</td>
+                        <td>SIGQUIT</td>
+                        <td>3</td>
+                        <td>إنهاء مع core dump</td>
+                        <td>مثل Ctrl+\</td>
                     </tr>
                     <tr>
-                        <td><code>lsof</code></td>
-                        <td>يسرد جميع الملفات المفتوحة والعمليات التي تستخدمها.</td>
+                        <td>SIGKILL</td>
+                        <td>9</td>
+                        <td>إنهاء فوري</td>
+                        <td>إيقاف قسري لا يمكن تجاهله</td>
                     </tr>
                     <tr>
-                        <td><code>kill</code></td>
-                        <td>لإرسال إشارة لإنهاء عملية معينة باستخدام رقم تعريف العملية (PID).</td>
+                        <td>SIGTERM</td>
+                        <td>15</td>
+                        <td>إنهاء لطيف</td>
+                        <td>الإنهاء الافتراضي</td>
                     </tr>
                     <tr>
-                        <td><code>killall</code></td>
-                        <td>لإنهاء جميع العمليات التي تحمل اسمًا معينًا.</td>
+                        <td>SIGSTOP</td>
+                        <td>19</td>
+                        <td>إيقاف مؤقت</td>
+                        <td>إيقاف عملية (لا يمكن تجاهله)</td>
                     </tr>
                     <tr>
-                        <td><code>pidof</code></td>
-                        <td>للعثور على رقم تعريف العملية (PID) لبرنامج معين.</td>
-                    </tr>
-                    <tr>
-                        <td><code>bg</code></td>
-                        <td>لإرسال عملية إلى الخلفية لتستمر في العمل.</td>
+                        <td>SIGCONT</td>
+                        <td>18</td>
+                        <td>استئناف</td>
+                        <td>استئناف عملية متوقفة</td>
                     </tr>
                 </tbody>
             </table>
         </div>
 
-        <div class="content-section">
-            <h2><i class="fas fa-sitemap"></i> مخطط: PID و Process Tree</h2>
-            <p>كل عملية في لينكس يتم تحديدها برقم فريد يسمى **PID** (Process ID). العمليات غالبًا ما تكون مرتبطة ببعضها في هيكل شجري، حيث كل عملية "أصل" (parent) تبدأ عملية "ابن" (child).</p>
-            <p>استخدام الأمر <code>pstree</code> يساعدك على تصور هذا الهيكل:</p>
-            <div class="code-block">
-                <pre><code>pstree -p</code></pre>
-            </div>
-            <p>مخطط بسيط لشجرة العمليات: </p>
-            <p>لإنهاء عملية باستخدام اسمها:</p>
-            <div class="code-block">
-                <pre><code>killall firefox</code></pre>
-            </div>
+        <!-- التنقل بين الصفحات -->
+        <div class="d-flex justify-content-between mb-4">
+            <a href="unit-4.html" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-right me-1"></i> العودة إلى الوحدة الرابعة
+            </a>
+            <a href="unit-6.html" class="btn btn-primary">
+                الانتقال إلى الوحدة السادسة <i class="fas fa-arrow-left me-1"></i>
+            </a>
         </div>
-
-        <div class="alert-note">
-            <i class="fas fa-info-circle"></i>
-            <strong>نصيحة:</strong>
-            إذا كانت عملية ما لا تستجيب لـ <code>kill</code>، يمكنك استخدام <code>kill -9 PID</code> لإيقافها بالقوة، لكن يجب استخدام هذا الأمر بحذر.
-        </div>
-        
-        <div class="navigation-buttons">
-            <a href="unit-4.html" class="btn"><i class="fas fa-arrow-right"></i> الوحدة السابقة: إدارة المستخدم</a>
-            <a href="unit-6.html" class="btn">الوحدة التالية: إدارة القرص <i class="fas fa-arrow-left"></i></a>
-        </div>
-        
-        <footer>
-            <p>© 2025 المسار الأمني للسيبراني. جميع الحقوق محفوظة.</p>
-        </footer>
     </div>
+
+    <!-- الفوتر -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>مسار الأمن السيبراني</h5>
+                    <p>منصة تعليمية متخصصة في تقديم محتوى أكاديمي وعملي في مجال الأمن السيبراني.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>روابط سريعة</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="../../../index.html" class="text-white">الرئيسية</a></li>
+                        <li><a href="../index.html" class="text-white">مقرر أوامر لينكس</a></li>
+                        <li><a href="#" class="text-white">الدعم الفني</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>تواصل معنا</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> info@cyberpath.com</li>
+                        <li><i class="fas fa-phone me-2"></i> 0502161465</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2025 مسار الأمن السيبراني. جميع الحقوق محفوظة.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-linkedin fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-youtube fa-lg"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-github fa-lg"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- تضمين Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
