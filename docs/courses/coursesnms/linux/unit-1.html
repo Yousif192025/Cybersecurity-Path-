@@ -9,16 +9,20 @@
     <!-- تضمين Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- تضمين خط Tajawal من Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <!-- تضمين highlight.js لتلوين الشفرات -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/bash.min.js"></script>
     <script>hljs.highlightAll();</script>
     <style>
         :root {
             --primary-color: #2c3e50;
             --secondary-color: #3498db;
             --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --info-color: #3498db;
             --light-bg: #f8f9fa;
             --dark-text: #2c3e50;
             --light-text: #7f8c8d;
@@ -26,6 +30,10 @@
             --terminal-text: #d4d4d4;
             --terminal-prompt: #3cce56;
             --terminal-command: #569cd6;
+            --card-bg: #ffffff;
+            --border-radius: 12px;
+            --box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            --transition: all 0.3s ease;
         }
 
         body {
@@ -35,56 +43,87 @@
             line-height: 1.8;
             direction: rtl;
             text-align: right;
+            padding-bottom: 2rem;
         }
 
         .navbar {
-            background-color: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
+        
         .navbar-brand {
             color: white !important;
+            font-weight: 800;
+            font-size: 1.5rem;
         }
+        
         .btn-outline-light {
             border-color: rgba(255, 255, 255, 0.7) !important;
             color: rgba(255, 255, 255, 0.9) !important;
+            transition: var(--transition);
         }
+        
         .btn-outline-light:hover {
             background-color: rgba(255, 255, 255, 0.1) !important;
+            transform: translateY(-2px);
         }
 
         .unit-header {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
-            padding: 2.5rem 0;
+            padding: 3rem 0;
             margin-bottom: 2rem;
-            border-radius: 0 0 1rem 1rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+            box-shadow: var(--box-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .unit-header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.05)"/></svg>');
+            background-size: cover;
         }
 
         .content-card {
-            background-color: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
             margin-bottom: 2rem;
             padding: 2rem;
             border-right: 4px solid var(--secondary-color);
+            transition: var(--transition);
+        }
+        
+        .content-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
         }
 
         .content-title {
             color: var(--primary-color);
             border-bottom: 2px solid var(--secondary-color);
-            padding-bottom: 0.5rem;
+            padding-bottom: 0.75rem;
             margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .terminal {
             background-color: var(--terminal-bg);
             color: var(--terminal-text);
-            border-radius: 0.5rem;
+            border-radius: 8px;
             padding: 1.5rem;
             font-family: 'Courier New', monospace;
             margin: 1.5rem 0;
             overflow-x: auto;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
         .terminal .prompt {
@@ -108,65 +147,294 @@
         .command-explanation {
             background-color: #f0f8ff;
             border-left: 4px solid var(--secondary-color);
-            padding: 1rem;
-            margin: 1rem 0;
-            border-radius: 0 0.5rem 0.5rem 0;
+            padding: 1.25rem;
+            margin: 1.25rem 0;
+            border-radius: 0 8px 8px 0;
         }
 
         .command-structure {
             background-color: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 1rem;
-            margin: 1rem 0;
-            border-radius: 0 0.5rem 0.5rem 0;
+            border-left: 4px solid var(--warning-color);
+            padding: 1.25rem;
+            margin: 1.25rem 0;
+            border-radius: 0 8px 8px 0;
             font-family: 'Courier New', monospace;
         }
 
         .note {
             background-color: #e7f5ff;
-            border-left: 4px solid var(--secondary-color);
-            padding: 1rem;
-            margin: 1rem 0;
-            border-radius: 0 0.5rem 0.5rem 0;
+            border-left: 4px solid var(--info-color);
+            padding: 1.25rem;
+            margin: 1.25rem 0;
+            border-radius: 0 8px 8px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
         }
 
         .warning {
             background-color: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 1rem;
-            margin: 1rem 0;
-            border-radius: 0 0.5rem 0.5rem 0;
+            border-left: 4px solid var(--warning-color);
+            padding: 1.25rem;
+            margin: 1.25rem 0;
+            border-radius: 0 8px 8px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .danger {
+            background-color: #f8d7da;
+            border-left: 4px solid var(--accent-color);
+            padding: 1.25rem;
+            margin: 1.25rem 0;
+            border-radius: 0 8px 8px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .code-container {
+            position: relative;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .code-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .code-block {
+            background-color: #282c34;
+            color: #abb2bf;
+            padding: 16px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+            direction: ltr;
+            tab-size: 4;
+        }
+        
+        .code-block code {
+            direction: ltr;
+            unicode-bidi: embed;
+        }
+
+        .progress-container {
+            margin: 25px 0;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+            border-radius: 5px;
+            width: 0%;
+            transition: width 1s ease-in-out;
+        }
+
+        .task-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+
+        .task-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .task-list li:last-child {
+            border-bottom: none;
+        }
+
+        .task-list input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+        }
+
+        .quiz-container {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin: 25px 0;
+            box-shadow: var(--box-shadow);
+        }
+
+        .quiz-question {
+            margin-bottom: 20px;
+        }
+
+        .quiz-options {
+            margin: 15px 0;
+        }
+
+        .quiz-option {
+            display: block;
+            margin: 10px 0;
+            padding: 12px 15px;
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .quiz-option:hover {
+            background-color: #e9ecef;
+        }
+
+        .quiz-option.selected {
+            background-color: #d1ecf1;
+            border-color: var(--info-color);
+        }
+
+        .quiz-option.correct {
+            background-color: #d4edda;
+            border-color: var(--success-color);
+        }
+
+        .quiz-option.incorrect {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+        }
+
+        .quiz-submit {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: var(--transition);
+        }
+
+        .quiz-submit:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .sidebar-widget {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--box-shadow);
+        }
+
+        .sidebar-widget h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .widget-content ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .widget-content li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .widget-content li:last-child {
+            border-bottom: none;
+        }
+
+        .widget-content a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .widget-content a:hover {
+            color: var(--primary-color);
         }
 
         footer {
-            background-color: var(--primary-color) !important;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
             padding: 2.5rem 0;
+            margin-top: 3rem;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
         }
+        
         footer h5 {
-            color: var(--secondary-color);
-            margin-bottom: 1rem;
-        }
-        footer .list-unstyled li a {
             color: white;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        
+        footer .list-unstyled li a {
+            color: rgba(255, 255, 255, 0.9);
             text-decoration: none;
             transition: color 0.2s;
         }
+        
         footer .list-unstyled li a:hover {
-            color: var(--secondary-color);
+            color: white;
+            text-decoration: underline;
         }
+        
         footer .fab, footer .fas {
             color: white;
             transition: color 0.2s;
         }
+        
         footer .fab:hover, footer .fas:hover {
-            color: var(--secondary-color);
+            color: var(--accent-color);
         }
 
         @media (max-width: 768px) {
             .unit-header {
                 padding: 2rem 0;
             }
+            
             .content-card {
                 padding: 1.5rem;
             }
@@ -177,8 +445,12 @@
     <!-- شريط التنقل -->
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <a class="navbar-brand" href="../../../index.html">منصة الأمن السيبراني</a>
-            <a href="../index.html" class="btn btn-outline-light">العودة إلى المقرر</a>
+            <a class="navbar-brand" href="../../../index.html">
+                <i class="fas fa-shield-alt"></i> منصة الأمن السيبراني
+            </a>
+            <a href="../index.html" class="btn btn-outline-light">
+                <i class="fas fa-arrow-right"></i> العودة إلى المقرر
+            </a>
         </div>
     </nav>
 
@@ -187,29 +459,74 @@
         <div class="container">
             <h1 class="display-5 fw-bold mb-3">الوحدة 1: الأوامر الأساسية في لينكس</h1>
             <p class="lead">تعلم الأوامر الأساسية للتعامل مع نظام لينكس والتنقل بين المجلدات وإدارة الملفات</p>
+            <div class="mt-4">
+                <span class="badge bg-light text-dark me-2"><i class="fas fa-clock"></i> الوقت المقدر: 3-4 ساعات</span>
+                <span class="badge bg-light text-dark me-2"><i class="fas fa-book"></i> 12 أمر أساسي</span>
+                <span class="badge bg-light text-dark"><i class="fas fa-star"></i> مستوى: مبتدئ</span>
+            </div>
         </div>
     </header>
 
     <div class="container">
-        <!-- مقدمة الوحدة -->
-        <div class="content-card">
-            <h2 class="content-title">مقدمة</h2>
-            <p>في هذه الوحدة، سنتعرف على أهم الأوامر الأساسية في نظام لينكس التي تمكنك من التفاعل مع النظام، التنقل بين المجلدات، عرض محتوياتها، وإنشاء وإدارة الملفات والمجلدات. هذه الأوامر هي حجر الأساس لأي مستخدم لينكس سواء كان مبتدئاً أو محترفاً.</p>
-            
-            <div class="note">
-                <i class="fas fa-lightbulb me-2"></i> <strong>ملاحظة:</strong> في أمثلة الأوامر أدناه، يشير الرمز <code>$</code> إلى موجه الأوامر (prompt) ولا يجب كتابته عند تنفيذ الأوامر.
-            </div>
-        </div>
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- شريط التقدم -->
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <span>تقدم الوحدة</span>
+                        <span id="progress-percentage">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                </div>
 
-        <!-- الأمر hostnamectl -->
-        <div class="content-card">
-            <h2 class="content-title">عرض معلومات النظام: <code>hostnamectl</code></h2>
-            <p>يستخدم هذا الأمر لعرض معلومات حول النظام مثل اسم المضيف، نظام التشغيل، النواة، وإصدار النظام.</p>
-            
-            <div class="terminal">
-                <div class="prompt">user@server:~$</div>
-                <div class="command">hostnamectl</div>
-                <div class="output">
+                <!-- مقدمة الوحدة -->
+                <div class="content-card">
+                    <h2 class="content-title"><i class="fas fa-info-circle"></i> مقدمة</h2>
+                    <p>في هذه الوحدة، سنتعرف على أهم الأوامر الأساسية في نظام لينكس التي تمكنك من التفاعل مع النظام، التنقل بين المجلدات، عرض محتوياتها، وإنشاء وإدارة الملفات والمجلدات. هذه الأوامر هي حجر الأساس لأي مستخدم لينكس سواء كان مبتدئاً أو محترفاً.</p>
+                    
+                    <div class="note">
+                        <i class="fas fa-lightbulb"></i>
+                        <div>
+                            <strong>ملاحظة:</strong> في أمثلة الأوامر أدناه، يشير الرمز <code>$</code> إلى موجه الأوامر (prompt) ولا يجب كتابته عند تنفيذ الأوامر.
+                        </div>
+                    </div>
+                    
+                    <h3 class="mt-4">ما ستتعلمه في هذه الوحدة:</h3>
+                    <ul class="task-list">
+                        <li><input type="checkbox" id="learning-1"> <label for="learning-1">التعرف على أوامر النظام الأساسية</label></li>
+                        <li><input type="checkbox" id="learning-2"> <label for="learning-2">التنقل بين المجلدات وإدارتها</label></li>
+                                                <li><input type="checkbox" id="learning-3"> <label for="learning-3">إدارة الملفات وإنشاؤها وعرضها</label></li>
+                        <li><input type="checkbox" id="learning-4"> <label for="learning-4">مراقبة النظام وعملياته</label></li>
+                        <li><input type="checkbox" id="learning-5"> <label for="learning-5">إدارة العمليات وإيقاف النظام</label></li>
+                    </ul>
+                </div>
+
+                <!-- الأمر hostnamectl -->
+                <div class="content-card">
+                    <h2 class="content-title"><i class="fas fa-desktop"></i> عرض معلومات النظام: <code>hostnamectl</code></h2>
+                    <p>يستخدم هذا الأمر لعرض معلومات حول النظام مثل اسم المضيف، نظام التشغيل، النواة، وإصدار النظام.</p>
+                    
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span>Terminal</span>
+                            <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                        </div>
+                        <div class="code-block">
+                            <pre><code class="language-bash">hostnamectl</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="command-explanation">
+                        <h5><i class="fas fa-info-circle"></i> شرح الأمر:</h5>
+                        <p>يعرض <code>hostnamectl</code> معلومات مفصلة عن تكوين النظام بما في ذلك اسم المضيف الثابت، نظام التشغيل، إصدار النواة، وهندسة المعالج.</p>
+                    </div>
+                    
+                    <div class="terminal">
+                        <div class="prompt">user@server:~$</div>
+                        <div class="command">hostnamectl</div>
+                        <div class="output">
    Static hostname: server.example.com<br>
          Icon name: computer-server<br>
            Chassis: server<br>
@@ -218,66 +535,122 @@
   Operating System: Ubuntu 22.04.1 LTS<br>
             Kernel: Linux 5.15.0-60-generic<br>
       Architecture: x86-64<br>
+                        </div>
+                    </div>
+                    
+                    <div class="task-list">
+                        <li>
+                            <input type="checkbox" id="task-hostnamectl">
+                            <label for="task-hostnamectl">جرب تنفيذ الأمر <code>hostnamectl</code> في نظامك لمعرفة معلومات النظام</label>
+                        </li>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="command-explanation">
-                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
-                <p>يعرض <code>hostnamectl</code> معلومات مفصلة عن تكوين النظام بما في ذلك اسم المضيف الثابت، نظام التشغيل، إصدار النواة، وهندسة المعالج.</p>
-            </div>
-        </div>
 
-        <!-- الأمر date -->
-        <div class="content-card">
-            <h2 class="content-title">عرض التاريخ والوقت: <code>date</code></h2>
-            <p>يعرض التاريخ والوقت الحاليين للنظام.</p>
-            
-            <div class="terminal">
-                <div class="prompt">user@server:~$</div>
-                <div class="command">date</div>
-                <div class="output">الاثنين 13 سبتمبر 2023 10:30:45 ص +03</div>
-            </div>
-            
-            <div class="command-explanation">
-                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
-                <p>يعرض <code>date</code> التاريخ والوقت الحاليين وفقًا للإعدادات المحلية للنظام. يمكن تخصيص شكل العرض باستخدام خيارات إضافية.</p>
-            </div>
-            
-            <div class="command-structure">
-                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
-                <div class="command">date "+%Y-%m-%d"</div>
-                <div class="output">2023-09-13</div>
-                <div class="command">date "+%A, %B %d, %Y"</div>
-                <div class="output">الاثنين, سبتمبر 13, 2023</div>
-            </div>
-        </div>
+                <!-- الأمر date -->
+                <div class="content-card">
+                    <h2 class="content-title"><i class="fas fa-clock"></i> عرض التاريخ والوقت: <code>date</code></h2>
+                    <p>يعرض التاريخ والوقت الحاليين للنظام.</p>
+                    
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span>Terminal</span>
+                            <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                        </div>
+                        <div class="code-block">
+                            <pre><code class="language-bash">date</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="command-explanation">
+                        <h5><i class="fas fa-info-circle"></i> شرح الأمر:</h5>
+                        <p>يعرض <code>date</code> التاريخ والوقت الحاليين وفقًا للإعدادات المحلية للنظام. يمكن تخصيص شكل العرض باستخدام خيارات إضافية.</p>
+                    </div>
+                    
+                    <div class="terminal">
+                        <div class="prompt">user@server:~$</div>
+                        <div class="command">date</div>
+                        <div class="output">الاثنين 13 سبتمبر 2023 10:30:45 ص +03</div>
+                    </div>
+                    
+                    <div class="command-structure">
+                        <h5><i class="fas fa-code"></i> أمثلة أخرى:</h5>
+                        <div class="code-container">
+                            <div class="code-header">
+                                <span>Terminal</span>
+                                <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                            </div>
+                            <div class="code-block">
+                                <pre><code class="language-bash"># عرض التاريخ بصيغة YYYY-MM-DD
+date "+%Y-%m-%d"
 
-        <!-- الأمر hostname -->
-        <div class="content-card">
-            <h2 class="content-title">عرض اسم المضيف: <code>hostname</code></h2>
-            <p>يعرض اسم المضيف (Hostname) للنظام الحالي.</p>
-            
-            <div class="terminal">
-                <div class="prompt">user@server:~$</div>
-                <div class="command">hostname</div>
-                <div class="output">server.example.com</div>
-            </div>
-            
-            <div class="command-explanation">
-                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
-                <p>يعرض <code>hostname</code> اسم المضيف الحالي للنظام. اسم المضيف هو Label الذي يعرف الجهاز على الشبكة.</p>
-            </div>
-        </div>
+# عرض التاريخ بصيغة كاملة
+date "+%A, %B %d, %Y"
 
-        <!-- الأمر ifconfig -->
-        <div class="content-card">
-            <h2 class="content-title">عرض معلومات الشبكة: <code>ifconfig</code></h2>
-            <p>يعرض معلومات واجهات الشبكة وعناوين IP وعناوين MAC.</p>
-            
-            <div class="terminal">
-                <div class="prompt">user@server:~$</div>
-                <div class="command">ifconfig</div>
-                <div class="output">
+# عرض الوقت فقط
+date "+%H:%M:%S"</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="task-list">
+                        <li>
+                            <input type="checkbox" id="task-date">
+                            <label for="task-date">جرب تنسيقات التاريخ المختلفة باستخدام الأمر <code>date</code></label>
+                        </li>
+                    </div>
+                </div>
+
+                <!-- الأمر hostname -->
+                <div class="content-card">
+                    <h2 class="content-title"><i class="fas fa-server"></i> عرض اسم المضيف: <code>hostname</code></h2>
+                    <p>يعرض اسم المضيف (Hostname) للنظام الحالي.</p>
+                    
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span>Terminal</span>
+                            <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                        </div>
+                        <div class="code-block">
+                            <pre><code class="language-bash">hostname</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="command-explanation">
+                        <h5><i class="fas fa-info-circle"></i> شرح الأمر:</h5>
+                        <p>يعرض <code>hostname</code> اسم المضيف الحالي للنظام. اسم المضيف هو Label الذي يعرف الجهاز على الشبكة.</p>
+                    </div>
+                    
+                    <div class="terminal">
+                        <div class="prompt">user@server:~$</div>
+                        <div class="command">hostname</div>
+                        <div class="output">server.example.com</div>
+                    </div>
+                </div>
+
+                <!-- الأمر ifconfig -->
+                <div class="content-card">
+                    <h2 class="content-title"><i class="fas fa-network-wired"></i> عرض معلومات الشبكة: <code>ifconfig</code></h2>
+                    <p>يعرض معلومات واجهات الشبكة وعناوين IP وعناوين MAC.</p>
+                    
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span>Terminal</span>
+                            <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                        </div>
+                        <div class="code-block">
+                            <pre><code class="language-bash">ifconfig</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="command-explanation">
+                        <h5><i class="fas fa-info-circle"></i> شرح الأمر:</h5>
+                        <p>يعرض <code>ifconfig</code> معلومات مفصلة عن جميع واجهات الشبكة في النظام، بما في ذلك عناوين IPv4 و IPv6، وعناوين MAC، وإحصاءات حركة المرور.</p>
+                    </div>
+                    
+                    <div class="terminal">
+                        <div class="prompt">user@server:~$</div>
+                        <div class="command">ifconfig</div>
+                        <div class="output">
 eth0: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1500<br>
         inet 192.168.1.100  netmask 255.255.255.0  broadcast 192.168.1.255<br>
         inet6 fe80::a00:27ff:fe4e:66a1  prefixlen 64  scopeid 0x20&lt;link&gt;<br>
@@ -295,203 +668,416 @@ lo: flags=73&lt;UP,LOOPBACK,RUNNING&gt;  mtu 65536<br>
         RX errors 0  dropped 0  overruns 0  frame 0<br>
         TX packets 1234  bytes 123456 (120.5 KiB)<br>
         TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0<br>
-                </div>
-            </div>
-            
-            <div class="command-explanation">
-                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
-                <p>يعرض <code>ifconfig</code> معلومات مفصلة عن جميع واجهات الشبكة في النظام، بما في ذلك عناوين IPv4 و IPv6، وعناوين MAC، وإحصاءات حركة المرور.</p>
-            </div>
-            
-            <div class="warning">
-                <i class="fas fa-exclamation-triangle me-2"></i> <strong>ملاحظة:</strong> في بعض توزيعات لينكس الحديثة، تم استبدال <code>ifconfig</code> بالأمر <code>ip</code>، ولكن لا يزال <code>ifconfig</code> متاحًا للاستخدام في معظم الأنظمة.
-            </div>
-        </div>
+                        </div>
+                    </div>
+                    
+                    <div class="warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <strong>ملاحظة:</strong> في بعض توزيعات لينكس الحديثة، تم استبدال <code>ifconfig</code> بالأمر <code>ip</code>، ولكن لا يزال <code>ifconfig</code> متاحًا للاستخدام في معظم الأنظمة.
+                        </div>
+                    </div>
+                    
+                    <div class="command-structure">
+                        <h5><i class="fas fa-code"></i> الأمر البديل <code>ip</code>:</h5>
+                        <div class="code-container">
+                            <div class="code-header">
+                                <span>Terminal</span>
+                                <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                            </div>
+                            <div class="code-block">
+                                <pre><code class="language-bash"># عرض معلومات عن واجهات الشبكة
+ip addr show
 
-        <!-- الأمر ls -->
-        <div class="content-card">
-            <h2 class="content-title">عرض محتويات المجلد: <code>ls</code></h2>
-            <p>يعرض قائمة بالملفات والمجلدات الموجودة في المجلد الحالي أو المجلد المحدد.</p>
-            
-            <div class="terminal">
-                <div class="prompt">user@server:~$</div>
-                <div class="command">ls</div>
-                <div class="output">
+# عرض معلومات عن routing table
+ip route show
+
+# عرض إحصاءات الشبكة
+ip -s link</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="task-list">
+                        <li>
+                            <input type="checkbox" id="task-ifconfig">
+                            <label for="task-ifconfig">استخدم <code>ifconfig</code> أو <code>ip addr</code> لمعرفة عنوان IP الخاص بك</label>
+                        </li>
+                    </div>
+                </div>
+
+                <!-- الأمر ls -->
+                <div class="content-card">
+                    <h2 class="content-title"><i class="fas fa-folder-open"></i> عرض محتويات المجلد: <code>ls</code></h2>
+                    <p>يعرض قائمة بالملفات والمجلدات الموجودة في المجلد الحالي أو المجلد المحدد.</p>
+                    
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span>Terminal</span>
+                            <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                        </div>
+                        <div class="code-block">
+                            <pre><code class="language-bash">ls</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="command-explanation">
+                        <h5><i class="fas fa-info-circle"></i> شرح الأمر:</h5>
+                        <p>يعرض <code>ls</code> قائمة بالمحتويات الموجودة في المجلد الحالي. يمكن استخدامه مع مسارات محددة لعرض محتويات مجلدات أخرى.</p>
+                    </div>
+                    
+                    <div class="terminal">
+                        <div class="prompt">user@server:~$</div>
+                        <div class="command">ls</div>
+                        <div class="output">
 Documents  Downloads  Music  Pictures  Videos  file1.txt  file2.pdf
+                        </div>
+                    </div>
+                    
+                    <div class="command-structure">
+                        <h5><i class="fas fa-code"></i> أمثلة أخرى:</h5>
+                        <div class="code-container">
+                            <div class="code-header">
+                                <span>Terminal</span>
+                                <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                            </div>
+                            <div class="code-block">
+                                <pre><code class="language-bash"># عرض المحتويات بتفاصيل أكثر (الأذونات، المالك، الحجم، etc.)
+ls -l
+
+# عرض جميع الملفات بما فيها الملفات المخفية
+ls -a
+
+# دمج الخيارين السابقين لعرض جميع الملفات مع التفاصيل
+ls -la
+
+# عرض محتويات مجلد معين
+ls /var/www
+
+# عرض المحتويات حسب حجم الملف (من الأكبر إلى الأصغر)
+ls -lS
+
+# عرض المحتويات حسب وقت التعديل (من الأحدث إلى الأقدم)
+ls -lt</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="task-list">
+                        <li>
+                            <input type="checkbox" id="task-ls">
+                            <label for="task-ls">جرب خيارات <code>ls</code> المختلفة لاستكشاف مجلد home الخاص بك</label>
+                        </li>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="command-explanation">
-                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
-                <p>يعرض <code>ls</code> قائمة بالمحتويات الموجودة في المجلد الحالي. يمكن استخدامه مع مسارات محددة لعرض محتويات مجلدات أخرى.</p>
-            </div>
-            
-            <div class="command-structure">
-                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
-                <div class="command">ls -l</div>
-                <div class="comment"># عرض المحتويات بتفاصيل أكثر (الأذونات، المالك، الحجم، etc.)</div>
-                <div class="command">ls -a</div>
-                <div class="comment"># عرض جميع الملفات بما فيها الملفات المخفية</div>
-                <div class="command">ls -la</div>
-                <div class="comment"># دمج الخيارين السابقين لعرض جميع الملفات مع التفاصيل</div>
-                <div class="command">ls /var/www</div>
-                <div class="comment"># عرض محتويات مجلد معين</div>
-            </div>
-        </div>
 
-        <!-- الأمر cd -->
-        <div class="content-card">
-            <h2 class="content-title">تغيير المجلد الحالي: <code>cd</code></h2>
-            <p>يستخدم لتغيير المجلد الحالي (الدليل الحالي) في الطرفية.</p>
-            
-            <div class="terminal">
-                <div class="prompt">user@server:~$</div>
-                <div class="command">cd Documents</div>
-                <div class="prompt">user@server:~/Documents$</div>
-            </div>
-            
-            <div class="command-explanation">
-                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
-                <p>يغير <code>cd</code> المجلد الحالي إلى المسار المحدد. بدون تحديد مسار، يعود إلى المجلد الرئيسي للمستخدم.</p>
-            </div>
-            
-            <div class="command-structure">
-                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
-                <div class="command">cd ..</div>
-                <div class="comment"># الانتقال إلى المجلد الأب (المستوى الأعلى)</div>
-                <div class="command">cd ~</div>
-                <div class="comment"># الانتقال إلى المجلد الرئيسي للمستخدم</div>
-                <div class="command">cd /var/www</div>
-                <div class="comment"># الانتقال إلى مسار مطلق</div>
-                <div class="command">cd -</div>
-                <div class="comment"># العودة إلى المجلد السابق</div>
-            </div>
-        </div>
+                <!-- الأمر cd -->
+                <div class="content-card">
+                    <h2 class="content-title"><i class="fas fa-directions"></i> تغيير المجلد الحالي: <code>cd</code></h2>
+                    <p>يستخدم لتغيير المجلد الحالي (الدليل الحالي) في الطرفية.</p>
+                    
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span>Terminal</span>
+                            <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                        </div>
+                        <div class="code-block">
+                            <pre><code class="language-bash">cd Documents</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="command-explanation">
+                        <h5><i class="fas fa-info-circle"></i> شرح الأمر:</h5>
+                        <p>يغير <code>cd</code> المجلد الحالي إلى المسار المحدد. بدون تحديد مسار، يعود إلى المجلد الرئيسي للمستخدم.</p>
+                    </div>
+                    
+                    <div class="terminal">
+                        <div class="prompt">user@server:~$</div>
+                        <div class="command">cd Documents</div>
+                        <div class="prompt">user@server:~/Documents$</div>
+                    </div>
+                    
+                    <div class="command-structure">
+                        <h5><i class="fas fa-code"></i> أمثلة أخرى:</h5>
+                        <div class="code-container">
+                            <div class="code-header">
+                                <span>Terminal</span>
+                                <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                            </div>
+                            <div class="code-block">
+                                <pre><code class="language-bash"># الانتقال إلى المجلد الأب (المستوى الأعلى)
+cd ..
 
-        <!-- الأمر cat -->
-        <div class="content-card">
-            <h2 class="content-title">عرض محتويات الملف: <code>cat</code></h2>
-            <p>يعرض محتويات الملف (أو الملفات) في الطرفية.</p>
-            
-            <div class="terminal">
-                <div class="prompt">user@server:~$</div>
-                <div class="command">cat file1.txt</div>
-                <div class="output">
+# الانتقال إلى المجلد الرئيسي للمستخدم
+cd ~
+
+# الانتقال إلى مسار مطلق
+cd /var/www
+
+# العودة إلى المجلد السابق
+cd -
+
+# الانتقال إلى مجلد root
+cd /</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="task-list">
+                        <li>
+                            <input type="checkbox" id="task-cd">
+                            <label for="task-cd">تدرب على التنقل بين المجلدات باستخدام الأمر <code>cd</code></label>
+                        </li>
+                    </div>
+                </div>
+
+                <!-- الأمر cat -->
+                <div class="content-card">
+                    <h2 class="content-title"><i class="fas fa-file-alt"></i> عرض محتويات الملف: <code>cat</code></h2>
+                    <p>يعرض محتويات الملف (أو الملفات) في الطرفية.</p>
+                    
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span>Terminal</span>
+                            <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                        </div>
+                        <div class="code-block">
+                            <pre><code class="language-bash">cat file1.txt</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="command-explanation">
+                        <h5><i class="fas fa-info-circle"></i> شرح الأمر:</h5>
+                        <p>يعرض <code>cat</code> محتويات الملف (أو الملفات) المحددة مباشرة في الطرفية. يمكن استخدامه أيضًا لدمج محتويات عدة ملفات.</p>
+                    </div>
+                    
+                    <div class="terminal">
+                        <div class="prompt">user@server:~$</div>
+                        <div class="command">cat file1.txt</div>
+                        <div class="output">
 هذا هو محتوى file1.txt
 هذا هو السطر الثاني من الملف
 وهذا هو السطر الثالث والأخير
-                </div>
-            </div>
-            
-            <div class="command-explanation">
-                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
-                <p>يعرض <code>cat</code> محتويات الملف (أو الملفات) المحددة مباشرة في الطرفية. يمكن استخدامه أيضًا لدمج محتويات عدة ملفات.</p>
-            </div>
-            
-            <div class="command-structure">
-                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
-                <div class="command">cat file1.txt file2.txt</div>
-                <div class="comment"># عرض محتويات عدة ملفات بالتسلسل</div>
-                <div class="command">cat file1.txt file2.txt > combined.txt</div>
-                <div class="comment"># دمج محتويات ملفين في ملف جديد</div>
-                <div class="command">cat > newfile.txt</div>
-                <div class="comment"># إنشاء ملف جديد وإدخال محتواه من الطرفية (اضغط Ctrl+D لحفظ الملف)</div>
-            </div>
-        </div>
+                        </div>
+                    </div>
+                    
+                    <div class="command-structure">
+                        <h5><i class="fas fa-code"></i> أمثلة أخرى:</h5>
+                        <div class="code-container">
+                            <div class="code-header">
+                                <span>Terminal</span>
+                                <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                            </div>
+                            <div class="code-block">
+                                <pre><code class="language-bash"># عرض محتويات عدة ملفات بالتسلسل
+cat file1.txt file2.txt
 
-        <!-- الأوامر tail و head -->
-        <div class="content-card">
-            <h2 class="content-title">عرض أجزاء من الملف: <code>tail</code> و <code>head</code></h2>
-            <p>يعرض <code>tail</code> نهاية الملف بينما يعرض <code>head</code> بداية الملف.</p>
-            
-            <div class="terminal">
-                <div class="prompt">user@server:~$</div>
-                <div class="command">head -5 largefile.log</div>
-                <div class="output">
+# دمج محتويات ملفين في ملف جديد
+cat file1.txt file2.txt > combined.txt
+
+# إنشاء ملف جديد وإدخال محتواه من الطرفية (اضغط Ctrl+D لحفظ الملف)
+cat > newfile.txt
+
+# إضافة محتوى إلى نهاية ملف موجود
+cat >> existingfile.txt
+
+# عرض محتويات الملف مع ترقيم الأسطر
+cat -n file.txt</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="task-list">
+                        <li>
+                            <input type="checkbox" id="task-cat">
+                            <label for="task-cat">أنشئ ملفاً جديداً باستخدام <code>cat > filename</code> ثم اعرض محتواه</label>
+                        </li>
+                    </div>
+                </div>
+
+                <!-- الأوامر tail و head -->
+                <div class="content-card">
+                    <h2 class="content-title"><i class="fas fa-file-contract"></i> عرض أجزاء من الملف: <code>tail</code> و <code>head</code></h2>
+                    <p>يعرض <code>tail</code> نهاية الملف بينما يعرض <code>head</code> بداية الملف.</p>
+                    
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span>Terminal</span>
+                            <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                        </div>
+                        <div class="code-block">
+                            <pre><code class="language-bash"># عرض أول 5 أسطر من الملف
+head -5 largefile.log
+
+# عرض آخر 3 أسطر من الملف
+tail -3 largefile.log</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="command-explanation">
+                        <h5><i class="fas fa-info-circle"></i> شرح الأمر:</h5>
+                        <p>يعرض <code>head</code> السطور الأولى من الملف (10 سطور افتراضيًا)، بينما يعرض <code>tail</code> السطور الأخيرة من الملف. مفيد جدًا لعرض ملفات السجلات الكبيرة.</p>
+                    </div>
+                    
+                    <div class="terminal">
+                        <div class="prompt">user@server:~$</div>
+                        <div class="command">head -5 largefile.log</div>
+                        <div class="output">
 2023-09-13 08:00:01 - System started
 2023-09-13 08:00:05 - Services initialized
 2023-09-13 08:00:10 - Network configured
 2023-09-13 08:00:15 - User session started
 2023-09-13 08:00:20 - Applications loaded
-                </div>
-                <div class="prompt">user@server:~$</div>
-                <div class="command">tail -3 largefile.log</div>
-                <div class="output">
+                        </div>
+                        <div class="prompt">user@server:~$</div>
+                        <div class="command">tail -3 largefile.log</div>
+                        <div class="output">
 2023-09-13 23:59:55 - User session ended
 2023-09-13 23:59:58 - Services stopped
 2023-09-13 23:59:59 - System shutdown
+                        </div>
+                    </div>
+                    
+                    <div class="command-structure">
+                        <h5><i class="fas fa-code"></i> أمثلة أخرى:</h5>
+                        <div class="code-container">
+                            <div class="code-header">
+                                <span>Terminal</span>
+                                <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                            </div>
+                            <div class="code-block">
+                                <pre><code class="language-bash"># متابعة الملف في الوقت الحقيقي (مفيد لمراقبة السجلات)
+tail -f /var/log/syslog
+
+# عرض أول 20 سطر من الملف
+head -n 20 file.txt
+
+# عرض آخر 15 سطر من الملف
+tail -n 15 file.txt
+
+# متابعة الملف مع عرض 10 أسطر أولاً ثم المتابعة
+tail -f -n 10 file.log</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="task-list">
+                        <li>
+                            <input type="checkbox" id="task-tail-head">
+                            <label for="task-tail-head">جرب استخدام <code>head</code> و <code>tail</code> على ملف سجل في <code>/var/log/</code></label>
+                        </li>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="command-explanation">
-                <h5><i class="fas fa-info-circle me-2"></i> شرح الأمر:</h5>
-                <p>يعرض <code>head</code> السطور الأولى من الملف (10 سطور افتراضيًا)، بينما يعرض <code>tail</code> السطور الأخيرة من الملف. مفيد جدًا لعرض ملفات السجلات الكبيرة.</p>
-            </div>
-            
-            <div class="command-structure">
-                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
-                <div class="command">tail -f /var/log/syslog</div>
-                <div class="comment"># متابعة الملف في الوقت الحقيقي (مفيد لمراقبة السجلات)</div>
-                <div class="command">head -n 20 file.txt</div>
-                <div class="comment"># عرض أول 20 سطر من الملف</div>
-                <div class="command">tail -n 15 file.txt</div>
-                <div class="comment"># عرض آخر 15 سطر من الملف</div>
-            </div>
-        </div>
 
-        <!-- الأوامر mv و rm و mkdir -->
-        <div class="content-card">
-            <h2 class="content-title">إدارة الملفات والمجلدات: <code>mv</code>, <code>rm</code>, <code>mkdir</code></h2>
-            <p>أوامر لنقل/إعادة تسمية الملفات، حذف الملفات، وإنشاء مجلدات جديدة.</p>
-            
-            <div class="terminal">
-                <div class="prompt">user@server:~$</div>
-                <div class="command">mkdir new_folder</div>
-                <div class="comment"># إنشاء مجلد جديد</div>
-                <div class="prompt">user@server:~$</div>
-                <div class="command">mv file.txt new_folder/</div>
-                <div class="comment"># نقل ملف إلى مجلد</div>
-                <div class="prompt">user@server:~$</div>
-                <div class="command">mv oldname.txt newname.txt</div>
-                <div class="comment"># إعادة تسمية ملف</div>
-                <div class="prompt">user@server:~$</div>
-                <div class="command">rm temporary_file.txt</div>
-                <div class="comment"># حذف ملف</div>
-            </div>
-            
-            <div class="command-explanation">
-                <h5><i class="fas fa-info-circle me-2"></i> شرح الأوامر:</h5>
-                <ul>
-                    <li><code>mkdir</code>: ينشئ مجلدًا (دليلًا) جديدًا.</li>
-                    <li><code>mv</code>: ينقل الملفات أو المجلدات من مكان إلى آخر، أو يعيد تسميتها.</li>
-                    <li><code>rm</code>: يحذف الملفات أو المجلدات.</li>
-                </ul>
-            </div>
-            
-            <div class="warning">
-                <i class="fas fa-exclamation-triangle me-2"></i> <strong>تحذير:</strong> كن حذرًا عند استخدام <code>rm</code> خاصة مع الخيار <code>-r</code> (للمجلدات) لأنه يحذف الملفات والمجلدات بشكل دائم ولا يمكن استعادتها من سلة المهملات.
-            </div>
-            
-            <div class="command-structure">
-                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
-                <div class="command">mkdir -p project/{src,doc,test}</div>
-                <div class="comment"># إنشاء هيكل مجلدات متداخل</div>
-                <div class="command">rm -r old_directory</div>
-                <div class="comment"># حذف مجلد ومحتوياته بشكل متكرر</div>
-                <div class="command">rm -i important_file.txt</div>
-                <div class="comment"># حذف ملف مع طلب تأكيد</div>
-            </div>
-        </div>
+                <!-- الأوامر mv و rm و mkdir -->
+                <div class="content-card">
+                    <h2 class="content-title"><i class="fas fa-cogs"></i> إدارة الملفات والمجلدات: <code>mv</code>, <code>rm</code>, <code>mkdir</code></h2>
+                    <p>أوامر لنقل/إعادة تسمية الملفات، حذف الملفات، وإنشاء مجلدات جديدة.</p>
+                    
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span>Terminal</span>
+                            <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                        </div>
+                        <div class="code-block">
+                            <pre><code class="language-bash"># إنشاء مجلد جديد
+mkdir new_folder
 
-        <!-- الأوامر history و clear -->
-        <div class="content-card">
-            <h2 class="content-title">إدارة الطرفية: <code>history</code> و <code>clear</code></h2>
-            <p>أوامر لعرض سجل الأوامر ومسح شاشة الطرفية.</p>
-            
-            <div class="terminal">
-                <div class="prompt">user@server:~$</div>
-                <div class="command">history</div>
-                <div class="output">
+# نقل ملف إلى مجلد
+mv file.txt new_folder/
+
+# إعادة تسمية ملف
+mv oldname.txt newname.txt
+
+# حذف ملف
+rm temporary_file.txt</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="command-explanation">
+                        <h5><i class="fas fa-info-circle"></i> شرح الأوامر:</h5>
+                        <ul>
+                            <li><code>mkdir</code>: ينشئ مجلدًا (دليلًا) جديدًا.</li>
+                            <li><code>mv</code>: ينقل الملفات أو المجلدات من مكان إلى آخر، أو يعيد تسميتها.</li>
+                            <li><code>rm</code>: يحذف الملفات أو المجلدات.</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <strong>تحذير:</strong> كن حذرًا عند استخدام <code>rm</code> خاصة مع الخيار <code>-r</code> (للمجلدات) لأنه يحذف الملفات والمجلدات بشكل دائم ولا يمكن استعادتها من سلة المهملات.
+                        </div>
+                    </div>
+                    
+                    <div class="command-structure">
+                        <h5><i class="fas fa-code"></i> أمثلة أخرى:</h5>
+                        <div class="code-container">
+                            <div class="code-header">
+                                <span>Terminal</span>
+                                <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                            </div>
+                            <div class="code-block">
+                                <pre><code class="language-bash"># إنشاء هيكل مجلدات متداخل
+mkdir -p project/{src,doc,test}
+
+# حذف مجلد ومحتوياته بشكل متكرر
+rm -r old_directory
+
+# حذف ملف مع طلب تأكيد
+rm -i important_file.txt
+
+# نقل عدة ملفات إلى مجلد
+mv file1.txt file2.txt file3.txt destination_folder/
+
+# إنشاء مجلدات متعددة
+mkdir folder1 folder2 folder3
+
+# حذف ملف بدون prompt (بحذر)
+rm -f file.txt</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="task-list">
+                        <li>
+                            <input type="checkbox" id="task-file-mgmt">
+                            <label for="task-file-mgmt">أنشئ مجلداً، انقل بعض الملفات إليه، ثم احذف أحد الملفات</label>
+                        </li>
+                    </div>
+                </div>
+
+                <!-- الأوامر history و clear -->
+                <div class="content-card">
+                    <h2 class="content-title"><i class="fas fa-history"></i> إدارة الطرفية: <code>history</code> و <code>clear</code></h2>
+                    <p>أوامر لعرض سجل الأوامر ومسح شاشة الطرفية.</p>
+                    
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span>Terminal</span>
+                            <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                        </div>
+                        <div class="code-block">
+                            <pre><code class="language-bash"># عرض سجل الأوامر
+history
+
+# مسح شاشة الطرفية
+clear</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="command-explanation">
+                        <h5><i class="fas fa-info-circle"></i> شرح الأوامر:</h5>
+                        <ul>
+                            <li><code>history</code>: يعرض قائمة بالأوامر التي تم تنفيذها مسبقًا في الجلسة الحالية.</li>
+                            <li><code>clear</code>: يمسح محتويات الطرفية لإنشاء مساحة عمل نظيفة.</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="terminal">
+                        <div class="prompt">user@server:~$</div>
+                        <div class="command">history</div>
+                        <div class="output">
     1  ls
     2  cd Documents
     3  pwd
@@ -499,81 +1085,264 @@ Documents  Downloads  Music  Pictures  Videos  file1.txt  file2.pdf
     5  mkdir new_folder
     6  mv file.txt new_folder/
     7  history
+                        </div>
+                        <div class="prompt">user@server:~$</div>
+                        <div class="command">clear</div>
+                        <div class="comment"># مسح شاشة الطرفية</div>
+                    </div>
+                    
+                    <div class="command-structure">
+                        <h5><i class="fas fa-code"></i> أمثلة أخرى:</h5>
+                        <div class="code-container">
+                            <div class="code-header">
+                                <span>Terminal</span>
+                                <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                            </div>
+                            <div class="code-block">
+                                <pre><code class="language-bash"># عرض آخر 10 أوامر
+history 10
+
+# إعادة تنفيذ الأمر رقم 5 من سجل الأوامر
+!5
+
+# إعادة تنفيذ آخر أمر
+!!
+
+# البحث في سجل الأوامر
+history | grep "mkdir"
+
+# مسح سجل الأوامر
+history -c
+
+# اختصار لوحة المفاتيح لمسح الشاشة (بديل لـ clear)
+Ctrl+L</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="task-list">
+                        <li>
+                            <input type="checkbox" id="task-history">
+                            <label for="task-history">استخدم <code>history</code> للعثور على أمر سابق وأعد تنفيذه باستخدام <code>!number</code></label>
+                        </li>
+                    </div>
                 </div>
-                <div class="prompt">user@server:~$</div>
-                <div class="command">clear</div>
-                <div class="comment"># مسح شاشة الطرفية</div>
-            </div>
-            
-            <div class="command-explanation">
-                <h5><i class="fas fa-info-circle me-2"></i> شرح الأوامر:</h5>
-                <ul>
-                    <li><code>history</code>: يعرض قائمة بالأوامر التي تم تنفيذها مسبقًا في الجلسة الحالية.</li>
-                    <li><code>clear</code>: يمسح محتويات الطرفية لإنشاء مساحة عمل نظيفة.</li>
-                </ul>
-            </div>
-            
-            <div class="command-structure">
-                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
-                <div class="command">history 10</div>
-                <div class="comment"># عرض آخر 10 أوامر</div>
-                <div class="command">!5</div>
-                <div class="comment"># إعادة تنفيذ الأمر رقم 5 من سجل الأوامر</div>
-                <div class="command">!!</div>
-                <div class="comment"># إعادة تنفيذ آخر أمر</div>
-                <div class="command">Ctrl+L</div>
-                <div class="comment"># اختصار لوحة المفاتيح لمسح الشاشة (بديل لـ clear)</div>
-            </div>
-        </div>
 
-        <!-- الأوامر shutdown و reboot -->
-        <div class="content-card">
-            <h2 class="content-title">إدارة النظام: <code>shutdown</code> و <code>reboot</code></h2>
-            <p>أوامر لإيقاف تشغيل النظام أو إعادة تشغيله.</p>
-            
-            <div class="terminal">
-                <div class="prompt">user@server:~$</div>
-                <div class="command">shutdown -h now</div>
-                <div class="comment"># إيقاف تشغيل النظام فورًا</div>
-                <div class="prompt">user@server:~$</div>
-                <div class="command">shutdown -r +10 "سيتم إعادة التشغيل للصيانة"</div>
-                <div class="comment"># إعادة تشغيل النظام بعد 10 دقائق مع رسالة للمستخدمين</div>
-                <div class="prompt">user@server:~$</div>
-                <div class="command">reboot</div>
-                <div class="comment"># إعادة تشغيل النظام فورًا</div>
-            </div>
-            
-            <div class="command-explanation">
-                <h5><i class="fas fa-info-circle me-2"></i> شرح الأوامر:</h5>
-                <ul>
-                    <li><code>shutdown</code>: يوقف تشغيل النظام أو يعيد تشغيله بعد وقت محدد مع إمكانية إرسال رسالة للمستخدمين.</li>
-                    <li><code>reboot</code>: يعيد تشغيل النظام فورًا.</li>
-                </ul>
-            </div>
-            
-            <div class="warning">
-                <i class="fas fa-exclamation-triangle me-2"></i> <strong>تحذير:</strong> تتطلب هذه الأوامر عادةً صلاحيات root أو استخدام sudo. كن حذرًا عند استخدامها على الأنظمة المشتركة أو الخوادم الإنتاجية.
-            </div>
-            
-            <div class="command-structure">
-                <h5><i class="fas fa-code me-2"></i> أمثلة أخرى:</h5>
-                <div class="command">sudo shutdown -h 22:00</div>
-                <div class="comment"># إيقاف التشغيل الساعة 10 مساءً</div>
-                <div class="command">sudo shutdown -c</div>
-                <div class="comment"># إلغاء عملية إيقاف التشغيل المجدولة</div>
-                <div class="command">sudo reboot</div>
-                <div class="comment"># إعادة التشغيل بصلاحيات root</div>
-            </div>
-        </div>
+                <!-- الأوامر shutdown و reboot -->
+                <div class="content-card">
+                    <h2 class="content-title"><i class="fas fa-power-off"></i> إدارة النظام: <code>shutdown</code> و <code>reboot</code></h2>
+                    <p>أوامر لإيقاف تشغيل النظام أو إعادة تشغيله.</p>
+                    
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span>Terminal</span>
+                            <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                        </div>
+                        <div class="code-block">
+                            <pre><code class="language-bash"># إيقاف تشغيل النظام فورًا
+sudo shutdown -h now
 
-        <!-- التنقل بين الصفحات -->
-        <div class="d-flex justify-content-between mb-4">
-            <a href="../index.html" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-right me-1"></i> العودة إلى صفحة المقرر
-            </a>
-            <a href="unit-2.html" class="btn btn-primary">
-                الانتقال إلى الوحدة الثانية <i class="fas fa-arrow-left me-1"></i>
-            </a>
+# إعادة تشغيل النظام بعد 10 دقائق مع رسالة للمستخدمين
+sudo shutdown -r +10 "سيتم إعادة التشغيل للصيانة"
+
+# إعادة تشغيل النظام فورًا
+sudo reboot</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="command-explanation">
+                        <h5><i class="fas fa-info-circle"></i> شرح الأوامر:</h5>
+                        <ul>
+                            <li><code>shutdown</code>: يوقف تشغيل النظام أو يعيد تشغيله بعد وقت محدد مع إمكانية إرسال رسالة للمستخدمين.</li>
+                            <li><code>reboot</code>: يعيد تشغيل النظام فورًا.</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <strong>تحذير:</strong> تتطلب هذه الأوامر عادةً صلاحيات root أو استخدام sudo. كن حذرًا عند استخدامها على الأنظمة المشتركة أو الخوادم الإنتاجية.
+                        </div>
+                    </div>
+                    
+                    <div class="command-structure">
+                        <h5><i class="fas fa-code"></i> أمثلة أخرى:</h5>
+                        <div class="code-container">
+                            <div class="code-header">
+                                <span>Terminal</span>
+                                <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                            </div>
+                            <div class="code-block">
+                                <pre><code class="language-bash"># إيقاف التشغيل الساعة 10 مساءً
+sudo shutdown -h 22:00
+
+# إلغاء عملية إيقاف التشغيل المجدولة
+sudo shutdown -c
+
+# إعادة التشغيل بصلاحيات root
+sudo reboot
+
+# إيقاف التشغيل بعد 30 دقيقة
+sudo shutdown -h +30
+
+# إعادة التشغيل فوراً بدون sync (لحالات الطوارئ فقط)
+sudo reboot -f</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="task-list">
+                        <li>
+                            <input type="checkbox" id="task-shutdown">
+                            <label for="task-shutdown">جرب أمر إعادة التشغيل الآمن إذا كنت على جهاز افتراضي أو بيئة اختبار</label>
+                        </li>
+                    </div>
+                </div>
+
+                <!-- اختبار الوحدة -->
+                <div class="quiz-container">
+                    <h2 class="content-title"><i class="fas fa-brain"></i> اختبر فهمك</h2>
+                    
+                    <div class="quiz-question">
+                        <p>1. أي أمر تستخدم لمعرفة المساحة المستخدمة من قبل مجلد معين وجميع محتوياته بشكل ملخص؟</p>
+                        <div class="quiz-options">
+                            <label class="quiz-option">
+                                <input type="radio" name="q1" value="a"> 
+                                <code>df -h /path/to/directory</code>
+                            </label>
+                            <label class="quiz-option">
+                                <input type="radio" name="q1" value="b"> 
+                                <code>du -sh /path/to/directory</code>
+                            </label>
+                            <label class="quiz-option">
+                                <input type="radio" name="q1" value="c"> 
+                                <code>ls -lh /path/to/directory</code>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="quiz-question">
+                        <p>2. ما هو الأمر المناسب لإنشاء نظام ملفات من نوع ext4 على القسم /dev/sdc1؟</p>
+                        <div class="quiz-options">
+                            <label class="quiz-option">
+                                <input type="radio" name="q2" value="a"> 
+                                <code>fdisk -t ext4 /dev/sdc1</code>
+                            </label>
+                            <label class="quiz-option">
+                                <input type="radio" name="q2" value="b"> 
+                                <code>mkfs -t ext4 /dev/sdc1</code>
+                            </label>
+                            <label class="quiz-option">
+                                <input type="radio" name="q2" value="c"> 
+                                <code>mount -t ext4 /dev/sdc1</code>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="quiz-question">
+                        <p>3. كيف يمكنك متابعة تحديثات ملف السجل في الوقت الحقيقي؟</p>
+                        <div class="quiz-options">
+                            <label class="quiz-option">
+                                <input type="radio" name="q3" value="a"> 
+                                <code>cat -f /var/log/syslog</code>
+                            </label>
+                            <label class="quiz-option">
+                                <input type="radio" name="q3" value="b"> 
+                                <code>tail -f /var/log/syslog</code>
+                            </label>
+                            <label class="quiz-option">
+                                <input type="radio" name="q3" value="c"> 
+                                <code>head -f /var/log/syslog</code>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <button class="quiz-submit" onclick="checkQuiz()">تحقق من الإجابات</button>
+                </div>
+
+                <!-- التنقل بين الصفحات -->
+                <div class="d-flex justify-content-between mb-4">
+                    <a href="../index.html" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-right me-1"></i> العودة إلى صفحة المقرر
+                    </a>
+                    <a href="unit-2.html" class="btn btn-primary">
+                        الانتقال إلى الوحدة الثانية <i class="fas fa-arrow-left me-1"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <!-- معلومات الوحدة -->
+                <div class="sidebar-widget">
+                    <h3><i class="fas fa-info-circle"></i> معلومات الوحدة</h3>
+                    <div class="widget-content">
+                        <p><i class="fas fa-clock"></i> <strong>الوقت المقدر:</strong> 3-4 ساعات</p>
+                        <p><i class="fas fa-book"></i> <strong>عدد الأوامر:</strong> 12 أمر أساسي</p>
+                        <p><i class="fas fa-star"></i> <strong>المستوى:</strong> مبتدئ</p>
+                        <p><i class="fas fa-check-circle"></i> <strong>المتطلبات السابقة:</strong> لا يوجد</p>
+                    </div>
+                </div>
+                
+                <!-- روابط سريعة -->
+                <div class="sidebar-widget">
+                    <h3><i class="fas fa-bookmark"></i> روابط سريعة</h3>
+                    <div class="widget-content">
+                        <ul>
+                            <li><a href="#"><i class="fas fa-file-pdf"></i> دليل الأوامر الأساسية (PDF)</a></li>
+                            <li><a href="#"><i class="fas fa-video"></i> فيديو: التنقل في نظام الملفات</a></li>
+                            <li><a href="#"><i class="fas fa-terminal"></i> محاكي طرفية تفاعلي</a></li>
+                            <li><a href="#"><i class="fas fa-question-circle"></i> الأسئلة الشائعة</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- ما ستتعلمه -->
+                <div class="sidebar-widget">
+                    <h3><i class="fas fa-graduation-cap"></i> ما ستتعلمه</h3>
+                    <div class="widget-content">
+                        <ul>
+                            <li><i class="fas fa-check-circle" style="color: var(--success-color);"></i> التعرف على أوامر النظام الأساسية</li>
+                            <li><i class="fas fa-check-circle" style="color: var(--success-color);"></i> التنقل بين المجلدات وإدارتها</li>
+                            <li><i class="fas fa-check-circle" style="color: var(--success-color);"></i> إدارة الملفات وإنشاؤها وعرضها</li>
+                            <li><i class="fas fa-check-circle" style="color: var(--success-color);"></i> مراقبة النظام وعملياته</li>
+                            <li><i class="fas fa-check-circle" style="color: var(--success-color);"></i> إدارة العمليات وإيقاف النظام</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- نصائح سريعة -->
+                <div class="sidebar-widget">
+                    <h3><i class="fas fa-lightbulb"></i> نصائح سريعة</h3>
+                    <div class="widget-content">
+                        <div class="note">
+                            <i class="fas fa-comment"></i>
+                            <div>استخدم مفتاح <kbd>Tab</kbd> لإكمال أسماء الملفات والمجلدات تلقائياً</div>
+                        </div>
+                        <div class="note">
+                            <i class="fas fa-comment"></i>
+                            <div>اضغط <kbd>Ctrl+C</kbd> لإيقاف أي أمر يعمل حالياً</div>
+                        </div>
+                        <div class="note">
+                            <i class="fas fa-comment"></i>
+                            <div>استخدم <kbd>↑</kbd> و <kbd>↓</kbd> للتنقل بين الأوامر السابقة</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- تمارين عملية -->
+                <div class="sidebar-widget">
+                    <h3><i class="fas fa-tasks"></i> تمارين عملية</h3>
+                    <div class="widget-content">
+                        <ol>
+                            <li>أنشئ مجلداً باسم "test"</li>
+                            <li>انتقل إلى هذا المجلد</li>
+                            <li>أنشئ ملفاً نصياً بداخله</li>
+                            <li>اعرض محتويات الملف</li>
+                            <li>احذف الملف ثم المجلد</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -618,5 +1387,76 @@ Documents  Downloads  Music  Pictures  Videos  file1.txt  file2.pdf
 
     <!-- تضمين Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // تحديث شريط التقدم بناء على المهام المكتملة
+        function updateProgress() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            const total = checkboxes.length;
+            let completed = 0;
+            
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) completed++;
+            });
+            
+            const percentage = Math.round((completed / total) * 100);
+            document.getElementById('progress-percentage').textContent = `${percentage}%`;
+            document.getElementById('progress-fill').style.width = `${percentage}%`;
+        }
+        
+        // إضافة مستمعين للأحداث على صناديق الاختيار
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', updateProgress);
+        });
+        
+        // تهيئة شريط التقدم
+        updateProgress();
+        
+        // نسخ النص من كتلة الأكواد
+        function copyCode(button) {
+            const codeBlock = button.parentElement.nextElementSibling;
+            const textToCopy = codeBlock.querySelector('code').innerText;
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                button.textContent = 'تم النسخ!';
+                setTimeout(() => {
+                    button.textContent = 'نسخ';
+                }, 2000);
+            });
+        }
+        
+        // التحقق من إجابات الاختبار
+        function checkQuiz() {
+            const answers = {
+                q1: 'b',
+                q2: 'b',
+                q3: 'b'
+            };
+            
+            let score = 0;
+            const total = Object.keys(answers).length;
+            
+            for (const question in answers) {
+                const selectedOption = document.querySelector(`input[name="${question}"]:checked`);
+                if (!selectedOption) continue;
+                
+                const optionElement = selectedOption.parentElement;
+                
+                if (selectedOption.value === answers[question]) {
+                    optionElement.classList.add('correct');
+                    score++;
+                } else {
+                    optionElement.classList.add('incorrect');
+                    // إظهار الإجابة الصحيحة
+                    const correctOption = document.querySelector(`input[name="${question}"][value="${answers[question]}"]`);
+                    if (correctOption) {
+                        correctOption.parentElement.classList.add('correct');
+                    }
+                }
+            }
+            
+            alert(`نتيجتك: ${score}/${total}\n${score === total ? 'أحسنت! اجتياز ممتاز.' : 'حاول مرة أخرى لتحسين نتيجتك.'}`);
+        }
+    </script>
 </body>
 </html>
