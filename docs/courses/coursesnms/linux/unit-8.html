@@ -3,31 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الوحدة 8: أوامر الضغط وفك الضغط | أوامر لينكس</title>
+    <title>الوحدة 8: الضغط وفك الضغط في لينكس | أوامر لينكس</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/bash.min.js"></script>
+    <script>hljs.highlightAll();</script>
     <style>
         :root {
             --primary-color: #2c3e50;
             --secondary-color: #3498db;
             --accent-color: #e74c3c;
-            --light-color: #ecf0f1;
-            --dark-color: #2c3e50;
             --success-color: #27ae60;
             --warning-color: #f39c12;
             --info-color: #3498db;
+            --light-bg: #f8f9fa;
+            --dark-text: #2c3e50;
+            --light-text: #7f8c8d;
+            --terminal-bg: #1e1e1e;
+            --terminal-text: #d4d4d4;
+            --terminal-prompt: #3cce56;
+            --terminal-command: #569cd6;
+            --card-bg: #ffffff;
+            --border-radius: 12px;
+            --box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            --transition: all 0.3s ease;
         }
-        
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f5f5f5;
+            line-height: 1.8;
+            color: var(--dark-text);
+            background-color: var(--light-bg);
+            direction: rtl;
+            text-align: right;
+            padding-bottom: 2rem;
         }
         
         .container {
@@ -39,50 +49,85 @@
         header {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
-            padding: 1.5rem;
-            text-align: center;
-            border-radius: 5px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+            box-shadow: var(--box-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.05)"/></svg>');
+            background-size: cover;
         }
         
         header h1 {
             margin-bottom: 10px;
             font-size: 2.5rem;
+            position: relative;
         }
         
         header p {
             font-size: 1.1rem;
             max-width: 800px;
             margin: 0 auto;
+            position: relative;
         }
         
         .breadcrumb {
-            background-color: var(--light-color);
-            padding: 10px 20px;
-            border-radius: 5px;
+            background-color: var(--light-bg);
+            padding: 12px 20px;
+            border-radius: var(--border-radius);
             margin-bottom: 20px;
             font-size: 0.9rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
         
         .breadcrumb a {
             color: var(--secondary-color);
             text-decoration: none;
+            transition: var(--transition);
         }
         
         .breadcrumb a:hover {
             text-decoration: underline;
+            color: var(--primary-color);
         }
 
-        .content-section {
-            background-color: white;
-            border-radius: 8px;
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 992px) {
+            .content-grid {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
             padding: 25px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
         }
 
-        .content-section h2 {
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+        }
+
+        .card h2 {
             color: var(--primary-color);
             margin-bottom: 15px;
             padding-bottom: 10px;
@@ -92,18 +137,20 @@
             gap: 10px;
         }
 
-        .content-section p {
+        .card p {
             margin-bottom: 15px;
+            line-height: 1.8;
         }
 
         .commands-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            font-size: 0.95rem;
         }
 
         .commands-table th, .commands-table td {
-            border: 1px solid #ddd;
+            border: 1px solid #e0e0e0;
             padding: 12px;
             text-align: right;
         }
@@ -115,153 +162,1012 @@
         }
 
         .commands-table tr:nth-child(even) {
-            background-color: #f2f2f2;
+            background-color: #f8f9fa;
         }
 
         .commands-table tr:hover {
-            background-color: #ddd;
+            background-color: #e9ecef;
+        }
+
+        .commands-table code {
+            background-color: #f1f1f1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            direction: ltr;
+            display: inline-block;
+            unicode-bidi: embed;
+        }
+
+        .code-container {
+            position: relative;
+            margin: 20px 0;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .code-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            direction: ltr;
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
 
         .code-block {
-            background-color: var(--dark-color);
-            color: #e7e7e7;
-            padding: 15px;
-            border-radius: 8px;
+            background-color: #282c34;
+            color: #abb2bf;
+            padding: 16px;
             overflow-x: auto;
             font-family: 'Courier New', Courier, monospace;
-            margin-top: 20px;
-            margin-bottom: 20px;
+            direction: ltr;
+            text-align: left;
+            tab-size: 4;
+        }
+        
+        .code-block code {
+            direction: ltr;
+            unicode-bidi: embed;
+        }
+
+        .terminal {
+            background-color: var(--terminal-bg);
+            color: var(--terminal-text);
+            border-radius: 8px;
+            padding: 1.5rem;
+            font-family: 'Courier New', monospace;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            direction: ltr;
+            text-align: left;
+        }
+
+        .terminal .prompt {
+            color: var(--terminal-prompt);
+            font-weight: bold;
+        }
+
+        .terminal .command {
+            color: var(--terminal-command);
+        }
+
+        .terminal .comment {
+            color: #6a9955;
+            font-style: italic;
+        }
+
+        .terminal .output {
+            color: var(--terminal-text);
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin: 20px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            font-size: 1rem;
+            line-height: 1.6;
         }
 
         .alert-note {
             background-color: #e9f7ef;
             border-right: 5px solid var(--success-color);
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.1rem;
+            color: #0f5132;
         }
 
         .alert-warning {
-            background-color: #fcf8e3;
+            background-color: #fff3cd;
             border-right: 5px solid var(--warning-color);
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
+            color: #664d03;
+        }
+
+        .alert-info {
+            background-color: #e7f4ff;
+            border-right: 5px solid var(--info-color);
+            color: #055160;
+        }
+
+        .alert-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .sidebar-widget {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 20px;
             margin-bottom: 20px;
+            box-shadow: var(--box-shadow);
+        }
+
+        .sidebar-widget h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 1.1rem;
+        }
+
+        .widget-content ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .widget-content li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .widget-content li:last-child {
+            border-bottom: none;
+        }
+
+        .widget-content a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .widget-content a:hover {
+            color: var(--primary-color);
+        }
+
+        .progress-container {
+            margin: 25px 0;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+            border-radius: 5px;
+            width: 0%;
+            transition: width 1s ease-in-out;
+        }
+
+        .quiz-container {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin: 25px 0;
+            box-shadow: var(--box-shadow);
+        }
+
+        .quiz-question {
+            margin-bottom: 20px;
+        }
+
+        .quiz-options {
+            margin: 15px 0;
+        }
+
+        .quiz-option {
+            display: block;
+            margin: 10px 0;
+            padding: 12px 15px;
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .quiz-option:hover {
+            background-color: #e9ecef;
+        }
+
+        .quiz-option.selected {
+            background-color: #d1ecf1;
+            border-color: var(--info-color);
+        }
+
+        .quiz-option.correct {
+            background-color: #d4edda;
+            border-color: var(--success-color);
+        }
+
+        .quiz-option.incorrect {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+        }
+
+        .quiz-submit {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: bold;
+            transition: var(--transition);
+        }
+
+        .quiz-submit:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .task-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+
+        .task-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .task-list li:last-child {
+            border-bottom: none;
+        }
+
+        .task-list input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
         }
 
         .navigation-buttons {
             display: flex;
             justify-content: space-between;
             margin-top: 30px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         
         .btn {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
             background-color: var(--secondary-color);
             color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 12px 20px;
+            border-radius: var(--border-radius);
             text-decoration: none;
             font-weight: bold;
-            transition: background-color 0.3s ease;
+            transition: var(--transition);
         }
         
         .btn:hover {
             background-color: #2980b9;
+            transform: translateY(-2px);
         }
         
         footer {
             text-align: center;
             padding: 20px;
-            background-color: var(--dark-color);
+            background-color: var(--primary-color);
             color: white;
-            border-radius: 5px;
+            border-radius: var(--border-radius);
             margin-top: 30px;
+        }
+
+        .format-tabs {
+            display: flex;
+            border-bottom: 2px solid var(--secondary-color);
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .format-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            margin-left: 5px;
+            border-radius: 5px 5px 0 0;
+            transition: var(--transition);
+        }
+
+        .format-tab.active {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .format-content {
+            display: none;
+        }
+
+        .format-content.active {
+            display: block;
+        }
+
+        .compression-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .compression-table th, .compression-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .compression-table th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .compression-table tr:nth-child(even) {
+            background-color: #f9f9f9;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>الوحدة 8: أوامر الضغط وفك الضغط</h1>
-            <p>تعلم كيفية ضغط و فك ضغط الملفات في نظام لينكس</p>
+            <h1><i class="fas fa-file-archive"></i> الوحدة 8: الضغط وفك الضغط في لينكس</h1>
+            <p>تعلم كيفية ضغط وفك ضغط الملفات والمجلدات باستخدام أدوات لينكس المختلفة</p>
         </header>
         
         <div class="breadcrumb">
-            <a href="index.html">الرئيسية</a> &gt;
-            <span>الوحدة 8</span>
+            <a href="index.html"><i class="fas fa-home"></i> الرئيسية</a> &gt;
+            <a href="linux-path.html">مسار لينكس</a> &gt;
+            <span>الوحدة 8: الضغط وفك الضغط</span>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-header">
+                <span>تقدم الوحدة</span>
+                <span id="progress-percentage">0%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
         </div>
         
-        <div class="content-section">
-            <h2><i class="fas fa-file-archive"></i> نظرة عامة</h2>
-            <p>تستخدم أدوات الضغط وفك الضغط لتقليل حجم الملفات والمجلدات لتوفير مساحة التخزين أو لنقلها بسهولة. في هذه الوحدة، سنركز على الأدوات الشائعة مثل <code>tar</code> و <code>zip</code> و <code>unzip</code>.</p>
-        </div>
+        <div class="content-grid">
+            <div class="main-content">
+                <div class="card">
+                    <h2><i class="fas fa-info-circle"></i> نظرة عامة</h2>
+                    <p>تستخدم أدوات الضغط وفك الضغط لتقليل حجم الملفات والمجلدات لتوفير مساحة التخزين أو لنقلها بسهولة. في نظام لينكس، هناك عدة أدوات للتعامل مع صيغ الضغط المختلفة. في هذه الوحدة، سنتعرف على الأدوات الشائعة مثل <code>tar</code>، <code>gzip</code>، <code>bzip2</code>، <code>zip</code>، و <code>unzip</code>.</p>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-lightbulb alert-icon"></i>
+                        <div>
+                            <strong>نصيحة:</strong> لكل صيغة ضغط مزاياها الخاصة. استخدم <code>gzip</code> للسرعة، <code>bzip2</code> للضغط الأفضل، و <code>zip</code> للتوافق مع أنظمة Windows.
+                        </div>
+                    </div>
+                </div>
 
-        <div class="content-section">
-            <h2><i class="fas fa-list-ul"></i> قائمة الأوامر</h2>
-            <table class="commands-table">
-                <thead>
-                    <tr>
-                        <th>الأمر</th>
-                        <th>الوصف</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><code>tar</code></td>
-                        <td>أداة لتجميع (Archiving) الملفات والمجلدات في ملف واحد. يمكن استخدامه أيضًا للضغط مع خيارات إضافية.</td>
-                    </tr>
-                    <tr>
-                        <td><code>zip</code></td>
-                        <td>لإنشاء ملف مضغوط بصيغة <code>.zip</code>.</td>
-                    </tr>
-                    <tr>
-                        <td><code>unzip</code></td>
-                        <td>لفك ضغط الملفات التي بصيغة <code>.zip</code>.</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+                <div class="card">
+                    <h2><i class="fas fa-compress-arrows-alt"></i> أدوات الضغط الشائعة</h2>
+                    <p>اختر صيغة الضغط التي تريد تعلمها:</p>
+                    
+                    <div class="format-tabs">
+                        <div class="format-tab active" onclick="showFormat('tar')">TAR</div>
+                        <div class="format-tab" onclick="showFormat('gzip')">GZIP</div>
+                        <div class="format-tab" onclick="showFormat('bzip2')">BZIP2</div>
+                        <div class="format-tab" onclick="showFormat('zip')">ZIP</div>
+                        <div class="format-tab" onclick="showFormat('comparison')">مقارنة الصيغ</div>
+                    </div>
+                    
+                    <div id="tar-content" class="format-content active">
+                        <h3><i class="fas fa-archive"></i> أداة TAR (Tape Archive)</h3>
+                        <p>أداة <code>tar</code> تستخدم لتجميع الملفات والمجلدات في أرشيف واحد. يمكن دمجها مع أدوات ضغط أخرى مثل <code>gzip</code> أو <code>bzip2</code>.</p>
+                        
+                        <table class="commands-table">
+                            <thead>
+                                <tr>
+                                    <th width="30%">الأمر</th>
+                                    <th width="70%">الوصف</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>tar -cvf archive.tar files/</code></td>
+                                    <td>إنشاء أرشيف tar غير مضغوط</td>
+                                </tr>
+                                <tr>
+                                    <td><code>tar -czvf archive.tar.gz files/</code></td>
+                                    <td>إنشاء أرشيف مضغوط باستخدام gzip</td>
+                                </tr>
+                                <tr>
+                                    <td><code>tar -cjvf archive.tar.bz2 files/</code></td>
+                                    <td>إنشاء أرشيف مضغوط باستخدام bzip2</td>
+                                </tr>
+                                <tr>
+                                    <td><code>tar -xvf archive.tar</code></td>
+                                    <td>استخراج أرشيف tar</td>
+                                </tr>
+                                <tr>
+                                    <td><code>tar -xzvf archive.tar.gz</code></td>
+                                    <td>استخراج أرشيف مضغوط باستخدام gzip</td>
+                                </tr>
+                                <tr>
+                                    <td><code>tar -xjvf archive.tar.bz2</code></td>
+                                    <td>استخراج أرشيف مضغوط باستخدام bzip2</td>
+                                </tr>
+                                <tr>
+                                    <td><code>tar -tf archive.tar</code></td>
+                                    <td>عرض محتويات الأرشيف دون استخراج</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <h4 class="mt-4">خيارات TAR الشائعة:</h4>
+                        <ul>
+                            <li><code>-c</code>: إنشاء أرشيف جديد</li>
+                            <li><code>-x</code>: استخراج الأرشيف</li>
+                            <li><code>-v</code>: عرض verbose (عرض الملفات أثناء المعالجة)</li>
+                            <li><code>-f</code>: تحديد اسم الملف</li>
+                            <li><code>-z</code>: استخدام ضغط gzip</li>
+                            <li><code>-j</code>: استخدام ضغط bzip2</li>
+                            <li><code>-t</code>: عرض محتويات الأرشيف</li>
+                        </ul>
+                        
+                        <h4 class="mt-4">أمثلة عملية:</h4>
+                        <div class="code-container">
+                            <div class="code-header">
+                                <span>Terminal</span>
+                                <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                            </div>
+                            <div class="code-block">
+                                <pre><code class="language-bash"># إنشاء أرشيف مضغوط من مجلد
+tar -czvf my_project.tar.gz my_project/
 
-        <div class="content-section">
-            <h2><i class="fas fa-cogs"></i> أمثلة عملية</h2>
-            <p>لإنشاء ملف أرشيف مضغوط بصيغة <code>.tar.gz</code> من مجلد <code>my_folder</code>:</p>
-            <div class="code-block">
-                <pre><code>tar -czvf my_folder.tar.gz my_folder</code></pre>
-            </div>
-            <p>لإعادة فك ضغط الملف السابق إلى نفس المجلد:</p>
-            <div class="code-block">
-                <pre><code>tar -xzvf my_folder.tar.gz</code></pre>
-            </div>
-            <p>لإنشاء ملف مضغوط بصيغة <code>.zip</code> من مجلد <code>my_folder</code>:</p>
-            <div class="code-block">
-                <pre><code>zip -r my_folder.zip my_folder</code></pre>
-            </div>
-            <p>لفك ضغط ملف <code>.zip</code>:</p>
-            <div class="code-block">
-                <pre><code>unzip my_folder.zip</code></pre>
-            </div>
-        </div>
+# استخراج أرشيف مضغوط
+tar -xzvf my_project.tar.gz
 
-        <div class="navigation-buttons">
-            <a href="unit-7.html" class="btn"><i class="fas fa-arrow-right"></i> الوحدة السابقة: إدارة الحزم</a>
-            <a href="unit-9.html" class="btn">الوحدة التالية: الخلاصة <i class="fas fa-arrow-left"></i></a>
+# إنشاء أرشيف من عدة ملفات
+tar -cvf documents.tar file1.txt file2.txt document.pdf
+
+# عرض محتويات الأرشيف
+tar -tf backup.tar.gz</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="gzip-content" class="format-content">
+                        <h3><i class="fas fa-file-archive"></i> أداة GZIP</h3>
+                        <p>أداة <code>gzip</code> تستخدم لضغط الملفات individually. غالباً ما تستخدم مع <code>tar</code> لضغط المجلدات.</p>
+                        
+                        <table class="commands-table">
+                            <thead>
+                                <tr>
+                                    <th width="30%">الأمر</th>
+                                    <th width="70%">الوصف</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>gzip file.txt</code></td>
+                                    <td>ضغط ملف (ينشئ file.txt.gz)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>gzip -c file.txt > file.txt.gz</code></td>
+                                    <td>ضغط مع الاحتفاظ بالملف الأصلي</td>
+                                </tr>
+                                <tr>
+                                    <td><code>gzip -d file.txt.gz</code></td>
+                                    <td>فك ضغط ملف</td>
+                                </tr>
+                                <tr>
+                                    <td><code>gunzip file.txt.gz</code></td>
+                                    <td>فك ضغط ملف (مرادف لـ gzip -d)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>gzip -9 file.txt</code></td>
+                                    <td>ضغط بأقصى مستوى (أبطأ ولكن ضغط أفضل)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>gzip -1 file.txt</code></td>
+                                    <td>ضغط بأقل مستوى (أسرع ولكن ضغط أقل)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <h4 class="mt-4">أمثلة عملية:</h4>
+                        <div class="code-container">
+                            <div class="code-header">
+                                <span>Terminal</span>
+                                <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                            </div>
+                            <div class="code-block">
+                                <pre><code class="language-bash"># ضغط ملف مع الاحتفاظ بالأصل
+gzip -c large_file.log > large_file.log.gz
+
+# ضغط بأقصى مستوى
+gzip -9 large_file.log
+
+# فك ضغط ملف
+gzip -d compressed_file.gz
+
+# ضغط عدة ملفات
+gzip file1.txt file2.txt file3.txt</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="bzip2-content" class="format-content">
+                        <h3><i class="fas fa-file-archive"></i> أداة BZIP2</h3>
+                        <p>أداة <code>bzip2</code> توفر ضغطاً أفضل من <code>gzip</code> ولكنها أبطأ. غالباً ما تستخدم للملفات الكبيرة.</p>
+                        
+                        <table class="commands-table">
+                            <thead>
+                                <tr>
+                                    <th width="30%">الأمر</th>
+                                    <th width="70%">الوصف</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>bzip2 file.txt</code></td>
+                                    <td>ضغط ملف (ينشئ file.txt.bz2)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>bzip2 -k file.txt</code></td>
+                                    <td>ضغط مع الاحتفاظ بالملف الأصلي</td>
+                                </tr>
+                                <tr>
+                                    <td><code>bzip2 -d file.txt.bz2</code></td>
+                                    <td>فك ضغط ملف</td>
+                                </tr>
+                                <tr>
+                                    <td><code>bunzip2 file.txt.bz2</code></td>
+                                    <td>فك ضغط ملف (مرادف لـ bzip2 -d)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>bzip2 -9 file.txt</code></td>
+                                    <td>ضغط بأقصى مستوى</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <h4 class="mt-4">أمثلة عملية:</h4>
+                        <div class="code-container">
+                            <div class="code-header">
+                                <span>Terminal</span>
+                                <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                            </div>
+                            <div class="code-block">
+                                <pre><code class="language-bash"># ضغط ملف مع الاحتفاظ بالأصل
+bzip2 -k large_file.log
+
+# فك ضغط ملف
+bzip2 -d compressed_file.bz2
+
+# ضغط بأقصى مستوى
+bzip2 -9 large_file.log</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="zip-content" class="format-content">
+                        <h3><i class="fas fa-file-archive"></i> أدوات ZIP و UNZIP</h3>
+                        <p>أدوات <code>zip</code> و <code>unzip</code> تستخدم للتعامل مع صيغة ZIP الشائعة، خاصة للتوافق مع أنظمة Windows.</p>
+                        
+                        <table class="commands-table">
+                            <thead>
+                                <tr>
+                                    <th width="30%">الأمر</th>
+                                    <th width="70%">الوصف</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>zip archive.zip file.txt</code></td>
+                                    <td>إنشاء أرشيف zip من ملف</td>
+                                </tr>
+                                <tr>
+                                    <td><code>zip -r archive.zip folder/</code></td>
+                                    <td>إنشاء أرشيف zip من مجلد (بشكل متكرر)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>zip -e archive.zip file.txt</code></td>
+                                    <td>إنشاء أرشيف zip مشفر بكلمة مرور</td>
+                                </tr>
+                                <tr>
+                                    <td><code>unzip archive.zip</code></td>
+                                    <td>فك ضغط أرشيف zip</td>
+                                </tr>
+                                <tr>
+                                    <td><code>unzip -l archive.zip</code></td>
+                                    <td>عرض محتويات الأرشيف دون فك الضغط</td>
+                                </tr>
+                                <tr>
+                                    <td><code>unzip -d path/ archive.zip</code></td>
+                                    <td>فك الضغط إلى مسار محدد</td>
+                                </tr>
+                                <tr>
+                                    <td><code>unzip -P password archive.zip</code></td>
+                                    <td>فك ضغط أرشيف محمي بكلمة مرور</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <h4 class="mt-4">أمثلة عملية:</h4>
+                        <div class="code-container">
+                            <div class="code-header">
+                                <span>Terminal</span>
+                                <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                            </div>
+                            <div class="code-block">
+                                <pre><code class="language-bash"># إنشاء أرشيف من مجلد
+zip -r my_project.zip my_project/
+
+# إنشاء أرشيف مشفر
+zip -e secure.zip confidential.txt
+
+# فك ضغط أرشيف
+unzip archive.zip
+
+# فك ضغط إلى مجلد محدد
+unzip archive.zip -d /path/to/extract/
+
+# عرض محتويات الأرشيف
+unzip -l archive.zip</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="comparison-content" class="format-content">
+                        <h3><i class="fas fa-balance-scale"></i> مقارنة بين صيغ الضغط</h3>
+                        <p>كل صيغة ضغط لها مزاياها وعيوبها. هذا جدول مقارنة بين الصيغ الشائعة:</p>
+                        
+                        <table class="compression-table">
+                            <thead>
+                                <tr>
+                                    <th>الصيغة</th>
+                                    <th>الامتداد</th>
+                                    <th>الضغط</th>
+                                    <th>السرعة</th>
+                                    <th>الاستخدام الشائع</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>GZIP</td>
+                                    <td>.gz</td>
+                                    <td>جيد</td>
+                                    <td>سريع</td>
+                                    <td>الاستخدام العام، الملفات المنفردة</td>
+                                </tr>
+                                <tr>
+                                    <td>BZIP2</td>
+                                    <td>.bz2</td>
+                                    <td>ممتاز</td>
+                                    <td>بطيء</td>
+                                    <td>الملفات الكبيرة، عندما يكون الضغط مهماً</td>
+                                </tr>
+                                <tr>
+                                    <td>ZIP</td>
+                                    <td>.zip</td>
+                                    <td>جيد</td>
+                                    <td>متوسط</td>
+                                    <td>التواصل مع أنظمة Windows</td>
+                                </tr>
+                                <tr>
+                                    <td>TAR + GZIP</td>
+                                    <td>.tar.gz</td>
+                                    <td>جيد</td>
+                                    <td>سريع</td>
+                                    <td>أرشفة المجلدات في لينكس</td>
+                                </tr>
+                                <tr>
+                                    <td>TAR + BZIP2</td>
+                                    <td>.tar.bz2</td>
+                                    <td>ممتاز</td>
+                                    <td>بطيء</td>
+                                    <td>أرشفة المجلدات مع ضغط عالي</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <div class="alert alert-note">
+                            <i class="fas fa-info-circle alert-icon"></i>
+                            <div>
+                                <strong>ملاحظة:</strong> لا يوجد "أفضل" صيغة ضغط بشكل مطلق. الاختيار يعتمد على احتياجاتك: السرعة مقابل كفاءة الضغط، والتوافق مع الأنظمة الأخرى.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-tasks"></i> تمارين عملية</h2>
+                    <p>لتعزيز فهمك لأوامر الضغط وفك الضغط، قم بتنفيذ المهام التالية:</p>
+                    
+                    <ul class="task-list">
+                        <li>
+                            <input type="checkbox" id="task1">
+                            <label for="task1">أنشئ مجلداً يحتوي على عدة ملفات ثم اضغطه باستخدام <code>tar.gz</code></label>
+                        </li>
+                        <li>
+                            <input type="checkbox" id="task2">
+                            <label for="task2">اضغط ملفاً منفرداً باستخدام <code>gzip</code> مع الاحتفاظ بالملف الأصلي</label>
+                        </li>
+                        <li>
+                            <input type="checkbox" id="task3">
+                            <label for="task3">أنشئ أرشيف <code>zip</code> مشفر بكلمة مرور</label>
+                        </li>
+                        <li>
+                            <input type="checkbox" id="task4">
+                            <label for="task4">استخرج محتويات أرشيف <code>tar.bz2</code> إلى مجلد جديد</label>
+                        </li>
+                        <li>
+                            <input type="checkbox" id="task5">
+                            <label for="task5">عرض محتويات أرشيف دون فك ضغطه</label>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-lightbulb"></i> نصائح وإرشادات</h2>
+                    
+                    <div class="alert alert-note">
+                        <i class="fas fa-info-circle alert-icon"></i>
+                        <div>
+                            <strong>الاحتفاظ بالملفات الأصلية:</strong> معظم أدوات الضغط تحذف الملف الأصلي تلقائياً. استخدم الخيار <code>-k</code> أو <code>--keep</code> للاحتفاظ بالملف الأصلي.
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle alert-icon"></i>
+                        <div>
+                            <strong>الأمان:</strong> عند استخدام الضغط المشفر، تأكد من استخدام كلمات مرور قوية وتخزينها بشكل آمن. تجنب استخدام الخيار <code>-P</code> مع <code>unzip</code> في سطور الأوامر حيث يمكن أن تظهر كلمة المرور في سجل الأوامر.
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-history alert-icon"></i>
+                        <div>
+                            <strong>الضغط التقدمي:</strong> بعض أدوات الضغط تدعم مستويات ضغط مختلفة. استخدم مستويات ضغط منخفضة (<code>-1</code>) للسرعة، ومستويات عالية (<code>-9</code>) لأفضل ضغط ممكن.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quiz-container">
+                    <h2><i class="fas fa-brain"></i> اختبر فهمك</h2>
+                    
+                    <div class="quiz-question">
+                        <p>1. ما هو الأمر الصحيح لإنشاء أرشيف مضغوط من مجلد باسم "project" باستخدام ضغط gzip؟</p>
+                        <div class="quiz-options">
+                            <label class="quiz-option">
+                                <input type="radio" name="q1" value="a"> 
+                                <code>tar -cvf project.tar.gz project/</code>
+                            </label>
+                            <label class="quiz-option">
+                                <input type="radio" name="q1" value="b"> 
+                                <code>tar -czvf project.tar.gz project/</code>
+                            </label>
+                            <label class="quiz-option">
+                                <input type="radio" name="q1" value="c"> 
+                                <code>tar -xzvf project.tar.gz project/</code>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="quiz-question">
+                        <p>2. كيف يمكنك فك ضغط أرشيف zip إلى مجلد محدد باسم "extracted"?</p>
+                        <div class="quiz-options">
+                            <label class="quiz-option">
+                                <input type="radio" name="q2" value="a"> 
+                                <code>unzip archive.zip -d extracted/</code>
+                            </label>
+                            <label class="quiz-option">
+                                <input type="radio" name="q2" value="b"> 
+                                <code>unzip archive.zip extracted/</code>
+                            </label>
+                            <label class="quiz-option">
+                                <input type="radio" name="q2" value="c"> 
+                                <code>unzip -d extracted/ archive.zip</code>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="quiz-question">
+                        <p>3. ما هو الفرق بين <code>gzip</code> و <code>bzip2</code> من حيث الضغط والسرعة؟</p>
+                        <div class="quiz-options">
+                            <label class="quiz-option">
+                                <input type="radio" name="q3" value="a"> 
+                                <code>gzip</code> أسرع ولكن <code>bzip2</code> يقدم ضغطاً أفضل
+                            </label>
+                            <label class="quiz-option">
+                                <input type="radio" name="q3" value="b"> 
+                                <code>bzip2</code> أسرع ولكن <code>gzip</code> يقدم ضغطاً أفضل
+                            </label>
+                            <label class="quiz-option">
+                                <input type="radio" name="q3" value="c"> 
+                                كلاهما متماثل في السرعة والضغط
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <button class="quiz-submit" onclick="checkQuiz()">تحقق من الإجابات</button>
+                </div>
+                
+                <div class="navigation-buttons">
+                    <a href="unit-7.html" class="btn"><i class="fas fa-arrow-right"></i> الوحدة السابقة: إدارة الحزم</a>
+                    <a href="unit-9.html" class="btn">الوحدة التالية: الخلاصة <i class="fas fa-arrow-left"></i></a>
+                </div>
+            </div>
+            
+            <div class="sidebar">
+                <div class="sidebar-widget">
+                    <h3><i class="fas fa-bookmark"></i> روابط سريعة</h3>
+                    <div class="widget-content">
+                        <ul>
+                            <li><a href="#"><i class="fas fa-file-pdf"></i> دليل أوامر الضغط (PDF)</a></li>
+                            <li><a href="#"><i class="fas fa-video"></i> فيديو: ضغط الملفات في لينكس</a></li>
+                            <li><a href="#"><i class="fas fa-terminal"></i> محاكي طرفية تفاعلي</a></li>
+                            <li><a href="#"><i class="fas fa-question-circle"></i> الأسئلة الشائعة</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="sidebar-widget">
+                    <h3><i class="fas fa-graduation-cap"></i> ما ستتعلمه</h3>
+                    <div class="widget-content">
+                        <ul>
+                            <li><i class="fas fa-check-circle" style="color: var(--success-color);"></i> استخدام أداة <code>tar</code> لأرشفة الملفات</li>
+                            <li><i class="fas fa-check-circle" style="color: var(--success-color);"></i> ضغط الملفات باستخدام <code>gzip</code> و <code>bzip2</code></li>
+                            <li><i class="fas fa-check-circle" style="color: var(--success-color);"></i> التعامل مع ملفات <code>zip</code></li>
+                            <li><i class="fas fa-check-circle" style="color: var(--success-color);"></i> فك ضغط الملفات بأنواعها المختلفة</li>
+                            <li><i class="fas fa-check-circle" style="color: var(--success-color);"></i> مقارنة صيغ الضغط المختلفة</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="sidebar-widget">
+                    <h3><i class="fas fa-clock"></i> الوقت المقدر للدراسة</h3>
+                    <div class="widget-content">
+                        <p><i class="fas fa-stopwatch"></i> 2-3 ساعات للقراءة والممارسة</p>
+                        <p><i class="fas fa-tasks"></i> 30 دقيقة للتمارين العملية</p>
+                        <p><i class="fas fa-certificate"></i> 15 دقيقة للاختبار</p>
+                    </div>
+                </div>
+                
+                <div class="sidebar-widget">
+                    <h3><i class="fas fa-archive"></i> صيغ الضغط الشائعة</h3>
+                    <div class="widget-content">
+                        <ul>
+                            <li><strong>.tar.gz</strong>: TAR مع ضغط GZIP (شائع في لينكس)</li>
+                            <li><strong>.tar.bz2</strong>: TAR مع ضغط BZIP2 (ضغط أفضل)</li>
+                            <li><strong>.zip</strong>: صيغة شائعة متوافقة مع جميع الأنظمة</li>
+                            <li><strong>.gz</strong>: ضغط GZIP للملفات المنفردة</li>
+                            <li><strong>.bz2</strong>: ضغط BZIP2 للملفات المنفردة</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <footer>
             <p>© 2025 المسار الأمني للسيبراني. جميع الحقوق محفوظة.</p>
         </footer>
     </div>
+
+    <script>
+        // تحديث شريط التقدم بناء على المهام المكتملة
+        function updateProgress() {
+            const checkboxes = document.querySelectorAll('.task-list input[type="checkbox"]');
+            const total = checkboxes.length;
+            let completed = 0;
+            
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) completed++;
+            });
+            
+            const percentage = Math.round((completed / total) * 100);
+            document.getElementById('progress-percentage').textContent = `${percentage}%`;
+            document.getElementById('progress-fill').style.width = `${percentage}%`;
+        }
+        
+        // إضافة مستمعين للأحداث على صناديق الاختيار
+        document.querySelectorAll('.task-list input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', updateProgress);
+        });
+        
+        // تهيئة شريط التقدم
+        updateProgress();
+        
+        // نسخ النص من كتلة الأكواد
+        function copyCode(button) {
+            const codeBlock = button.parentElement.nextElementSibling;
+            const textToCopy = codeBlock.querySelector('code').innerText;
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                button.textContent = 'تم النسخ!';
+                setTimeout(() => {
+                    button.textContent = 'نسخ';
+                }, 2000);
+            });
+        }
+        
+        // التحقق من إجابات الاختبار
+        function checkQuiz() {
+            const answers = {
+                q1: 'b',
+                q2: 'a',
+                q3: 'a'
+            };
+            
+            let score = 0;
+            const total = Object.keys(answers).length;
+            
+            for (const question in answers) {
+                const selectedOption = document.querySelector(`input[name="${question}"]:checked`);
+                if (!selectedOption) continue;
+                
+                const optionElement = selectedOption.parentElement;
+                
+                if (selectedOption.value === answers[question]) {
+                    optionElement.classList.add('correct');
+                    score++;
+                } else {
+                    optionElement.classList.add('incorrect');
+                    // إظهار الإجابة الصحيحة
+                    const correctOption = document.querySelector(`input[name="${question}"][value="${answers[question]}"]`);
+                    if (correctOption) {
+                        correctOption.parentElement.classList.add('correct');
+                    }
+                }
+            }
+            
+            alert(`نتيجتك: ${score}/${total}\n${score === total ? 'أحسنت! اجتياز ممتاز.' : 'حاول مرة أخرى لتحسين نتيجتك.'}`);
+        }
+        
+        // إظهار محتوى صيغة الضغط المحددة
+        function showFormat(formatId) {
+            // إخفاء جميع المحتويات
+            document.querySelectorAll('.format-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // إلغاء تنشيط جميع الألسنة
+            document.querySelectorAll('.format-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // إظهار المحتوى المحدد وتنشيط اللسان
+            document.getElementById(`${formatId}-content`).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+    </script>
 </body>
 </html>
-
