@@ -5,29 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>الخلاصة والمراجعة | أوامر لينكس</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/bash.min.js"></script>
+    <script>hljs.highlightAll();</script>
     <style>
         :root {
             --primary-color: #2c3e50;
             --secondary-color: #3498db;
             --accent-color: #e74c3c;
-            --light-color: #ecf0f1;
-            --dark-color: #2c3e50;
             --success-color: #27ae60;
             --warning-color: #f39c12;
             --info-color: #3498db;
+            --light-bg: #f8f9fa;
+            --dark-text: #2c3e50;
+            --light-text: #7f8c8d;
+            --terminal-bg: #1e1e1e;
+            --terminal-text: #d4d4d4;
+            --terminal-prompt: #3cce56;
+            --terminal-command: #569cd6;
+            --card-bg: #ffffff;
+            --border-radius: 12px;
+            --box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            --transition: all 0.3s ease;
         }
-        
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f5f5f5;
+            line-height: 1.8;
+            color: var(--dark-text);
+            background-color: var(--light-bg);
+            direction: rtl;
+            text-align: right;
+            padding-bottom: 2rem;
         }
         
         .container {
@@ -39,50 +49,85 @@
         header {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
-            padding: 1.5rem;
-            text-align: center;
-            border-radius: 5px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+            box-shadow: var(--box-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.05)"/></svg>');
+            background-size: cover;
         }
         
         header h1 {
             margin-bottom: 10px;
             font-size: 2.5rem;
+            position: relative;
         }
         
         header p {
             font-size: 1.1rem;
             max-width: 800px;
             margin: 0 auto;
+            position: relative;
         }
         
         .breadcrumb {
-            background-color: var(--light-color);
-            padding: 10px 20px;
-            border-radius: 5px;
+            background-color: var(--light-bg);
+            padding: 12px 20px;
+            border-radius: var(--border-radius);
             margin-bottom: 20px;
             font-size: 0.9rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
         
         .breadcrumb a {
             color: var(--secondary-color);
             text-decoration: none;
+            transition: var(--transition);
         }
         
         .breadcrumb a:hover {
             text-decoration: underline;
+            color: var(--primary-color);
         }
 
-        .content-section {
-            background-color: white;
-            border-radius: 8px;
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 992px) {
+            .content-grid {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
             padding: 25px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
         }
 
-        .content-section h2 {
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+        }
+
+        .card h2 {
             color: var(--primary-color);
             margin-bottom: 15px;
             padding-bottom: 10px;
@@ -92,18 +137,20 @@
             gap: 10px;
         }
 
-        .content-section p {
+        .card p {
             margin-bottom: 15px;
+            line-height: 1.8;
         }
 
         .commands-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            font-size: 0.95rem;
         }
 
         .commands-table th, .commands-table td {
-            border: 1px solid #ddd;
+            border: 1px solid #e0e0e0;
             padding: 12px;
             text-align: right;
         }
@@ -115,132 +162,764 @@
         }
 
         .commands-table tr:nth-child(even) {
-            background-color: #f2f2f2;
+            background-color: #f8f9fa;
         }
 
         .commands-table tr:hover {
-            background-color: #ddd;
+            background-color: #e9ecef;
         }
 
-        .download-btn {
+        .commands-table code {
+            background-color: #f1f1f1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            direction: ltr;
             display: inline-block;
-            background-color: var(--accent-color);
-            color: white;
-            padding: 12px 25px;
-            border-radius: 5px;
-            text-decoration: none;
-            font-weight: bold;
-            transition: background-color 0.3s ease;
-            margin-top: 20px;
+            unicode-bidi: embed;
         }
 
-        .download-btn:hover {
-            background-color: #c0392b;
+        .code-container {
+            position: relative;
+            margin: 20px 0;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .code-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            direction: ltr;
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .code-block {
+            background-color: #282c34;
+            color: #abb2bf;
+            padding: 16px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+            direction: ltr;
+            text-align: left;
+            tab-size: 4;
+        }
+        
+        .code-block code {
+            direction: ltr;
+            unicode-bidi: embed;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin: 20px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .alert-note {
+            background-color: #e9f7ef;
+            border-right: 5px solid var(--success-color);
+            color: #0f5132;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            border-right: 5px solid var(--warning-color);
+            color: #664d03;
+        }
+
+        .alert-info {
+            background-color: #e7f4ff;
+            border-right: 5px solid var(--info-color);
+            color: #055160;
+        }
+
+        .alert-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .sidebar-widget {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--box-shadow);
+        }
+
+        .sidebar-widget h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .widget-content ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .widget-content li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .widget-content li:last-child {
+            border-bottom: none;
+        }
+
+        .widget-content a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .widget-content a:hover {
+            color: var(--primary-color);
+        }
+
+        .progress-container {
+            margin: 25px 0;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+            border-radius: 5px;
+            width: 0%;
+            transition: width 1s ease-in-out;
+        }
+
+        .quiz-container {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin: 25px 0;
+            box-shadow: var(--box-shadow);
+        }
+
+        .quiz-question {
+            margin-bottom: 20px;
+        }
+
+        .quiz-options {
+            margin: 15px 0;
+        }
+
+        .quiz-option {
+            display: block;
+            margin: 10px 0;
+            padding: 12px 15px;
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .quiz-option:hover {
+            background-color: #e9ecef;
+        }
+
+        .quiz-option.selected {
+            background-color: #d1ecf1;
+            border-color: var(--info-color);
+        }
+
+        .quiz-option.correct {
+            background-color: #d4edda;
+            border-color: var(--success-color);
+        }
+
+        .quiz-option.incorrect {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+        }
+
+        .quiz-submit {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: bold;
+            transition: var(--transition);
+        }
+
+        .quiz-submit:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .task-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+
+        .task-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .task-list li:last-child {
+            border-bottom: none;
+        }
+
+        .task-list input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
         }
 
         .navigation-buttons {
             display: flex;
             justify-content: space-between;
             margin-top: 30px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         
         .btn {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
             background-color: var(--secondary-color);
             color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 12px 20px;
+            border-radius: var(--border-radius);
             text-decoration: none;
             font-weight: bold;
-            transition: background-color 0.3s ease;
+            transition: var(--transition);
         }
         
         .btn:hover {
             background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: var(--accent-color);
+            color: white;
+            padding: 12px 25px;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            font-weight: bold;
+            transition: var(--transition);
+            margin: 15px 0;
+        }
+
+        .download-btn:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
         }
         
         footer {
             text-align: center;
             padding: 20px;
-            background-color: var(--dark-color);
+            background-color: var(--primary-color);
             color: white;
-            border-radius: 5px;
+            border-radius: var(--border-radius);
             margin-top: 30px;
+        }
+
+        .unit-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .unit-badge {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: inline-block;
+        }
+
+        .search-box {
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 45px 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #7f8c8d;
+        }
+
+        .cheatsheet-category {
+            margin-bottom: 30px;
+        }
+
+        .cheatsheet-category h3 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>الخلاصة والمراجعة</h1>
-            <p>مرجع شامل لأهم أوامر لينكس التي تعلمتها</p>
+            <h1><i class="fas fa-scroll"></i> الخلاصة والمراجعة</h1>
+            <p>مرجع شامل لأهم أوامر لينكس التي تعلمتها في هذا المقرر</p>
         </header>
         
         <div class="breadcrumb">
-            <a href="index.html">الرئيسية</a> &gt;
-            <span>الخلاصة</span>
-        </div>
-        
-        <div class="content-section">
-            <h2><i class="fas fa-scroll"></i> ملخص أوامر لينكس</h2>
-            <p>هذا الجدول يجمع كل الأوامر التي تعلمتها في هذا المقرر لتكون مرجعًا سريعًا لك. يمكنك استخدامه كأداة للمراجعة أو كدليل في عملك اليومي.</p>
-            <table class="commands-table">
-                <thead>
-                    <tr>
-                        <th>الأمر</th>
-                        <th>الوصف</th>
-                        <th>الوحدة</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td><code>ls</code></td><td>يعرض محتويات المجلد</td><td>1</td></tr>
-                    <tr><td><code>cd</code></td><td>للتنقل بين المجلدات</td><td>1</td></tr>
-                    <tr><td><code>cat</code></td><td>يعرض محتوى ملف نصي</td><td>1</td></tr>
-                    <tr><td><code>hostnamectl</code></td><td>يعرض معلومات النظام</td><td>1</td></tr>
-                    <tr><td><code>ifconfig</code> / <code>ip addr</code></td><td>يعرض معلومات الشبكة</td><td>2</td></tr>
-                    <tr><td><code>ping</code></td><td>يختبر الاتصال بجهاز آخر</td><td>2</td></tr>
-                    <tr><td><code>whois</code></td><td>يسترجع معلومات تسجيل النطاق</td><td>2</td></tr>
-                    <tr><td><code>chmod</code></td><td>لتغيير أذونات الملفات</td><td>3</td></tr>
-                    <tr><td><code>chown</code></td><td>لتغيير مالك الملف</td><td>3</td></tr>
-                    <tr><td><code>useradd</code></td><td>لإنشاء مستخدم جديد</td><td>4</td></tr>
-                    <tr><td><code>usermod</code></td><td>لتعديل بيانات المستخدم</td><td>4</td></tr>
-                    <tr><td><code>ps</code></td><td>يعرض العمليات الجارية</td><td>5</td></tr>
-                    <tr><td><code>top</code></td><td>يعرض العمليات في الوقت الحقيقي</td><td>5</td></tr>
-                    <tr><td><code>kill</code></td><td>لإرسال إشارة لإنهاء عملية</td><td>5</td></tr>
-                    <tr><td><code>df</code></td><td>يعرض مساحة القرص المتاحة</td><td>6</td></tr>
-                    <tr><td><code>du</code></td><td>يعرض استخدام مساحة مجلد</td><td>6</td></tr>
-                    <tr><td><code>fdisk</code></td><td>أداة لتقسيم القرص الصلب</td><td>6</td></tr>
-                    <tr><td><code>apt</code> / <code>yum</code></td><td>لتثبيت وإدارة الحزم</td><td>7</td></tr>
-                    <tr><td><code>tar</code></td><td>لتجميع وضغط الملفات</td><td>8</td></tr>
-                    <tr><td><code>zip</code> / <code>unzip</code></td><td>لضغط وفك ضغط الملفات</td><td>8</td></tr>
-                </tbody>
-            </table>
+            <a href="index.html"><i class="fas fa-home"></i> الرئيسية</a> &gt;
+            <a href="linux-path.html">مسار لينكس</a> &gt;
+            <span>الوحدة 9: الخلاصة والمراجعة</span>
         </div>
 
-        <div class="content-section">
-            <h2><i class="fas fa-link"></i> مراجع خارجية ومصادر إضافية</h2>
-            <p>لتعميق فهمك، نوصي بالاطلاع على هذه المراجع:</p>
-            <ul>
-                <li><a href="https://linuxcommand.org/" target="_blank">Linux Command Library</a> - قاعدة بيانات شاملة لأوامر لينكس.</li>
-                <li><a href="https://tldr.sh/" target="_blank">TLDR Pages</a> - دليل مختصر وعملي لأوامر سطر الأوامر.</li>
-                <li><a href="https://www.digitalocean.com/community/tutorials/how-to-use-sudo-and-sudoers-on-ubuntu-and-debian-based-systems" target="_blank">DigitalOcean Community</a> - دروس تفصيلية حول لينكس.</li>
-            </ul>
+        <div class="progress-container">
+            <div class="progress-header">
+                <span>تقدم المقرر</span>
+                <span id="progress-percentage">80%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: 80%"></div>
+            </div>
         </div>
         
-        <div class="content-section" style="text-align: center;">
-            <p>يمكنك تحميل قائمة الأوامر كملف PDF للرجوع إليها لاحقًا (سوف تضاف لاحقاً).</p>
-            <a href="#" class="download-btn"><i class="fas fa-download me-2"></i>تحميل قائمة الأوامر (PDF)</a>
-        </div>
+        <div class="content-grid">
+            <div class="main-content">
+                <div class="card">
+                    <h2><i class="fas fa-list-alt"></i> ملخص أوامر لينكس</h2>
+                    <p>هذا الجدول يجمع كل الأوامر التي تعلمتها في هذا المقرر لتكون مرجعًا سريعًا لك. يمكنك استخدامه كأداة للمراجعة أو كدليل في عملك اليومي.</p>
+                    
+                    <div class="search-box">
+                        <input type="text" class="search-input" id="command-search" placeholder="ابحث عن أمر معين...">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+                    
+                    <table class="commands-table" id="commands-table">
+                        <thead>
+                            <tr>
+                                <th width="20%">الأمر</th>
+                                <th width="60%">الوصف</th>
+                                <th width="20%">الوحدة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><code>ls</code></td><td>يعرض محتويات المجلد</td><td><span class="unit-badge">1</span></td></tr>
+                            <tr><td><code>cd</code></td><td>للتنقل بين المجلدات</td><td><span class="unit-badge">1</span></td></tr>
+                            <tr><td><code>pwd</code></td><td>يعرض المسار الحالي</td><td><span class="unit-badge">1</span></td></tr>
+                            <tr><td><code>cat</code></td><td>يعرض محتوى ملف نصي</td><td><span class="unit-badge">1</span></td></tr>
+                            <tr><td><code>mkdir</code></td><td>ينشئ مجلداً جديداً</td><td><span class="unit-badge">1</span></td></tr>
+                            <tr><td><code>rm</code></td><td>يحذف ملفات أو مجلدات</td><td><span class="unit-badge">1</span></td></tr>
+                            <tr><td><code>cp</code></td><td>ينسخ الملفات والمجلدات</td><td><span class="unit-badge">1</span></td></tr>
+                            <tr><td><code>mv</code></td><td>ينقل أو يعيد تسمية الملفات</td><td><span class="unit-badge">1</span></td></tr>
+                            <tr><td><code>hostnamectl</code></td><td>يعرض معلومات النظام</td><td><span class="unit-badge">1</span></td></tr>
+                            <tr><td><code>ifconfig</code> / <code>ip addr</code></td><td>يعرض معلومات الشبكة</td><td><span class="unit-badge">2</span></td></tr>
+                            <tr><td><code>ping</code></td><td>يختبر الاتصال بجهاز آخر</td><td><span class="unit-badge">2</span></td></tr>
+                            <tr><td><code>whois</code></td><td>يسترجع معلومات تسجيل النطاق</td><td><span class="unit-badge">2</span></td></tr>
+                            <tr><td><code>chmod</code></td><td>لتغيير أذونات الملفات</td><td><span class="unit-badge">3</span></td></tr>
+                            <tr><td><code>chown</code></td><td>لتغيير مالك الملف</td><td><span class="unit-badge">3</span></td></tr>
+                            <tr><td><code>useradd</code></td><td>لإنشاء مستخدم جديد</td><td><span class="unit-badge">4</span></td></tr>
+                            <tr><td><code>usermod</code></td><td>لتعديل بيانات المستخدم</td><td><span class="unit-badge">4</span></td></tr>
+                            <tr><td><code>passwd</code></td><td>لتغيير كلمة مرور المستخدم</td><td><span class="unit-badge">4</span></td></tr>
+                            <tr><td><code>ps</code></td><td>يعرض العمليات الجارية</td><td><span class="unit-badge">5</span></td></tr>
+                            <tr><td><code>top</code> / <code>htop</code></td><td>يعرض العمليات في الوقت الحقيقي</td><td><span class="unit-badge">5</span></td></tr>
+                            <tr><td><code>kill</code></td><td>لإرسال إشارة لإنهاء عملية</td><td><span class="unit-badge">5</span></td></tr>
+                            <tr><td><code>df</code></td><td>يعرض مساحة القرص المتاحة</td><td><span class="unit-badge">6</span></td></tr>
+                            <tr><td><code>du</code></td><td>يعرض استخدام مساحة مجلد</td><td><span class="unit-badge">6</span></td></tr>
+                            <tr><td><code>fdisk</code></td><td>أداة لتقسيم القرص الصلب</td><td><span class="unit-badge">6</span></td></tr>
+                            <tr><td><code>mount</code></td><td>لتركيب أنظمة الملفات</td><td><span class="unit-badge">6</span></td></tr>
+                            <tr><td><code>apt</code> / <code>yum</code></td><td>لتثبيت وإدارة الحزم</td><td><span class="unit-badge">7</span></td></tr>
+                            <tr><td><code>dpkg</code> / <code>rpm</code></td><td>لإدارة الحزم المنفردة</td><td><span class="unit-badge">7</span></td></tr>
+                            <tr><td><code>tar</code></td><td>لتجميع وضغط الملفات</td><td><span class="unit-badge">8</span></td></tr>
+                            <tr><td><code>gzip</code> / <code>gunzip</code></td><td>لضغط وفك ضغط الملفات</td><td><span class="unit-badge">8</span></td></tr>
+                            <tr><td><code>zip</code> / <code>unzip</code></td><td>لضغط وفك ضغط الملفات بصيغة ZIP</td><td><span class="unit-badge">8</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
 
-        <div class="navigation-buttons">
-            <a href="unit-8.html" class="btn"><i class="fas fa-arrow-right"></i> الوحدة السابقة: الضغط وفك الضغط</a>
-            <a href="unit-10.html" class="btn"> الملخص<i class="fas fa-home me-2"></i></a>
+                <div class="card">
+                    <h2><i class="fas fa-file-alt"></i> ملخصات سريعة حسب الوحدات</h2>
+                    
+                    <div class="cheatsheet-category">
+                        <h3><i class="fas fa-terminal"></i> الوحدة 1: الأوامر الأساسية</h3>
+                        <div class="code-container">
+                            <div class="code-header">
+                                <span>أهم الأوامر</span>
+                                <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                            </div>
+                            <div class="code-block">
+                                <pre><code class="language-bash"># التنقل والاستكشاف
+ls          # عرض المحتويات
+cd          # تغيير المجلد
+pwd         # عرض المسار الحالي
+
+# إدارة الملفات
+touch       # إنشاء ملف
+mkdir       # إنشاء مجلد
+cp          # نسخ
+mv          # نقل/إعادة تسمية
+rm          # حذف
+
+# عرض المحتوى
+cat         # عرض محتوى الملف
+less        # عرض صفحة بصفحة
+head        # عرض البداية
+tail        # عرض النهاية</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="cheatsheet-category">
+                        <h3><i class="fas fa-network-wired"></i> الوحدة 2: أوامر الشبكة</h3>
+                        <div class="code-container">
+                            <div class="code-header">
+                                <span>أهم الأوامر</span>
+                                <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                            </div>
+                            <div class="code-block">
+                                <pre><code class="language-bash"># معلومات الشبكة
+ifconfig    # عرض إعدادات الشبكة (قديم)
+ip addr     # عرض إعدادات الشبكة (حديث)
+ip route    # عرض جدول التوجيه
+
+# اختبار الاتصال
+ping        # اختبار الاتصال
+traceroute  # تتبع المسار
+netstat     # إحصاءات الشبكة
+ss          # معلومات المقابس
+
+# استعلامات DNS
+nslookup    # استعلام DNS
+dig         # استعلام DNS مفصل
+whois       # معلومات النطاق</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="cheatsheet-category">
+                        <h3><i class="fas fa-user-shield"></i> الوحدة 3: إدارة الصلاحيات</h3>
+                        <div class="code-container">
+                            <div class="code-header">
+                                <span>أهم الأوامر</span>
+                                <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                            </div>
+                            <div class="code-block">
+                                <pre><code class="language-bash"># إدارة الأذونات
+chmod       # تغيير أذونات الملف
+chown       # تغيير مالك الملف
+chgrp       # تغيير مجموعة الملف
+
+# الصلاحيات الخاصة
+umask       # تعيين أذونات افتراضية
+setfacl     # إدارة قوائم التحكم بالوصول
+
+# إدارة sudo
+visudo      # تحرير إعدادات sudo
+sudo        # تنفيذ أوامر بصلاحيات root</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- يمكن إضافة المزيد من الفئات هنا للوحدات الأخرى -->
+                    
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-download"></i> تحميل المراجع</h2>
+                    <p>يمكنك تحميل قائمة الأوامر كملف PDF للرجوع إليها لاحقًا:</p>
+                    
+                    <div style="text-align: center; margin: 25px 0;">
+                        <a href="#" class="download-btn"><i class="fas fa-file-pdf"></i> تحميل ملخص الأوامر (PDF)</a>
+                        <a href="#" class="download-btn"><i class="fas fa-file-alt"></i> تحميل كتيب المراجعة</a>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle alert-icon"></i>
+                        <div>
+                            <strong>ملاحظة:</strong> هذه الملفات ستساعدك على مراجعة الأوامر بسرعة عندما تحتاج إليها دون الحاجة للاتصال بالإنترنت.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-link"></i> مراجع خارجية ومصادر إضافية</h2>
+                    <p>لتعميق فهمك، نوصي بالاطلاع على هذه المراجع:</p>
+                    
+                    <div class="widget-content">
+                        <ul>
+                            <li><a href="https://linuxcommand.org/" target="_blank"><i class="fas fa-external-link-alt"></i> Linux Command Library</a> - قاعدة بيانات شاملة لأوامر لينكس.</li>
+                            <li><a href="https://tldr.sh/" target="_blank"><i class="fas fa-external-link-alt"></i> TLDR Pages</a> - دليل مختصر وعملي لأوامر سطر الأوامر.</li>
+                            <li><a href="https://www.digitalocean.com/community/tutorials" target="_blank"><i class="fas fa-external-link-alt"></i> DigitalOcean Community</a> - دروس تفصيلية حول لينكس.</li>
+                            <li><a href="https://explainshell.com/" target="_blank"><i class="fas fa-external-link-alt"></i> Explain Shell</a> - موقع لشرح مفصل لأوامر shell.</li>
+                            <li><a href="https://linuxjourney.com/" target="_blank"><i class="fas fa-external-link-alt"></i> Linux Journey</a> - دورة تفاعلية لتعلم لينكس.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="quiz-container">
+                    <h2><i class="fas fa-brain"></i> اختبر معرفتك</h2>
+                    <p>اختبر فهمك لأوامر لينكس التي تعلمتها في هذا المقرر:</p>
+                    
+                    <div class="quiz-question">
+                        <p>1. ما هو الأمر المستخدم لعرض محتويات مجلد مع التفاصيل الكاملة including الأذونات والملاك؟</p>
+                        <div class="quiz-options">
+                            <label class="quiz-option">
+                                <input type="radio" name="q1" value="a"> 
+                                <code>ls -a</code>
+                            </label>
+                            <label class="quiz-option">
+                                <input type="radio" name="q1" value="b"> 
+                                <code>ls -l</code>
+                            </label>
+                            <label class="quiz-option">
+                                <input type="radio" name="q1" value="c"> 
+                                <code>ls -la</code>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="quiz-question">
+                        <p>2. كيف يمكنك تغيير أذونات ملف ليكون قابل للقراءة والكتابة والتنفيذ by المالك، readable by المجموعة، ولا شيء للآخرين؟</p>
+                        <div class="quiz-options">
+                            <label class="quiz-option">
+                                <input type="radio" name="q2" value="a"> 
+                                <code>chmod 755 filename</code>
+                            </label>
+                            <label class="quiz-option">
+                                <input type="radio" name="q2" value="b"> 
+                                <code>chmod 750 filename</code>
+                            </label>
+                            <label class="quiz-option">
+                                <input type="radio" name="q2" value="c"> 
+                                <code>chmod 700 filename</code>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="quiz-question">
+                        <p>3. ما هو الفرق بين <code>apt update</code> و <code>apt upgrade</code>؟</p>
+                        <div class="quiz-options">
+                            <label class="quiz-option">
+                                <input type="radio" name="q3" value="a"> 
+                                <code>update</code> يحمل قائمة الحزم المتاحة، بينما <code>upgrade</code> يثبت التحديثات
+                            </label>
+                            <label class="quiz-option">
+                                <input type="radio" name="q3" value="b"> 
+                                <code>update</code> يثبت التحديثات، بينما <code>upgrade</code> يحمل قائمة الحزم
+                            </label>
+                            <label class="quiz-option">
+                                <input type="radio" name="q3" value="c"> 
+                                لا يوجد فرق بينهما
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <button class="quiz-submit" onclick="checkQuiz()">تحقق من الإجابات</button>
+                </div>
+                
+                <div class="navigation-buttons">
+                    <a href="unit-8.html" class="btn"><i class="fas fa-arrow-right"></i> الوحدة السابقة: الضغط وفك الضغط</a>
+                    <a href="unit-10.html" class="btn">الوحدة التالية: الملخص النهائي <i class="fas fa-arrow-left"></i></a>
+                </div>
+            </div>
+            
+            <div class="sidebar">
+                <div class="sidebar-widget">
+                    <h3><i class="fas fa-info-circle"></i> معلومات المقرر</h3>
+                    <div class="widget-content">
+                        <p><i class="fas fa-book"></i> <strong>عدد الوحدات:</strong> 9 وحدات</p>
+                        <p><i class="fas fa-terminal"></i> <strong>عدد الأوامر:</strong> 50+ أمر</p>
+                        <p><i class="fas fa-clock"></i> <strong>الوقت المقدر:</strong> 20-30 ساعة</p>
+                        <p><i class="fas fa-star"></i> <strong>المستوى:</strong> مبتدئ إلى متوسط</p>
+                    </div>
+                </div>
+                
+                <div class="sidebar-widget">
+                    <h3><i class="fas fa-bookmark"></i> روابط سريعة</h3>
+                    <div class="widget-content">
+                        <ul>
+                            <li><a href="unit-1.html"><i class="fas fa-file-alt"></i> الوحدة 1: الأوامر الأساسية</a></li>
+                            <li><a href="unit-2.html"><i class="fas fa-network-wired"></i> الوحدة 2: أوامر الشبكة</a></li>
+                            <li><a href="unit-3.html"><i class="fas fa-user-shield"></i> الوحدة 3: إدارة الصلاحيات</a></li>
+                            <li><a href="unit-4.html"><i class="fas fa-users"></i> الوحدة 4: إدارة المستخدمين</a></li>
+                            <li><a href="unit-5.html"><i class="fas fa-tasks"></i> الوحدة 5: إدارة العمليات</a></li>
+                            <li><a href="unit-6.html"><i class="fas fa-hdd"></i> الوحدة 6: إدارة القرص</a></li>
+                            <li><a href="unit-7.html"><i class="fas fa-box-open"></i> الوحدة 7: إدارة الحزم</a></li>
+                            <li><a href="unit-8.html"><i class="fas fa-file-archive"></i> الوحدة 8: الضغط وفك الضغط</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="sidebar-widget">
+                    <h3><i class="fas fa-graduation-cap"></i> نصائح للمراجعة</h3>
+                    <div class="widget-content">
+                        <div class="alert alert-note">
+                            <i class="fas fa-lightbulb"></i>
+                            <div>راجع الأوامر بشكل منتظم وطبقها في بيئة عملية</div>
+                        </div>
+                        <div class="alert alert-note">
+                            <i class="fas fa-lightbulb"></i>
+                            <div>استخدم أوامر المساعدة (<code>--help</code> أو <code>man</code>) لاكتشاف خيارات إضافية</div>
+                        </div>
+                        <div class="alert alert-note">
+                            <i class="fas fa-lightbulb"></i>
+                            <div>أنشئ مختبرك الافتراضي باستخدام VirtualBox أو VMware للتجريب</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="sidebar-widget">
+                    <h3><i class="fas fa-certificate"></i> ماذا بعد؟</h3>
+                    <div class="widget-content">
+                        <p>بعد إكمال هذا المقرر، يمكنك الانتقال إلى:</p>
+                        <ul>
+                            <li>إعدادات الخوادم وخدمات الشبكة</li>
+                            <li>أتمتة المهام باستخدام Shell Scripting</li>
+                            <li>مراقبة الأداء وتحسينه</li>
+                            <li>أمن وحماية أنظمة لينكس</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <footer>
             <p>© 2025 المسار الأمني للسيبراني. جميع الحقوق محفوظة.</p>
         </footer>
     </div>
+
+    <script>
+        // البحث في جدول الأوامر
+        document.getElementById('command-search').addEventListener('keyup', function() {
+            const searchText = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#commands-table tbody tr');
+            
+            rows.forEach(row => {
+                const command = row.querySelector('code').textContent.toLowerCase();
+                const description = row.cells[1].textContent.toLowerCase();
+                const unit = row.cells[2].textContent.toLowerCase();
+                
+                if (command.includes(searchText) || description.includes(searchText) || unit.includes(searchText)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+        
+        // نسخ النص من كتلة الأكواد
+        function copyCode(button) {
+            const codeBlock = button.parentElement.nextElementSibling;
+            const textToCopy = codeBlock.querySelector('code').innerText;
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                button.textContent = 'تم النسخ!';
+                setTimeout(() => {
+                    button.textContent = 'نسخ';
+                }, 2000);
+            });
+        }
+        
+        // التحقق من إجابات الاختبار
+        function checkQuiz() {
+            const answers = {
+                q1: 'b',
+                q2: 'b',
+                q3: 'a'
+            };
+            
+            let score = 0;
+            const total = Object.keys(answers).length;
+            
+            for (const question in answers) {
+                const selectedOption = document.querySelector(`input[name="${question}"]:checked`);
+                if (!selectedOption) continue;
+                
+                const optionElement = selectedOption.parentElement;
+                
+                if (selectedOption.value === answers[question]) {
+                    optionElement.classList.add('correct');
+                    score++;
+                } else {
+                    optionElement.classList.add('incorrect');
+                    // إظهار الإجابة الصحيحة
+                    const correctOption = document.querySelector(`input[name="${question}"][value="${answers[question]}"]`);
+                    if (correctOption) {
+                        correctOption.parentElement.classList.add('correct');
+                    }
+                }
+            }
+            
+            alert(`نتيجتك: ${score}/${total}\n${score === total ? 'أحسنت! اجتياز ممتاز.' : 'حاول مرة أخرى لتحسين نتيجتك.'}`);
+        }
+    </script>
 </body>
 </html>
-
