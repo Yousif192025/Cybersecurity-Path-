@@ -1,56 +1,812 @@
-<h2>𝐅𝐢𝐧𝐝 𝐂𝐡𝐞𝐚𝐭𝐬𝐡𝐞𝐞𝐭</h2>
-<ul>
-<li>Usage:</li>
-</ul>
-<pre><code>find &lt;path&gt; &lt;conditions&gt; &lt;actions&gt;
-</code></pre>
-<ul>
-<li>Access time conditions:</li>
-</ul>
-<pre><code>-atime 0           # Last accessed between now and 24 hours ago
--atime +0          # Accessed more than 24 hours ago
--atime 1           # Accessed between 24 and 48 hours ago
--atime +1          # Accessed more than 48 hours ago
--atime -1          # Accessed less than 24 hours ago (same a 0)
--ctime -6h30m      # File status changed within the last 6 hours and 30 minutes
--mtime +1w         # Last modified more than 1 week ago
-</code></pre>
-<ul>
-<li>Conditions:</li>
-</ul>
-<pre><code>-name &quot;*.c&quot;
-</code></pre>
-<pre><code>-user jonathan
--nouser
-</code></pre>
-<pre><code>-type f            # File
--type d            # Directory
--type l            # Symlink
-</code></pre>
-<pre><code>-depth 2           # At least 3 levels deep
--regex PATTERN
-</code></pre>
-<pre><code>-size 8            # Exactly 8 512-bit blocks 
--size -128c        # Smaller than 128 bytes
--size 1440k        # Exactly 1440KiB
--size +10M         # Larger than 10MiB
--size +2G          # Larger than 2GiB
-</code></pre>
-<pre><code>-newer   file.txt
--newerm  file.txt        # modified newer than file.txt
--newerX  file.txt        # [c]hange, [m]odified, [B]create
--newerXt &quot;1 hour ago&quot;    # [t]imestamp
-</code></pre>
-<hr>
-<ul>
-<li>Example:</li>
-<li>find a file where:<ul>
-<li>owned by user bandit7</li>
-<li>owned by group bandit6</li>
-<li>33 bytes in size</li>
-</ul>
-</li>
-</ul>
-<pre><code>find / -user bandit7 -group bandit6 -size 33c
-</code></pre>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مرجع أوامر Find في لينكس | منصة الأمن السيبراني</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/bash.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --info-color: #3498db;
+            --light-bg: #f8f9fa;
+            --dark-text: #2c3e50;
+            --light-text: #7f8c8d;
+            --terminal-bg: #1e1e1e;
+            --terminal-text: #d4d4d4;
+            --terminal-prompt: #3cce56;
+            --terminal-command: #569cd6;
+            --card-bg: #ffffff;
+            --border-radius: 12px;
+            --box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            --transition: all 0.3s ease;
+        }
 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.8;
+            color: var(--dark-text);
+            background-color: var(--light-bg);
+            direction: rtl;
+            text-align: right;
+            padding-bottom: 2rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2.5rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+            box-shadow: var(--box-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.05)"/></svg>');
+            background-size: cover;
+        }
+        
+        header h1 {
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+            position: relative;
+        }
+        
+        header p {
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .breadcrumb {
+            background-color: var(--light-bg);
+            padding: 12px 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .breadcrumb a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        
+        .breadcrumb a:hover {
+            text-decoration: underline;
+            color: var(--primary-color);
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 992px) {
+            .content-grid {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+        }
+
+        .card h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--secondary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card p {
+            margin-bottom: 15px;
+            line-height: 1.8;
+        }
+
+        .code-container {
+            position: relative;
+            margin: 20px 0;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .code-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            direction: ltr;
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .code-block {
+            background-color: #282c34;
+            color: #abb2bf;
+            padding: 16px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+            direction: ltr;
+            text-align: left;
+            tab-size: 4;
+        }
+        
+        .code-block code {
+            direction: ltr;
+            unicode-bidi: embed;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin: 20px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .alert-note {
+            background-color: #e9f7ef;
+            border-right: 5px solid var(--success-color);
+            color: #0f5132;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            border-right: 5px solid var(--warning-color);
+            color: #664d03;
+        }
+
+        .alert-info {
+            background-color: #e7f4ff;
+            border-right: 5px solid var(--info-color);
+            color: #055160;
+        }
+
+        .alert-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .sidebar-widget {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--box-shadow);
+        }
+
+        .sidebar-widget h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .widget-content ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .widget-content li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .widget-content li:last-child {
+            border-bottom: none;
+        }
+
+        .widget-content a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .widget-content a:hover {
+            color: var(--primary-color);
+        }
+
+        .task-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+
+        .task-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .task-list li:last-child {
+            border-bottom: none;
+        }
+
+        .task-list input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 12px 20px;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            font-weight: bold;
+            transition: var(--transition);
+        }
+        
+        .btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: var(--border-radius);
+            margin-top: 30px;
+        }
+
+        .command-category {
+            margin-bottom: 30px;
+        }
+
+        .command-category h3 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .example-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid var(--info-color);
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin: 20px 0;
+        }
+
+        .example-title {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .command-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .command-table th, .command-table td {
+            border: 1px solid #e0e0e0;
+            padding: 12px;
+            text-align: right;
+        }
+
+        .command-table th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: bold;
+        }
+
+        .command-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .command-table code {
+            background-color: #f1f1f1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            direction: ltr;
+            display: inline-block;
+            unicode-bidi: embed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-search"></i> مرجع أوامر Find في لينكس</h1>
+            <p>دليل شامل لأمر Find مع أمثلة عملية وتطبيقات متقدمة</p>
+        </header>
+        
+        <div class="breadcrumb">
+            <a href="index.html"><i class="fas fa-home"></i> الرئيسية</a> &gt;
+            <a href="../index.html">مقرر لينكس</a> &gt;
+            <span>مرجع أوامر Find</span>
+        </div>
+        
+        <div class="content-grid">
+            <div class="main-content">
+                <div class="card">
+                    <h2><i class="fas fa-info-circle"></i> مقدمة عن أمر Find</h2>
+                    <p>أمر <code>find</code> هو أحد أقوى وأكثر الأوامر فائدة في نظام لينكس. يستخدم للبحث عن الملفات والمجلدات بناءً على معايير مختلفة مثل الاسم، النوع، الحجم، وقت التعديل، وغيرها من الخصائص.</p>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-lightbulb alert-icon"></i>
+                        <div>
+                            <strong>نصيحة:</strong> يمكنك دمج عدة شروط معًا للحصول على نتائج أكثر دقة. استخدم العوامل المنطقية مثل <code>-a</code> (AND) و <code>-o</code> (OR) للربط بين الشروط.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-code"></i> بناء أمر Find</h2>
+                    <p>الصيغة الأساسية لأمر Find هي:</p>
+                    
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span>Terminal</span>
+                            <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                        </div>
+                        <div class="code-block">
+                            <pre><code class="language-bash">find <مسار> <شروط> <إجراءات></code></pre>
+                        </div>
+                    </div>
+                    
+                    <ul>
+                        <li><strong>المسار</strong>: المساحة التي تريد البحث فيها (مثل: /, /home, .)</li>
+                        <li><strong>الشروط</strong>: المعايير التي تحدد ما تبحث عنه</li>
+                        <li><strong>الإجراءات</strong>: ما يجب فعله بالنتائج (افتراضيًا: عرضها)</li>
+                    </ul>
+                </div>
+
+                <div class="command-category">
+                    <h3><i class="fas fa-clock"></i> شروط الوقت</h3>
+                    <p>البحث بناءً على وقت الوصول أو التعديل:</p>
+                    
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span>Terminal</span>
+                            <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                        </div>
+                        <div class="code-block">
+                            <pre><code class="language-bash"># وقت الوصول (Access Time)
+-atime 0           # تم الوصول إليه بين الآن وقبل 24 ساعة
+-atime +0          # تم الوصول إليه منذ أكثر من 24 ساعة
+-atime 1           # تم الوصول إليه بين 24 و 48 ساعة مضت
+-atime +1          # تم الوصول إليه منذ أكثر من 48 ساعة
+-atime -1          # تم الوصول إليه منذ أقل من 24 ساعة (مثل 0)
+
+# وقت تغيير الحالة (Change Time)
+-ctime -6h30m      # تغيرت حالة الملف خلال آخر 6 ساعات و 30 دقيقة
+
+# وقت التعديل (Modification Time)
+-mtime +1w         # تم التعديل منذ أكثر من أسبوع</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="command-category">
+                    <h3><i class="fas fa-filter"></i> شروط البحث الأساسية</h3>
+                    <p>أهم الشروط المستخدمة في البحث:</p>
+                    
+                    <table class="command-table">
+                        <thead>
+                            <tr>
+                                <th width="30%">الأمر</th>
+                                <th width="70%">الوصف</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>-name "*.c"</code></td>
+                                <td>البحث عن الملفات التي تطابق النمط (حساس لحالة الأحرف)</td>
+                            </tr>
+                            <tr>
+                                <td><code>-iname "*.txt"</code></td>
+                                <td>البحث عن الملفات التي تطابق النمط (غير حساس لحالة الأحرف)</td>
+                            </tr>
+                            <tr>
+                                <td><code>-user jonathan</code></td>
+                                <td>البحث عن الملفات المملوكة لمستخدم معين</td>
+                            </tr>
+                            <tr>
+                                <td><code>-nouser</code></td>
+                                <td>البحث عن الملفات التي لا يملكها أي مستخدم</td>
+                            </tr>
+                            <tr>
+                                <td><code>-type f</code></td>
+                                <td>البحث عن الملفات العادية</td>
+                            </tr>
+                            <tr>
+                                <td><code>-type d</code></td>
+                                <td>البحث عن المجلدات</td>
+                            </tr>
+                            <tr>
+                                <td><code>-type l</code></td>
+                                <td>البحث عن الروابط الرمزية</td>
+                            </tr>
+                            <tr>
+                                <td><code>-regex PATTERN</code></td>
+                                <td>البحث باستخدام التعبيرات النمطية</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="command-category">
+                    <h3><i class="fas fa-weight-hanging"></i> شروط الحجم</h3>
+                    <p>البحث بناءً على حجم الملف:</p>
+                    
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span>Terminal</span>
+                            <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                        </div>
+                        <div class="code-block">
+                            <pre><code class="language-bash"># البحث بحجم الملف
+-size 8            # بالضبط 8 كتلة (كل كتلة 512 بايت)
+-size -128c        # أصغر من 128 بايت
+-size 1440k        # بالضبط 1440 كيلوبايت
+-size +10M         # أكبر من 10 ميجابايت
+-size +2G          # أكبر من 2 جيجابايت</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-note">
+                        <i class="fas fa-info-circle alert-icon"></i>
+                        <div>
+                            <strong>ملاحظة:</strong> وحدات القياس المستخدمة في أمر find:
+                            <ul>
+                                <li><code>c</code> → بايت</li>
+                                <li><code>k</code> → كيلوبايت (1024 بايت)</li>
+                                <li><code>M</code> → ميجابايت (1048576 بايت)</li>
+                                <li><code>G</code> → جيجابايت (1073741824 بايت)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="command-category">
+                    <h3><i class="fas fa-file-medical-alt"></i> شروط المقارنة</h3>
+                    <p>مقارنة الملفات بناءً على وقت التعديل:</p>
+                    
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span>Terminal</span>
+                            <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                        </div>
+                        <div class="code-block">
+                            <pre><code class="language-bash"># المقارنة مع ملف مرجعي
+-newer file.txt           # تم تعديله بعد file.txt
+-newerm file.txt          # تم تعديله بعد file.txt (مرادف لـ -newer)
+-newerB file.txt          # تم إنشاؤه بعد file.txt
+-newerC file.txt          # تغيرت صلاحياته بعد file.txt
+
+# المقارنة مع وقت محدد
+-newermt "1 hour ago"     # تم تعديله خلال الساعة الماضية
+-newermt "2023-01-01"     # تم تعديله بعد تاريخ محدد</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-cogs"></i> إجراءات Find</h2>
+                    <p>بعد العثور على الملفات، يمكنك تنفيذ إجراءات عليها:</p>
+                    
+                    <table class="command-table">
+                        <thead>
+                            <tr>
+                                <th width="30%">الإجراء</th>
+                                <th width="70%">الوصف</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>-print</code></td>
+                                <td>عرض أسماء الملفات (الإفتراضي)</td>
+                            </tr>
+                            <tr>
+                                <td><code>-ls</code></td>
+                                <td>عرض النتائج بتنسيق مفصل类似 ls -l</td>
+                            </tr>
+                            <tr>
+                                <td><code>-delete</code></td>
+                                <td>حذف الملفات التي تطابق الشروط</td>
+                            </tr>
+                            <tr>
+                                <td><code>-exec command {} ;</code></td>
+                                <td>تنفيذ أمر على كل ملف</td>
+                            </tr>
+                            <tr>
+                                <td><code>-ok command {} ;</code></td>
+                                <td>مثل -exec ولكن يطلب تأكيد لكل ملف</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="example-box">
+                        <div class="example-title">
+                            <i class="fas fa-code"></i> مثال على استخدام -exec
+                        </div>
+                        <div class="code-container">
+                            <div class="code-header">
+                                <span>Terminal</span>
+                                <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                            </div>
+                            <div class="code-block">
+                                <pre><code class="language-bash"># حذف جميع الملفات المؤقتة القديمة
+find /tmp -name "*.tmp" -mtime +30 -exec rm -f {} \;
+
+# تغيير مالك مجموعة من الملفات
+find /var/www -user olduser -exec chown newuser:newgroup {} \;
+
+# البحث عن ملفات PHP تحتوي على كلمة معينة
+find . -name "*.php" -exec grep -l "password" {} \;</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-tasks"></i> أمثلة عملية</h2>
+                    
+                    <div class="example-box">
+                        <div class="example-title">
+                            <i class="fas fa-search"></i> مثال: البحث عن ملف بمواصفات محددة
+                        </div>
+                        <p>ابحث عن ملف حيث:</p>
+                        <ul>
+                            <li>مملوك للمستخدم bandit7</li>
+                            <li>مملوك للمجموعة bandit6</li>
+                            <li>حجمه 33 بايت</li>
+                        </ul>
+                        
+                        <div class="code-container">
+                            <div class="code-header">
+                                <span>Terminal</span>
+                                <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                            </div>
+                            <div class="code-block">
+                                <pre><code class="language-bash">find / -user bandit7 -group bandit6 -size 33c</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="example-box">
+                        <div class="example-title">
+                            <i class="fas fa-search"></i> مثال: البحث عن ملفات كبيرة الحجم
+                        </div>
+                        <p>ابحث عن الملفات الأكبر من 100MB وقم بسرد تفاصيلها:</p>
+                        
+                        <div class="code-container">
+                            <div class="code-header">
+                                <span>Terminal</span>
+                                <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                            </div>
+                            <div class="code-block">
+                                <pre><code class="language-bash">find /home -size +100M -ls</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="example-box">
+                        <div class="example-title">
+                            <i class="fas fa-search"></i> مثال: البحث عن ملفات معدلة حديثاً
+                        </div>
+                        <p>ابحث عن الملفات التي تم تعديلها خلال آخر 24 ساعة:</p>
+                        
+                        <div class="code-container">
+                            <div class="code-header">
+                                <span>Terminal</span>
+                                <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                            </div>
+                            <div class="code-block">
+                                <pre><code class="language-bash">find /var/log -mtime -1 -name "*.log"</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="example-box">
+                        <div class="example-title">
+                            <i class="fas fa-search"></i> مثال: البحث عن ملفات بتنفيذ أوامر متعددة
+                        </div>
+                        <p>ابحث عن ملفات الصور وانسخها إلى مجلد backup:</p>
+                        
+                        <div class="code-container">
+                            <div class="code-header">
+                                <span>Terminal</span>
+                                <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                            </div>
+                            <div class="code-block">
+                                <pre><code class="language-bash">find ~ -name "*.jpg" -o -name "*.png" -exec cp {} /backup/ \;</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-lightbulb"></i> نصائح متقدمة</h2>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-lightbulb alert-icon"></i>
+                        <div>
+                            <strong>تحسين الأداء:</strong> عند البحث في مساحات كبيرة، استخدم <code>-xdev</code> للحد من البحث داخل نظام ملفات واحد فقط، مما يسرع عملية البحث.
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle alert-icon"></i>
+                        <div>
+                            <strong>كن حذراً مع الصلاحيات:</strong> عند البحث في مسارات نظامية، قد تحتاج إلى استخدام <code>sudo</code> للوصول إلى بعض الملفات والمجلدات.
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-note">
+                        <i class="fas fa-info-circle alert-icon"></i>
+                        <div>
+                            <strong>البحث باستخدام التعبيرات النمطية:</strong> يمكنك استخدام <code>-regex</code> بدلاً من <code>-name</code> للبحث بأنماط أكثر تعقيداً باستخدام التعبيرات النمطية.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="navigation-buttons">
+                    <a href="ssh-cheatsheet.html" class="btn"><i class="fas fa-arrow-right"></i> المرجع السابق: SSH</a>
+                    <a href="cut-cheatsheet.html" class="btn">المرجع التالي: Cut <i class="fas fa-arrow-left"></i></a>
+                </div>
+            </div>
+            
+            <div class="sidebar">
+                <div class="sidebar-widget">
+                    <h3><i class="fas fa-bookmark"></i> روابط سريعة</h3>
+                    <div class="widget-content">
+                        <ul>
+                            <li><a href="index.html"><i class="fas fa-home"></i> صفحة المقرر الرئيسية</a></li>
+                            <li><a href="../unit-1.html"><i class="fas fa-terminal"></i> الوحدة 1: الأوامر الأساسية</a></li>
+                            <li><a href="../unit-6.html"><i class="fas fa-hdd"></i> الوحدة 6: إدارة التخزين</a></li>
+                            <li><a href="nmap-cheatsheet.html"><i class="fas fa-network-wired"></i> مرجع Nmap</a></li>
+                            <li><a href="ssh-cheatsheet.html"><i class="fas fa-shield-alt"></i> مرجع SSH</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="sidebar-widget">
+                    <h3><i class="fas fa-graduation-cap"></i> ما ستتعلمه</h3>
+                    <div class="widget-content">
+                        <ul>
+                            <li><i class="fas fa-check-circle" style="color: var(--success-color);"></i> استخدام شروط البحث المختلفة</li>
+                            <li><i class="fas fa-check-circle" style="color: var(--success-color);"></i> البحث بحسب الوقت والتاريخ</li>
+                            <li><i class="fas fa-check-circle" style="color: var(--success-color);"></i> البحث بحسب الحجم والنوع</li>
+                            <li><i class="fas fa-check-circle" style="color: var(--success-color);"></i> تنفيذ أوامر على نتائج البحث</li>
+                            <li><i class="fas fa-check-circle" style="color: var(--success-color);"></i> أمثلة عملية متقدمة</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="sidebar-widget">
+                    <h3><i class="fas fa-download"></i> تحميل المرجع</h3>
+                    <div class="widget-content">
+                        <p>يمكنك تحميل هذا المرجع كملف PDF للاستخدام دون اتصال:</p>
+                        <a href="#" class="btn" style="width: 100%; text-align: center; margin-top: 10px;">
+                            <i class="fas fa-file-pdf"></i> تحميل PDF
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="sidebar-widget">
+                    <h3><i class="fas fa-history"></i> أحدث التغييرات</h3>
+                    <div class="widget-content">
+                        <ul>
+                            <li>تمت إضافة أمثلة عملية جديدة</li>
+                            <li>تحسين شرح خيارات الوقت</li>
+                            <li>إضافة قسم النصائح المتقدمة</li>
+                            <li>تحسين التنسيق للجوال</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2025 المسار الأمني للسيبراني. جميع الحقوق محفوظة.</p>
+        </footer>
+    </div>
+
+    <script>
+        // نسخ النص من كتلة الأكواد
+        function copyCode(button) {
+            const codeBlock = button.parentElement.nextElementSibling;
+            const textToCopy = codeBlock.querySelector('code').innerText;
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                button.textContent = 'تم النسخ!';
+                setTimeout(() => {
+                    button.textContent = 'نسخ';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
