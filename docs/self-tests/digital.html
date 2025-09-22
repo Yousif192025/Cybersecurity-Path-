@@ -20,6 +20,8 @@
             --dark-blue: #0d47a1;
             --accent-blue: #00b4db;
             --cyber-green: #00ff9d;
+            --correct-green: #4caf50;
+            --incorrect-red: #f44336;
             --dark-gray: #333;
             --light-gray: #f5f5f5;
             --white: #fff;
@@ -169,6 +171,7 @@
             text-align: right;
             cursor: pointer;
             transition: var(--transition);
+            position: relative;
         }
         
         .option-btn:hover {
@@ -180,6 +183,32 @@
             background: #e8f0fe;
             border-color: var(--primary-blue);
             box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
+        }
+        
+        .option-btn.correct {
+            background: #e8f5e9;
+            border-color: var(--correct-green);
+        }
+        
+        .option-btn.incorrect {
+            background: #ffebee;
+            border-color: var(--incorrect-red);
+        }
+        
+        .status-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+        }
+        
+        .correct .status-icon {
+            color: var(--correct-green);
+        }
+        
+        .incorrect .status-icon {
+            color: var(--incorrect-red);
         }
         
         .quiz-navigation {
@@ -236,11 +265,11 @@
             padding: 30px;
             border-radius: 8px;
             box-shadow: var(--shadow);
-            text-align: center;
         }
         
         .results-header {
             margin-bottom: 25px;
+            text-align: center;
         }
         
         .score-display {
@@ -271,6 +300,65 @@
             gap: 15px;
             margin-top: 30px;
             flex-wrap: wrap;
+        }
+        
+        /* Review Section */
+        .review-container {
+            margin-top: 40px;
+        }
+        
+        .review-item {
+            background: var(--light-gray);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--primary-blue);
+        }
+        
+        .review-item.correct {
+            border-left-color: var(--correct-green);
+        }
+        
+        .review-item.incorrect {
+            border-left-color: var(--incorrect-red);
+        }
+        
+        .review-question {
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .review-answer {
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        
+        .review-correct {
+            background: #e8f5e9;
+            border-left: 3px solid var(--correct-green);
+        }
+        
+        .review-incorrect {
+            background: #ffebee;
+            border-left: 3px solid var(--incorrect-red);
+        }
+        
+        .answer-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        
+        .correct-answer .answer-status {
+            color: var(--correct-green);
+        }
+        
+        .incorrect-answer .answer-status {
+            color: var(--incorrect-red);
         }
         
         /* Footer Styling */
@@ -343,11 +431,12 @@
         
         /* Print Styles for PDF */
         @media print {
-            .navbar, .hero-section, footer, .quiz-navigation, .no-print {
+            .navbar, .hero-section, footer, .quiz-navigation, .no-print,
+            .result-actions, .student-info-form {
                 display: none !important;
             }
             
-            body, .main-content, .quiz-results {
+            body, .main-content, .quiz-results, .review-container {
                 background: white !important;
                 color: black !important;
                 box-shadow: none !important;
@@ -357,6 +446,10 @@
             
             .score-display {
                 color: black !important;
+            }
+            
+            .review-item {
+                page-break-inside: avoid;
             }
         }
     </style>
@@ -430,7 +523,7 @@
             <section id="quiz-container" class="quiz-section" style="display: none;">
                 <div class="main-content">
                     <div class="quiz-header">
-                        <div class="question-counter" id="question-counter">السؤال 1 من 10</div>
+                        <div class="question-counter" id="question-counter">السؤال 1 من 5</div>
                         <div class="quiz-timer" id="quiz-timer">الزمن المتبقي: <span id="time-left">01:30</span></div>
                     </div>
                     
@@ -462,21 +555,34 @@
                     <p><strong>تاريخ الاختبار:</strong> <span id="test-date">-</span></p>
                 </div>
                 
-                <div class="score-display">
-                    <span id="score-display">0</span>/<span id="total-questions-display">0</span>
+                <div class="text-center">
+                    <div class="score-display">
+                        <span id="score-display">0</span>/<span id="total-questions-display">0</span>
+                    </div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+                    </div>
+                    
+                    <p id="percentage-display" class="mb-4">نسبة النجاح: 0%</p>
+                    
+                    <div id="result-message" class="alert alert-info"></div>
                 </div>
                 
-                <div class="progress-container">
-                    <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+                <!-- قسم مراجعة الأسئلة -->
+                <div class="review-container">
+                    <h3 class="mb-4">مراجعة الأسئلة</h3>
+                    <div id="questions-review">
+                        <!-- سيتم تعبئتها ديناميكيًا -->
+                    </div>
                 </div>
-                
-                <p id="percentage-display" class="mb-4">نسبة النجاح: 0%</p>
-                
-                <div id="result-message" class="alert alert-info"></div>
                 
                 <div class="result-actions">
                     <button id="retake-quiz-btn" class="btn secondary-btn">
                         <i class="fas fa-redo"></i> إعادة الاختبار
+                    </button>
+                    <button id="view-results-btn" class="btn primary-btn">
+                        <i class="fas fa-eye"></i> عرض النتائج فقط
                     </button>
                     <button id="print-results-btn" class="btn success-btn">
                         <i class="fas fa-download"></i> تحميل النتائج PDF
@@ -598,10 +704,12 @@
             const resultMessage = document.getElementById('result-message');
             const retakeQuizBtn = document.getElementById('retake-quiz-btn');
             const printResultsBtn = document.getElementById('print-results-btn');
+            const viewResultsBtn = document.getElementById('view-results-btn');
             const resultStudentName = document.getElementById('result-student-name');
             const resultStudentId = document.getElementById('result-student-id');
             const testDate = document.getElementById('test-date');
             const progressBar = document.getElementById('progress-bar');
+            const questionsReview = document.getElementById('questions-review');
 
             // متغيرات الحالة
             let currentQuestion = 0;
@@ -611,6 +719,7 @@
             let studentName = '';
             let studentId = '';
             let userAnswers = [];
+            let showReview = true;
 
             // بدء الاختبار عند تقديم النموذج
             studentInfoForm.addEventListener('submit', function(e) {
@@ -690,6 +799,7 @@
                 if (currentQuestion < quizData.length - 1) {
                     currentQuestion++;
                     loadQuestion();
+                    startTimer();
                 } else {
                     finishQuiz();
                 }
@@ -700,6 +810,8 @@
                 if (currentQuestion > 0) {
                     currentQuestion--;
                     loadQuestion();
+                    // عند الرجوع للخلف، لا نعيد تشغيل المؤقت بل نعرض الوقت المتبقي
+                    updateTimerDisplay();
                 }
             });
 
@@ -716,6 +828,7 @@
                     if (timeLeft <= 0) {
                         clearInterval(timer);
                         if (currentQuestion < quizData.length - 1) {
+                            // الانتقال تلقائياً للسؤال التالي عند انتهاء الوقت
                             currentQuestion++;
                             loadQuestion();
                             startTimer();
@@ -773,6 +886,62 @@
                     resultMessage.textContent = 'ضعيف! تحتاج إلى دراسة أساسيات الأمن السيبراني بشكل أعمق.';
                     resultMessage.className = 'alert alert-danger';
                 }
+                
+                // عرض مراجعة الأسئلة
+                showQuestionsReview();
+            }
+
+            // عرض مراجعة الأسئلة
+            function showQuestionsReview() {
+                questionsReview.innerHTML = '';
+                
+                quizData.forEach((question, index) => {
+                    const userAnswer = userAnswers[index];
+                    const isCorrect = userAnswer === question.correctAnswer;
+                    
+                    const reviewItem = document.createElement('div');
+                    reviewItem.classList.add('review-item');
+                    if (isCorrect) {
+                        reviewItem.classList.add('correct');
+                    } else {
+                        reviewItem.classList.add('incorrect');
+                    }
+                    
+                    let reviewHTML = `
+                        <div class="review-question">${index + 1}. ${question.question}</div>
+                    `;
+                    
+                    // عرض الخيارات
+                    question.options.forEach((option, optIndex) => {
+                        let optionClass = '';
+                        if (optIndex === question.correctAnswer) {
+                            optionClass = 'review-correct';
+                        } else if (optIndex === userAnswer && !isCorrect) {
+                            optionClass = 'review-incorrect';
+                        }
+                        
+                        reviewHTML += `
+                            <div class="review-answer ${optionClass}">
+                                ${option}
+                                ${optIndex === question.correctAnswer ? '<i class="fas fa-check status-icon"></i>' : ''}
+                                ${optIndex === userAnswer && !isCorrect ? '<i class="fas fa-times status-icon"></i>' : ''}
+                            </div>
+                        `;
+                    });
+                    
+                    // عرض حالة الإجابة
+                    reviewHTML += `
+                        <div class="answer-status ${isCorrect ? 'correct-answer' : 'incorrect-answer'}">
+                            ${isCorrect ? 
+                                '<i class="fas fa-check-circle"></i> إجابتك صحيحة' : 
+                                '<i class="fas fa-times-circle"></i> إجابتك خاطئة - الإجابة الصحيحة: ' + question.options[question.correctAnswer]
+                            }
+                        </div>
+                    `;
+                    
+                    reviewItem.innerHTML = reviewHTML;
+                    questionsReview.appendChild(reviewItem);
+                });
             }
 
             // إعادة الاختبار
@@ -783,6 +952,15 @@
                 
                 quizResultsContainer.style.display = 'none';
                 studentInfoContainer.style.display = 'block';
+            });
+
+            // تبديل عرض/إخفاء مراجعة الأسئلة
+            viewResultsBtn.addEventListener('click', function() {
+                showReview = !showReview;
+                questionsReview.style.display = showReview ? 'block' : 'none';
+                viewResultsBtn.innerHTML = showReview ? 
+                    '<i class="fas fa-eye-slash"></i> إخفاء المراجعة' : 
+                    '<i class="fas fa-eye"></i> عرض المراجعة';
             });
 
             // طباعة النتائج كPDF
