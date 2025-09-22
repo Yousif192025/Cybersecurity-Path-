@@ -10,8 +10,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     
-    <!-- مكتبة html2pdf لتصدير النتائج -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- مكتبة jsPDF مباشرة بدون html2pdf -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
         :root {
@@ -182,32 +183,6 @@
             background: #e8f0fe;
             border-color: var(--primary-blue);
             box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
-        }
-        
-        .option-btn.correct {
-            background: #e8f5e9;
-            border-color: var(--correct-green);
-        }
-        
-        .option-btn.incorrect {
-            background: #ffebee;
-            border-color: var(--incorrect-red);
-        }
-        
-        .status-icon {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 1.2rem;
-        }
-        
-        .correct .status-icon {
-            color: var(--correct-green);
-        }
-        
-        .incorrect .status-icon {
-            color: var(--incorrect-red);
         }
         
         .quiz-navigation {
@@ -428,46 +403,20 @@
                 width: 100%;
             }
         }
-        
-        /* Print Styles for PDF */
-        @media print {
-            .navbar, .hero-section, footer, .quiz-navigation, .no-print,
-            .result-actions, .student-info-form {
-                display: none !important;
-            }
-            
-            body, .main-content, .quiz-results, .review-container {
-                background: white !important;
-                color: black !important;
-                box-shadow: none !important;
-                padding: 15px !important;
-                margin: 0 !important;
-            }
-            
-            .score-display {
-                color: black !important;
-            }
-            
-            .review-item {
-                page-break-inside: avoid;
-                border: 1px solid #ddd !important;
-                margin-bottom: 15px !important;
-            }
-            
-            .container {
-                width: 100% !important;
-                max-width: 100% !important;
-                padding: 0 !important;
-                margin: 0 !important;
-            }
-        }
 
-        .pdf-container {
-            direction: rtl;
-            padding: 20px;
-            font-family: 'Tajawal', sans-serif;
+        /* PDF Styles */
+        #pdf-template {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+            width: 794px; /* A4 width in pixels */
+            min-height: 1123px; /* A4 height in pixels */
+            padding: 40px;
             background: white;
             color: black;
+            font-family: 'Tajawal', sans-serif;
+            direction: rtl;
+            box-sizing: border-box;
         }
 
         .pdf-header {
@@ -478,13 +427,12 @@
         }
 
         .pdf-section {
-            margin-bottom: 20px;
-            page-break-inside: avoid;
+            margin-bottom: 25px;
         }
 
         .pdf-question {
             margin-bottom: 15px;
-            padding: 10px;
+            padding: 15px;
             border: 1px solid #ddd;
             border-radius: 5px;
             page-break-inside: avoid;
@@ -651,6 +599,9 @@
                 <i class="fas fa-spinner fa-spin fa-2x"></i>
                 <p>جاري إنشاء ملف PDF، يرجى الانتظار...</p>
             </div>
+
+            <!-- قالب PDF مخفي -->
+            <div id="pdf-template" style="display: none;"></div>
         </div>
     </main>
 
@@ -769,6 +720,7 @@
             const progressBar = document.getElementById('progress-bar');
             const questionsReview = document.getElementById('questions-review');
             const pdfLoading = document.getElementById('pdf-loading');
+            const pdfTemplate = document.getElementById('pdf-template');
 
             // متغيرات الحالة
             let currentQuestion = 0;
@@ -1018,57 +970,54 @@
                 // إظهار رسالة التحميل
                 pdfLoading.style.display = 'block';
                 
-                // استخدام setTimeout لإعطاء الوقت لتحميل العنصر
+                // إنشاء محتوى PDF
+                createPDFContent();
+                
+                // استخدام html2canvas لالتقاط المحتوى
                 setTimeout(function() {
-                    try {
-                        // إنشاء عنصر منفصل للطباعة
-                        const printableElement = document.createElement('div');
-                        printableElement.className = 'pdf-container';
+                    html2canvas(pdfTemplate, {
+                        scale: 2,
+                        useCORS: true,
+                        logging: false,
+                        width: pdfTemplate.scrollWidth,
+                        height: pdfTemplate.scrollHeight,
+                        scrollX: 0,
+                        scrollY: 0
+                    }).then(canvas => {
+                        // تحويل Canvas إلى صورة
+                        const imgData = canvas.toDataURL('image/jpeg', 1.0);
                         
-                        // إضافة محتوى PDF
-                        printableElement.innerHTML = generatePDFContent();
+                        // إنشاء PDF باستخدام jsPDF
+                        const { jsPDF } = window.jspdf;
+                        const pdf = new jsPDF('p', 'mm', 'a4');
                         
-                        // إلحاق العنصر بالجسم مؤقتاً
-                        document.body.appendChild(printableElement);
+                        const pdfWidth = pdf.internal.pageSize.getWidth();
+                        const pdfHeight = pdf.internal.pageSize.getHeight();
                         
-                        // إعداد خيارات PDF
-                        const options = {
-                            margin: 15,
-                            filename: `نتيجة_اختبار_${studentName}_${new Date().toISOString().slice(0, 10)}.pdf`,
-                            image: { type: 'jpeg', quality: 0.98 },
-                            html2canvas: { 
-                                scale: 2, 
-                                useCORS: true,
-                                logging: false,
-                                width: printableElement.scrollWidth,
-                                height: printableElement.scrollHeight
-                            },
-                            jsPDF: { 
-                                unit: 'mm', 
-                                format: 'a4', 
-                                orientation: 'portrait',
-                                compress: true
-                            }
-                        };
+                        // حساب نسبة التحجيم للصورة
+                        const imgWidth = canvas.width;
+                        const imgHeight = canvas.height;
+                        const ratio = imgHeight / imgWidth;
+                        const pdfImageHeight = pdfWidth * ratio;
                         
-                        // إنشاء PDF
-                        html2pdf().set(options).from(printableElement).save().then(() => {
-                            // إخفاء رسالة التحميل
-                            pdfLoading.style.display = 'none';
-                            // إزالة العنصر المؤقت
-                            document.body.removeChild(printableElement);
-                        });
+                        // إضافة الصورة إلى PDF
+                        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfImageHeight);
                         
-                    } catch (error) {
+                        // حفظ PDF
+                        pdf.save(`نتيجة_اختبار_${studentName}_${new Date().toISOString().slice(0, 10)}.pdf`);
+                        
+                        // إخفاء رسالة التحميل
+                        pdfLoading.style.display = 'none';
+                    }).catch(error => {
                         console.error('Error generating PDF:', error);
                         alert('حدث خطأ أثناء إنشاء ملف PDF. يرجى المحاولة مرة أخرى.');
                         pdfLoading.style.display = 'none';
-                    }
-                }, 500); // تأخير 500 مللي ثانية لضمان تحميل العنصر
+                    });
+                }, 500);
             });
 
-            // توليد محتوى PDF
-            function generatePDFContent() {
+            // إنشاء محتوى PDF
+            function createPDFContent() {
                 const percentage = Math.round((score / quizData.length) * 100);
                 const testDateFormatted = new Date().toLocaleDateString('ar-SA');
                 
@@ -1092,30 +1041,33 @@
                     `;
                 });
                 
-                return `
+                pdfTemplate.innerHTML = `
                     <div class="pdf-header">
-                        <h2>نتائج اختبار المهارات الرقمية</h2>
-                        <h3>منصة مسار الأمن السيبراني</h3>
+                        <h1>نتائج اختبار المهارات الرقمية</h1>
+                        <h2>منصة مسار الأمن السيبراني</h2>
                         <p>تاريخ الاختبار: ${testDateFormatted}</p>
                     </div>
                     
                     <div class="pdf-section">
-                        <h4>معلومات المتدرب</h4>
+                        <h3>معلومات المتدرب</h3>
                         <p><strong>الاسم:</strong> ${studentName}</p>
                         <p><strong>رقم الهوية:</strong> ${studentId}</p>
                     </div>
                     
                     <div class="pdf-section">
-                        <h4>النتيجة النهائية</h4>
+                        <h3>النتيجة النهائية</h3>
                         <p><strong>الدرجة:</strong> ${score} من ${quizData.length}</p>
                         <p><strong>نسبة النجاح:</strong> ${percentage}%</p>
                     </div>
                     
                     <div class="pdf-section">
-                        <h4>مراجعة الأسئلة</h4>
+                        <h3>مراجعة الأسئلة</h3>
                         ${questionsHTML}
                     </div>
                 `;
+                
+                // إظهار القالب مؤقتاً لالتقاطه
+                pdfTemplate.style.display = 'block';
             }
         });
     </script>
