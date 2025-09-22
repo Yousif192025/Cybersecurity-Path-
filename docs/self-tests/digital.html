@@ -10,9 +10,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     
-    <!-- مكتبة jsPDF مباشرة -->
+    <!-- مكتبة jsPDF مع دعم العربية -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-arabic@1.0.0/dist/jspdf-arabic.min.js"></script>
 
     <style>
         :root {
@@ -929,46 +929,164 @@
                 }, 500);
             });
 
-            // إنشاء PDF مع صفحات متعددة
+            // إنشاء PDF مع دعم اللغة العربية
             function generatePDF() {
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('p', 'mm', 'a4');
+                try {
+                    // استخدام jsPDF-Arabic لدعم اللغة العربية
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    
+                    // تفعيل دعم اللغة العربية
+                    pdf.setLanguage('ar');
+                    pdf.setR2L(true);
+                    
+                    const pageWidth = pdf.internal.pageSize.getWidth();
+                    const pageHeight = pdf.internal.pageSize.getHeight();
+                    const margin = 20;
+                    let yPosition = margin;
+                    
+                    // إضافة المحتوى إلى PDF
+                    yPosition = addHeader(pdf, pageWidth, margin, yPosition);
+                    yPosition = addStudentInfo(pdf, pageWidth, margin, yPosition + 15);
+                    yPosition = addResults(pdf, pageWidth, margin, yPosition + 15);
+                    yPosition = addQuestionsReview(pdf, pageWidth, margin, yPosition + 15, pageHeight);
+                    
+                    // حفظ PDF
+                    pdf.save(`نتيجة_اختبار_${studentName}_${new Date().toISOString().slice(0, 10)}.pdf`);
+                    
+                } catch (error) {
+                    console.error('Error generating PDF:', error);
+                    // استخدام طريقة بديلة إذا فشلت الطريقة الأولى
+                    generatePDFAlternative();
+                } finally {
+                    // إخفاء رسالة التحميل
+                    pdfLoading.style.display = 'none';
+                }
+            }
+
+            // طريقة بديلة لإنشاء PDF باستخدام html2canvas
+            function generatePDFAlternative() {
+                // إنشاء عنصر مؤقت لعرض المحتوى
+                const tempDiv = document.createElement('div');
+                tempDiv.style.cssText = `
+                    position: fixed;
+                    top: -10000px;
+                    left: -10000px;
+                    width: 794px;
+                    min-height: 1123px;
+                    padding: 40px;
+                    background: white;
+                    color: black;
+                    font-family: 'Tajawal', sans-serif;
+                    direction: rtl;
+                    font-size: 14px;
+                    line-height: 1.6;
+                `;
                 
-                const pageWidth = pdf.internal.pageSize.getWidth();
-                const pageHeight = pdf.internal.pageSize.getHeight();
-                const margin = 20;
-                const lineHeight = 7;
-                let yPosition = margin;
+                // إضافة المحتوى إلى العنصر المؤقت
+                tempDiv.innerHTML = generatePDFContent();
+                document.body.appendChild(tempDiv);
                 
-                // إضافة المحتوى إلى PDF
-                addHeader(pdf, pageWidth, margin);
-                yPosition = addStudentInfo(pdf, pageWidth, margin, yPosition + 20);
-                yPosition = addResults(pdf, pageWidth, margin, yPosition + 15);
-                yPosition = addQuestionsReview(pdf, pageWidth, margin, yPosition + 15, pageHeight);
+                // استخدام html2canvas لالتقاط المحتوى
+                html2canvas(tempDiv, {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false
+                }).then(canvas => {
+                    const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfHeight = pdf.internal.pageSize.getHeight();
+                    
+                    // حساب نسبة التحجيم
+                    const imgWidth = canvas.width;
+                    const imgHeight = canvas.height;
+                    const ratio = imgHeight / imgWidth;
+                    const pdfImageHeight = pdfWidth * ratio;
+                    
+                    // إضافة الصورة إلى PDF
+                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfImageHeight);
+                    pdf.save(`نتيجة_اختبار_${studentName}_${new Date().toISOString().slice(0, 10)}.pdf`);
+                    
+                    // إزالة العنصر المؤقت
+                    document.body.removeChild(tempDiv);
+                }).catch(error => {
+                    console.error('Error generating PDF with canvas:', error);
+                    alert('حدث خطأ أثناء إنشاء ملف PDF. يرجى المحاولة مرة أخرى.');
+                    document.body.removeChild(tempDiv);
+                });
+            }
+
+            // إنشاء محتوى HTML للطريقة البديلة
+            function generatePDFContent() {
+                const percentage = Math.round((score / quizData.length) * 100);
+                const testDateFormatted = new Date().toLocaleDateString('ar-SA');
                 
-                // حفظ PDF
-                pdf.save(`نتيجة_اختبار_${studentName}_${new Date().toISOString().slice(0, 10)}.pdf`);
+                let questionsHTML = '';
                 
-                // إخفاء رسالة التحميل
-                pdfLoading.style.display = 'none';
+                quizData.forEach((question, index) => {
+                    const userAnswer = userAnswers[index];
+                    const isCorrect = userAnswer === question.correctAnswer;
+                    const statusText = isCorrect ? 'صحيحة ✓' : 'خاطئة ✗';
+                    const statusColor = isCorrect ? 'color: green;' : 'color: red;';
+                    const userAnswerText = userAnswer !== null ? question.options[userAnswer] : 'لم يتم الإجابة';
+                    
+                    questionsHTML += `
+                        <div style="margin-bottom: 20px; border: 1px solid #ddd; padding: 15px; border-radius: 5px;">
+                            <h4 style="margin: 0 0 10px 0;">السؤال ${index + 1}: ${question.question}</h4>
+                            <p style="margin: 5px 0;"><strong>الإجابة المختارة:</strong> ${userAnswerText}</p>
+                            <p style="margin: 5px 0;"><strong>الإجابة الصحيحة:</strong> ${question.options[question.correctAnswer]}</p>
+                            <p style="margin: 5px 0; ${statusColor}"><strong>الحالة:</strong> ${statusText}</p>
+                        </div>
+                    `;
+                });
+                
+                return `
+                    <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #1a73e8; padding-bottom: 15px;">
+                        <h1 style="margin: 0 0 10px 0;">نتائج اختبار المهارات الرقمية</h1>
+                        <h2 style="margin: 0 0 10px 0;">منصة مسار الأمن السيبراني</h2>
+                        <p style="margin: 0;">تاريخ الاختبار: ${testDateFormatted}</p>
+                    </div>
+                    
+                    <div style="margin-bottom: 25px;">
+                        <h3 style="margin: 0 0 15px 0;">معلومات المتدرب</h3>
+                        <p style="margin: 5px 0;"><strong>الاسم:</strong> ${studentName}</p>
+                        <p style="margin: 5px 0;"><strong>رقم الهوية:</strong> ${studentId}</p>
+                    </div>
+                    
+                    <div style="margin-bottom: 25px;">
+                        <h3 style="margin: 0 0 15px 0;">النتيجة النهائية</h3>
+                        <p style="margin: 5px 0;"><strong>الدرجة:</strong> ${score} من ${quizData.length}</p>
+                        <p style="margin: 5px 0;"><strong>نسبة النجاح:</strong> ${percentage}%</p>
+                    </div>
+                    
+                    <div>
+                        <h3 style="margin: 0 0 15px 0;">مراجعة الأسئلة</h3>
+                        ${questionsHTML}
+                    </div>
+                `;
             }
 
             // إضافة رأس PDF
-            function addHeader(pdf, pageWidth, margin) {
+            function addHeader(pdf, pageWidth, margin, yPosition) {
                 pdf.setFontSize(20);
                 pdf.setFont('helvetica', 'bold');
-                pdf.text('نتائج اختبار المهارات الرقمية', pageWidth / 2, margin, { align: 'center' });
+                pdf.text('نتائج اختبار المهارات الرقمية', pageWidth / 2, yPosition, { align: 'center' });
                 
                 pdf.setFontSize(16);
-                pdf.text('منصة مسار الأمن السيبراني', pageWidth / 2, margin + 10, { align: 'center' });
+                pdf.text('منصة مسار الأمن السيبراني', pageWidth / 2, yPosition + 10, { align: 'center' });
                 
                 pdf.setFontSize(12);
-                pdf.text(`تاريخ الاختبار: ${new Date().toLocaleDateString('ar-SA')}`, pageWidth / 2, margin + 20, { align: 'center' });
+                pdf.text(`تاريخ الاختبار: ${new Date().toLocaleDateString('ar-SA')}`, pageWidth / 2, yPosition + 20, { align: 'center' });
                 
                 // خط أفقي
                 pdf.setDrawColor(0);
                 pdf.setLineWidth(0.5);
-                pdf.line(margin, margin + 25, pageWidth - margin, margin + 25);
+                pdf.line(margin, yPosition + 25, pageWidth - margin, yPosition + 25);
+                
+                return yPosition + 30;
             }
 
             // إضافة معلومات المتدرب
@@ -998,24 +1116,10 @@
                 pdf.text(`الدرجة: ${score} من ${quizData.length}`, margin, yPosition + 10);
                 pdf.text(`نسبة النجاح: ${percentage}%`, margin, yPosition + 20);
                 
-                // رسالة الأداء
-                let performanceMessage = '';
-                if (percentage >= 80) {
-                    performanceMessage = 'ممتاز! لديك معرفة قوية في الأمن السيبراني.';
-                } else if (percentage >= 60) {
-                    performanceMessage = 'جيد! لكن تحتاج إلى تحسين معرفتك في بعض المجالات.';
-                } else if (percentage >= 40) {
-                    performanceMessage = 'مقبول! ننصحك بمراجعة مواد الأمن السيبراني الأساسية.';
-                } else {
-                    performanceMessage = 'ضعيف! تحتاج إلى دراسة أساسيات الأمن السيبراني بشكل أعمق.';
-                }
-                
-                pdf.text(`التقييم: ${performanceMessage}`, margin, yPosition + 35, { maxWidth: pageWidth - 2 * margin });
-                
-                return yPosition + 50;
+                return yPosition + 25;
             }
 
-            // إضافة مراجعة الأسئلة مع تقسيم إلى صفحات
+            // إضافة مراجعة الأسئلة
             function addQuestionsReview(pdf, pageWidth, margin, yPosition, pageHeight) {
                 pdf.setFontSize(14);
                 pdf.setFont('helvetica', 'bold');
@@ -1037,44 +1141,37 @@
                     
                     // إضافة السؤال
                     pdf.setFont('helvetica', 'bold');
-                    pdf.text(`السؤال ${index + 1}: ${question.question}`, margin, yPosition, { 
-                        maxWidth: pageWidth - 2 * margin 
-                    });
-                    
-                    yPosition += 15;
+                    const questionText = `السؤال ${index + 1}: ${question.question}`;
+                    const lines = pdf.splitTextToSize(questionText, pageWidth - 2 * margin);
+                    pdf.text(lines, margin, yPosition);
+                    yPosition += lines.length * 7;
                     
                     // إضافة الإجابة المختارة
                     pdf.setFont('helvetica', 'normal');
                     const userAnswerText = userAnswer !== null ? question.options[userAnswer] : 'لم يتم الإجابة';
-                    pdf.text(`الإجابة المختارة: ${userAnswerText}`, margin, yPosition, { 
-                        maxWidth: pageWidth - 2 * margin 
-                    });
-                    
-                    yPosition += 10;
+                    const userAnswerLines = pdf.splitTextToSize(`الإجابة المختارة: ${userAnswerText}`, pageWidth - 2 * margin);
+                    pdf.text(userAnswerLines, margin, yPosition);
+                    yPosition += userAnswerLines.length * 7;
                     
                     // إضافة الإجابة الصحيحة
-                    pdf.text(`الإجابة الصحيحة: ${question.options[question.correctAnswer]}`, margin, yPosition, { 
-                        maxWidth: pageWidth - 2 * margin 
-                    });
-                    
-                    yPosition += 10;
+                    const correctAnswerLines = pdf.splitTextToSize(`الإجابة الصحيحة: ${question.options[question.correctAnswer]}`, pageWidth - 2 * margin);
+                    pdf.text(correctAnswerLines, margin, yPosition);
+                    yPosition += correctAnswerLines.length * 7;
                     
                     // إضافة الحالة
                     const statusText = isCorrect ? 'صحيحة ✓' : 'خاطئة ✗';
-                    const statusColor = isCorrect ? [0, 128, 0] : [255, 0, 0];
-                    
-                    pdf.setTextColor(...statusColor);
+                    pdf.setTextColor(isCorrect ? 0 : 255, isCorrect ? 128 : 0, 0);
                     pdf.text(`الحالة: ${statusText}`, margin, yPosition);
                     pdf.setTextColor(0, 0, 0); // إعادة اللون إلى الأسود
                     
-                    yPosition += 15;
+                    yPosition += 10;
                     
                     // خط فاصل بين الأسئلة
                     pdf.setDrawColor(200);
                     pdf.setLineWidth(0.2);
                     pdf.line(margin, yPosition, pageWidth - margin, yPosition);
                     
-                    yPosition += 10;
+                    yPosition += 15;
                 });
                 
                 return yPosition;
