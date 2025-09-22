@@ -466,6 +466,8 @@
             direction: rtl;
             padding: 20px;
             font-family: 'Tajawal', sans-serif;
+            background: white;
+            color: black;
         }
 
         .pdf-header {
@@ -477,6 +479,7 @@
 
         .pdf-section {
             margin-bottom: 20px;
+            page-break-inside: avoid;
         }
 
         .pdf-question {
@@ -484,14 +487,26 @@
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
+            page-break-inside: avoid;
         }
 
         .pdf-correct {
             background-color: #e8f5e9;
+            border-left: 4px solid #4caf50;
         }
 
         .pdf-incorrect {
             background-color: #ffebee;
+            border-left: 4px solid #f44336;
+        }
+
+        .pdf-loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin: 20px 0;
         }
     </style>
 </head>
@@ -630,6 +645,12 @@
                     </a>
                 </div>
             </div>
+
+            <!-- رسالة التحميل -->
+            <div id="pdf-loading" class="pdf-loading" style="display: none;">
+                <i class="fas fa-spinner fa-spin fa-2x"></i>
+                <p>جاري إنشاء ملف PDF، يرجى الانتظار...</p>
+            </div>
         </div>
     </main>
 
@@ -747,6 +768,7 @@
             const testDate = document.getElementById('test-date');
             const progressBar = document.getElementById('progress-bar');
             const questionsReview = document.getElementById('questions-review');
+            const pdfLoading = document.getElementById('pdf-loading');
 
             // متغيرات الحالة
             let currentQuestion = 0;
@@ -993,16 +1015,88 @@
 
             // طباعة النتائج كPDF
             printResultsBtn.addEventListener('click', function() {
-                // إنشاء عنصر منفصل للطباعة
-                const printableElement = document.createElement('div');
-                printableElement.className = 'pdf-container';
+                // إظهار رسالة التحميل
+                pdfLoading.style.display = 'block';
                 
-                // إضافة محتوى PDF
-                printableElement.innerHTML = `
+                // استخدام setTimeout لإعطاء الوقت لتحميل العنصر
+                setTimeout(function() {
+                    try {
+                        // إنشاء عنصر منفصل للطباعة
+                        const printableElement = document.createElement('div');
+                        printableElement.className = 'pdf-container';
+                        
+                        // إضافة محتوى PDF
+                        printableElement.innerHTML = generatePDFContent();
+                        
+                        // إلحاق العنصر بالجسم مؤقتاً
+                        document.body.appendChild(printableElement);
+                        
+                        // إعداد خيارات PDF
+                        const options = {
+                            margin: 15,
+                            filename: `نتيجة_اختبار_${studentName}_${new Date().toISOString().slice(0, 10)}.pdf`,
+                            image: { type: 'jpeg', quality: 0.98 },
+                            html2canvas: { 
+                                scale: 2, 
+                                useCORS: true,
+                                logging: false,
+                                width: printableElement.scrollWidth,
+                                height: printableElement.scrollHeight
+                            },
+                            jsPDF: { 
+                                unit: 'mm', 
+                                format: 'a4', 
+                                orientation: 'portrait',
+                                compress: true
+                            }
+                        };
+                        
+                        // إنشاء PDF
+                        html2pdf().set(options).from(printableElement).save().then(() => {
+                            // إخفاء رسالة التحميل
+                            pdfLoading.style.display = 'none';
+                            // إزالة العنصر المؤقت
+                            document.body.removeChild(printableElement);
+                        });
+                        
+                    } catch (error) {
+                        console.error('Error generating PDF:', error);
+                        alert('حدث خطأ أثناء إنشاء ملف PDF. يرجى المحاولة مرة أخرى.');
+                        pdfLoading.style.display = 'none';
+                    }
+                }, 500); // تأخير 500 مللي ثانية لضمان تحميل العنصر
+            });
+
+            // توليد محتوى PDF
+            function generatePDFContent() {
+                const percentage = Math.round((score / quizData.length) * 100);
+                const testDateFormatted = new Date().toLocaleDateString('ar-SA');
+                
+                let questionsHTML = '';
+                
+                quizData.forEach((question, index) => {
+                    const userAnswer = userAnswers[index];
+                    const isCorrect = userAnswer === question.correctAnswer;
+                    const answerClass = isCorrect ? 'pdf-correct' : 'pdf-incorrect';
+                    const userAnswerText = userAnswer !== null ? question.options[userAnswer] : 'لم يتم الإجابة';
+                    const correctAnswerText = question.options[question.correctAnswer];
+                    const statusText = isCorrect ? 'صحيحة' : 'خاطئة';
+                    
+                    questionsHTML += `
+                        <div class="pdf-question ${answerClass}">
+                            <p><strong>السؤال ${index + 1}:</strong> ${question.question}</p>
+                            <p><strong>الإجابة المختارة:</strong> ${userAnswerText}</p>
+                            <p><strong>الإجابة الصحيحة:</strong> ${correctAnswerText}</p>
+                            <p><strong>الحالة:</strong> ${statusText}</p>
+                        </div>
+                    `;
+                });
+                
+                return `
                     <div class="pdf-header">
                         <h2>نتائج اختبار المهارات الرقمية</h2>
                         <h3>منصة مسار الأمن السيبراني</h3>
-                        <p>تاريخ الاختبار: ${new Date().toLocaleDateString('ar-SA')}</p>
+                        <p>تاريخ الاختبار: ${testDateFormatted}</p>
                     </div>
                     
                     <div class="pdf-section">
@@ -1014,54 +1108,14 @@
                     <div class="pdf-section">
                         <h4>النتيجة النهائية</h4>
                         <p><strong>الدرجة:</strong> ${score} من ${quizData.length}</p>
-                        <p><strong>نسبة النجاح:</strong> ${Math.round((score / quizData.length) * 100)}%</p>
+                        <p><strong>نسبة النجاح:</strong> ${percentage}%</p>
                     </div>
                     
                     <div class="pdf-section">
                         <h4>مراجعة الأسئلة</h4>
-                        ${generatePDFQuestionsReview()}
+                        ${questionsHTML}
                     </div>
                 `;
-                
-                // إعداد خيارات PDF
-                const options = {
-                    margin: 15,
-                    filename: `نتيجة_اختبار_${studentName}_${new Date().toISOString().slice(0, 10)}.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true, logging: true },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                };
-                
-                // إنشاء PDF مع معالجة الأخطاء
-                try {
-                    html2pdf().set(options).from(printableElement).save();
-                } catch (error) {
-                    console.error('Error generating PDF:', error);
-                    alert('حدث خطأ أثناء إنشاء ملف PDF. يرجى المحاولة مرة أخرى.');
-                }
-            });
-
-            // توليد محتوى مراجعة الأسئلة لملف PDF
-            function generatePDFQuestionsReview() {
-                let html = '';
-                
-                quizData.forEach((question, index) => {
-                    const userAnswer = userAnswers[index];
-                    const isCorrect = userAnswer === question.correctAnswer;
-                    const answerStatus = isCorrect ? 'صحيحة' : 'خاطئة';
-                    const answerClass = isCorrect ? 'pdf-correct' : 'pdf-incorrect';
-                    
-                    html += `
-                        <div class="pdf-question ${answerClass}">
-                            <p><strong>السؤال ${index + 1}:</strong> ${question.question}</p>
-                            <p><strong>الإجابة المختارة:</strong> ${userAnswer !== null ? question.options[userAnswer] : 'لم يتم الإجابة'}</p>
-                            <p><strong>الإجابة الصحيحة:</strong> ${question.options[question.correctAnswer]}</p>
-                            <p><strong>الحالة:</strong> ${answerStatus}</p>
-                        </div>
-                    `;
-                });
-                
-                return html;
             }
         });
     </script>
