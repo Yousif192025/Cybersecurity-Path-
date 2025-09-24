@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>اختبار الأمن السيبراني</title>
+    <title>اختبار</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
@@ -34,10 +34,10 @@
             color: #666;
             font-size: 1.1em;
         }
-        .quiz-container, .student-info-container, .quiz-results-container {
+        .quiz-container, .start-quiz-container, .quiz-results-container {
             display: none;
         }
-        .student-info-container {
+        .start-quiz-container {
             display: block;
         }
         .form-label {
@@ -196,27 +196,32 @@
 
     <div class="container">
         <div class="header">
-            <h1 class="mb-2">اختبار الأمن السيبراني 🛡️</h1>
-            <p>مقدم من منصة مسار الأمن السيبراني</p>
+            <h1 class="mb-2">اختبار 🛡️</h1>
+            <p>منصة مسار الأمن السيبراني</p>
         </div>
 
-        <div class="student-info-container" id="student-info-container">
-            <h3 class="mb-4 text-center">أدخل بياناتك للمتابعة</h3>
-            <form id="studentInfoForm">
+        <div class="start-quiz-container" id="start-quiz-container">
+            <h3 class="mb-4 text-center">إعدادات الاختبار</h3>
+            <form id="startQuizForm">
                 <div class="mb-3">
                     <label for="student-name" class="form-label">الاسم الكامل</label>
                     <input type="text" class="form-control" id="student-name" required>
                 </div>
                 <div class="mb-3">
-                    <label for="student-id" class="form-label">رقم الهوية</label>
-                    <input type="text" class="form-control" id="student-id" required>
+                    <label for="course-name" class="form-label">اسم المادة</label>
+                    <input type="text" class="form-control" id="course-name" required>
+                </div>
+                <div class="mb-3">
+                    <label for="num-questions" class="form-label">عدد الأسئلة</label>
+                    <input type="number" class="form-control" id="num-questions" value="10" min="1" max="10" required>
+                    <small class="form-text text-muted">اختر عدداً من 1 إلى 10.</small>
                 </div>
                 <div class="d-grid gap-2">
                     <button type="submit" class="btn btn-primary btn-lg">بدء الاختبار</button>
                 </div>
             </form>
         </div>
-
+        
         <div class="quiz-container" id="quiz-container">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div class="question-counter" id="question-counter"></div>
@@ -241,7 +246,7 @@
             <div class="card p-4 mb-4">
                 <h4 class="mb-3">معلومات الطالب:</h4>
                 <p><strong>الاسم:</strong> <span id="result-student-name"></span></p>
-                <p><strong>رقم الهوية:</strong> <span id="result-student-id"></span></p>
+                <p><strong>المادة:</strong> <span id="result-course-name"></span></p>
                 <p><strong>تاريخ الاختبار:</strong> <span id="test-date"></span></p>
             </div>
 
@@ -282,113 +287,63 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // بيانات الاختبار
-            const quizData = [
+            // قاعدة بيانات الأسئلة
+            const allQuestions = [
                 {
                     question: "ما هو الهدف الرئيسي من الأمن السيبراني؟",
-                    options: [
-                        "حماية الأجهزة من التلف",
-                        "حماية الأنظمة والشبكات والبيانات من الهجمات الرقمية",
-                        "زيادة سرعة الإنترنت",
-                        "تشفير جميع الملفات"
-                    ],
+                    options: ["حماية الأجهزة من التلف", "حماية الأنظمة والشبكات والبيانات من الهجمات الرقمية", "زيادة سرعة الإنترنت", "تشفير جميع الملفات"],
                     correctAnswer: 1
                 },
                 {
                     question: "ما هو هجوم 'التصيد الاحتيالي' (Phishing)?",
-                    options: [
-                        "إرسال رسائل بريد إلكتروني للحصول على معلومات حساسة",
-                        "تثبيت برامج ضارة على جهاز الضحية",
-                        "إيقاف تشغيل خادم الويب",
-                        "الاستيلاء على حسابات وسائل التواصل الاجتماعي"
-                    ],
+                    options: ["إرسال رسائل بريد إلكتروني للحصول على معلومات حساسة", "تثبيت برامج ضارة على جهاز الضحية", "إيقاف تشغيل خادم الويب", "الاستيلاء على حسابات وسائل التواصل الاجتماعي"],
                     correctAnswer: 0
                 },
                 {
                     question: "ما هو أفضل ممارسة لإنشاء كلمة مرور قوية؟",
-                    options: [
-                        "استخدام تاريخ الميلاد",
-                        "استخدام كلمات شائعة مثل 'password123'",
-                        "استخدام مزيج من الأحرف الكبيرة والصغيرة والأرقام والرموز",
-                        "استخدام كلمة مرور قصيرة وسهلة التذكر"
-                    ],
+                    options: ["استخدام تاريخ الميلاد", "استخدام كلمات شائعة مثل 'password123'", "استخدام مزيج من الأحرف الكبيرة والصغيرة والأرقام والرموز", "استخدام كلمة مرور قصيرة وسهلة التذكر"],
                     correctAnswer: 2
                 },
                 {
                     question: "ما هو 'جدار الحماية' (Firewall)?",
-                    options: [
-                        "برنامج يمنع الفيروسات",
-                        "جهاز أو برنامج يراقب ويتحكم في حركة مرور الشبكة",
-                        "أداة لتسريع تحميل صفحات الويب",
-                        "قاعدة بيانات للمعلومات الحساسة"
-                    ],
+                    options: ["برنامج يمنع الفيروسات", "جهاز أو برنامج يراقب ويتحكم في حركة مرور الشبكة", "أداة لتسريع تحميل صفحات الويب", "قاعدة بيانات للمعلومات الحساسة"],
                     correctAnswer: 1
                 },
                 {
                     question: "ما هو 'البرنامج الضار' (Malware)?",
-                    options: [
-                        "برنامج لتحرير الصور",
-                        "برنامج يهدف إلى إحداث ضرر أو الوصول غير المصرح به إلى نظام حاسوبي",
-                        "برنامج لتنظيم الملفات",
-                        "برنامج لمكافحة الفيروسات"
-                    ],
+                    options: ["برنامج لتحرير الصور", "برنامج يهدف إلى إحداث ضرر أو الوصول غير المصرح به إلى نظام حاسوبي", "برنامج لتنظيم الملفات", "برنامج لمكافحة الفيروسات"],
                     correctAnswer: 1
                 },
                 {
                     question: "ما هو 'هجوم حجب الخدمة' (DoS)?",
-                    options: [
-                        "هجوم يجعل نظامًا أو شبكة غير متاحة للمستخدمين الشرعيين",
-                        "هجوم لسرقة البيانات من قاعدة البيانات",
-                        "هجوم لتغيير محتوى موقع ويب",
-                        "هجوم للحصول على كلمات مرور المستخدمين"
-                    ],
+                    options: ["هجوم يجعل نظامًا أو شبكة غير متاحة للمستخدمين الشرعيين", "هجوم لسرقة البيانات من قاعدة البيانات", "هجوم لتغيير محتوى موقع ويب", "هجوم للحصول على كلمات مرور المستخدمين"],
                     correctAnswer: 0
                 },
                 {
                     question: "ما هو 'التشفير' (Encryption)?",
-                    options: [
-                        "تحويل البيانات إلى صيغة يمكن قراءتها بسهولة",
-                        "عملية لإخفاء الملفات على القرص الصلب",
-                        "تحويل البيانات إلى صيغة غير قابلة للقراءة إلا من خلال مفتاح فك التشفير",
-                        "برنامج لمكافحة الفيروسات"
-                    ],
+                    options: ["تحويل البيانات إلى صيغة يمكن قراءتها بسهولة", "عملية لإخفاء الملفات على القرص الصلب", "تحويل البيانات إلى صيغة غير قابلة للقراءة إلا من خلال مفتاح فك التشفير", "برنامج لمكافحة الفيروسات"],
                     correctAnswer: 2
                 },
                 {
                     question: "ما هو 'الهندسة الاجتماعية' (Social Engineering)?",
-                    options: [
-                        "تطوير برامج التواصل الاجتماعي",
-                        "التلاعب بالأفراد نفسياً لإفشاء معلومات سرية",
-                        "بناء شبكات حاسوبية معقدة",
-                        "تصميم واجهات مستخدم جذابة"
-                    ],
+                    options: ["تطوير برامج التواصل الاجتماعي", "التلاعب بالأفراد نفسياً لإفشاء معلومات سرية", "بناء شبكات حاسوبية معقدة", "تصميم واجهات مستخدم جذابة"],
                     correctAnswer: 1
                 },
                 {
                     question: "ما هو 'النسخ الاحتياطي' (Backup)?",
-                    options: [
-                        "تثبيت نظام تشغيل جديد",
-                        "حفظ نسخة إضافية من البيانات لاستعادتها في حالة فقدان البيانات الأصلية",
-                        "حذف الملفات القديمة من القرص الصلب",
-                        "تحديث برامج الكمبيوتر"
-                    ],
+                    options: ["تثبيت نظام تشغيل جديد", "حفظ نسخة إضافية من البيانات لاستعادتها في حالة فقدان البيانات الأصلية", "حذف الملفات القديمة من القرص الصلب", "تحديث برامج الكمبيوتر"],
                     correctAnswer: 1
                 },
                 {
                     question: "ماذا تعني 'التحقق بخطوتين' (Two-Factor Authentication)?",
-                    options: [
-                        "استخدام كلمتي مرور مختلفتين",
-                        "استخدام طريقتين مختلفتين للتحقق من هوية المستخدم",
-                        "تسجيل الدخول من جهازين في نفس الوقت",
-                        "تغيير كلمة المرور كل شهرين"
-                    ],
+                    options: ["استخدام كلمتي مرور مختلفتين", "استخدام طريقتين مختلفتين للتحقق من هوية المستخدم", "تسجيل الدخول من جهازين في نفس الوقت", "تغيير كلمة المرور كل شهرين"],
                     correctAnswer: 1
                 }
             ];
 
             // العناصر
-            const studentInfoForm = document.getElementById('studentInfoForm');
-            const studentInfoContainer = document.getElementById('student-info-container');
+            const startQuizForm = document.getElementById('startQuizForm');
+            const startQuizContainer = document.getElementById('start-quiz-container');
             const quizContainer = document.getElementById('quiz-container');
             const quizResultsContainer = document.getElementById('quiz-results-container');
             const questionCounter = document.getElementById('question-counter');
@@ -400,7 +355,7 @@
             const totalQuestionsDisplay = document.getElementById('total-questions-display');
             const percentageDisplay = document.getElementById('percentage-display');
             const resultStudentName = document.getElementById('result-student-name');
-            const resultStudentId = document.getElementById('result-student-id');
+            const resultCourseName = document.getElementById('result-course-name');
             const testDate = document.getElementById('test-date');
             const progressBar = document.getElementById('progress-bar');
             const resultMessage = document.getElementById('result-message');
@@ -411,28 +366,46 @@
             const pdfLoading = document.getElementById('pdf-loading');
 
             // المتغيرات
+            let quizData = [];
             let currentQuestion = 0;
             let score = 0;
             let userAnswers = [];
             let timer;
             let timeLeft = 90; // 90 ثانية لكل سؤال
             let studentName = '';
-            let studentId = '';
-            const courseName = "الأمن السيبراني";
+            let courseName = '';
             let showReview = false;
 
             // بدء الاختبار عند تقديم النموذج
-            studentInfoForm.addEventListener('submit', function(e) {
+            startQuizForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 studentName = document.getElementById('student-name').value;
-                studentId = document.getElementById('student-id').value;
+                courseName = document.getElementById('course-name').value;
+                const numQuestions = parseInt(document.getElementById('num-questions').value, 10);
                 
-                if (studentName && studentId) {
-                    studentInfoContainer.style.display = 'none';
-                    quizContainer.style.display = 'block';
-                    startQuiz();
+                if (numQuestions > allQuestions.length) {
+                    alert(`الحد الأقصى للأسئلة هو ${allQuestions.length}.`);
+                    return;
                 }
+                
+                // اختيار الأسئلة بشكل عشوائي
+                quizData = shuffle(allQuestions).slice(0, numQuestions);
+                
+                startQuizContainer.style.display = 'none';
+                quizContainer.style.display = 'block';
+                startQuiz();
             });
+
+            // دالة لخلط المصفوفة
+            function shuffle(array) {
+                let currentIndex = array.length, randomIndex;
+                while (currentIndex !== 0) {
+                    randomIndex = Math.floor(Math.random() * currentIndex);
+                    currentIndex--;
+                    [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+                }
+                return array;
+            }
 
             // بدء الاختبار
             function startQuiz() {
@@ -449,7 +422,6 @@
                 questionCounter.textContent = `السؤال ${currentQuestion + 1} من ${quizData.length}`;
                 questionText.textContent = question.question;
                 
-                // إضافة الخيارات
                 question.options.forEach((option, index) => {
                     const optionElement = document.createElement('div');
                     optionElement.classList.add('option-btn');
@@ -550,22 +522,22 @@
                 totalQuestionsDisplay.textContent = quizData.length;
                 percentageDisplay.textContent = `نسبة النجاح: ${percentage}%`;
                 resultStudentName.textContent = studentName;
-                resultStudentId.textContent = studentId;
+                resultCourseName.textContent = courseName;
                 testDate.textContent = new Date().toLocaleDateString('ar-SA');
                 
                 progressBar.style.width = `${percentage}%`;
                 
                 if (percentage >= 80) {
-                    resultMessage.textContent = 'ممتاز! لديك معرفة قوية في الأمن السيبراني. 👏';
+                    resultMessage.textContent = 'ممتاز! لديك معرفة قوية في هذه المادة. 👏';
                     resultMessage.className = 'alert alert-success';
                 } else if (percentage >= 60) {
                     resultMessage.textContent = 'جيد! لكن تحتاج إلى تحسين معرفتك في بعض المجالات. 👍';
                     resultMessage.className = 'alert alert-info';
                 } else if (percentage >= 40) {
-                    resultMessage.textContent = 'مقبول! ننصحك بمراجعة مواد الأمن السيبراني الأساسية. 🤔';
+                    resultMessage.textContent = 'مقبول! ننصحك بمراجعة المواد الأساسية. 🤔';
                     resultMessage.className = 'alert alert-warning';
                 } else {
-                    resultMessage.textContent = 'ضعيف! تحتاج إلى دراسة أساسيات الأمن السيبراني بشكل أعمق. 😔';
+                    resultMessage.textContent = 'ضعيف! تحتاج إلى دراسة المادة بشكل أعمق. 😔';
                     resultMessage.className = 'alert alert-danger';
                 }
                 
@@ -621,9 +593,10 @@
             retakeQuizBtn.addEventListener('click', function() {
                 currentQuestion = 0;
                 score = 0;
-                userAnswers = new Array(quizData.length).fill(null);
+                userAnswers = [];
+                quizData = [];
                 quizResultsContainer.style.display = 'none';
-                studentInfoContainer.style.display = 'block';
+                startQuizContainer.style.display = 'block';
                 questionsReview.style.display = 'none';
                 showReview = false;
                 viewResultsBtn.innerHTML = '<i class="fas fa-eye"></i> عرض المراجعة';
@@ -642,7 +615,6 @@
             printResultsBtn.addEventListener('click', function() {
                 pdfLoading.style.display = 'block';
                 
-                // استخدام setTimeout لإعطاء الوقت لتحميل العناصر
                 setTimeout(function() {
                     generatePDF();
                 }, 500);
@@ -651,7 +623,6 @@
             // دمج مكتبات html2canvas و jspdf
             function generatePDF() {
                 try {
-                    // إنشاء عنصر مؤقت لعرض المحتوى المراد طباعته
                     const tempDiv = document.createElement('div');
                     tempDiv.classList.add('pdf-content');
                     tempDiv.style.cssText = `
@@ -675,20 +646,19 @@
                     tempDiv.innerHTML = generatePDFContent();
                     document.body.appendChild(tempDiv);
                     
-                    // استخدام html2canvas لإنشاء صورة من المحتوى
                     html2canvas(tempDiv, {
                         scale: 2,
                         useCORS: true,
                         logging: false,
                         backgroundColor: '#ffffff'
                     }).then(canvas => {
-                        const imgData = canvas.toDataURL('image/png', 1.0);
                         const { jsPDF } = window.jspdf;
                         const pdf = new jsPDF('p', 'mm', 'a4');
                         
                         const pdfWidth = pdf.internal.pageSize.getWidth();
                         const pdfHeight = pdf.internal.pageSize.getHeight();
                         
+                        const imgData = canvas.toDataURL('image/png', 1.0);
                         const imgWidth = canvas.width;
                         const imgHeight = canvas.height;
                         const ratio = imgHeight / imgWidth;
@@ -696,7 +666,6 @@
                         
                         let yPosition = 0;
                         
-                        // تقسيم الصورة إلى صفحات متعددة إذا كانت طويلة
                         while (yPosition < pdfImageHeight) {
                             pdf.addImage(imgData, 'PNG', 0, -yPosition, pdfWidth, pdfImageHeight);
                             yPosition += pdfHeight;
@@ -708,7 +677,6 @@
                         const fileName = `نتيجة_اختبار_${courseName}_${studentName}.pdf`;
                         pdf.save(fileName);
                         
-                        // إزالة العنصر المؤقت
                         document.body.removeChild(tempDiv);
                         pdfLoading.style.display = 'none';
                         
@@ -716,7 +684,6 @@
                         console.error('Error with html2canvas:', error);
                         document.body.removeChild(tempDiv);
                         pdfLoading.style.display = 'none';
-                        // طريقة بديلة إذا فشلت html2canvas
                         fallbackPDFGeneration();
                     });
                     
@@ -727,7 +694,6 @@
                 }
             }
 
-            // طريقة بديلة إذا فشلت html2canvas
             function fallbackPDFGeneration() {
                 try {
                     const { jsPDF } = window.jspdf;
@@ -736,19 +702,12 @@
                     const margin = 20;
                     let yPosition = margin;
                     
-                    // إضافة خط لدعم اللغة العربية
-                    // يجب تحميل خط عربي مثل Tajawal أو Amiri
-                    // لغرض التبسيط، سنستخدم طريقة text() التي قد لا تدعم الاتجاه من اليمين لليسار بشكل كامل
-                    // لذا سنستخدم رسالة بسيطة
-                    
                     pdf.setFontSize(16);
                     pdf.text(`نتيجة اختبار: ${courseName}`, pageWidth / 2, yPosition, { align: 'center' });
                     yPosition += 20;
                     
                     pdf.setFontSize(12);
                     pdf.text(`الاسم: ${studentName}`, margin, yPosition);
-                    yPosition += 10;
-                    pdf.text(`رقم الهوية: ${studentId}`, margin, yPosition);
                     yPosition += 10;
                     pdf.text(`تاريخ الاختبار: ${new Date().toLocaleDateString('ar-SA')}`, margin, yPosition);
                     yPosition += 20;
@@ -769,7 +728,6 @@
                 }
             }
 
-            // إنشاء محتوى HTML للـ PDF
             function generatePDFContent() {
                 const percentage = Math.round((score / quizData.length) * 100);
                 const testDateFormatted = new Date().toLocaleDateString('ar-SA', {
@@ -816,12 +774,10 @@
                         <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 15px; font-size: 17px;">
                             <div style="font-weight: bold; color: #555;">
                                 <div style="margin: 10px 0;">الاسم الكامل:</div>
-                                <div style="margin: 10px 0;">رقم الهوية:</div>
                                 <div style="margin: 10px 0;">تاريخ الاختبار:</div>
                             </div>
                             <div style="color: #333;">
                                 <div style="margin: 10px 0;">${studentName}</div>
-                                <div style="margin: 10px 0;">${studentId}</div>
                                 <div style="margin: 10px 0;">${testDateFormatted}</div>
                             </div>
                         </div>
