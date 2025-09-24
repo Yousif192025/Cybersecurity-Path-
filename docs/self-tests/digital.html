@@ -711,6 +711,7 @@
             let studentId = '';
             let userAnswers = [];
             let showReview = true;
+            const courseName = "الأمن السيبراني"; // اسم المادة
 
             // بدء الاختبار عند تقديم النموذج
             studentInfoForm.addEventListener('submit', function(e) {
@@ -932,7 +933,7 @@
                     '<i class="fas fa-eye"></i> عرض المراجعة';
             });
 
-            // طباعة النتائج كPDF - الإصدار المصحح
+            // طباعة النتائج كPDF - الإصدار المصحح مع تعدد الصفحات
             printResultsBtn.addEventListener('click', function() {
                 pdfLoading.style.display = 'block';
                 
@@ -941,11 +942,10 @@
                 }, 500);
             });
 
-            // إنشاء PDF مع دعم اللغة العربية - الإصدار المصحح
+            // إنشاء PDF مع دعم تعدد الصفحات
             function generatePDF() {
                 try {
-                    // الطريقة المثلى: استخدام html2canvas لالتقاط المحتوى العربي
-                    generatePDFWithCanvas();
+                    generateMultiPagePDF();
                 } catch (error) {
                     console.error('Error generating PDF:', error);
                     pdfLoading.style.display = 'none';
@@ -953,172 +953,238 @@
                 }
             }
 
-            // الطريقة المثلى لإنشاء PDF بالعربية
-            function generatePDFWithCanvas() {
-                // إنشاء عنصر مؤقت بمظهر احترافي للعربية
-                const tempDiv = document.createElement('div');
-                tempDiv.style.cssText = `
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 794px;
-                    min-height: 1123px;
-                    padding: 40px;
-                    background: white;
-                    color: #333;
-                    font-family: 'Tajawal', sans-serif;
-                    direction: rtl;
-                    text-align: right;
-                    font-size: 16px;
-                    line-height: 1.8;
-                    z-index: 10000;
-                    overflow: hidden;
-                `;
+            // إنشاء PDF متعدد الصفحات
+            function generateMultiPagePDF() {
+                const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+                const pageWidth = pdf.internal.pageSize.getWidth();
+                const pageHeight = pdf.internal.pageSize.getHeight();
+                const margin = 20;
+                let yPosition = margin;
+                let currentPage = 1;
+
+                // إضافة الصفحة الأولى (الغلاف والمعلومات الأساسية)
+                yPosition = addCoverPage(pdf, pageWidth, pageHeight, margin, yPosition);
                 
-                tempDiv.innerHTML = generatePDFContent();
-                document.body.appendChild(tempDiv);
+                // إضافة صفحة النتائج
+                pdf.addPage();
+                currentPage++;
+                yPosition = margin;
+                yPosition = addResultsPage(pdf, pageWidth, margin, yPosition, pageHeight);
                 
-                html2canvas(tempDiv, {
-                    scale: 2,
-                    useCORS: true,
-                    logging: true,
-                    allowTaint: true,
-                    backgroundColor: '#ffffff',
-                    onclone: function(clonedDoc) {
-                        // تأكد من أن الخطوط محملة في العنصر المستنسخ
-                        const elements = clonedDoc.querySelectorAll('*');
-                        elements.forEach(el => {
-                            el.style.fontFamily = "'Tajawal', sans-serif";
-                            el.style.direction = 'rtl';
-                            el.style.textAlign = 'right';
-                        });
+                // إضافة صفحات الأسئلة
+                quizData.forEach((question, index) => {
+                    if (yPosition > pageHeight - 100) { // إذا لم يكن هناك مساحة كافية
+                        pdf.addPage();
+                        currentPage++;
+                        yPosition = margin;
                     }
-                }).then(canvas => {
-                    const imgData = canvas.toDataURL('image/png', 1.0);
-                    const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-                    
-                    const pdfWidth = pdf.internal.pageSize.getWidth();
-                    const pdfHeight = pdf.internal.pageSize.getHeight();
-                    
-                    const imgWidth = canvas.width;
-                    const imgHeight = canvas.height;
-                    const ratio = imgHeight / imgWidth;
-                    const pdfImageHeight = pdfWidth * ratio;
-                    
-                    // إضافة الصورة إلى PDF
-                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfImageHeight);
-                    
-                    // حفظ الملف باسم عربي
-                    const fileName = `نتيجة_اختبار_${studentName}_${new Date().toISOString().slice(0, 10)}.pdf`;
-                    pdf.save(fileName);
-                    
-                    document.body.removeChild(tempDiv);
-                    pdfLoading.style.display = 'none';
-                    
-                }).catch(error => {
-                    console.error('Error with html2canvas:', error);
-                    document.body.removeChild(tempDiv);
-                    pdfLoading.style.display = 'none';
-                    alert('حدث خطأ في إنشاء PDF. يرجى التأكد من اتصال الإنترنت والمحاولة مرة أخرى.');
+                    yPosition = addQuestionPage(pdf, pageWidth, margin, yPosition, pageHeight, question, index);
                 });
+
+                // إضافة صفحة الختام
+                pdf.addPage();
+                currentPage++;
+                yPosition = margin;
+                addConclusionPage(pdf, pageWidth, pageHeight, margin, yPosition);
+
+                // حفظ الملف
+                const fileName = `نتيجة_اختبار_${courseName}_${studentName}_${new Date().toISOString().slice(0, 10)}.pdf`;
+                pdf.save(fileName);
+                pdfLoading.style.display = 'none';
             }
 
-            // إنشاء محتوى HTML للـ PDF - محسّن للعربية
-            function generatePDFContent() {
+            // إضافة صفحة الغلاف
+            function addCoverPage(pdf, pageWidth, pageHeight, margin, yPosition) {
+                // العنوان الرئيسي
+                pdf.setFontSize(24);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setTextColor(26, 115, 232);
+                pdf.text('تقرير نتائج الاختبار', pageWidth / 2, yPosition + 40, { align: 'center' });
+                
+                // اسم المادة
+                pdf.setFontSize(20);
+                pdf.setTextColor(0, 0, 0);
+                pdf.text(`مادة: ${courseName}`, pageWidth / 2, yPosition + 70, { align: 'center' });
+                
+                // اسم المنصة
+                pdf.setFontSize(16);
+                pdf.setTextColor(100, 100, 100);
+                pdf.text('منصة مسار الأمن السيبراني', pageWidth / 2, yPosition + 90, { align: 'center' });
+                
+                // معلومات الطالب
+                pdf.setFontSize(14);
+                pdf.setTextColor(0, 0, 0);
+                pdf.text('معلومات المتدرب', pageWidth / 2, yPosition + 130, { align: 'center' });
+                
+                pdf.setFontSize(12);
+                pdf.text(`الاسم: ${studentName}`, pageWidth / 2, yPosition + 150, { align: 'center' });
+                pdf.text(`رقم الهوية: ${studentId}`, pageWidth / 2, yPosition + 165, { align: 'center' });
+                pdf.text(`تاريخ الاختبار: ${new Date().toLocaleDateString('ar-SA')}`, pageWidth / 2, yPosition + 180, { align: 'center' });
+                
+                // النتيجة
                 const percentage = Math.round((score / quizData.length) * 100);
-                const testDateFormatted = new Date().toLocaleDateString('ar-SA', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
+                pdf.setFontSize(48);
+                pdf.setTextColor(26, 115, 232);
+                pdf.text(`${percentage}%`, pageWidth / 2, yPosition + 230, { align: 'center' });
                 
-                let questionsHTML = '';
+                pdf.setFontSize(16);
+                pdf.setTextColor(0, 0, 0);
+                pdf.text(`درجة الاختبار: ${score} من ${quizData.length}`, pageWidth / 2, yPosition + 250, { align: 'center' });
                 
-                quizData.forEach((question, index) => {
-                    const userAnswer = userAnswers[index];
-                    const isCorrect = userAnswer === question.correctAnswer;
-                    const statusText = isCorrect ? 'صحيحة ✓' : 'خاطئة ✗';
-                    const userAnswerText = userAnswer !== null ? question.options[userAnswer] : 'لم يتم الإجابة';
-                    
-                    questionsHTML += `
-                        <div style="margin-bottom: 25px; padding: 20px; border: 2px solid #e0e0e0; border-radius: 10px; background: #fafafa;">
-                            <h4 style="margin: 0 0 15px 0; color: #1a73e8; font-size: 18px;">السؤال ${index + 1}: ${question.question}</h4>
-                            
-                            <div style="margin: 10px 0; background: ${isCorrect ? '#e8f5e9' : '#ffebee'}; padding: 15px; border-radius: 8px; border-right: 4px solid ${isCorrect ? '#4caf50' : '#f44336'};">
-                                <strong>الإجابة المختارة:</strong><br>
-                                <span style="font-size: 15px;">${userAnswerText}</span>
-                            </div>
-                            
-                            <div style="margin: 10px 0; background: #e3f2fd; padding: 15px; border-radius: 8px; border-right: 4px solid #2196f3;">
-                                <strong>الإجابة الصحيحة:</strong><br>
-                                <span style="font-size: 15px;">${question.options[question.correctAnswer]}</span>
-                            </div>
-                            
-                            <div style="margin: 10px 0; color: ${isCorrect ? '#4caf50' : '#f44336'}; font-weight: bold; font-size: 16px;">
-                                <i class="fas ${isCorrect ? 'fa-check-circle' : 'fa-times-circle'}"></i>
-                                الحالة: ${statusText}
-                            </div>
-                        </div>
-                    `;
-                });
+                return yPosition;
+            }
+
+            // إضافة صفحة النتائج
+            function addResultsPage(pdf, pageWidth, margin, yPosition, pageHeight) {
+                pdf.setFontSize(18);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setTextColor(0, 0, 0);
+                pdf.text('النتيجة النهائية والتقييم', margin, yPosition);
+                yPosition += 20;
                 
-                // رسالة الأداء
-                let performanceMessage = '';
-                let performanceColor = '';
+                const percentage = Math.round((score / quizData.length) * 100);
+                
+                pdf.setFontSize(14);
+                pdf.text('التقييم العام:', margin, yPosition);
+                yPosition += 15;
+                
+                pdf.setFontSize(12);
+                pdf.setFont('helvetica', 'normal');
+                
+                let evaluationText = '';
                 if (percentage >= 80) {
-                    performanceMessage = 'ممتاز! لديك معرفة قوية في الأمن السيبراني.';
-                    performanceColor = '#4caf50';
+                    evaluationText = 'ممتاز - أداء متميز في فهم مفاهيم الأمن السيبراني';
                 } else if (percentage >= 60) {
-                    performanceMessage = 'جيد! لكن تحتاج إلى تحسين معرفتك في بعض المجالات.';
-                    performanceColor = '#2196f3';
+                    evaluationText = 'جيد - يحتاج إلى تحسين في بعض المجالات';
                 } else if (percentage >= 40) {
-                    performanceMessage = 'مقبول! ننصحك بمراجعة مواد الأمن السيبراني الأساسية.';
-                    performanceColor = '#ff9800';
+                    evaluationText = 'مقبول - يحتاج إلى مراجعة المواد الأساسية';
                 } else {
-                    performanceMessage = 'ضعيف! تحتاج إلى دراسة أساسيات الأمن السيبراني بشكل أعمق.';
-                    performanceColor = '#f44336';
+                    evaluationText = 'ضعيف - يحتاج إلى دراسة متعمقة للمادة';
                 }
                 
-                return `
-                    <div style="text-align: center; margin-bottom: 40px; padding-bottom: 30px; border-bottom: 3px solid #1a73e8;">
-                        <h1 style="margin: 0 0 20px 0; color: #1a73e8; font-size: 32px;">نتائج اختبار المهارات الرقمية</h1>
-                        <h2 style="margin: 0 0 15px 0; color: #333; font-size: 24px;">منصة مسار الأمن السيبراني</h2>
-                        <p style="margin: 0; color: #666; font-size: 18px;">تاريخ الاختبار: ${testDateFormatted}</p>
-                    </div>
-                    
-                    <div style="margin-bottom: 30px; padding: 25px; background: linear-gradient(135deg, #f0f7ff, #e3f2fd); border-radius: 12px; border-right: 5px solid #1a73e8;">
-                        <h3 style="margin: 0 0 20px 0; color: #1a73e8; font-size: 22px;">معلومات المتدرب</h3>
-                        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 15px; font-size: 17px;">
-                            <div style="font-weight: bold; color: #555;">
-                                <div style="margin: 12px 0;">الاسم الكامل:</div>
-                                <div style="margin: 12px 0;">رقم الهوية:</div>
-                            </div>
-                            <div style="color: #333;">
-                                <div style="margin: 12px 0;">${studentName}</div>
-                                <div style="margin: 12px 0;">${studentId}</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-bottom: 40px; padding: 30px; background: linear-gradient(135deg, #fff3e0, #ffecb3); border-radius: 15px; text-align: center; border: 3px solid #ff9800;">
-                        <h3 style="margin: 0 0 25px 0; color: #e65100; font-size: 26px;">النتيجة النهائية</h3>
-                        <div style="font-size: 72px; font-weight: bold; color: #1a73e8; margin: 20px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">${percentage}%</div>
-                        <div style="font-size: 22px; color: #555; margin: 15px 0;">${score} إجابة صحيحة من ${quizData.length} سؤال</div>
-                        <div style="font-size: 20px; color: ${performanceColor}; font-weight: bold; margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.7); border-radius: 10px;">
-                            ${performanceMessage}
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 40px;">
-                        <h3 style="margin: 0 0 30px 0; color: #1a73e8; text-align: center; font-size: 28px; padding-bottom: 15px; border-bottom: 2px solid #1a73e8;">مراجعة الأسئلة</h3>
-                        ${questionsHTML}
-                    </div>
-                    
-                    <div style="margin-top: 50px; padding-top: 25px; border-top: 2px solid #ddd; text-align: center; color: #666; font-size: 14px;">
-                        <p style="margin: 10px 0;">تم إنشاء هذا التقرير تلقائياً من قبل منصة مسار الأمن السيبراني</p>
-                        <p style="margin: 10px 0;">© 2025 منصة مسار الأمن السيبراني. جميع الحقوق محفوظة.</p>
-                    </div>
-                `;
+                const evaluationLines = pdf.splitTextToSize(evaluationText, pageWidth - 2 * margin);
+                pdf.text(evaluationLines, margin, yPosition);
+                yPosition += evaluationLines.length * 8 + 15;
+                
+                // تفصيل النتائج
+                pdf.setFontSize(14);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('تفصيل النتائج:', margin, yPosition);
+                yPosition += 15;
+                
+                pdf.setFontSize(12);
+                pdf.setFont('helvetica', 'normal');
+                
+                pdf.text(`• عدد الأسئلة: ${quizData.length}`, margin, yPosition);
+                yPosition += 10;
+                pdf.text(`• الإجابات الصحيحة: ${score}`, margin, yPosition);
+                yPosition += 10;
+                pdf.text(`• الإجابات الخاطئة: ${quizData.length - score}`, margin, yPosition);
+                yPosition += 10;
+                pdf.text(`• نسبة النجاح: ${percentage}%`, margin, yPosition);
+                yPosition += 20;
+                
+                // رسم بياني بسيط
+                pdf.setFillColor(26, 115, 232);
+                pdf.rect(margin, yPosition, (pageWidth - 2 * margin) * (percentage / 100), 20, 'F');
+                pdf.rect(margin, yPosition, pageWidth - 2 * margin, 20, 'S');
+                
+                pdf.setTextColor(0, 0, 0);
+                pdf.text(`${percentage}%`, margin + (pageWidth - 2 * margin) / 2, yPosition + 12, { align: 'center' });
+                
+                return yPosition + 40;
+            }
+
+            // إضافة صفحة لكل سؤال
+            function addQuestionPage(pdf, pageWidth, margin, yPosition, pageHeight, question, index) {
+                pdf.setFontSize(16);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setTextColor(0, 0, 0);
+                pdf.text(`السؤال ${index + 1} من ${quizData.length}`, margin, yPosition);
+                yPosition += 15;
+                
+                // نص السؤال
+                pdf.setFontSize(12);
+                pdf.setFont('helvetica', 'bold');
+                const questionLines = pdf.splitTextToSize(question.question, pageWidth - 2 * margin);
+                pdf.text(questionLines, margin, yPosition);
+                yPosition += questionLines.length * 8 + 10;
+                
+                // الإجابة المختارة
+                pdf.setFont('helvetica', 'normal');
+                const userAnswer = userAnswers[index];
+                const userAnswerText = userAnswer !== null ? question.options[userAnswer] : 'لم يتم الإجابة';
+                const isCorrect = userAnswer === question.correctAnswer;
+                
+                pdf.text('الإجابة المختارة:', margin, yPosition);
+                yPosition += 8;
+                pdf.setTextColor(isCorrect ? 0 : 255, isCorrect ? 128 : 0, 0);
+                const userAnswerLines = pdf.splitTextToSize(userAnswerText, pageWidth - 2 * margin);
+                pdf.text(userAnswerLines, margin + 10, yPosition);
+                yPosition += userAnswerLines.length * 8 + 10;
+                
+                // الإجابة الصحيحة
+                pdf.setTextColor(0, 0, 0);
+                pdf.text('الإجابة الصحيحة:', margin, yPosition);
+                yPosition += 8;
+                pdf.setTextColor(0, 128, 0);
+                const correctAnswerLines = pdf.splitTextToSize(question.options[question.correctAnswer], pageWidth - 2 * margin);
+                pdf.text(correctAnswerLines, margin + 10, yPosition);
+                yPosition += correctAnswerLines.length * 8 + 15;
+                
+                // الحالة
+                pdf.setTextColor(0, 0, 0);
+                pdf.text('الحالة:', margin, yPosition);
+                yPosition += 8;
+                pdf.setTextColor(isCorrect ? 0 : 255, isCorrect ? 128 : 0, 0);
+                pdf.text(isCorrect ? 'صحيحة ✓' : 'خاطئة ✗', margin + 10, yPosition);
+                yPosition += 15;
+                
+                // خط فاصل
+                pdf.setDrawColor(200);
+                pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+                yPosition += 20;
+                
+                return yPosition;
+            }
+
+            // إضافة صفحة الختام
+            function addConclusionPage(pdf, pageWidth, pageHeight, margin, yPosition) {
+                pdf.setFontSize(18);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setTextColor(0, 0, 0);
+                pdf.text('التوصيات والخاتمة', pageWidth / 2, yPosition + 40, { align: 'center' });
+                yPosition += 70;
+                
+                const percentage = Math.round((score / quizData.length) * 100);
+                
+                pdf.setFontSize(12);
+                pdf.setFont('helvetica', 'normal');
+                
+                let recommendations = '';
+                if (percentage >= 80) {
+                    recommendations = 'نوصي بمتابعة المستوى المتقدم في الأمن السيبراني والتركيز على التطبيقات العملية. يمكنك الانتقال إلى مواضيع أكثر تخصصاً مثل الأمن السحابي وأمن الشبكات المتقدمة.';
+                } else if (percentage >= 60) {
+                    recommendations = 'نوصي بمراجعة المواد الأساسية والتركيز على فهم المفاهيم التي تحتاج إلى تحسين. يمكنك الاستفادة من المصادر التعليمية الإضافية المتاحة على المنصة.';
+                } else if (percentage >= 40) {
+                    recommendations = 'نوصي بدراسة شاملة للمادة والتركيز على الأساسيات. يمكنك البدء من الدليل الشامل ثم إعادة الاختبار بعد استكمال الدراسة.';
+                } else {
+                    recommendations = 'نوصي ببدء الدراسة من الأساسيات واتباع المسار التعليمي الموصى به. يمكنك الاستفادة من المصادر المجانية والألعاب التعليمية المتاحة على المنصة.';
+                }
+                
+                const recLines = pdf.splitTextToSize(recommendations, pageWidth - 2 * margin);
+                pdf.text(recLines, margin, yPosition);
+                yPosition += recLines.length * 8 + 30;
+                
+                // توقيع
+                pdf.setFontSize(14);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('منصة مسار الأمن السيبراني', pageWidth / 2, yPosition + 20, { align: 'center' });
+                pdf.setFontSize(10);
+                pdf.setFont('helvetica', 'normal');
+                pdf.text('© 2025 جميع الحقوق محفوظة', pageWidth / 2, yPosition + 30, { align: 'center' });
+                
+                return yPosition;
             }
         });
     </script>
