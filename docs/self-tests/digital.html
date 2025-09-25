@@ -211,12 +211,13 @@
             }
             .pdf-content, .pdf-content * {
                 visibility: visible;
-            }
-            .pdf-content {
                 position: absolute;
                 left: 0;
                 top: 0;
                 width: 100%;
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
             }
         }
     </style>
@@ -234,7 +235,17 @@
             <form id="startQuizForm">
                 <div class="mb-3">
                     <label for="student-name" class="form-label">الاسم الكامل</label>
-                    <input type="text" class="form-control" id="student-name" required>
+                    <input type="text" class="form-control" id="student-name" minlength="15" required>
+                    <div class="invalid-feedback">
+                        يجب أن يكون الاسم الكامل 15 حرفًا على الأقل.
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="student-id" class="form-label">رقم الهوية</label>
+                    <input type="text" class="form-control" id="student-id" pattern="[0-9]{10}" required>
+                    <div class="invalid-feedback">
+                        يجب أن يتكون رقم الهوية من 10 أرقام بالضبط.
+                    </div>
                 </div>
                 <div class="mb-3">
                     <label for="course-name" class="form-label">اسم المادة</label>
@@ -275,6 +286,7 @@
             <div class="card p-4 mb-4">
                 <h4 class="mb-3">معلومات الطالب:</h4>
                 <p><strong>الاسم:</strong> <span id="result-student-name"></span></p>
+                <p><strong>رقم الهوية:</strong> <span id="result-student-id"></span></p>
                 <p><strong>المادة:</strong> <span id="result-course-name"></span></p>
                 <p><strong>تاريخ الاختبار:</strong> <span id="test-date"></span></p>
             </div>
@@ -384,6 +396,7 @@
             const totalQuestionsDisplay = document.getElementById('total-questions-display');
             const percentageDisplay = document.getElementById('percentage-display');
             const resultStudentName = document.getElementById('result-student-name');
+            const resultStudentId = document.getElementById('result-student-id');
             const resultCourseName = document.getElementById('result-course-name');
             const testDate = document.getElementById('test-date');
             const progressBar = document.getElementById('progress-bar');
@@ -400,15 +413,35 @@
             let score = 0;
             let userAnswers = [];
             let timer;
-            let timeLeft = 90; // 90 ثانية لكل سؤال
+            let timeLeft = 90;
             let studentName = '';
+            let studentId = '';
             let courseName = '';
             let showReview = false;
 
             // بدء الاختبار عند تقديم النموذج
             startQuizForm.addEventListener('submit', function(e) {
                 e.preventDefault();
-                studentName = document.getElementById('student-name').value;
+                const studentNameInput = document.getElementById('student-name');
+                const studentIdInput = document.getElementById('student-id');
+
+                // التحقق من صحة المدخلات يدوياً
+                if (studentNameInput.value.length < 15) {
+                    studentNameInput.classList.add('is-invalid');
+                    return;
+                } else {
+                    studentNameInput.classList.remove('is-invalid');
+                }
+
+                if (!/^\d{10}$/.test(studentIdInput.value)) {
+                    studentIdInput.classList.add('is-invalid');
+                    return;
+                } else {
+                    studentIdInput.classList.remove('is-invalid');
+                }
+
+                studentName = studentNameInput.value;
+                studentId = studentIdInput.value;
                 courseName = document.getElementById('course-name').value;
                 const numQuestions = parseInt(document.getElementById('num-questions').value, 10);
                 
@@ -417,7 +450,6 @@
                     return;
                 }
                 
-                // اختيار الأسئلة بشكل عشوائي
                 quizData = shuffle(allQuestions).slice(0, numQuestions);
                 
                 startQuizContainer.style.display = 'none';
@@ -551,6 +583,7 @@
                 totalQuestionsDisplay.textContent = quizData.length;
                 percentageDisplay.textContent = `نسبة النجاح: ${percentage}%`;
                 resultStudentName.textContent = studentName;
+                resultStudentId.textContent = studentId;
                 resultCourseName.textContent = courseName;
                 testDate.textContent = new Date().toLocaleDateString('ar-SA');
                 
@@ -738,6 +771,8 @@
                     pdf.setFontSize(12);
                     pdf.text(`الاسم: ${studentName}`, margin, yPosition);
                     yPosition += 10;
+                    pdf.text(`رقم الهوية: ${studentId}`, margin, yPosition);
+                    yPosition += 10;
                     pdf.text(`تاريخ الاختبار: ${new Date().toLocaleDateString('ar-SA')}`, margin, yPosition);
                     yPosition += 20;
                     
@@ -803,10 +838,12 @@
                         <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 15px; font-size: 17px;">
                             <div style="font-weight: bold; color: #555;">
                                 <div style="margin: 10px 0;">الاسم الكامل:</div>
+                                <div style="margin: 10px 0;">رقم الهوية:</div>
                                 <div style="margin: 10px 0;">تاريخ الاختبار:</div>
                             </div>
                             <div style="color: #333;">
                                 <div style="margin: 10px 0;">${studentName}</div>
+                                <div style="margin: 10px 0;">${studentId}</div>
                                 <div style="margin: 10px 0;">${testDateFormatted}</div>
                             </div>
                         </div>
