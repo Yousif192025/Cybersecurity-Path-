@@ -205,19 +205,41 @@
             font-size: 1.5em;
             color: var(--primary-color);
         }
+
+        /* تحسينات PDF للشاشات المختلفة */
+        .pdf-page {
+            width: 100%;
+            min-height: 100vh;
+            padding: 20px;
+            background: white;
+            box-sizing: border-box;
+            page-break-after: always;
+        }
+
+        @media (max-width: 768px) {
+            .pdf-page {
+                padding: 15px;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .pdf-page {
+                padding: 10px;
+                font-size: 12px;
+            }
+        }
+
         @media print {
             body * {
                 visibility: hidden;
             }
             .pdf-content, .pdf-content * {
                 visibility: visible;
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
+            }
+            .pdf-page {
+                position: relative;
+                page-break-after: always;
             }
         }
     </style>
@@ -673,81 +695,50 @@
                     '<i class="fas fa-eye"></i> عرض المراجعة';
             });
 
-            // طباعة النتائج كPDF - الطريقة المبسطة والموثوقة
+            // طباعة النتائج كPDF - النسخة المحسنة
             printResultsBtn.addEventListener('click', function() {
                 pdfLoading.style.display = 'block';
                 
                 setTimeout(function() {
-                    generatePDF();
+                    generateResponsivePDF();
                 }, 500);
             });
 
-            // دمج مكتبات html2canvas و jspdf
-            function generatePDF() {
+            // دالة إنشاء PDF متجاوبة مع الشاشات
+            function generateResponsivePDF() {
                 try {
-                    const tempDiv = document.createElement('div');
-                    tempDiv.classList.add('pdf-content');
-                    tempDiv.style.cssText = `
+                    // إنشاء عنصر مؤقت للـ PDF
+                    const pdfContainer = document.createElement('div');
+                    pdfContainer.className = 'pdf-content';
+                    pdfContainer.style.cssText = `
                         position: fixed;
                         top: 0;
                         left: 0;
                         width: 100%;
+                        height: 100%;
                         background: white;
                         color: #333;
                         font-family: 'Tajawal', sans-serif;
                         direction: rtl;
                         text-align: right;
-                        font-size: 16px;
                         line-height: 1.8;
                         z-index: 10000;
                         overflow: auto;
-                        padding: 20px;
+                        padding: 0;
+                        margin: 0;
                         box-sizing: border-box;
                     `;
                     
-                    tempDiv.innerHTML = generatePDFContent();
-                    document.body.appendChild(tempDiv);
-                    
-                    html2canvas(tempDiv, {
-                        scale: 2,
-                        useCORS: true,
-                        logging: false,
-                        backgroundColor: '#ffffff'
-                    }).then(canvas => {
-                        const { jsPDF } = window.jspdf;
-                        const pdf = new jsPDF('p', 'mm', 'a4');
-                        
-                        const pdfWidth = pdf.internal.pageSize.getWidth();
-                        const pdfHeight = pdf.internal.pageSize.getHeight();
-                        
-                        const imgData = canvas.toDataURL('image/png', 1.0);
-                        const imgWidth = canvas.width;
-                        const imgHeight = canvas.height;
-                        const ratio = imgHeight / imgWidth;
-                        let pdfImageHeight = pdfWidth * ratio;
-                        
-                        let yPosition = 0;
-                        
-                        while (yPosition < pdfImageHeight) {
-                            pdf.addImage(imgData, 'PNG', 0, -yPosition, pdfWidth, pdfImageHeight);
-                            yPosition += pdfHeight;
-                            if (yPosition < pdfImageHeight) {
-                                pdf.addPage();
-                            }
-                        }
-                        
-                        const fileName = `نتيجة_اختبار_${courseName}_${studentName}.pdf`;
-                        pdf.save(fileName);
-                        
-                        document.body.removeChild(tempDiv);
-                        pdfLoading.style.display = 'none';
-                        
-                    }).catch(error => {
-                        console.error('Error with html2canvas:', error);
-                        document.body.removeChild(tempDiv);
-                        pdfLoading.style.display = 'none';
-                        fallbackPDFGeneration();
+                    // إنشاء صفحات PDF متعددة
+                    const pages = createPDFPages();
+                    pages.forEach(page => {
+                        pdfContainer.appendChild(page);
                     });
+                    
+                    document.body.appendChild(pdfContainer);
+                    
+                    // التقاط كل صفحة على حدة
+                    capturePDFPages(pdfContainer, pages);
                     
                 } catch (error) {
                     console.error('Error in PDF generation:', error);
@@ -756,43 +747,8 @@
                 }
             }
 
-            function fallbackPDFGeneration() {
-                try {
-                    const { jsPDF } = window.jspdf;
-                    const pdf = new jsPDF('p', 'mm', 'a4');
-                    const pageWidth = pdf.internal.pageSize.getWidth();
-                    const margin = 20;
-                    let yPosition = margin;
-                    
-                    pdf.setFontSize(16);
-                    pdf.text(`نتيجة اختبار: ${courseName}`, pageWidth / 2, yPosition, { align: 'center' });
-                    yPosition += 20;
-                    
-                    pdf.setFontSize(12);
-                    pdf.text(`الاسم: ${studentName}`, margin, yPosition);
-                    yPosition += 10;
-                    pdf.text(`رقم الهوية: ${studentId}`, margin, yPosition);
-                    yPosition += 10;
-                    pdf.text(`تاريخ الاختبار: ${new Date().toLocaleDateString('ar-SA')}`, margin, yPosition);
-                    yPosition += 20;
-                    
-                    const percentage = Math.round((score / quizData.length) * 100);
-                    pdf.text(`النتيجة: ${score} من ${quizData.length} (${percentage}%)`, margin, yPosition);
-                    yPosition += 20;
-                    
-                    pdf.text('لتفاصيل كاملة يرجى مراجعة المنصة', margin, yPosition);
-                    
-                    pdf.save(`نتيجة_${studentName}.pdf`);
-                    pdfLoading.style.display = 'none';
-                    
-                } catch (error) {
-                    console.error('Error in fallback PDF:', error);
-                    pdfLoading.style.display = 'none';
-                    alert('تعذر إنشاء ملف PDF. يرجى استخدام خاصية الطباعة في المتصفح.');
-                }
-            }
-
-            function generatePDFContent() {
+            // إنشاء صفحات PDF متعددة
+            function createPDFPages() {
                 const percentage = Math.round((score / quizData.length) * 100);
                 const testDateFormatted = new Date().toLocaleDateString('ar-SA', {
                     year: 'numeric',
@@ -800,71 +756,189 @@
                     day: 'numeric'
                 });
                 
-                let questionsHTML = '';
+                const pages = [];
                 
-                quizData.forEach((question, index) => {
-                    const userAnswer = userAnswers[index];
-                    const isCorrect = userAnswer === question.correctAnswer;
-                    const userAnswerText = userAnswer !== null ? question.options[userAnswer] : 'لم يتم الإجابة';
-                    
-                    questionsHTML += `
-                        <div style="margin-bottom: 30px; padding: 20px; border: 2px solid #e0e0e0; border-radius: 10px; page-break-inside: avoid;">
-                            <h4 style="color: #1a73e8; margin-bottom: 15px;">السؤال ${index + 1}: ${question.question}</h4>
-                            
-                            <div style="background: ${isCorrect ? '#e8f5e9' : '#ffebee'}; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
-                                <strong>الإجابة المختارة:</strong> ${userAnswerText}
-                            </div>
-                            
-                            <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
-                                <strong>الإجابة الصحيحة:</strong> ${question.options[question.correctAnswer]}
-                            </div>
-                            
-                            <div style="color: ${isCorrect ? '#4caf50' : '#f44336'}; font-weight: bold;">
-                                ${isCorrect ? '✓ صحيحة' : '✗ خاطئة'}
-                            </div>
+                // الصفحة 1: الغلاف
+                const coverPage = document.createElement('div');
+                coverPage.className = 'pdf-page';
+                coverPage.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px; height: 100%; display: flex; flex-direction: column; justify-content: center;">
+                        <h1 style="color: #1a73e8; font-size: 2.5em; margin-bottom: 30px;">تقرير نتائج الاختبار</h1>
+                        <h2 style="color: #333; font-size: 2em; margin-bottom: 20px;">مادة: ${courseName}</h2>
+                        <h3 style="color: #666; font-size: 1.5em; margin-bottom: 50px;">منصة مسار الأمن السيبراني</h3>
+                        
+                        <div style="margin: 40px 0;">
+                            <div style="font-size: 4em; color: #1a73e8; font-weight: bold;">${percentage}%</div>
+                            <div style="font-size: 1.5em; color: #666;">نسبة النجاح</div>
                         </div>
-                    `;
-                });
-                
-                return `
-                    <div style="text-align: center; margin-bottom: 40px; padding-bottom: 30px; border-bottom: 3px solid #1a73e8;">
-                        <h1 style="color: #1a73e8; font-size: 32px; margin-bottom: 20px;">تقرير نتائج الاختبار</h1>
-                        <h2 style="color: #333; font-size: 24px; margin-bottom: 10px;">مادة: ${courseName}</h2>
-                        <p style="color: #666; font-size: 18px;">منصة مسار الأمن السيبراني</p>
-                    </div>
-                    
-                    <div style="margin-bottom: 30px; padding: 25px; background: #f0f7ff; border-radius: 12px;">
-                        <h3 style="color: #1a73e8; margin-bottom: 20px;">معلومات المتدرب</h3>
-                        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 15px; font-size: 17px;">
-                            <div style="font-weight: bold; color: #555;">
-                                <div style="margin: 10px 0;">الاسم الكامل:</div>
-                                <div style="margin: 10px 0;">رقم الهوية:</div>
-                                <div style="margin: 10px 0;">تاريخ الاختبار:</div>
-                            </div>
-                            <div style="color: #333;">
-                                <div style="margin: 10px 0;">${studentName}</div>
-                                <div style="margin: 10px 0;">${studentId}</div>
-                                <div style="margin: 10px 0;">${testDateFormatted}</div>
-                            </div>
+                        
+                        <div style="margin-top: 60px;">
+                            <p style="font-size: 1.2em;"><strong>الاسم:</strong> ${studentName}</p>
+                            <p style="font-size: 1.2em;"><strong>رقم الهوية:</strong> ${studentId}</p>
+                            <p style="font-size: 1.2em;"><strong>تاريخ الاختبار:</strong> ${testDateFormatted}</p>
                         </div>
-                    </div>
-                    
-                    <div style="margin-bottom: 40px; padding: 30px; background: linear-gradient(135deg, #fff3e0, #ffecb3); border-radius: 15px; text-align: center;">
-                        <h3 style="color: #e65100; margin-bottom: 25px; font-size: 26px;">النتيجة النهائية</h3>
-                        <div style="font-size: 72px; font-weight: bold; color: #1a73e8; margin: 20px 0;">${percentage}%</div>
-                        <div style="font-size: 22px; color: #555; margin: 15px 0;">${score} إجابة صحيحة من ${quizData.length} سؤال</div>
-                    </div>
-                    
-                    <div style="margin-top: 40px;">
-                        <h3 style="color: #1a73e8; text-align: center; font-size: 28px; margin-bottom: 30px;">مراجعة الأسئلة</h3>
-                        ${questionsHTML}
-                    </div>
-                    
-                    <div style="margin-top: 50px; padding-top: 25px; border-top: 2px solid #ddd; text-align: center; color: #666;">
-                        <p>تم إنشاء هذا التقرير تلقائياً من قبل منصة مسار الأمن السيبراني</p>
-                        <p>© 2025 جميع الحقوق محفوظة</p>
                     </div>
                 `;
+                pages.push(coverPage);
+
+                // الصفحة 2: النتائج العامة
+                const resultsPage = document.createElement('div');
+                resultsPage.className = 'pdf-page';
+                resultsPage.innerHTML = `
+                    <div style="padding: 40px 20px;">
+                        <h2 style="color: #1a73e8; text-align: center; font-size: 2em; margin-bottom: 40px;">النتيجة النهائية</h2>
+                        
+                        <div style="background: #f0f7ff; padding: 30px; border-radius: 15px; margin-bottom: 30px;">
+                            <h3 style="color: #333; font-size: 1.5em; margin-bottom: 20px;">التقييم العام</h3>
+                            <div style="font-size: 3em; color: #1a73e8; font-weight: bold; text-align: center; margin: 20px 0;">${percentage}%</div>
+                            <p style="font-size: 1.2em; text-align: center; color: #666;">${getPerformanceMessage(percentage)}</p>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                            <div style="background: #e8f5e9; padding: 20px; border-radius: 10px; text-align: center;">
+                                <div style="font-size: 2em; color: #4caf50; font-weight: bold;">${score}</div>
+                                <div style="font-size: 1.1em; color: #333;">إجابات صحيحة</div>
+                            </div>
+                            <div style="background: #ffebee; padding: 20px; border-radius: 10px; text-align: center;">
+                                <div style="font-size: 2em; color: #f44336; font-weight: bold;">${quizData.length - score}</div>
+                                <div style="font-size: 1.1em; color: #333;">إجابات خاطئة</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                pages.push(resultsPage);
+
+                // صفحات الأسئلة (سؤالين لكل صفحة)
+                const questionsPerPage = 2;
+                for (let i = 0; i < quizData.length; i += questionsPerPage) {
+                    const pageQuestions = quizData.slice(i, i + questionsPerPage);
+                    let questionsHTML = '';
+                    
+                    pageQuestions.forEach((question, index) => {
+                        const globalIndex = i + index;
+                        const userAnswer = userAnswers[globalIndex];
+                        const isCorrect = userAnswer === question.correctAnswer;
+                        const userAnswerText = userAnswer !== null ? question.options[userAnswer] : 'لم يتم الإجابة';
+                        
+                        questionsHTML += `
+                            <div style="margin-bottom: 40px; padding: 25px; border: 2px solid #e0e0e0; border-radius: 12px;">
+                                <h4 style="color: #1a73e8; margin-bottom: 15px; font-size: 1.3em;">السؤال ${globalIndex + 1}: ${question.question}</h4>
+                                
+                                <div style="background: ${isCorrect ? '#e8f5e9' : '#ffebee'}; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-right: 4px solid ${isCorrect ? '#4caf50' : '#f44336'};">
+                                    <strong>الإجابة المختارة:</strong><br>
+                                    <span style="font-size: 1.1em;">${userAnswerText}</span>
+                                </div>
+                                
+                                <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-right: 4px solid #2196f3;">
+                                    <strong>الإجابة الصحيحة:</strong><br>
+                                    <span style="font-size: 1.1em;">${question.options[question.correctAnswer]}</span>
+                                </div>
+                                
+                                <div style="color: ${isCorrect ? '#4caf50' : '#f44336'}; font-weight: bold; font-size: 1.1em;">
+                                    ${isCorrect ? '✓ إجابة صحيحة' : '✗ إجابة خاطئة'}
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    const questionPage = document.createElement('div');
+                    questionPage.className = 'pdf-page';
+                    questionPage.innerHTML = `
+                        <div style="padding: 40px 20px;">
+                            <h3 style="color: #1a73e8; text-align: center; font-size: 1.5em; margin-bottom: 30px;">مراجعة الأسئلة ${i + 1}-${Math.min(i + questionsPerPage, quizData.length)}</h3>
+                            ${questionsHTML}
+                        </div>
+                    `;
+                    pages.push(questionPage);
+                }
+
+                // الصفحة الأخيرة: الخاتمة
+                const conclusionPage = document.createElement('div');
+                conclusionPage.className = 'pdf-page';
+                conclusionPage.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px; height: 100%; display: flex; flex-direction: column; justify-content: center;">
+                        <h2 style="color: #1a73e8; font-size: 2em; margin-bottom: 30px;">شكراً لك</h2>
+                        <p style="font-size: 1.2em; line-height: 1.6; color: #666; margin-bottom: 40px;">
+                            نتمنى لك التوفيق في مسيرتك التعليمية في مجال الأمن السيبراني. 
+                            يمكنك الاستفادة من المصادر الإضافية المتاحة على المنصة لتحسين مهاراتك.
+                        </p>
+                        
+                        <div style="border-top: 2px solid #ddd; padding-top: 30px;">
+                            <h3 style="color: #333; font-size: 1.5em; margin-bottom: 20px;">منصة مسار الأمن السيبراني</h3>
+                            <p style="color: #666; font-size: 1em;">© 2025 جميع الحقوق محفوظة</p>
+                        </div>
+                    </div>
+                `;
+                pages.push(conclusionPage);
+
+                return pages;
+            }
+
+            // التقاط الصفحات وتحويلها إلى PDF
+            function capturePDFPages(container, pages) {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                let currentPage = 0;
+
+                function captureNextPage() {
+                    if (currentPage >= pages.length) {
+                        // انتهاء جميع الصفحات
+                        const fileName = `نتيجة_اختبار_${courseName}_${studentName}.pdf`;
+                        pdf.save(fileName);
+                        document.body.removeChild(container);
+                        pdfLoading.style.display = 'none';
+                        return;
+                    }
+
+                    const page = pages[currentPage];
+                    page.style.display = 'block';
+
+                    html2canvas(page, {
+                        scale: 2,
+                        useCORS: true,
+                        logging: false,
+                        backgroundColor: '#ffffff',
+                        width: page.offsetWidth,
+                        height: page.offsetHeight,
+                        windowWidth: page.scrollWidth,
+                        windowHeight: page.scrollHeight
+                    }).then(canvas => {
+                        const imgData = canvas.toDataURL('image/png', 1.0);
+                        const pdfWidth = pdf.internal.pageSize.getWidth();
+                        const pdfHeight = pdf.internal.pageSize.getHeight();
+                        
+                        const imgWidth = canvas.width;
+                        const imgHeight = canvas.height;
+                        const ratio = imgHeight / imgWidth;
+                        const pdfImageHeight = pdfWidth * ratio;
+
+                        if (currentPage > 0) {
+                            pdf.addPage();
+                        }
+
+                        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfImageHeight);
+                        page.style.display = 'none';
+
+                        currentPage++;
+                        setTimeout(captureNextPage, 500);
+
+                    }).catch(error => {
+                        console.error('Error capturing page:', error);
+                        document.body.removeChild(container);
+                        pdfLoading.style.display = 'none';
+                        alert('حدث خطأ في إنشاء PDF. يرجى المحاولة مرة أخرى.');
+                    });
+                }
+
+                // بدء عملية الالتقاط
+                captureNextPage();
+            }
+
+            function getPerformanceMessage(percentage) {
+                if (percentage >= 80) return 'أداء متميز - لديك فهم قوي للمادة';
+                if (percentage >= 60) return 'أداء جيد - تحتاج إلى تحسين بعض النقاط';
+                if (percentage >= 40) return 'أداء مقبول - تحتاج إلى مراجعة المواد';
+                return 'أداء ضعيف - تحتاج إلى دراسة شاملة';
             }
         });
     </script>
