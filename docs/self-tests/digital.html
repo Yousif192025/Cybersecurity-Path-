@@ -205,21 +205,6 @@
             font-size: 1.5em;
             color: var(--primary-color);
         }
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            .pdf-content, .pdf-content * {
-                visibility: visible;
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-        }
     </style>
 </head>
 <body>
@@ -673,125 +658,35 @@
                     '<i class="fas fa-eye"></i> عرض المراجعة';
             });
 
-            // طباعة النتائج كPDF - الطريقة المبسطة والموثوقة
+            // طباعة النتائج كPDF - الطريقة الجديدة
             printResultsBtn.addEventListener('click', function() {
                 pdfLoading.style.display = 'block';
-                
-                setTimeout(function() {
-                    generatePDF();
-                }, 500);
+                generatePDF();
             });
 
-            // دمج مكتبات html2canvas و jspdf
+            // دالة إنشاء PDF
             function generatePDF() {
-                try {
-                    const tempDiv = document.createElement('div');
-                    tempDiv.classList.add('pdf-content');
-                    tempDiv.style.cssText = `
-                        position: fixed;
-                        top: 0;
-                        left: 0;
-                        width: 100%;
-                        background: white;
-                        color: #333;
-                        font-family: 'Tajawal', sans-serif;
-                        direction: rtl;
-                        text-align: right;
-                        font-size: 16px;
-                        line-height: 1.8;
-                        z-index: 10000;
-                        overflow: auto;
-                        padding: 20px;
-                        box-sizing: border-box;
-                    `;
-                    
-                    tempDiv.innerHTML = generatePDFContent();
-                    document.body.appendChild(tempDiv);
-                    
-                    html2canvas(tempDiv, {
-                        scale: 2,
-                        useCORS: true,
-                        logging: false,
-                        backgroundColor: '#ffffff'
-                    }).then(canvas => {
-                        const { jsPDF } = window.jspdf;
-                        const pdf = new jsPDF('p', 'mm', 'a4');
-                        
-                        const pdfWidth = pdf.internal.pageSize.getWidth();
-                        const pdfHeight = pdf.internal.pageSize.getHeight();
-                        
-                        const imgData = canvas.toDataURL('image/png', 1.0);
-                        const imgWidth = canvas.width;
-                        const imgHeight = canvas.height;
-                        const ratio = imgHeight / imgWidth;
-                        let pdfImageHeight = pdfWidth * ratio;
-                        
-                        let yPosition = 0;
-                        
-                        while (yPosition < pdfImageHeight) {
-                            pdf.addImage(imgData, 'PNG', 0, -yPosition, pdfWidth, pdfImageHeight);
-                            yPosition += pdfHeight;
-                            if (yPosition < pdfImageHeight) {
-                                pdf.addPage();
-                            }
-                        }
-                        
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfContent = generatePDFContent();
+
+                pdf.html(pdfContent, {
+                    callback: function(pdf) {
                         const fileName = `نتيجة_اختبار_${courseName}_${studentName}.pdf`;
                         pdf.save(fileName);
-                        
-                        document.body.removeChild(tempDiv);
                         pdfLoading.style.display = 'none';
-                        
-                    }).catch(error => {
-                        console.error('Error with html2canvas:', error);
-                        document.body.removeChild(tempDiv);
-                        pdfLoading.style.display = 'none';
-                        fallbackPDFGeneration();
-                    });
-                    
-                } catch (error) {
-                    console.error('Error in PDF generation:', error);
-                    pdfLoading.style.display = 'none';
-                    alert('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
-                }
+                    },
+                    x: 10,
+                    y: 10,
+                    html2canvas: {
+                        scale: 0.55, // Scale down to fit A4 size better
+                        logging: false,
+                        backgroundColor: '#ffffff'
+                    }
+                });
             }
 
-            function fallbackPDFGeneration() {
-                try {
-                    const { jsPDF } = window.jspdf;
-                    const pdf = new jsPDF('p', 'mm', 'a4');
-                    const pageWidth = pdf.internal.pageSize.getWidth();
-                    const margin = 20;
-                    let yPosition = margin;
-                    
-                    pdf.setFontSize(16);
-                    pdf.text(`نتيجة اختبار: ${courseName}`, pageWidth / 2, yPosition, { align: 'center' });
-                    yPosition += 20;
-                    
-                    pdf.setFontSize(12);
-                    pdf.text(`الاسم: ${studentName}`, margin, yPosition);
-                    yPosition += 10;
-                    pdf.text(`رقم الهوية: ${studentId}`, margin, yPosition);
-                    yPosition += 10;
-                    pdf.text(`تاريخ الاختبار: ${new Date().toLocaleDateString('ar-SA')}`, margin, yPosition);
-                    yPosition += 20;
-                    
-                    const percentage = Math.round((score / quizData.length) * 100);
-                    pdf.text(`النتيجة: ${score} من ${quizData.length} (${percentage}%)`, margin, yPosition);
-                    yPosition += 20;
-                    
-                    pdf.text('لتفاصيل كاملة يرجى مراجعة المنصة', margin, yPosition);
-                    
-                    pdf.save(`نتيجة_${studentName}.pdf`);
-                    pdfLoading.style.display = 'none';
-                    
-                } catch (error) {
-                    console.error('Error in fallback PDF:', error);
-                    pdfLoading.style.display = 'none';
-                    alert('تعذر إنشاء ملف PDF. يرجى استخدام خاصية الطباعة في المتصفح.');
-                }
-            }
-
+            // دالة لتوليد محتوى PDF كHTML مع CSS مضمن
             function generatePDFContent() {
                 const percentage = Math.round((score / quizData.length) * 100);
                 const testDateFormatted = new Date().toLocaleDateString('ar-SA', {
@@ -827,42 +722,44 @@
                 });
                 
                 return `
-                    <div style="text-align: center; margin-bottom: 40px; padding-bottom: 30px; border-bottom: 3px solid #1a73e8;">
-                        <h1 style="color: #1a73e8; font-size: 32px; margin-bottom: 20px;">تقرير نتائج الاختبار</h1>
-                        <h2 style="color: #333; font-size: 24px; margin-bottom: 10px;">مادة: ${courseName}</h2>
-                        <p style="color: #666; font-size: 18px;">منصة مسار الأمن السيبراني</p>
-                    </div>
-                    
-                    <div style="margin-bottom: 30px; padding: 25px; background: #f0f7ff; border-radius: 12px;">
-                        <h3 style="color: #1a73e8; margin-bottom: 20px;">معلومات المتدرب</h3>
-                        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 15px; font-size: 17px;">
-                            <div style="font-weight: bold; color: #555;">
-                                <div style="margin: 10px 0;">الاسم الكامل:</div>
-                                <div style="margin: 10px 0;">رقم الهوية:</div>
-                                <div style="margin: 10px 0;">تاريخ الاختبار:</div>
-                            </div>
-                            <div style="color: #333;">
-                                <div style="margin: 10px 0;">${studentName}</div>
-                                <div style="margin: 10px 0;">${studentId}</div>
-                                <div style="margin: 10px 0;">${testDateFormatted}</div>
+                    <div style="font-family: 'Tajawal', sans-serif; direction: rtl; text-align: right; padding: 10mm; font-size: 16px;">
+                        <div style="text-align: center; margin-bottom: 40px; padding-bottom: 30px; border-bottom: 3px solid #1a73e8;">
+                            <h1 style="color: #1a73e8; font-size: 32px; margin-bottom: 20px;">تقرير نتائج الاختبار</h1>
+                            <h2 style="color: #333; font-size: 24px; margin-bottom: 10px;">مادة: ${courseName}</h2>
+                            <p style="color: #666; font-size: 18px;">منصة مسار الأمن السيبراني</p>
+                        </div>
+                        
+                        <div style="margin-bottom: 30px; padding: 25px; background: #f0f7ff; border-radius: 12px;">
+                            <h3 style="color: #1a73e8; margin-bottom: 20px;">معلومات المتدرب</h3>
+                            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 15px; font-size: 17px;">
+                                <div style="font-weight: bold; color: #555;">
+                                    <div style="margin: 10px 0;">الاسم الكامل:</div>
+                                    <div style="margin: 10px 0;">رقم الهوية:</div>
+                                    <div style="margin: 10px 0;">تاريخ الاختبار:</div>
+                                </div>
+                                <div style="color: #333;">
+                                    <div style="margin: 10px 0;">${studentName}</div>
+                                    <div style="margin: 10px 0;">${studentId}</div>
+                                    <div style="margin: 10px 0;">${testDateFormatted}</div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div style="margin-bottom: 40px; padding: 30px; background: linear-gradient(135deg, #fff3e0, #ffecb3); border-radius: 15px; text-align: center;">
-                        <h3 style="color: #e65100; margin-bottom: 25px; font-size: 26px;">النتيجة النهائية</h3>
-                        <div style="font-size: 72px; font-weight: bold; color: #1a73e8; margin: 20px 0;">${percentage}%</div>
-                        <div style="font-size: 22px; color: #555; margin: 15px 0;">${score} إجابة صحيحة من ${quizData.length} سؤال</div>
-                    </div>
-                    
-                    <div style="margin-top: 40px;">
-                        <h3 style="color: #1a73e8; text-align: center; font-size: 28px; margin-bottom: 30px;">مراجعة الأسئلة</h3>
-                        ${questionsHTML}
-                    </div>
-                    
-                    <div style="margin-top: 50px; padding-top: 25px; border-top: 2px solid #ddd; text-align: center; color: #666;">
-                        <p>تم إنشاء هذا التقرير تلقائياً من قبل منصة مسار الأمن السيبراني</p>
-                        <p>© 2025 جميع الحقوق محفوظة</p>
+                        
+                        <div style="margin-bottom: 40px; padding: 30px; background: linear-gradient(135deg, #fff3e0, #ffecb3); border-radius: 15px; text-align: center;">
+                            <h3 style="color: #e65100; margin-bottom: 25px; font-size: 26px;">النتيجة النهائية</h3>
+                            <div style="font-size: 72px; font-weight: bold; color: #1a73e8; margin: 20px 0;">${percentage}%</div>
+                            <div style="font-size: 22px; color: #555; margin: 15px 0;">${score} إجابة صحيحة من ${quizData.length} سؤال</div>
+                        </div>
+                        
+                        <div style="margin-top: 40px;">
+                            <h3 style="color: #1a73e8; text-align: center; font-size: 28px; margin-bottom: 30px;">مراجعة الأسئلة</h3>
+                            ${questionsHTML}
+                        </div>
+                        
+                        <div style="margin-top: 50px; padding-top: 25px; border-top: 2px solid #ddd; text-align: center; color: #666;">
+                            <p>تم إنشاء هذا التقرير تلقائياً من قبل منصة مسار الأمن السيبراني</p>
+                            <p>© 2025 جميع الحقوق محفوظة</p>
+                        </div>
                     </div>
                 `;
             }
