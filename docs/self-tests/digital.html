@@ -229,19 +229,6 @@
                 font-size: 12px;
             }
         }
-
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            .pdf-content, .pdf-content * {
-                visibility: visible;
-            }
-            .pdf-page {
-                position: relative;
-                page-break-after: always;
-            }
-        }
     </style>
 </head>
 <body>
@@ -695,17 +682,17 @@
                     '<i class="fas fa-eye"></i> عرض المراجعة';
             });
 
-            // طباعة النتائج كPDF - النسخة المحسنة
+            // طباعة النتائج كPDF - النسخة المحسنة مع صفحات مرنة
             printResultsBtn.addEventListener('click', function() {
                 pdfLoading.style.display = 'block';
                 
                 setTimeout(function() {
-                    generateResponsivePDF();
+                    generateFlexiblePDF();
                 }, 500);
             });
 
-            // دالة إنشاء PDF متجاوبة مع الشاشات
-            function generateResponsivePDF() {
+            // دالة إنشاء PDF بصفحات مرنة
+            function generateFlexiblePDF() {
                 try {
                     // إنشاء عنصر مؤقت للـ PDF
                     const pdfContainer = document.createElement('div');
@@ -729,16 +716,16 @@
                         box-sizing: border-box;
                     `;
                     
-                    // إنشاء صفحات PDF متعددة
-                    const pages = createPDFPages();
+                    // إنشاء صفحات PDF مرنة
+                    const pages = createFlexiblePDFPages();
                     pages.forEach(page => {
                         pdfContainer.appendChild(page);
                     });
                     
                     document.body.appendChild(pdfContainer);
                     
-                    // التقاط كل صفحة على حدة
-                    capturePDFPages(pdfContainer, pages);
+                    // التقاط الصفحات
+                    captureFlexiblePDFPages(pdfContainer, pages);
                     
                 } catch (error) {
                     console.error('Error in PDF generation:', error);
@@ -747,8 +734,8 @@
                 }
             }
 
-            // إنشاء صفحات PDF متعددة
-            function createPDFPages() {
+            // إنشاء صفحات PDF مرنة (تقسيم ديناميكي)
+            function createFlexiblePDFPages() {
                 const percentage = Math.round((score / quizData.length) * 100);
                 const testDateFormatted = new Date().toLocaleDateString('ar-SA', {
                     year: 'numeric',
@@ -808,48 +795,28 @@
                 `;
                 pages.push(resultsPage);
 
-                // صفحات الأسئلة (سؤالين لكل صفحة)
-                const questionsPerPage = 2;
-                for (let i = 0; i < quizData.length; i += questionsPerPage) {
-                    const pageQuestions = quizData.slice(i, i + questionsPerPage);
-                    let questionsHTML = '';
-                    
-                    pageQuestions.forEach((question, index) => {
-                        const globalIndex = i + index;
-                        const userAnswer = userAnswers[globalIndex];
-                        const isCorrect = userAnswer === question.correctAnswer;
-                        const userAnswerText = userAnswer !== null ? question.options[userAnswer] : 'لم يتم الإجابة';
-                        
-                        questionsHTML += `
-                            <div style="margin-bottom: 40px; padding: 25px; border: 2px solid #e0e0e0; border-radius: 12px;">
-                                <h4 style="color: #1a73e8; margin-bottom: 15px; font-size: 1.3em;">السؤال ${globalIndex + 1}: ${question.question}</h4>
-                                
-                                <div style="background: ${isCorrect ? '#e8f5e9' : '#ffebee'}; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-right: 4px solid ${isCorrect ? '#4caf50' : '#f44336'};">
-                                    <strong>الإجابة المختارة:</strong><br>
-                                    <span style="font-size: 1.1em;">${userAnswerText}</span>
-                                </div>
-                                
-                                <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-right: 4px solid #2196f3;">
-                                    <strong>الإجابة الصحيحة:</strong><br>
-                                    <span style="font-size: 1.1em;">${question.options[question.correctAnswer]}</span>
-                                </div>
-                                
-                                <div style="color: ${isCorrect ? '#4caf50' : '#f44336'}; font-weight: bold; font-size: 1.1em;">
-                                    ${isCorrect ? '✓ إجابة صحيحة' : '✗ إجابة خاطئة'}
-                                </div>
-                            </div>
-                        `;
-                    });
+                // تقسيم الأسئلة ديناميكياً على صفحات مرنة
+                let currentPageQuestions = [];
+                let currentPageHeight = 0;
+                const maxPageHeight = 800; // ارتفاع أقصى تقديري للصفحة
 
-                    const questionPage = document.createElement('div');
-                    questionPage.className = 'pdf-page';
-                    questionPage.innerHTML = `
-                        <div style="padding: 40px 20px;">
-                            <h3 style="color: #1a73e8; text-align: center; font-size: 1.5em; margin-bottom: 30px;">مراجعة الأسئلة ${i + 1}-${Math.min(i + questionsPerPage, quizData.length)}</h3>
-                            ${questionsHTML}
-                        </div>
-                    `;
-                    pages.push(questionPage);
+                quizData.forEach((question, index) => {
+                    const questionHeight = estimateQuestionHeight(question);
+                    
+                    // إذا تجاوزت الصفحة الحالية الحد الأقصى، ننشئ صفحة جديدة
+                    if (currentPageHeight + questionHeight > maxPageHeight && currentPageQuestions.length > 0) {
+                        pages.push(createQuestionPage(currentPageQuestions, pages.length - 2));
+                        currentPageQuestions = [];
+                        currentPageHeight = 0;
+                    }
+                    
+                    currentPageQuestions.push({question, index});
+                    currentPageHeight += questionHeight;
+                });
+
+                // إضافة الصفحة الأخيرة إذا كانت تحتوي على أسئلة
+                if (currentPageQuestions.length > 0) {
+                    pages.push(createQuestionPage(currentPageQuestions, pages.length - 2));
                 }
 
                 // الصفحة الأخيرة: الخاتمة
@@ -874,8 +841,59 @@
                 return pages;
             }
 
-            // التقاط الصفحات وتحويلها إلى PDF
-            function capturePDFPages(container, pages) {
+            // تقدير ارتفاع السؤال بناءً على محتواه
+            function estimateQuestionHeight(question) {
+                let height = 200; // ارتفاع أساسي
+                height += question.question.length * 0.5; // إضافة بناءً على طول السؤال
+                height += question.options.reduce((sum, option) => sum + option.length * 0.3, 0); // إضافة بناءً على طول الخيارات
+                return Math.min(height, 600); // حد أقصى للارتفاع
+            }
+
+            // إنشاء صفحة أسئلة مرنة
+            function createQuestionPage(questions, pageNumber) {
+                let questionsHTML = '';
+                
+                questions.forEach(({question, index}) => {
+                    const userAnswer = userAnswers[index];
+                    const isCorrect = userAnswer === question.correctAnswer;
+                    const userAnswerText = userAnswer !== null ? question.options[userAnswer] : 'لم يتم الإجابة';
+                    
+                    questionsHTML += `
+                        <div style="margin-bottom: 40px; padding: 25px; border: 2px solid #e0e0e0; border-radius: 12px;">
+                            <h4 style="color: #1a73e8; margin-bottom: 15px; font-size: 1.3em;">السؤال ${index + 1}: ${question.question}</h4>
+                            
+                            <div style="background: ${isCorrect ? '#e8f5e9' : '#ffebee'}; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-right: 4px solid ${isCorrect ? '#4caf50' : '#f44336'};">
+                                <strong>الإجابة المختارة:</strong><br>
+                                <span style="font-size: 1.1em;">${userAnswerText}</span>
+                            </div>
+                            
+                            <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-right: 4px solid #2196f3;">
+                                <strong>الإجابة الصحيحة:</strong><br>
+                                <span style="font-size: 1.1em;">${question.options[question.correctAnswer]}</span>
+                            </div>
+                            
+                            <div style="color: ${isCorrect ? '#4caf50' : '#f44336'}; font-weight: bold; font-size: 1.1em;">
+                                ${isCorrect ? '✓ إجابة صحيحة' : '✗ إجابة خاطئة'}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                const questionPage = document.createElement('div');
+                questionPage.className = 'pdf-page';
+                questionPage.innerHTML = `
+                    <div style="padding: 40px 20px;">
+                        <h3 style="color: #1a73e8; text-align: center; font-size: 1.5em; margin-bottom: 30px;">
+                            مراجعة الأسئلة (الصفحة ${pageNumber + 1})
+                        </h3>
+                        ${questionsHTML}
+                    </div>
+                `;
+                return questionPage;
+            }
+
+            // التقاط الصفحات المرنة
+            function captureFlexiblePDFPages(container, pages) {
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF('p', 'mm', 'a4');
                 let currentPage = 0;
