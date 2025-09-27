@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فك تشفير وتحليل حركة SSL/TLS - مشاريع Wireshark</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --tls-color: #9b59b6;
+            --encryption-color: #2ecc71;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 0;
+            margin: 0;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: var(--primary-color);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            border-bottom: 5px solid var(--tls-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .breadcrumb {
+            background: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .breadcrumb a {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+        
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .content-section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+        }
+        
+        .content-section:hover {
+            transform: translateY(-5px);
+        }
+        
+        .content-section h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--tls-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+        
+        .content-section h3 {
+            color: var(--secondary-color);
+            margin: 15px 0 10px;
+        }
+        
+        .content-section p, .content-section li {
+            margin-bottom: 15px;
+            font-size: 1.05rem;
+        }
+        
+        .content-section ul, .content-section ol {
+            padding-right: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .content-section li {
+            margin-bottom: 8px;
+        }
+        
+        .command-box {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border-right: 5px solid var(--warning-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .danger-box {
+            background: #f8d7da;
+            border-right: 5px solid var(--danger-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .info-box {
+            background: #d1ecf1;
+            border-right: 5px solid #0c5460;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .encryption-box {
+            background: #d5f4e6;
+            border-right: 5px solid var(--encryption-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .sidebar {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            align-self: start;
+            position: sticky;
+            top: 20px;
+        }
+        
+        .sidebar h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--tls-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .sidebar-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .sidebar-icon {
+            font-size: 1.8rem;
+            color: var(--secondary-color);
+        }
+        
+        footer {
+            background: var(--dark-color);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            border-top: 5px solid var(--tls-color);
+        }
+        
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            header h1 {
+                font-size: 2rem;
+            }
+            
+            .sidebar {
+                position: static;
+            }
+        }
+        
+        .important-note {
+            background: #f8d7da;
+            border-right: 5px solid var(--accent-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .code-inline {
+            background: #f1f1f1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+        }
+        
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .tag {
+            background: var(--tls-color);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .exercise-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .exercise-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-3px);
+        }
+        
+        .exercise-number {
+            background: var(--tls-color);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .exercise-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .step-box {
+            background: #f8f9fa;
+            border-right: 4px solid var(--tls-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        
+        .step-box h4 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .expected-output {
+            background: #e8f5e8;
+            border-right: 4px solid var(--success-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        
+        .expected-output h4 {
+            color: var(--success-color);
+            margin-bottom: 10px;
+        }
+        
+        .quick-links {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .quick-links li {
+            margin-bottom: 10px;
+        }
+        
+        .quick-links a {
+            text-decoration: none;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: color 0.3s ease;
+        }
+        
+        .quick-links a:hover {
+            color: var(--secondary-color);
+        }
+        
+        .quick-links .link-icon {
+            color: var(--secondary-color);
+        }
+        
+        .prerequisites-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .prerequisites-list li {
+            margin-bottom: 10px;
+            padding-right: 30px;
+            position: relative;
+        }
+        
+        .prerequisites-list li:before {
+            content: "✓";
+            color: var(--success-color);
+            position: absolute;
+            right: 0;
+            font-weight: bold;
+        }
+        
+        .tool-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .tool-icon {
+            font-size: 1.5rem;
+        }
+        
+        .completion-badge {
+            display: inline-block;
+            background: var(--success-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            margin-top: 10px;
+        }
+        
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .nav-button {
+            display: inline-block;
+            background: var(--secondary-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background 0.3s ease;
+        }
+        
+        .nav-button:hover {
+            background: var(--primary-color);
+        }
+        
+        .screenshot-placeholder {
+            background: #f0f0f0;
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            padding: 40px;
+            text-align: center;
+            margin: 15px 0;
+            color: #666;
+        }
+        
+        .filter-list {
+            background: #f8f9fa;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .filter-list code {
+            background: #e9ecef;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .tls-versions {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .tls-version {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .tls-icon {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .report-template {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .handshake-steps {
+            background: #f0f8ff;
+            border: 1px solid #d0e0f0;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .handshake-step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+        }
+        
+        .step-number {
+            background: var(--tls-color);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-left: 15px;
+        }
+        
+        .key-format {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">🔒</div>
+            <h1>فك تشفير وتحليل حركة SSL/TLS</h1>
+            <p>أتقن عملية فك تشفير وتحليل حركة SSL/TLS باستخدام Wireshark لفهم الاتصالات الآمنة</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="https://cyberpath.vercel.app/courses/coursesnms/linux/wireshark.html">مشاريع Wireshark</a> > 
+            <a href="./Intrusion.html">اكتشاف التسلل</a> >
+            <span>فك تشفير TLS</span>
+        </div>
+        
+        <div class="main-content">
+            <div class="content">
+                <div class="content-section">
+                    <h2>مقدمة</h2>
+                    <p>في هذا المشروع، ستتعلم كيفية استخدام Wireshark لفك تشفير وتحليل حركة SSL/TLS. يعد فهم حركة SSL/TLS أمراً أساسياً لتشخيص مشكلات الاتصالات الآمنة وضمان أمان البيانات أثناء انتقالها.</p>
+                    
+                    <div class="encryption-box">
+                        <p><strong>ملاحظة هامة:</strong> فك تشفير SSL/TLS يتطلب الوصول إلى المفاتيح الخاصة للخادم. تأكد من أنك تملك الصلاحية القانونية لاستخدام هذه المفاتيح.</p>
+                    </div>
+                </div>
+
+                <div class="content-section">
+                    <h2>المتطلبات الأساسية</h2>
+                    <ul class="prerequisites-list">
+                        <li>فهم أساسي لمفاهيم الشبكات والتشفير</li>
+                        <li>تثبيت Wireshark على جهازك</li>
+                        <li>الوصول إلى المفاتيح الخاصة لخادم SSL/TLS (لغرض فك التشفير)</li>
+                        <li>ملف PCAP عينة يحتوي على حركة SSL/TLS</li>
+                        <li>معرفة أساسية ببروتوكولات SSL/TLS</li>
+                    </ul>
+                </div>
+
+                <div class="content-section">
+                    <h2>إعداد المعمل والأدوات</h2>
+                    
+                    <div class="tool-item">
+                        <div class="tool-icon">🛠️</div>
+                        <div>
+                            <h3>Wireshark</h3>
+                            <p>قم بتنزيل وتثبيت Wireshark من <a href="https://www.wireshark.org/download.html" target="_blank">الموقع الرسمي</a>.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="tool-item">
+                        <div class="tool-icon">📁</div>
+                        <div>
+                            <h3>ملف PCAP عينة</h3>
+                            <p>قم بتنزيل ملف PCAP عينة يحتوي على حركة SSL/TLS.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="tool-item">
+                        <div class="tool-icon">🔑</div>
+                        <div>
+                            <h3>ملف المفتاح الخاص</h3>
+                            <p>احصل على المفتاح الخاص لخادم SSL/TLS المستخدم في ملف PCAP العينة.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="warning-box">
+                        <p><strong>تحذير أمني:</strong> التعامل مع المفاتيح الخاصة يتطلب حرصاً شديداً. لا تشارك المفاتيح الخاصة مع أي شخص وتأكد من تخزينها بشكل آمن.</p>
+                    </div>
+                </div>
+
+                <div class="content-section">
+                    <h2>إصدارات SSL/TLS</h2>
+                    
+                    <div class="tls-versions">
+                        <div class="tls-version">
+                            <div class="tls-icon">🔓</div>
+                            <h4>SSL 2.0/3.0</h4>
+                            <p>إصدارات قديمة وغير آمنة</p>
+                            <small>غير موصى بها</small>
+                        </div>
+                        
+                        <div class="tls-version">
+                            <div class="tls-icon">🔒</div>
+                            <h4>TLS 1.0/1.1</h4>
+                            <p>إصدارات قيد التخلص التدريجي</p>
+                            <small>دعم محدود</small>
+                        </div>
+                        
+                        <div class="tls-version">
+                            <div class="tls-icon">🔐</div>
+                            <h4>TLS 1.2</h4>
+                            <p>الإصدار الأكثر استخداماً</p>
+                            <small>آمن ومستقر</small>
+                        </div>
+                        
+                        <div class="tls-version">
+                            <div class="tls-icon">🛡️</div>
+                            <h4>TLS 1.3</h4>
+                            <p>أحدث إصدار</p>
+                            <small>أفضل أمان وأداء</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-section">
+                    <h2>مراحل مصافحة TLS</h2>
+                    
+                    <div class="handshake-steps">
+                        <div class="handshake-step">
+                            <div class="step-number">1</div>
+                            <div>Client Hello - العميل يرسل إمكانياته</div>
+                        </div>
+                        <div class="handshake-step">
+                            <div class="step-number">2</div>
+                            <div>Server Hello - الخادم يختار الإعدادات</div>
+                        </div>
+                        <div class="handshake-step">
+                            <div class="step-number">3</div>
+                            <div>Certificate - الخادم يرسل شهادته</div>
+                        </div>
+                        <div class="handshake-step">
+                            <div class="step-number">4</div>
+                            <div>Key Exchange - تبادل المفاتيح</div>
+                        </div>
+                        <div class="handshake-step">
+                            <div class="step-number">5</div>
+                            <div>Finished - اكتمال المصافحة</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-section">
+                    <h2>التمارين العملية</h2>
+                    
+                    <div class="exercise-card">
+                        <h3><span class="exercise-number">1</span> تحميل ملف PCAP عينة</h3>
+                        
+                        <div class="step-box">
+                            <h4>الخطوات</h4>
+                            <ol>
+                                <li>افتح Wireshark.</li>
+                                <li>اذهب إلى "File" > "Open" واختر ملف PCAP العينة الذي قمت بتنزيله.</li>
+                                <li>سيتم تحميل الملف وعرض حركة المرور الملتقطة.</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="expected-output">
+                            <h4>المخرجات المتوقعة</h4>
+                            <p>ملف PCAP العينة المحتوي على حركة مرور الشبكة محمل في Wireshark.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-card">
+                        <h3><span class="exercise-number">2</span> تكوين إعدادات فك تشفير SSL/TLS</h3>
+                        
+                        <div class="step-box">
+                            <h4>الخطوات</h4>
+                            <ol>
+                                <li>في Wireshark، اذهب إلى "Edit" > "Preferences".</li>
+                                <li>وسع قائمة "Protocols" واختر "SSL" أو "TLS".</li>
+                                <li>في قسم "RSA keys list"، انقر على "Edit".</li>
+                                <li>أضف مدخلاً جديداً بالتفاصيل التالية:
+                                    <div class="key-format">
+                                        <strong>تفاصيل المفتاح:</strong><br>
+                                        - IP address: عنوان IP لخادم SSL/TLS<br>
+                                        - Port: رقم المنفذ المستخدم (مثال: 443 لـ HTTPS)<br>
+                                        - Protocol: `http` أو `ssl`<br>
+                                        - Key file: المسار إلى ملف المفتاح الخاص
+                                    </div>
+                                </li>
+                                <li>انقر "OK" لحفظ الإعدادات.</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="expected-output">
+                            <h4>المخرجات المتوقعة</h4>
+                            <p>Wireshark مهيأ لاستخدام المفتاح الخاص المقدم لفك تشفير SSL/TLS.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-card">
+                        <h3><span class="exercise-number">3</span> تصفية حركة SSL/TLS</h3>
+                        
+                        <div class="step-box">
+                            <h4>الخطوات</h4>
+                            <ol>
+                                <li>في شريط التصفية في الأعلى، أدخل عامل التصفية <code>ssl</code> أو <code>tls</code> واضغط Enter.</li>
+                                <li>سيقوم Wireshark بعرض حركة SSL/TLS فقط من الالتقاط.</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="expected-output">
+                            <h4>المخرجات المتوقعة</h4>
+                            <p>عرض حركة SSL/TLS المصفاة من الالتقاط الكلي.</p>
+                        </div>
+                        
+                        <div class="filter-list">
+                            <strong>عوامل التصفية الإضافية:</strong><br>
+                            <code>ssl.handshake</code> (لمصافحة TLS فقط)<br>
+                            <code>ssl.record.content_type == 23</code> (لبيانات التطبيق)<br>
+                            <code>tls.alert</code> (لتنبيهات TLS)
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-card">
+                        <h3><span class="exercise-number">4</span> فك تشفير وتحليل حزم SSL/TLS</h3>
+                        
+                        <div class="step-box">
+                            <h4>الخطوات</h4>
+                            <ol>
+                                <li>حدد حزمة SSL/TLS مفكوكة من الحركة المصفاة.</li>
+                                <li>انقر على الحزمة لعرض تفاصيلها في لوحة تفاصيل الحزمة.</li>
+                                <li>وسع قسم "Secure Sockets Layer" أو "Transport Layer Security" لعرض المعلومات التفصيلية عن المصافحة، معاملات التشفير، والبيانات المفكوكة.</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="expected-output">
+                            <h4>المخرجات المتوقعة</h4>
+                            <p>معلومات مفصلة عن حزم SSL/TLS المفكوكة معروضة.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-card">
+                        <h3><span class="exercise-number">5</span> متابعة تدفقات SSL/TLS</h3>
+                        
+                        <div class="step-box">
+                            <h4>الخطوات</h4>
+                            <ol>
+                                <li>انقر بزر الماوس الأيمن على حزمة SSL/TLS مفكوكة واختر "Follow" > "TCP Stream" لعرض المحادثة الكاملة.</li>
+                                <li>حلل التدفق المفكوك لفهم البيانات المنقولة وتحديد أي مشكلات أمنية محتملة.</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="expected-output">
+                            <h4>المخرجات المتوقعة</h4>
+                            <p>تم تحليل تدفق اتصال SSL/TLS كامل ومفكوك.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-section">
+                    <h2>الخاتمة</h2>
+                    <p>بإكمال هذه التمارين، تكون قد تعلمت كيفية فك تشفير وتحليل حركة SSL/TLS باستخدام Wireshark. هذه المهارات أساسية لتشخيص مشكلات الاتصالات الآمنة، وضمان أمان البيانات، وفهم حركة المرور المشفرة على الشبكة.</p>
+                    
+                    <div class="info-box">
+                        <p><strong>نصيحة للتطوير:</strong> تدرب على فك تشفير حركة TLS من إصدارات مختلفة (TLS 1.2, TLS 1.3) لفهم الاختلافات في آلية التشفير.</p>
+                    </div>
+                    
+                    <div class="completion-badge">✓ تم إكمال المشروع الرابع بنجاح!</div>
+                </div>
+
+                <div class="navigation-buttons">
+                    <a href="./Intrusion.html" class="nav-button">← المشروع السابق: اكتشاف التسلل</a>
+                    <a href="./VOIP.html" class="nav-button">المشروع التالي: تحليل VoIP →</a>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <h2>معلومات سريعة</h2>
+                <div class="sidebar-content">
+                    <div class="sidebar-item">
+                        <div class="sidebar-icon">⏱️</div>
+                        <div>الوقت المقدر: 2-3 ساعات</div>
+                    </div>
+                    
+                    <div class="sidebar-item">
+                        <div class="sidebar-icon">🎯</div>
+                        <div>المستوى: متقدم</div>
+                    </div>
+                    
+                    <div class="sidebar-item">
+                        <div class="sidebar-icon">🛠️</div>
+                        <div>الأدوات: Wireshark، مفاتيح خاصة</div>
+                    </div>
+                    
+                    <div class="sidebar-item">
+                        <div class="sidebar-icon">📊</div>
+                        <div>عدد التمارين: 5 تمارين</div>
+                    </div>
+                </div>
+
+                <h2 style="margin-top: 30px;">الموضوعات الرئيسية</h2>
+                <div class="tags">
+                    <span class="tag">فك تشفير SSL/TLS</span>
+                    <span class="tag">تحليل الحركة الآمنة</span>
+                    <span class="tag">التصفية</span>
+                    <span class="tag">تدفقات الاتصال</span>
+                </div>
+
+                <h2 style="margin-top: 30px;">منافذ SSL/TLS شائعة</h2>
+                <ul>
+                    <li><strong>443:</strong> HTTPS (الويب الآمن)</li>
+                    <li><strong>993:</strong> IMAPS (البريد الوارد الآمن)</li>
+                    <li><strong>995:</strong> POP3S (البريد الوارد الآمن)</li>
+                    <li><strong>465:</strong> SMTPS (البريد الصادر الآمن)</li>
+                    <li><strong>636:</strong> LDAPS (الدليل الآمن)</li>
+                </ul>
+
+                <h2 style="margin-top: 30px;">عوامل التصفية المتقدمة</h2>
+                <div class="filter-list">
+                    <code>ssl.handshake.type == 1</code> (Client Hello)<br>
+                    <code>ssl.handshake.type == 2</code> (Server Hello)<br>
+                    <code>ssl.handshake.ciphersuite</code> (مجموعات التشفير)<br>
+                    <code>tls.record.version</code> (إصدار TLS)<br>
+                    <code>ssl.alert_message</code> (رسائل التنبيه)
+                </div>
+
+                <h2 style="margin-top: 30px;">نصائح فك التشفير</h2>
+                <ul>
+                    <li>تأكد من تطابق المفتاح مع الشهادة المستخدمة</li>
+                    <li>تحقق من إصدار TLS المدعوم</li>
+                    <li>ابحث عن رسائل تنبيه TLS</li>
+                    <li>راقب مدة مصافحة TLS</li>
+                    <li>تحقق من مجموعات التشفير المستخدمة</li>
+                </ul>
+
+                <h2 style="margin-top: 30px;">روابط سريعة</h2>
+                <ul class="quick-links">
+                    <li><a href="https://cyberpath.vercel.app/courses/coursesnms/linux/wireshark.html"><span class="link-icon">📡</span> الصفحة الرئيسية للمشاريع</a></li>
+                    <li><a href="./Intrusion.html"><span class="link-icon">🚨</span> المشروع السابق: اكتشاف التسلل</a></li>
+                    <li><a href="./VOIP.html"><span class="link-icon">📞</span> المشروع التالي: تحليل VoIP</a></li>
+                    <li><a href="./analyzing-HTTP.html"><span class="link-icon">🌐</span> تحليل HTTP</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>مشروع فك تشفير وتحليل حركة SSL/TLS - جزء من سلسلة مشاريع Wireshark للمبتدئين</p>
+            <p>© 2025 - جميع الحقوق محفوظة | <a href="https://cyberpath.vercel.app" style="color: white;">CyberPath</a></p>
+        </div>
+    </footer>
+
+    <script>
+        // إضافة تفاعلية للصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            // تأثيرات للبطاقات
+            const exerciseCards = document.querySelectorAll('.exercise-card');
+            
+            exerciseCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    this.style.borderColor = 'var(--tls-color)';
+                    setTimeout(() => {
+                        this.style.borderColor = '#ddd';
+                    }, 1000);
+                });
+            });
+            
+            // محاكاة إكمال التمارين
+            const completionBadge = document.querySelector('.completion-badge');
+            completionBadge.style.display = 'none';
+            
+            // في تطبيق حقيقي، هنا سيتم التحقق من إكمال المستخدم للتمارين
+            setTimeout(() => {
+                if (confirm('هل أكملت جميع تمارين فك تشفير SSL/TLS؟')) {
+                    completionBadge.style.display = 'inline-block';
+                    localStorage.setItem('tlsProjectCompleted', 'true');
+                    
+                    // تحديث تقدم المستخدم العام
+                    let completedProjects = parseInt(localStorage.getItem('completedWiresharkProjects') || 0);
+                    localStorage.setItem('completedWiresharkProjects', completedProjects + 1);
+                }
+            }, 5000);
+            
+            // إظهار معلومات عن إصدارات TLS
+            const tlsInfo = document.createElement('div');
+            tlsInfo.className = 'info-box';
+            tlsInfo.innerHTML = `
+                <p><strong>معلومة تقنية:</strong> TLS 1.3 يقدم تحسينات أمنية كبيرة ويقلل من مراحل المصافحة مقارنة بالإصدارات السابقة.</p>
+            `;
+            document.querySelector('.content').insertBefore(tlsInfo, document.querySelector('.content-section:nth-child(4)'));
+            
+            // إضافة مؤقت لعرض معلومات متغيرة
+            const tips = [
+                "استخدم المفاتيح الخاصة فقط في بيئات آمنة",
+                "تأكد من أن المفتاح الخاص يتطابق مع الشهادة المستخدمة",
+                "TLS 1.3 أكثر أماناً وأسرع من الإصدارات السابقة",
+                "راقب رسائل التنبيه لاكتشاف مشكلات التشفير"
+            ];
+            
+            let currentTip = 0;
+            const tipElement = document.createElement('div');
+            tipElement.className = 'encryption-box';
+            tipElement.innerHTML = `<p><strong>نصيحة تشفير:</strong> ${tips[currentTip]}</p>`;
+            document.querySelector('.content').insertBefore(tipElement, document.querySelector('.content-section:last-child'));
+            
+            // تغيير النصيحة كل 8 ثواني
+            setInterval(() => {
+                currentTip = (currentTip + 1) % tips.length;
+                tipElement.innerHTML = `<p><strong>نصيحة تشفير:</strong> ${tips[currentTip]}</p>`;
+            }, 8000);
+        });
+    </script>
+</body>
+</html>
