@@ -27,6 +27,7 @@
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             padding: 0;
             margin: 0;
+            min-height: 100vh;
         }
         
         .container {
@@ -138,6 +139,8 @@
             padding: 25px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
             align-self: start;
+            position: sticky;
+            top: 20px;
         }
         
         .sidebar h2 {
@@ -182,6 +185,10 @@
             header h1 {
                 font-size: 2rem;
             }
+            
+            .sidebar {
+                position: static;
+            }
         }
         
         .important-note {
@@ -221,6 +228,7 @@
             padding: 20px;
             margin-bottom: 20px;
             transition: all 0.3s ease;
+            position: relative;
         }
         
         .project-card:hover {
@@ -231,6 +239,21 @@
         .project-card h3 {
             color: var(--primary-color);
             margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .project-number {
+            background: var(--secondary-color);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
         }
         
         .project-link {
@@ -242,10 +265,12 @@
             text-decoration: none;
             margin-top: 10px;
             transition: background 0.3s ease;
+            font-weight: bold;
         }
         
         .project-link:hover {
             background: var(--primary-color);
+            transform: scale(1.05);
         }
         
         .topic-tag {
@@ -263,6 +288,90 @@
             padding: 15px;
             border-radius: 5px;
             margin: 15px 0;
+        }
+        
+        .difficulty-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: var(--success-color);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+        
+        .quick-links {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .quick-links li {
+            margin-bottom: 10px;
+        }
+        
+        .quick-links a {
+            text-decoration: none;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: color 0.3s ease;
+        }
+        
+        .quick-links a:hover {
+            color: var(--secondary-color);
+        }
+        
+        .quick-links .link-icon {
+            color: var(--secondary-color);
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .social-link {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: var(--secondary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .social-link:hover {
+            background: var(--primary-color);
+            transform: scale(1.1);
+        }
+        
+        .progress-tracker {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--success-color);
+            width: 0%;
+            transition: width 0.5s ease;
         }
     </style>
 </head>
@@ -283,11 +392,20 @@
                     <p>هذه الصفحة تحتوي على خمسة مشاريع للمبتدئين تركز على استخدام Wireshark للتحقيق الجنائي الرقمي والأمني. كل مشروع يوفر تجربة عملية مع التقنيات الأساسية لالتقاط وتحليل حركة الشبكة لتحديد المشكلات الأمنية المحتملة وتحسين أداء الشبكة.</p>
                     
                     <div class="path-info">
-                        <p><strong>مسار الملفات المحدث:</strong> جميع المشاريع متاحة الآن ضمن مسار <code>Cybersecurity-Path-/docs/courses/coursesnms/linux/</code></p>
+                        <p><strong>مسار الملفات المحدث:</strong> جميع المشاريع متاحة الآن ضمن مسار <code>https://cyberpath.vercel.app/courses/coursesnms/linux/</code></p>
                     </div>
                     
                     <div class="info-box">
-                        <p><strong>ملاحظة:</strong> هذه المشاريع مصممة للمبتدئين في مجال تحليل الشبكات والأمن السيبراني.</p>
+                        <p><strong>ملاحظة:</strong> هذه المشاريع مصممة للمبتدئين في مجال تحليل الشبكات والأمن السيبراني. لا توجد متطلبات مسبقة صعبة، فقط شغف التعلم!</p>
+                    </div>
+                    
+                    <div class="progress-tracker">
+                        <h3>تتبع تقدمك</h3>
+                        <p>إكمال المشاريع: <span id="completed-projects">0</span> من 5</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                        <p>ابدأ بأول مشروع لترى تقدمك يتحسن!</p>
                     </div>
                 </div>
 
@@ -295,7 +413,8 @@
                     <h2>المشاريع المتاحة</h2>
                     
                     <div class="project-card">
-                        <h3>1. تحليل حركة HTTP باستخدام Wireshark</h3>
+                        <span class="difficulty-badge">مبتدئ</span>
+                        <h3><span class="project-number">1</span> تحليل حركة HTTP باستخدام Wireshark</h3>
                         <p>تعلم كيفية التقاط وتحليل حركة HTTP باستخدام Wireshark. يغطي هذا المشروع إعداد عمليات الالتقاط، تصفية حركة HTTP، تحليل طلبات HTTP واستجاباتها، واستخراج بيانات الحمولة.</p>
                         <p><strong>الموضوعات الرئيسية:</strong> 
                             <span class="topic-tag">حركة HTTP</span>
@@ -304,11 +423,12 @@
                             <span class="topic-tag">استخراج البيانات</span>
                         </p>
                         <p><strong>الأدوات:</strong> Wireshark، متصفح الويب</p>
-                       <a href="./analyzing-HTTP.html" class="project-link">عرض المشروع</a>
+                        <a href="./analyzing-HTTP.html" class="project-link">عرض المشروع</a>
                     </div>
                     
                     <div class="project-card">
-                        <h3>2. الكشف والتحقيق في حركة البرمجيات الخبيثة</h3>
+                        <span class="difficulty-badge">متوسط</span>
+                        <h3><span class="project-number">2</span> الكشف والتحقيق في حركة البرمجيات الخبيثة</h3>
                         <p>استخدم Wireshark للكشف عن والتحقيق في حركة البرمجيات الخبيثة. يتضمن هذا المشروع تحديد الأنماط المشبوهة، تحليل الحزم الخبيثة، متابعة تدفقات اتصال البرمجيات الخبيثة، وتوثيق النتائج.</p>
                         <p><strong>الموضوعات الرئيسية:</strong> 
                             <span class="topic-tag">كشف البرمجيات الخبيثة</span>
@@ -321,7 +441,8 @@
                     </div>
                     
                     <div class="project-card">
-                        <h3>3. Wireshark لاكتشاف التسلل إلى الشبكة</h3>
+                        <span class="difficulty-badge">متوسط</span>
+                        <h3><span class="project-number">3</span> Wireshark لاكتشاف التسلل إلى الشبكة</h3>
                         <p>تعلم استخدام Wireshark لاكتشاف التسلل إلى الشبكة. يركز هذا المشروع على تحديد مؤشرات الاختراق، تحليل الحزم المشبوهة، متابعة تدفقات اتصال التسلل، وتوثيق النتائج.</p>
                         <p><strong>الموضوعات الرئيسية:</strong> 
                             <span class="topic-tag">اكتشاف التسلل</span>
@@ -334,7 +455,8 @@
                     </div>
                     
                     <div class="project-card">
-                        <h3>4. فك تشفير وتحليل حركة SSL/TLS</h3>
+                        <span class="difficulty-badge">متقدم</span>
+                        <h3><span class="project-number">4</span> فك تشفير وتحليل حركة SSL/TLS</h3>
                         <p>أتقن عملية فك تشفير وتحليل حركة SSL/TLS باستخدام Wireshark. يتضمن هذا المشروع تكوين إعدادات فك التشفير، تصفية حركة SSL/TLS، تحليل الحزم المفكوكة، ومتابعة تدفقات الاتصال الآمنة.</p>
                         <p><strong>الموضوعات الرئيسية:</strong> 
                             <span class="topic-tag">فك تشفير SSL/TLS</span>
@@ -343,11 +465,12 @@
                             <span class="topic-tag">تدفقات الاتصال</span>
                         </p>
                         <p><strong>الأدوات:</strong> Wireshark، ملفات المفاتيح الخاصة، ملفات PCAP نموذجية</p>
-                        <a href="./linux/TLS.html" class="project-link">عرض المشروع</a>
+                        <a href="./TLS.html" class="project-link">عرض المشروع</a>
                     </div>
                     
                     <div class="project-card">
-                        <h3>5. التقاط وتحليل حركة VoIP</h3>
+                        <span class="difficulty-badge">متقدم</span>
+                        <h3><span class="project-number">5</span> التقاط وتحليل حركة VoIP</h3>
                         <p>التقط وحلل حركة VoIP باستخدام Wireshark. يغطي هذا المشروع التقاط مكالمات VoIP، تصفية حركة SIP وRTP، تحليل حزم SIP، فحص تدفقات RTP، وتشغيل صوت مكالمات VoIP.</p>
                         <p><strong>الموضوعات الرئيسية:</strong> 
                             <span class="topic-tag">حركة VoIP</span>
@@ -377,12 +500,18 @@
                             <p>للحصول على نظرة عامة كاملة، يمكنك زيارة <a href="./readme1.html">صفحة README</a>.</p>
                         </li>
                     </ol>
+                    
+                    <div class="command-box">
+                        # لاستنساخ المشاريع محلياً (اختياري)<br>
+                        git clone https://github.com/0xrajneesh/Wireshark-Projects-for-beginners.git<br>
+                        cd Wireshark-Projects-for-beginners
+                    </div>
                 </div>
 
                 <div class="content-section">
                     <h2>نصائح للمبتدئين</h2>
                     <div class="warning-box">
-                        <p><strong>تنبيه:</strong> تأكد من استخدام Wireshark في بيئة آمنة ومرخصة فقط. تحليل حركة الشبكة على شبكات غير مصرح بها قد يكون غير قانوني.</p>
+                        <p><strong>تنبيه أمني:</strong> تأكد من استخدام Wireshark في بيئة آمنة ومرخصة فقط. تحليل حركة الشبكة على شبكات غير مصرح بها قد يكون غير قانوني.</p>
                     </div>
                     
                     <h3>بيئات التدريب الموصى بها:</h3>
@@ -401,11 +530,11 @@
                     
                     <h3>ترتيب مقترح للمشاريع:</h3>
                     <ol>
-                        <li>تحليل حركة HTTP</li>
-                        <li>الكشف عن حركة البرمجيات الخبيثة</li>
-                        <li>اكتشاف التسلل إلى الشبكة</li>
-                        <li>فك تشفير حركة SSL/TLS</li>
-                        <li>تحليل حركة VoIP</li>
+                        <li>تحليل حركة HTTP (مبتدئ)</li>
+                        <li>الكشف عن حركة البرمجيات الخبيثة (متوسط)</li>
+                        <li>اكتشاف التسلل إلى الشبكة (متوسط)</li>
+                        <li>فك تشفير حركة SSL/TLS (متقدم)</li>
+                        <li>تحليل حركة VoIP (متقدم)</li>
                     </ol>
                 </div>
             </div>
@@ -420,12 +549,12 @@
                     
                     <div class="sidebar-item">
                         <div class="sidebar-icon">🎯</div>
-                        <div>المستوى: مبتدئ</div>
+                        <div>المستوى: مبتدئ إلى متقدم</div>
                     </div>
                     
                     <div class="sidebar-item">
                         <div class="sidebar-icon">⏱️</div>
-                        <div>الوقت المقدر: 2-3 ساعات لكل مشروع</div>
+                        <div>الوقت المقدر: 2-4 ساعات لكل مشروع</div>
                     </div>
                     
                     <div class="sidebar-item">
@@ -435,7 +564,7 @@
                     
                     <div class="sidebar-item">
                         <div class="sidebar-icon">📁</div>
-                        <div>المسار: https://cyberpath.vercel.app/courses/coursesnms/linux/wireshark.html/</div>
+                        <div>المسار: cyberpath.vercel.app/courses/</div>
                     </div>
                 </div>
 
@@ -444,24 +573,24 @@
                 <p>مطور ومحلل أمني مهتم بتعليم أساسيات الأمن السيبراني وتحليل الشبكات.</p>
                 
                 <h3>تواصل معي:</h3>
-                <ul>
-                    <li><strong>LinkedIn:</strong> [رابط LinkedIn]</li>
-                    <li><strong>Twitter:</strong> [رابط Twitter]</li>
-                    <li><strong>YouTube Channel:</strong> [رابط YouTube]</li>
-                </ul>
+                <div class="social-links">
+                    <a href="#" class="social-link" title="LinkedIn">in</a>
+                    <a href="#" class="social-link" title="Twitter">𝕏</a>
+                    <a href="#" class="social-link" title="YouTube">▶️</a>
+                </div>
                 
                 <h3>الخدمات المهنية:</h3>
                 <p>للخدمات المهنية والاستشارات، يرجى زيارة موقعي الإلكتروني:</p>
-                <a href="https://cyberpath.vercel.app" class="project-link">cyberpath.vercel.app</a>
+                <a href="https://cyberpath.vercel.app" class="project-link" style="display: block; text-align: center; margin: 10px 0;">cyberpath.vercel.app</a>
 
                 <h2 style="margin-top: 30px;">روابط سريعة</h2>
-                <ul>
-                    <li><a href="./analyzing-HTTP.html">تحليل HTTP</a></li>
-                    <li><a href="./detecting.html">كشف البرمجيات الخبيثة</a></li>
-                    <li><a href="./Intrusion.html">اكتشاف التسلل</a></li>
-                    <li><a href="./linux/TLS.html">فك تشفير TLS</a></li>
-                    <li><a href="./VOIP.html">تحليل VoIP</a></li>
-                    <li><a href="./readme1.html">صفحة README</a></li>
+                <ul class="quick-links">
+                    <li><a href="./analyzing-HTTP.html"><span class="link-icon">🔍</span> تحليل HTTP</a></li>
+                    <li><a href="./detecting.html"><span class="link-icon">🦠</span> كشف البرمجيات الخبيثة</a></li>
+                    <li><a href="./Intrusion.html"><span class="link-icon">🚨</span> اكتشاف التسلل</a></li>
+                    <li><a href="./TLS.html"><span class="link-icon">🔒</span> فك تشفير TLS</a></li>
+                    <li><a href="./VOIP.html"><span class="link-icon">📞</span> تحليل VoIP</a></li>
+                    <li><a href="./readme1.html"><span class="link-icon">📖</span> صفحة README</a></li>
                 </ul>
 
                 <h2 style="margin-top: 30px;">كلمات مفتاحية</h2>
@@ -483,5 +612,24 @@
             <p>© 2025 - جميع الحقوق محفوظة</p>
         </div>
     </footer>
+
+    <script>
+        // تتبع تقدم المستخدم
+        document.addEventListener('DOMContentLoaded', function() {
+            // محاكاة تقدم المستخدم (في تطبيق حقيقي، سيتم حفظ هذا في قاعدة بيانات أو localStorage)
+            let completedProjects = localStorage.getItem('completedWiresharkProjects') || 0;
+            document.getElementById('completed-projects').textContent = completedProjects;
+            document.getElementById('progress-fill').style.width = (completedProjects / 5) * 100 + '%';
+            
+            // إضافة تأثيرات تفاعلية إضافية
+            const projectLinks = document.querySelectorAll('.project-link');
+            projectLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    // في تطبيق حقيقي، هنا سيتم تحديث تقدم المستخدم
+                    alert('ستتم إعادة توجيهك إلى صفحة المشروع. بعد إكماله، عد إلى هذه الصفحة لتحديث تقدمك!');
+                });
+            });
+        });
+    </script>
 </body>
 </html>
