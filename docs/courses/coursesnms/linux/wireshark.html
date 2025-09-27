@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مشاريع Wireshark للمبتدئين - منصة الأمن السيبراني</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --success-color: #27ae60;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 0;
+            margin: 0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: var(--primary-color);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            border-bottom: 5px solid var(--secondary-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .content-section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+        }
+        
+        .content-section:hover {
+            transform: translateY(-5px);
+        }
+        
+        .content-section h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+        
+        .content-section h3 {
+            color: var(--secondary-color);
+            margin: 15px 0 10px;
+        }
+        
+        .content-section p, .content-section li {
+            margin-bottom: 15px;
+            font-size: 1.05rem;
+        }
+        
+        .content-section ul, .content-section ol {
+            padding-right: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .content-section li {
+            margin-bottom: 8px;
+        }
+        
+        .command-box {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border-right: 5px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .info-box {
+            background: #d1ecf1;
+            border-right: 5px solid #0c5460;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .sidebar {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            align-self: start;
+        }
+        
+        .sidebar h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .sidebar-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .sidebar-icon {
+            font-size: 1.8rem;
+            color: var(--secondary-color);
+        }
+        
+        footer {
+            background: var(--dark-color);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            border-top: 5px solid var(--secondary-color);
+        }
+        
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            header h1 {
+                font-size: 2rem;
+            }
+        }
+        
+        .important-note {
+            background: #f8d7da;
+            border-right: 5px solid var(--accent-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .code-inline {
+            background: #f1f1f1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+        }
+        
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .tag {
+            background: var(--secondary-color);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .project-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .project-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-3px);
+        }
+        
+        .project-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .project-link {
+            display: inline-block;
+            background: var(--secondary-color);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            text-decoration: none;
+            margin-top: 10px;
+            transition: background 0.3s ease;
+        }
+        
+        .project-link:hover {
+            background: var(--primary-color);
+        }
+        
+        .topic-tag {
+            display: inline-block;
+            background: #e0e0e0;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            margin: 2px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">📡</div>
+            <h1>مشاريع Wireshark للمبتدئين</h1>
+            <p>تعلم تحليل حركة الشبكة والتحقيق في الأمن السيبراني باستخدام Wireshark</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="main-content">
+            <div class="content">
+                <div class="content-section">
+                    <h2>نظرة عامة</h2>
+                    <p>هذا المستودع يحتوي على خمسة مشاريع للمبتدئين تركز على استخدام Wireshark للتحقيق الجنائي الرقمي والأمني. كل مشروع يوفر تجربة عملية مع التقنيات الأساسية لالتقاط وتحليل حركة الشبكة لتحديد المشكلات الأمنية المحتملة وتحسين أداء الشبكة.</p>
+                    
+                    <div class="info-box">
+                        <p><strong>ملاحظة:</strong> هذه المشاريع مصممة للمبتدئين في مجال تحليل الشبكات والأمن السيبراني.</p>
+                    </div>
+                </div>
+
+                <div class="content-section">
+                    <h2>المشاريع المتاحة</h2>
+                    
+                    <div class="project-card">
+                        <h3>1. تحليل حركة HTTP باستخدام Wireshark</h3>
+                        <p>تعلم كيفية التقاط وتحليل حركة HTTP باستخدام Wireshark. يغطي هذا المشروع إعداد عمليات الالتقاط، تصفية حركة HTTP، تحليل طلبات HTTP واستجاباتها، واستخراج بيانات الحمولة.</p>
+                        <p><strong>الموضوعات الرئيسية:</strong> 
+                            <span class="topic-tag">حركة HTTP</span>
+                            <span class="topic-tag">تحليل الحزم</span>
+                            <span class="topic-tag">التصفية</span>
+                            <span class="topic-tag">استخراج البيانات</span>
+                        </p>
+                        <p><strong>الأدوات:</strong> Wireshark، متصفح الويب</p>
+                        <a href="https://github.com/0xrajneesh/Wireshark-Projects-for-beginners/blob/main/Project-1-Analyzing-HTTP-Traffic-with-Wireshark.md" class="project-link">عرض المشروع</a>
+                    </div>
+                    
+                    <div class="project-card">
+                        <h3>2. الكشف والتحقيق في حركة البرمجيات الخبيثة</h3>
+                        <p>استخدم Wireshark للكشف عن والتحقيق في حركة البرمجيات الخبيثة. يتضمن هذا المشروع تحديد الأنماط المشبوهة، تحليل الحزم الخبيثة، متابعة تدفقات اتصال البرمجيات الخبيثة، وتوثيق النتائج.</p>
+                        <p><strong>الموضوعات الرئيسية:</strong> 
+                            <span class="topic-tag">كشف البرمجيات الخبيثة</span>
+                            <span class="topic-tag">تحليل الحركة</span>
+                            <span class="topic-tag">مؤشرات الاختراق</span>
+                            <span class="topic-tag">التقارير</span>
+                        </p>
+                        <p><strong>الأدوات:</strong> Wireshark، ملفات PCAP نموذجية</p>
+                        <a href="https://github.com/0xrajneesh/Wireshark-Projects-for-beginners/blob/main/Project-2-detecting-and-investigating-malware-traffic.md" class="project-link">عرض المشروع</a>
+                    </div>
+                    
+                    <div class="project-card">
+                        <h3>3. Wireshark لاكتشاف التسلل إلى الشبكة</h3>
+                        <p>تعلم استخدام Wireshark لاكتشاف التسلل إلى الشبكة. يركز هذا المشروع على تحديد مؤشرات الاختراق، تحليل الحزم المشبوهة، متابعة تدفقات اتصال التسلل، وتوثيق النتائج.</p>
+                        <p><strong>الموضوعات الرئيسية:</strong> 
+                            <span class="topic-tag">اكتشاف التسلل</span>
+                            <span class="topic-tag">تحليل الحركة</span>
+                            <span class="topic-tag">مؤشرات الاختراق</span>
+                            <span class="topic-tag">التقارير</span>
+                        </p>
+                        <p><strong>الأدوات:</strong> Wireshark، ملفات PCAP نموذجية</p>
+                        <a href="https://github.com/0xrajneesh/Wireshark-Projects-for-beginners/blob/main/Project-3-Wireshark-for-Network-Intrusion-detection.md" class="project-link">عرض المشروع</a>
+                    </div>
+                    
+                    <div class="project-card">
+                        <h3>4. فك تشفير وتحليل حركة SSL/TLS</h3>
+                        <p>أتقن عملية فك تشفير وتحليل حركة SSL/TLS باستخدام Wireshark. يتضمن هذا المشروع تكوين إعدادات فك التشفير، تصفية حركة SSL/TLS، تحليل الحزم المفكوكة، ومتابعة تدفقات الاتصال الآمنة.</p>
+                        <p><strong>الموضوعات الرئيسية:</strong> 
+                            <span class="topic-tag">فك تشفير SSL/TLS</span>
+                            <span class="topic-tag">تحليل الحركة الآمنة</span>
+                            <span class="topic-tag">التصفية</span>
+                            <span class="topic-tag">تدفقات الاتصال</span>
+                        </p>
+                        <p><strong>الأدوات:</strong> Wireshark، ملفات المفاتيح الخاصة، ملفات PCAP نموذجية</p>
+                        <a href="https://github.com/0xrajneesh/Wireshark-Projects-for-beginners/blob/main/Project-4-Decrypting-and-Analyzing-TLS-Traffic-.md" class="project-link">عرض المشروع</a>
+                    </div>
+                    
+                    <div class="project-card">
+                        <h3>5. التقاط وتحليل حركة VoIP</h3>
+                        <p>التقط وحلل حركة VoIP باستخدام Wireshark. يغطي هذا المشروع التقاط مكالمات VoIP، تصفية حركة SIP وRTP، تحليل حزم SIP، فحص تدفقات RTP، وتشغيل صوت مكالمات VoIP.</p>
+                        <p><strong>الموضوعات الرئيسية:</strong> 
+                            <span class="topic-tag">حركة VoIP</span>
+                            <span class="topic-tag">SIP</span>
+                            <span class="topic-tag">RTP</span>
+                            <span class="topic-tag">تحليل المكالمات</span>
+                            <span class="topic-tag">التشغيل</span>
+                        </p>
+                        <p><strong>الأدوات:</strong> Wireshark، شبكة VoIP أو ملفات PCAP نموذجية</p>
+                        <a href="https://github.com/0xrajneesh/Wireshark-Projects-for-beginners/blob/main/Project-5-Capturing-anad-Analyzing-VOIP-Traffic.md" class="project-link">عرض المشروع</a>
+                    </div>
+                </div>
+
+                <div class="content-section">
+                    <h2>كيفية البدء</h2>
+                    <ol>
+                        <li><strong>استنساخ المستودع:</strong>
+                            <div class="command-box">
+                                git clone https://github.com/0xrajneesh/Wireshark-Projects-for-beginners.git<br>
+                                cd Wireshark-Projects-for-beginners
+                            </div>
+                        </li>
+                        <li><strong>التنقل بين مجلدات المشاريع:</strong>
+                            <p>كل مشروع له ملف Markdown خاص به يحتوي على تعليمات مفصلة.</p>
+                        </li>
+                        <li><strong>اتباع التعليمات:</strong>
+                            <p>افتح ملف Markdown المناسب واتبع التعليمات خطوة بخطوة لإكمال التمارين.</p>
+                        </li>
+                    </ol>
+                </div>
+
+                <div class="content-section">
+                    <h2>نصائح للمبتدئين</h2>
+                    <div class="warning-box">
+                        <p><strong>تنبيه:</strong> تأكد من استخدام Wireshark في بيئة آمنة ومرخصة فقط. تحليل حركة الشبكة على شبكات غير مصرح بها قد يكون غير قانوني.</p>
+                    </div>
+                    
+                    <h3>بيئات التدريب الموصى بها:</h3>
+                    <ul>
+                        <li>VirtualBox مع Kali Linux أو توزيعة مشابهة</li>
+                        <li>منصات التدريب الآمنة مثل TryHackMe و HackTheBox</li>
+                        <li>معامل الشبكات المعزولة</li>
+                    </ul>
+                    
+                    <h3>مهارات مطلوبة مسبقاً:</h3>
+                    <ul>
+                        <li>مفاهيم أساسية في الشبكات (TCP/IP، المنافذ، البروتوكولات)</li>
+                        <li>معرفة أساسية باستخدام سطر الأوامر</li>
+                        <li>فهم أساسي لمفاهيم الأمن السيبراني</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <h2>معلومات سريعة</h2>
+                <div class="sidebar-content">
+                    <div class="sidebar-item">
+                        <div class="sidebar-icon">📊</div>
+                        <div>عدد المشاريع: 5 مشاريع</div>
+                    </div>
+                    
+                    <div class="sidebar-item">
+                        <div class="sidebar-icon">🎯</div>
+                        <div>المستوى: مبتدئ</div>
+                    </div>
+                    
+                    <div class="sidebar-item">
+                        <div class="sidebar-icon">⏱️</div>
+                        <div>الوقت المقدر: 2-3 ساعات لكل مشروع</div>
+                    </div>
+                    
+                    <div class="sidebar-item">
+                        <div class="sidebar-icon">🛠️</div>
+                        <div>الأداة الرئيسية: Wireshark</div>
+                    </div>
+                    
+                    <div class="sidebar-item">
+                        <div class="sidebar-icon">🌐</div>
+                        <div>المستودع: GitHub</div>
+                    </div>
+                </div>
+
+                <h2 style="margin-top: 30px;">عن المطور</h2>
+                <p>مرحباً، أنا يوسف...</p>
+                <p>مطور ومحلل أمني مهتم بتعليم أساسيات الأمن السيبراني وتحليل الشبكات.</p>
+                
+                <h3>تواصل معي:</h3>
+                <ul>
+                    <li><strong>LinkedIn:</strong> [رابط LinkedIn]</li>
+                    <li><strong>Twitter:</strong> [رابط Twitter]</li>
+                    <li><strong>YouTube Channel:</strong> [رابط YouTube]</li>
+                </ul>
+                
+                <h3>الخدمات المهنية:</h3>
+                <p>للخدمات المهنية والاستشارات، يرجى زيارة موقعي الإلكتروني:</p>
+                <a href="https://cyberpath.vercel.app" class="project-link">cyberpath.vercel.app</a>
+
+                <h2 style="margin-top: 30px;">كلمات مفتاحية</h2>
+                <div class="tags">
+                    <span class="tag">Wireshark</span>
+                    <span class="tag">تحليل الشبكات</span>
+                    <span class="tag">الأمن السيبراني</span>
+                    <span class="tag">التحقيق الجنائي</span>
+                    <span class="tag">بروتوكولات الشبكة</span>
+                    <span class="tag">PCAP</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>مشاريع Wireshark للمبتدئين - منصة الأمن السيبراني</p>
+            <p>© 2023 - جميع الحقوق محفوظة</p>
+        </div>
+    </footer>
+</body>
+</html>
