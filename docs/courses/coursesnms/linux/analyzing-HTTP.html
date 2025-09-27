@@ -1,1 +1,685 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحليل حركة HTTP باستخدام Wireshark - مشاريع Wireshark للمبتدئين</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 0;
+            margin: 0;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: var(--primary-color);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            border-bottom: 5px solid var(--secondary-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .breadcrumb {
+            background: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .breadcrumb a {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+        
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .content-section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+        }
+        
+        .content-section:hover {
+            transform: translateY(-5px);
+        }
+        
+        .content-section h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+        
+        .content-section h3 {
+            color: var(--secondary-color);
+            margin: 15px 0 10px;
+        }
+        
+        .content-section p, .content-section li {
+            margin-bottom: 15px;
+            font-size: 1.05rem;
+        }
+        
+        .content-section ul, .content-section ol {
+            padding-right: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .content-section li {
+            margin-bottom: 8px;
+        }
+        
+        .command-box {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border-right: 5px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .info-box {
+            background: #d1ecf1;
+            border-right: 5px solid #0c5460;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .sidebar {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            align-self: start;
+            position: sticky;
+            top: 20px;
+        }
+        
+        .sidebar h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .sidebar-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .sidebar-icon {
+            font-size: 1.8rem;
+            color: var(--secondary-color);
+        }
+        
+        footer {
+            background: var(--dark-color);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            border-top: 5px solid var(--secondary-color);
+        }
+        
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            header h1 {
+                font-size: 2rem;
+            }
+            
+            .sidebar {
+                position: static;
+            }
+        }
+        
+        .important-note {
+            background: #f8d7da;
+            border-right: 5px solid var(--accent-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .code-inline {
+            background: #f1f1f1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+        }
+        
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .tag {
+            background: var(--secondary-color);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .exercise-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .exercise-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-3px);
+        }
+        
+        .exercise-number {
+            background: var(--secondary-color);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .exercise-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .step-box {
+            background: #f8f9fa;
+            border-right: 4px solid var(--secondary-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        
+        .step-box h4 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .expected-output {
+            background: #e8f5e8;
+            border-right: 4px solid var(--success-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        
+        .expected-output h4 {
+            color: var(--success-color);
+            margin-bottom: 10px;
+        }
+        
+        .quick-links {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .quick-links li {
+            margin-bottom: 10px;
+        }
+        
+        .quick-links a {
+            text-decoration: none;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: color 0.3s ease;
+        }
+        
+        .quick-links a:hover {
+            color: var(--secondary-color);
+        }
+        
+        .quick-links .link-icon {
+            color: var(--secondary-color);
+        }
+        
+        .prerequisites-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .prerequisites-list li {
+            margin-bottom: 10px;
+            padding-right: 30px;
+            position: relative;
+        }
+        
+        .prerequisites-list li:before {
+            content: "✓";
+            color: var(--success-color);
+            position: absolute;
+            right: 0;
+            font-weight: bold;
+        }
+        
+        .tool-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .tool-icon {
+            font-size: 1.5rem;
+        }
+        
+        .completion-badge {
+            display: inline-block;
+            background: var(--success-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            margin-top: 10px;
+        }
+        
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .nav-button {
+            display: inline-block;
+            background: var(--secondary-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background 0.3s ease;
+        }
+        
+        .nav-button:hover {
+            background: var(--primary-color);
+        }
+        
+        .screenshot-placeholder {
+            background: #f0f0f0;
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            padding: 40px;
+            text-align: center;
+            margin: 15px 0;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">🌐</div>
+            <h1>تحليل حركة HTTP باستخدام Wireshark</h1>
+            <p>تعلم كيفية التقاط وتحليل حركة HTTP لاكتشاف كيفية عمل الاتصالات الويبية</p>
+        </div>
+    </header>
 
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="https://cyberpath.vercel.app/courses/coursesnms/linux/wireshark.html">مشاريع Wireshark</a> > 
+            <span>تحليل حركة HTTP</span>
+        </div>
+        
+        <div class="main-content">
+            <div class="content">
+                <div class="content-section">
+                    <h2>مقدمة</h2>
+                    <p>في هذا المشروع، ستتعلم كيفية استخدام Wireshark لالتقاط وتحليل حركة HTTP. يعد تحليل حركة HTTP أمراً بالغ الأهمية لفهم اتصالات الويب، وتحديد المشكلات الأمنية المحتملة، والتحقيق في الشذوذ في حركة المرور على الشبكة.</p>
+                    
+                    <div class="info-box">
+                        <p><strong>ملاحظة:</strong> هذا المشروع مصمم للمبتدئين ولا يتطلب معرفة مسبقة متقدمة بـ Wireshark.</p>
+                    </div>
+                </div>
+
+                <div class="content-section">
+                    <h2>المتطلبات الأساسية</h2>
+                    <ul class="prerequisites-list">
+                        <li>فهم أساسي لمفاهيم الشبكات (بروتوكول TCP/IP، المنافذ، الخ)</li>
+                        <li>تثبيت Wireshark على جهازك</li>
+                        <li>متصفح ويب حديث (مثل Chrome أو Firefox) لتوليد حركة HTTP</li>
+                        <li>اتصال بالإنترنت للوصول إلى مواقع الويب</li>
+                    </ul>
+                </div>
+
+                <div class="content-section">
+                    <h2>إعداد المعمل والأدوات</h2>
+                    
+                    <div class="tool-item">
+                        <div class="tool-icon">🛠️</div>
+                        <div>
+                            <h3>Wireshark</h3>
+                            <p>قم بتنزيل وتثبيت Wireshark من <a href="https://www.wireshark.org/download.html" target="_blank">الموقع الرسمي</a>.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="tool-item">
+                        <div class="tool-icon">🌐</div>
+                        <div>
+                            <h3>متصفح الويب</h3>
+                            <p>أي متصفح ويب حديث مثل Chrome أو Firefox أو Edge.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="warning-box">
+                        <p><strong>تنبيه أمني:</strong> تأكد من أنك تستخدم Wireshark في بيئة آمنة ومرخصة فقط. تحليل حركة الشبكة على شبكات غير مصرح بها قد يكون غير قانوني.</p>
+                    </div>
+                </div>
+
+                <div class="content-section">
+                    <h2>التمارين العملية</h2>
+                    
+                    <div class="exercise-card">
+                        <h3><span class="exercise-number">1</span> التقاط حركة HTTP</h3>
+                        
+                        <div class="step-box">
+                            <h4>الخطوات</h4>
+                            <ol>
+                                <li>افتح Wireshark.</li>
+                                <li>حدد واجهة الشبكة المتصلة بالإنترنت.</li>
+                                <li>انقر على زر "بدء الالتقاط" (أيقونة زعنفة القرش الزرقاء).</li>
+                                <li>افتح متصفح الويب وتوجه إلى موقع ويب يستخدم HTTP (مثل http://example.com).</li>
+                                <li>اترك الصفحة لتحميل بالكامل ثم أوقف الالتقاط في Wireshark بالنقر على الأيقونة الحمراء.</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="expected-output">
+                            <h4>المخرجات المتوقعة</h4>
+                            <p>ملف التقاط يحتوي على حركة مرور الشبكة، بما في ذلك طلبات واستجابات HTTP.</p>
+                        </div>
+                        
+                        <div class="screenshot-placeholder">
+                            [مكان لقطة شاشة لواجهة Wireshark أثناء الالتقاط]
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-card">
+                        <h3><span class="exercise-number">2</span> تصفية حركة HTTP</h3>
+                        
+                        <div class="step-box">
+                            <h4>الخطوات</h4>
+                            <ol>
+                                <li>في Wireshark، انتقل إلى شريط التصفية في الأعلى.</li>
+                                <li>أدخل عامل التصفية <code>http</code> واضغط Enter.</li>
+                                <li>سيقوم Wireshark بعرض حركة HTTP فقط من الالتقاط.</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="expected-output">
+                            <h4>المخرجات المتوقعة</h4>
+                            <p>عرض حركة HTTP المصفاة من الالتقاط الكلي.</p>
+                        </div>
+                        
+                        <div class="screenshot-placeholder">
+                            [مكان لقطة شاشة لشريط تصفية HTTP في Wireshark]
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-card">
+                        <h3><span class="exercise-number">3</span> تحليل طلبات HTTP</h3>
+                        
+                        <div class="step-box">
+                            <h4>الخطوات</h4>
+                            <ol>
+                                <li>في حركة HTTP المصفاة، حدد موقع طلب HTTP GET.</li>
+                                <li>انقر على طلب GET لعرض تفاصيله في لوحة تفاصيل الحزمة.</li>
+                                <li>وسع قسم "Hypertext Transfer Protocol" لرؤية المعلومات التفصيلية عن الطلب، مثل URL المطلوب، الرؤوس، والمعاملات.</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="expected-output">
+                            <h4>المخرجات المتوقعة</h4>
+                            <p>معلومات تفصيلية عن طلب HTTP GET معروضة.</p>
+                        </div>
+                        
+                        <div class="screenshot-placeholder">
+                            [مكان لقطة شاشة لتفاصيل طلب HTTP في Wireshark]
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-card">
+                        <h3><span class="exercise-number">4</span> تحليل استجابات HTTP</h3>
+                        
+                        <div class="step-box">
+                            <h4>الخطوات</h4>
+                            <ol>
+                                <li>في حركة HTTP المصفاة، حدد موقع استجابة HTTP المقابلة لطلب GET الذي حللته.</li>
+                                <li>انقر على الاستجابة لعرض تفاصيلها في لوحة تفاصيل الحزمة.</li>
+                                <li>وسع قسم "Hypertext Transfer Protocol" لرؤية المعلومات التفصيلية عن الاستجابة، مثل رمز الحالة، الرؤوس، ونوع المحتوى.</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="expected-output">
+                            <h4>المخرجات المتوقعة</h4>
+                            <p>معلومات تفصيلية عن استجابة HTTP معروضة.</p>
+                        </div>
+                        
+                        <div class="screenshot-placeholder">
+                            [مكان لقطة شاشة لتفاصيل استجابة HTTP في Wireshark]
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-card">
+                        <h3><span class="exercise-number">5</span> استخراج وفحص بيانات الحمولة</h3>
+                        
+                        <div class="step-box">
+                            <h4>الخطوات</h4>
+                            <ol>
+                                <li>في تفاصيل استجابة HTTP، ابحث عن بيانات الحمولة (مثل محتوى HTML).</li>
+                                <li>انقر بزر الماوس الأيمن على حزمة الاستجابة واختر "Follow" > "TCP Stream" لعرض محادثة HTTP كاملة.</li>
+                                <li>افحص بيانات الحمولة في نافذة تدفق TCP لفهم المحتوى الذي يتم نقله.</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="expected-output">
+                            <h4>المخرجات المتوقعة</h4>
+                            <p>بيانات الحمولة من استجابة HTTP مستخرجة وتم فحصها.</p>
+                        </div>
+                        
+                        <div class="screenshot-placeholder">
+                            [مكان لقطة شاشة لتدفق TCP في Wireshark]
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-section">
+                    <h2>الخاتمة</h2>
+                    <p>بإكمال هذه التمارين، تكون قد تعلمت كيفية التقاط وتصفية وتحليل حركة HTTP باستخدام Wireshark. هذه المهارات أساسية لفهم اتصالات الويب، واستكشاف مشكلات الشبكة وإصلاحها، وإجراء تحقيقات أمنية.</p>
+                    
+                    <div class="info-box">
+                        <p><strong>نصيحة للتطوير:</strong> جرب تكرار هذه التمارين مع مواقع ويب مختلفة لترى كيف تختلف طلبات واستجابات HTTP.</p>
+                    </div>
+                    
+                    <div class="completion-badge">✓ تم إكمال المشروع الأول بنجاح!</div>
+                </div>
+
+                <div class="navigation-buttons">
+                    <a href="https://cyberpath.vercel.app/courses/coursesnms/linux/wireshark.html" class="nav-button">← العودة إلى قائمة المشاريع</a>
+                    <a href="./detecting.html" class="nav-button">المشروع التالي: كشف البرمجيات الخبيثة →</a>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <h2>معلومات سريعة</h2>
+                <div class="sidebar-content">
+                    <div class="sidebar-item">
+                        <div class="sidebar-icon">⏱️</div>
+                        <div>الوقت المقدر: 1-2 ساعة</div>
+                    </div>
+                    
+                    <div class="sidebar-item">
+                        <div class="sidebar-icon">🎯</div>
+                        <div>المستوى: مبتدئ</div>
+                    </div>
+                    
+                    <div class="sidebar-item">
+                        <div class="sidebar-icon">🛠️</div>
+                        <div>الأدوات: Wireshark، متصفح ويب</div>
+                    </div>
+                    
+                    <div class="sidebar-item">
+                        <div class="sidebar-icon">📊</div>
+                        <div>عدد التمارين: 5 تمارين</div>
+                    </div>
+                </div>
+
+                <h2 style="margin-top: 30px;">الموضوعات الرئيسية</h2>
+                <div class="tags">
+                    <span class="tag">حركة HTTP</span>
+                    <span class="tag">تحليل الحزم</span>
+                    <span class="tag">التصفية</span>
+                    <span class="tag">استخراج البيانات</span>
+                </div>
+
+                <h2 style="margin-top: 30px;">نصائح مفيدة</h2>
+                <ul>
+                    <li>استخدم مواقع HTTP (وليست HTTPS) للتدريب الأولي</li>
+                    <li>احفظ ملفات الالتقاط للمراجعة لاحقاً</li>
+                    <li>جرب عوامل تصفية مختلفة مثل <code>http.request</code> أو <code>http.response</code></li>
+                    <li>استخدم خاصية "Follow TCP Stream" لفهم المحادثة الكاملة</li>
+                </ul>
+
+                <h2 style="margin-top: 30px;">روابط سريعة</h2>
+                <ul class="quick-links">
+                    <li><a href="https://cyberpath.vercel.app/courses/coursesnms/linux/wireshark.html"><span class="link-icon">📡</span> الصفحة الرئيسية للمشاريع</a></li>
+                    <li><a href="./detecting.html"><span class="link-icon">🦠</span> المشروع التالي: كشف البرمجيات الخبيثة</a></li>
+                    <li><a href="./Intrusion.html"><span class="link-icon">🚨</span> اكتشاف التسلل</a></li>
+                    <li><a href="./TLS.html"><span class="link-icon">🔒</span> فك تشفير TLS</a></li>
+                    <li><a href="./VOIP.html"><span class="link-icon">📞</span> تحليل VoIP</a></li>
+                </ul>
+
+                <h2 style="margin-top: 30px;">تحميل المرفقات</h2>
+                <ul>
+                    <li><a href="#">ملف PCAP نموذجي لتحليل HTTP</a></li>
+                    <li><a href="#">دليل سريع لأوامر تصفية Wireshark</a></li>
+                    <li><a href="#">كشاف رموز حالات HTTP</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>مشروع تحليل حركة HTTP باستخدام Wireshark - جزء من سلسلة مشاريع Wireshark للمبتدئين</p>
+            <p>© 2025 - جميع الحقوق محفوظة | <a href="https://cyberpath.vercel.app" style="color: white;">CyberPath</a></p>
+        </div>
+    </footer>
+
+    <script>
+        // إضافة تفاعلية بسيطة للصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            // إضافة تأثيرات للبطاقات عند التمرير
+            const exerciseCards = document.querySelectorAll('.exercise-card');
+            
+            exerciseCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    this.style.borderColor = 'var(--secondary-color)';
+                });
+            });
+            
+            // محاكاة إكمال التمارين
+            const completionBadge = document.querySelector('.completion-badge');
+            completionBadge.style.display = 'none'; // إخفاء في البداية
+            
+            // في تطبيق حقيقي، هنا سيتم التحقق من إكمال المستخدم للتمارين
+            // هذه مجرد محاكاة
+            setTimeout(() => {
+                if (confirm('هل أكملت جميع التمارين؟')) {
+                    completionBadge.style.display = 'inline-block';
+                }
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
