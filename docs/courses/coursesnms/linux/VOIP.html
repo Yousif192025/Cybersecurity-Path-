@@ -1,1 +1,944 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التقاط وتحليل حركة VoIP - مشاريع Wireshark</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --voip-color: #e67e22;
+            --sip-color: #3498db;
+            --rtp-color: #9b59b6;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 0;
+            margin: 0;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: var(--primary-color);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            border-bottom: 5px solid var(--voip-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .breadcrumb {
+            background: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .breadcrumb a {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+        
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .content-section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+        }
+        
+        .content-section:hover {
+            transform: translateY(-5px);
+        }
+        
+        .content-section h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--voip-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+        
+        .content-section h3 {
+            color: var(--secondary-color);
+            margin: 15px 0 10px;
+        }
+        
+        .content-section p, .content-section li {
+            margin-bottom: 15px;
+            font-size: 1.05rem;
+        }
+        
+        .content-section ul, .content-section ol {
+            padding-right: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .content-section li {
+            margin-bottom: 8px;
+        }
+        
+        .command-box {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border-right: 5px solid var(--warning-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .danger-box {
+            background: #f8d7da;
+            border-right: 5px solid var(--danger-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .info-box {
+            background: #d1ecf1;
+            border-right: 5px solid #0c5460;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .voip-box {
+            background: #fdebd0;
+            border-right: 5px solid var(--voip-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .sidebar {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            align-self: start;
+            position: sticky;
+            top: 20px;
+        }
+        
+        .sidebar h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--voip-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .sidebar-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .sidebar-icon {
+            font-size: 1.8rem;
+            color: var(--secondary-color);
+        }
+        
+        footer {
+            background: var(--dark-color);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            border-top: 5px solid var(--voip-color);
+        }
+        
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            header h1 {
+                font-size: 2rem;
+            }
+            
+            .sidebar {
+                position: static;
+            }
+        }
+        
+        .important-note {
+            background: #f8d7da;
+            border-right: 5px solid var(--accent-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .code-inline {
+            background: #f1f1f1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+        }
+        
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .tag {
+            background: var(--voip-color);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .exercise-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .exercise-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-3px);
+        }
+        
+        .exercise-number {
+            background: var(--voip-color);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .exercise-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .step-box {
+            background: #f8f9fa;
+            border-right: 4px solid var(--voip-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        
+        .step-box h4 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .expected-output {
+            background: #e8f5e8;
+            border-right: 4px solid var(--success-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        
+        .expected-output h4 {
+            color: var(--success-color);
+            margin-bottom: 10px;
+        }
+        
+        .quick-links {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .quick-links li {
+            margin-bottom: 10px;
+        }
+        
+        .quick-links a {
+            text-decoration: none;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: color 0.3s ease;
+        }
+        
+        .quick-links a:hover {
+            color: var(--secondary-color);
+        }
+        
+        .quick-links .link-icon {
+            color: var(--secondary-color);
+        }
+        
+        .prerequisites-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .prerequisites-list li {
+            margin-bottom: 10px;
+            padding-right: 30px;
+            position: relative;
+        }
+        
+        .prerequisites-list li:before {
+            content: "✓";
+            color: var(--success-color);
+            position: absolute;
+            right: 0;
+            font-weight: bold;
+        }
+        
+        .tool-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .tool-icon {
+            font-size: 1.5rem;
+        }
+        
+        .completion-badge {
+            display: inline-block;
+            background: var(--success-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            margin-top: 10px;
+        }
+        
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .nav-button {
+            display: inline-block;
+            background: var(--secondary-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background 0.3s ease;
+        }
+        
+        .nav-button:hover {
+            background: var(--primary-color);
+        }
+        
+        .screenshot-placeholder {
+            background: #f0f0f0;
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            padding: 40px;
+            text-align: center;
+            margin: 15px 0;
+            color: #666;
+        }
+        
+        .filter-list {
+            background: #f8f9fa;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .filter-list code {
+            background: #e9ecef;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .protocol-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .protocol-card {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .protocol-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .sip-card {
+            border-top: 4px solid var(--sip-color);
+        }
+        
+        .rtp-card {
+            border-top: 4px solid var(--rtp-color);
+        }
+        
+        .codec-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .codec-type {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        .call-flow {
+            background: #f0f8ff;
+            border: 1px solid #d0e0f0;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .call-step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+        }
+        
+        .step-number {
+            background: var(--voip-color);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-left: 15px;
+        }
+        
+        .completion-celebration {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .celebration-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">📞</div>
+            <h1>التقاط وتحليل حركة VoIP</h1>
+            <p>تعلم كيفية تحليل مكالمات VoIP باستخدام Wireshark لفهم جودة الصوت وكشف المشكلات</p>
+        </div>
+    </header>
 
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="https://cyberpath.vercel.app/courses/coursesnms/linux/wireshark.html">مشاريع Wireshark</a> > 
+            <a href="./TLS.html">فك تشفير TLS</a> >
+            <span>تحليل VoIP</span>
+        </div>
+        
+        <div class="main-content">
+            <div class="content">
+                <div class="content-section">
+                    <h2>مقدمة</h2>
+                    <p>في هذا المشروع، ستتعلم كيفية استخدام Wireshark لالتقاط وتحليل حركة VoIP (Voice over IP). يعد تحليل VoIP أساسياً لتشخيص مشكلات الاتصالات الصوتية، وضمان جودة المكالمات، وتحديد الثغرات الأمنية المحتملة.</p>
+                    
+                    <div class="voip-box">
+                        <p><strong>ما هو VoIP؟</strong> VoIP تقنية تسمح بنقل المكالمات الصوتية عبر شبكة IP بدلاً من شبكة الهاتف التقليدية، مما يوفر مرونة وتكلفة أقل.</p>
+                    </div>
+                </div>
+
+                <div class="content-section">
+                    <h2>المتطلبات الأساسية</h2>
+                    <ul class="prerequisites-list">
+                        <li>فهم أساسي لمفاهيم الشبكات وتقنية VoIP</li>
+                        <li>تثبيت Wireshark على جهازك</li>
+                        <li>الوصول إلى شبكة VoIP أو ملف PCAP عينة يحتوي على حركة VoIP</li>
+                        <li>معرفة أساسية ببروتوكولات SIP و RTP</li>
+                        <li>سماعات أو مكبرات صوت لاختبار تشغيل الصوت</li>
+                    </ul>
+                </div>
+
+                <div class="content-section">
+                    <h2>إعداد المعمل والأدوات</h2>
+                    
+                    <div class="tool-item">
+                        <div class="tool-icon">🛠️</div>
+                        <div>
+                            <h3>Wireshark</h3>
+                            <p>قم بتنزيل وتثبيت Wireshark من <a href="https://www.wireshark.org/download.html" target="_blank">الموقع الرسمي</a>.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="tool-item">
+                        <div class="tool-icon">📞</div>
+                        <div>
+                            <h3>شبكة VoIP أو ملفات PCAP</h3>
+                            <p>الوصول إلى شبكة VoIP أو تنزيل ملف PCAP عينة يحتوي على حركة VoIP.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="warning-box">
+                        <p><strong>ملاحظة:</strong> إذا لم يكن لديك شبكة VoIP، يمكنك استخدام ملفات PCAP عينة متاحة على الإنترنت للتدريب.</p>
+                    </div>
+                </div>
+
+                <div class="content-section">
+                    <h2>بروتوكولات VoIP الأساسية</h2>
+                    
+                    <div class="protocol-cards">
+                        <div class="protocol-card sip-card">
+                            <div class="protocol-icon">📨</div>
+                            <h4>بروتوكول SIP</h4>
+                            <p>Session Initiation Protocol</p>
+                            <small>يسّتخدم لإنهاء وإنهاء المكالمات</small>
+                        </div>
+                        
+                        <div class="protocol-card rtp-card">
+                            <div class="protocol-icon">🎵</div>
+                            <h4>بروتوكول RTP</h4>
+                            <p>Real-time Transport Protocol</p>
+                            <small>ينقل البيانات الصوتية في الوقت الفعلي</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-section">
+                    <h2>أنواع برامج الترميز (Codecs) الشائعة</h2>
+                    
+                    <div class="codec-types">
+                        <div class="codec-type">G.711</div>
+                        <div class="codec-type">G.729</div>
+                        <div class="codec-type">GSM</div>
+                        <div class="codec-type">Opus</div>
+                        <div class="codec-type">Speex</div>
+                        <div class="codec-type">iLBC</div>
+                    </div>
+                    
+                    <p>كل برنامج ترميز له خصائص مختلفة من حيث جودة الصوت، عرض النطاق المطلوب، والتأخير.</p>
+                </div>
+
+                <div class="content-section">
+                    <h2>تدفق مكالمة VoIP نموذجية</h2>
+                    
+                    <div class="call-flow">
+                        <div class="call-step">
+                            <div class="step-number">1</div>
+                            <div>INVITE - طلب بدء المكالمة</div>
+                        </div>
+                        <div class="call-step">
+                            <div class="step-number">2</div>
+                            <div>100 Trying - الخادم يستجيب</div>
+                        </div>
+                        <div class="call-step">
+                            <div class="step-number">3</div>
+                            <div>180 Ringing - الجرس يدق</div>
+                        </div>
+                        <div class="call-step">
+                            <div class="step-number">4</div>
+                            <div>200 OK - المكالمة مقبولة</div>
+                        </div>
+                        <div class="call-step">
+                            <div class="step-number">5</div>
+                            <div>ACK - تأكيد الاتصال</div>
+                        </div>
+                        <div class="call-step">
+                            <div class="step-number">6</div>
+                            <div>RTP Stream - تدفق الصوت</div>
+                        </div>
+                        <div class="call-step">
+                            <div class="step-number">7</div>
+                            <div>BYE - إنهاء المكالمة</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-section">
+                    <h2>التمارين العملية</h2>
+                    
+                    <div class="exercise-card">
+                        <h3><span class="exercise-number">1</span> التقاط حركة VoIP</h3>
+                        
+                        <div class="step-box">
+                            <h4>الخطوات</h4>
+                            <ol>
+                                <li>افتح Wireshark.</li>
+                                <li>حدد واجهة الشبكة المتصلة بشبكة VoIP.</li>
+                                <li>انقر على زر "بدء الالتقاط" (أيقونة زعنفة القرش الزرقاء).</li>
+                                <li>ابدأ مكالمة VoIP على الشبكة.</li>
+                                <li>اترك المكالمة تستمر لبضع لحظات ثم أوقف الالتقاط في Wireshark بالنقر على الأيقونة الحمراء.</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="expected-output">
+                            <h4>المخرجات المتوقعة</h4>
+                            <p>ملف التقاط يحتوي على حركة VoIP، بما في ذلك إعداد المكالمة، تدفقات RTP، ورسائل إنهاء المكالمة.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-card">
+                        <h3><span class="exercise-number">2</span> تصفية حركة VoIP</h3>
+                        
+                        <div class="step-box">
+                            <h4>الخطوات</h4>
+                            <ol>
+                                <li>في Wireshark، انتقل إلى شريط التصفية في الأعلى.</li>
+                                <li>أدخل عامل التصفية <code>sip || rtp</code> واضغط Enter.</li>
+                                <li>سيقوم Wireshark بعرض حركة SIP و RTP فقط من الالتقاط.</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="expected-output">
+                            <h4>المخرجات المتوقعة</h4>
+                            <p>عرض حركة SIP و RTP المصفاة من الالتقاط الكلي.</p>
+                        </div>
+                        
+                        <div class="filter-list">
+                            <strong>عوامل التصفية الإضافية:</strong><br>
+                            <code>sip</code> (لحركة SIP فقط)<br>
+                            <code>rtp</code> (لحركة RTP فقط)<br>
+                            <code>sip.Method == "INVITE"</code> (لطلبات INVITE)<br>
+                            <code>rtp.p_type == 0</code> (لـ PCM Audio)
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-card">
+                        <h3><span class="exercise-number">3</span> تحليل حزم SIP</h3>
+                        
+                        <div class="step-box">
+                            <h4>الخطوات</h4>
+                            <ol>
+                                <li>في حركة VoIP المصفاة، حدد موقع حزمة SIP INVITE.</li>
+                                <li>انقر على حزمة SIP INVITE لعرض تفاصيلها في لوحة تفاصيل الحزمة.</li>
+                                <li>وسع قسم "Session Initiation Protocol" لرؤية المعلومات التفصيلية عن إعداد المكالمة، مثل الأطراف المتصلة، ومعاملات الجلسة.</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="expected-output">
+                            <h4>المخرجات المتوقعة</h4>
+                            <p>معلومات مفصلة عن حزمة SIP INVITE معروضة.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-card">
+                        <h3><span class="exercise-number">4</span> تحليل تدفقات RTP</h3>
+                        
+                        <div class="step-box">
+                            <h4>الخطوات</h4>
+                            <ol>
+                                <li>في حركة VoIP المصفاة، حدد موقع حزمة RTP.</li>
+                                <li>انقر على حزمة RTP لعرض تفاصيلها في لوحة تفاصيل الحزمة.</li>
+                                <li>وسع قسم "Real-Time Transport Protocol" لرؤية المعلومات التفصيلية عن تدفق RTP، مثل نوع الحمولة، رقم التسلسل، والطابع الزمني.</li>
+                                <li>اذهب إلى "Telephony" > "RTP" > "Stream Analysis" لتحليل جودة تدفق RTP والمقاييس.</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="expected-output">
+                            <h4>المخرجات المتوقعة</h4>
+                            <p>معلومات مفصلة عن حزم RTP وتحليل لجودة تدفق RTP.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-card">
+                        <h3><span class="exercise-number">5</span> تشغيل مكالمات VoIP</h3>
+                        
+                        <div class="step-box">
+                            <h4>الخطوات</h4>
+                            <ol>
+                                <li>في Wireshark، اذهب إلى "Telephony" > "VoIP Calls".</li>
+                                <li>اختر مكالمة VoIP التي التقطتها وانقر على "Player".</li>
+                                <li>استخدم عناصر التحكم في المشغل لتشغيل الصوت الخاص بمكالمة VoIP.</li>
+                                <li>حلل الصوت لاكتشاف أي مشكلات، مثل فقدان الحزم، الاهتزاز، أو جودة ضعيفة.</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="expected-output">
+                            <h4>المخرجات المتوقعة</h4>
+                            <p>صوت مكالمة VoIP مشغول ومحلل.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-section">
+                    <h2>الخاتمة</h2>
+                    <p>بإكمال هذه التمارين، تكون قد تعلمت كيفية التقاط وتحليل حركة VoIP باستخدام Wireshark. هذه المهارات أساسية لتحليل جودة المكالمات الصوتية، واستكشاف مشكلات الشبكة وإصلاحها، وضمان تجربة اتصال سلسة للمستخدمين.</p>
+                    
+                    <div class="completion-celebration">
+                        <div class="celebration-icon">🎉</div>
+                        <h3>مبروك! لقد أكملت جميع مشاريع Wireshark الخمسة!</h3>
+                        <p>أنت الآن تملك مهارات متقدمة في تحليل الشبكات باستخدام Wireshark</p>
+                    </div>
+                    
+                    <div class="completion-badge">✓ تم إكمال المشروع الخامس بنجاح!</div>
+                </div>
+
+                <div class="navigation-buttons">
+                    <a href="./TLS.html" class="nav-button">← المشروع السابق: فك تشفير TLS</a>
+                    <a href="https://cyberpath.vercel.app/courses/coursesnms/linux/wireshark.html" class="nav-button">العودة إلى الصفحة الرئيسية →</a>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <h2>معلومات سريعة</h2>
+                <div class="sidebar-content">
+                    <div class="sidebar-item">
+                        <div class="sidebar-icon">⏱️</div>
+                        <div>الوقت المقدر: 2-3 ساعات</div>
+                    </div>
+                    
+                    <div class="sidebar-item">
+                        <div class="sidebar-icon">🎯</div>
+                        <div>المستوى: متوسط</div>
+                    </div>
+                    
+                    <div class="sidebar-item">
+                        <div class="sidebar-icon">🛠️</div>
+                        <div>الأدوات: Wireshark، شبكة VoIP</div>
+                    </div>
+                    
+                    <div class="sidebar-item">
+                        <div class="sidebar-icon">📊</div>
+                        <div>عدد التمارين: 5 تمارين</div>
+                    </div>
+                </div>
+
+                <h2 style="margin-top: 30px;">الموضوعات الرئيسية</h2>
+                <div class="tags">
+                    <span class="tag">حركة VoIP</span>
+                    <span class="tag">SIP</span>
+                    <span class="tag">RTP</span>
+                    <span class="tag">تحليل المكالمات</span>
+                    <span class="tag">التشغيل</span>
+                </div>
+
+                <h2 style="margin-top: 30px;">مقاييس جودة VoIP</h2>
+                <ul>
+                    <li><strong>MOS (Mean Opinion Score):</strong> تقييم جودة الصوت من 1-5</li>
+                    <li><strong>Jitter:</strong> التباين في تأخير الحزم</li>
+                    <li><strong>Packet Loss:</strong> نسبة الحزم المفقودة</li>
+                    <li><strong>Latency:</strong> التأخير الكلي في الاتصال</li>
+                    <li><strong>R-Factor:</strong> مقياس جودة من 0-100</li>
+                </ul>
+
+                <h2 style="margin-top: 30px;">منافذ VoIP شائعة</h2>
+                <ul>
+                    <li><strong>5060:</strong> SIP (غير مشفر)</li>
+                    <li><strong>5061:</strong> SIPS (SIP مشفر)</li>
+                    <li><strong>10000-20000:</strong> نطاق منافذ RTP</li>
+                    <li><strong>1720:</strong> H.323</li>
+                    <li><strong>2427:</strong> MGCP</li>
+                </ul>
+
+                <h2 style="margin-top: 30px;">عوامل التصفية المتقدمة</h2>
+                <div class="filter-list">
+                    <code>sip.Call-ID</code> (تتبع مكالمة محددة)<br>
+                    <code>rtp.ssrc == 0x12345678</code> (مصدر تدفق محدد)<br>
+                    <code>sip.To contains "100"</code> (مكالمات إلى رقم محدد)<br>
+                    <code>rtp.packet_loss</code> (حزم RTP المفقودة)<br>
+                    <code>sip.Status-Code == 200</code> (استجابات ناجحة)
+                </div>
+
+                <h2 style="margin-top: 30px;">روابط سريعة</h2>
+                <ul class="quick-links">
+                    <li><a href="https://cyberpath.vercel.app/courses/coursesnms/linux/wireshark.html"><span class="link-icon">📡</span> الصفحة الرئيسية للمشاريع</a></li>
+                    <li><a href="./TLS.html"><span class="link-icon">🔒</span> المشروع السابق: فك تشفير TLS</a></li>
+                    <li><a href="./analyzing-HTTP.html"><span class="link-icon">🌐</span> تحليل HTTP</a></li>
+                    <li><a href="./detecting.html"><span class="link-icon">🦠</span> كشف البرمجيات الخبيثة</a></li>
+                    <li><a href="./Intrusion.html"><span class="link-icon">🚨</span> اكتشاف التسلل</a></li>
+                </ul>
+
+                <h2 style="margin-top: 30px;">إكمال السلسلة</h2>
+                <div class="info-box">
+                    <p>تهانينا! هذا هو المشروع الأخير في سلسلة مشاريع Wireshark. لقد غطيت مجموعة شاملة من مهارات تحليل الشبكات.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>مشروع التقاط وتحليل حركة VoIP - الجزء الخامس من سلسلة مشاريع Wireshark للمبتدئين</p>
+            <p>© 2025 - جميع الحقوق محفوظة | <a href="https://cyberpath.vercel.app" style="color: white;">CyberPath</a></p>
+        </div>
+    </footer>
+
+    <script>
+        // إضافة تفاعلية للصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            // تأثيرات للبطاقات
+            const exerciseCards = document.querySelectorAll('.exercise-card');
+            
+            exerciseCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    this.style.borderColor = 'var(--voip-color)';
+                    setTimeout(() => {
+                        this.style.borderColor = '#ddd';
+                    }, 1000);
+                });
+            });
+            
+            // محاكاة إكمال التمارين
+            const completionBadge = document.querySelector('.completion-badge');
+            completionBadge.style.display = 'none';
+            
+            // في تطبيق حقيقي، هنا سيتم التحقق من إكمال المستخدم للتمارين
+            setTimeout(() => {
+                if (confirm('هل أكملت جميع تمارين تحليل VoIP؟')) {
+                    completionBadge.style.display = 'inline-block';
+                    localStorage.setItem('voipProjectCompleted', 'true');
+                    
+                    // تحديث تقدم المستخدم العام
+                    let completedProjects = parseInt(localStorage.getItem('completedWiresharkProjects') || 0);
+                    localStorage.setItem('completedWiresharkProjects', completedProjects + 1);
+                    
+                    // إذا أكمل جميع المشاريع الخمسة
+                    if (completedProjects + 1 === 5) {
+                        const celebration = document.querySelector('.completion-celebration');
+                        celebration.style.display = 'block';
+                        
+                        // إضافة تأثير احتفالي
+                        celebration.style.animation = 'celebrate 2s ease-in-out';
+                    }
+                }
+            }, 5000);
+            
+            // إظهار معلومات عن جودة VoIP
+            const voipInfo = document.createElement('div');
+            voipInfo.className = 'voip-box';
+            voipInfo.innerHTML = `
+                <p><strong>معلومة تقنية:</strong> جودة VoIP تتأثر بعوامل مثل الـ Jitter وفقدان الحزم والتأخير. استخدم أدوات تحليل RTP في Wireshark لقياس هذه العوامل.</p>
+            `;
+            document.querySelector('.content').insertBefore(voipInfo, document.querySelector('.content-section:nth-child(4)'));
+            
+            // إضافة مؤقت لعرض معلومات متغيرة
+            const tips = [
+                "استخدم تحليل RTP Stream لقياس جودة الصوت",
+                "ابحث عن حزم SIP INVITE لتتبع بداية المكالمات",
+                "استخدم عامل تصفية sip.Method للبحث عن طرق SIP محددة",
+                "راقب منافذ RTP الديناميكية بين 10000-20000"
+            ];
+            
+            let currentTip = 0;
+            const tipElement = document.createElement('div');
+            tipElement.className = 'info-box';
+            tipElement.innerHTML = `<p><strong>نصيحة VoIP:</strong> ${tips[currentTip]}</p>`;
+            document.querySelector('.content').insertBefore(tipElement, document.querySelector('.content-section:last-child'));
+            
+            // تغيير النصيحة كل 8 ثواني
+            setInterval(() => {
+                currentTip = (currentTip + 1) % tips.length;
+                tipElement.innerHTML = `<p><strong>نصيحة VoIP:</strong> ${tips[currentTip]}</p>`;
+            }, 8000);
+            
+            // إضافة أنيميشن للاحتفال
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes celebrate {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(1.05); }
+                    100% { transform: scale(1); }
+                }
+            `;
+            document.head.appendChild(style);
+        });
+    </script>
+</body>
+</html>
