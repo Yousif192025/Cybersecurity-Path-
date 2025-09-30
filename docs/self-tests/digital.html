@@ -808,6 +808,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- سكريبت محسن للدمج مع quizLogic.js -->
+   <!-- سكريبت محسن للاتصال المباشر مع quizLogic.js -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const { jsPDF } = window.jspdf;
@@ -823,7 +824,6 @@
             const studentInfoForm = document.getElementById('student-info-form');
             const studentForm = document.getElementById('studentForm');
             const quizLoadingMessage = document.getElementById('quiz-loading-message');
-            const quizContent = document.getElementById('quiz-content');
             const quizResultsContainer = document.getElementById('quiz-results-container');
             const previewModal = document.getElementById('preview-modal');
             const previewBody = document.getElementById('preview-body');
@@ -841,6 +841,7 @@
             // متغيرات لتخزين بيانات الأسئلة الحقيقية
             let quizQuestions = [];
             let userAnswers = [];
+            let quizResults = {};
             
             // متغيرات نظام الصفحات
             let currentPage = 1;
@@ -906,127 +907,140 @@
                 }
                 
                 // محاولة الحصول على بيانات الأسئلة الحقيقية
-                loadRealQuizQuestions();
+                loadRealQuizData();
             }
             
-            // محاولة الحصول على بيانات الأسئلة الحقيقية
-            function loadRealQuizQuestions() {
-                console.log('جاري البحث عن بيانات الأسئلة الحقيقية...');
+            // نظام متقدم لجلب البيانات الحقيقية من quizLogic.js
+            function loadRealQuizData() {
+                console.log('🔍 جاري البحث عن بيانات الاختبار الحقيقية...');
                 
-                // الطريقة 1: من quizLogic.js مباشرة (الطريقة المثلى)
+                // الطريقة 1: البحث في كائن quizLogic مباشرة
+                if (window.quizLogic) {
+                    console.log('✅ تم العثور على كائن quizLogic');
+                    
+                    // محاولة الحصول على الأسئلة من quizLogic
+                    if (window.quizLogic.questions && Array.isArray(window.quizLogic.questions)) {
+                        quizQuestions = window.quizLogic.questions;
+                        console.log('✅ تم تحميل الأسئلة الحقيقية من quizLogic.questions:', quizQuestions.length);
+                    }
+                    
+                    // محاولة الحصول على إجابات المستخدم
+                    if (window.quizLogic.userAnswers && Array.isArray(window.quizLogic.userAnswers)) {
+                        userAnswers = window.quizLogic.userAnswers;
+                        console.log('✅ تم تحميل الإجابات الحقيقية من quizLogic.userAnswers:', userAnswers.length);
+                    }
+                    
+                    // محاولة الحصول على البيانات من quizData
+                    if (window.quizLogic.quizData && Array.isArray(window.quizLogic.quizData)) {
+                        quizQuestions = window.quizLogic.quizData;
+                        console.log('✅ تم تحميل الأسئلة من quizLogic.quizData:', quizQuestions.length);
+                    }
+                }
+                
+                // الطريقة 2: البحث في المتغيرات العالمية
                 if (window.quizData && Array.isArray(window.quizData)) {
                     quizQuestions = window.quizData;
-                    console.log('✅ تم تحميل الأسئلة الحقيقية من quizLogic.js:', quizQuestions.length);
+                    console.log('✅ تم تحميل الأسئلة من window.quizData:', quizQuestions.length);
                 }
                 
-                // الطريقة 2: من المتغيرات العالمية في quizLogic.js
-                else if (window.questions && Array.isArray(window.questions)) {
-                    quizQuestions = window.questions;
-                    console.log('✅ تم تحميل الأسئلة من window.questions:', quizQuestions.length);
-                }
-                
-                // الطريقة 3: من localStorage (إذا كان quizLogic.js يحفظها)
-                const savedQuestions = localStorage.getItem('currentQuizQuestions');
-                if (savedQuestions) {
-                    quizQuestions = JSON.parse(savedQuestions);
-                    console.log('✅ تم تحميل الأسئلة من localStorage:', quizQuestions.length);
-                }
-                
-                // الطريقة 4: البحث في كائن quizLogic
-                else if (window.quizLogic && window.quizLogic.questions) {
-                    quizQuestions = window.quizLogic.questions;
-                    console.log('✅ تم تحميل الأسئلة من quizLogic.questions:', quizQuestions.length);
-                }
-                
-                // الطريقة 5: من sessionStorage
-                const sessionQuestions = sessionStorage.getItem('quizQuestions');
-                if (sessionQuestions) {
-                    quizQuestions = JSON.parse(sessionQuestions);
-                    console.log('✅ تم تحميل الأسئلة من sessionStorage:', quizQuestions.length);
-                }
-                
-                // الحصول على إجابات المستخدم الحقيقية
-                loadRealUserAnswers();
-                
-                // إذا لم توجد بيانات حقيقية، نستخدم طريقة احتياطية
-                if (quizQuestions.length === 0) {
-                    console.log('⚠️ لم يتم العثور على بيانات الأسئلة الحقيقية، جاري استخدام البيانات من نتائج الاختبار...');
-                    loadQuestionsFromResults();
-                } else {
-                    console.log('🎉 تم تحميل الأسئلة الحقيقية بنجاح!');
-                    calculateTotalPages();
-                }
-            }
-            
-            // محاولة الحصول على إجابات المستخدم الحقيقية
-            function loadRealUserAnswers() {
-                console.log('جاري البحث عن إجابات المستخدم الحقيقية...');
-                
-                // الطريقة 1: من quizLogic.js مباشرة
                 if (window.userAnswers && Array.isArray(window.userAnswers)) {
                     userAnswers = window.userAnswers;
                     console.log('✅ تم تحميل الإجابات من window.userAnswers:', userAnswers.length);
                 }
                 
-                // الطريقة 2: من localStorage
-                const savedAnswers = localStorage.getItem('userQuizAnswers');
-                if (savedAnswers) {
-                    userAnswers = JSON.parse(savedAnswers);
-                    console.log('✅ تم تحميل الإجابات من localStorage:', userAnswers.length);
+                if (window.questions && Array.isArray(window.questions)) {
+                    quizQuestions = window.questions;
+                    console.log('✅ تم تحميل الأسئلة من window.questions:', quizQuestions.length);
                 }
                 
-                // الطريقة 3: من sessionStorage
-                const sessionAnswers = sessionStorage.getItem('userAnswers');
-                if (sessionAnswers) {
-                    userAnswers = JSON.parse(sessionAnswers);
-                    console.log('✅ تم تحميل الإجابات من sessionStorage:', userAnswers.length);
+                // الطريقة 3: البحث في localStorage
+                try {
+                    const storedQuestions = localStorage.getItem('currentQuizQuestions');
+                    if (storedQuestions) {
+                        quizQuestions = JSON.parse(storedQuestions);
+                        console.log('✅ تم تحميل الأسئلة من localStorage:', quizQuestions.length);
+                    }
+                    
+                    const storedAnswers = localStorage.getItem('userQuizAnswers');
+                    if (storedAnswers) {
+                        userAnswers = JSON.parse(storedAnswers);
+                        console.log('✅ تم تحميل الإجابات من localStorage:', userAnswers.length);
+                    }
+                    
+                    const storedResults = localStorage.getItem('quizResults');
+                    if (storedResults) {
+                        quizResults = JSON.parse(storedResults);
+                        console.log('✅ تم تحميل النتائج من localStorage');
+                    }
+                } catch (e) {
+                    console.log('❌ خطأ في تحميل البيانات من localStorage:', e);
                 }
                 
-                // الطريقة 4: من quizLogic
-                else if (window.quizLogic && window.quizLogic.userAnswers) {
-                    userAnswers = window.quizLogic.userAnswers;
-                    console.log('✅ تم تحميل الإجابات من quizLogic.userAnswers:', userAnswers.length);
-                }
-                
-                if (userAnswers.length === 0) {
-                    console.log('⚠️ لم يتم العثور على إجابات المستخدم، جاري إنشاء مصفوفة افتراضية...');
-                    // إنشاء مصفوفة إجابات افتراضية بنفس طول الأسئلة
-                    userAnswers = new Array(quizQuestions.length).fill(null);
+                // الطريقة 4: إذا لم توجد بيانات، نستخدم نظام الاستماع للأحداث
+                if (quizQuestions.length === 0) {
+                    console.log('🔧 تفعيل نظام الاستماع للبيانات...');
+                    setupDataListener();
+                } else {
+                    initializePreviewSystem();
                 }
             }
             
-            // طريقة احتياطية: محاولة استخراج الأسئلة من نتائج الاختبار
-            function loadQuestionsFromResults() {
-                // محاولة الحصول على عدد الأسئلة من العرض
+            // نظام الاستماع للبيانات من quizLogic.js
+            function setupDataListener() {
+                // الاستماع للتغييرات في localStorage
+                window.addEventListener('storage', function(e) {
+                    if (e.key === 'currentQuizQuestions' || e.key === 'userQuizAnswers') {
+                        console.log('📢 تم اكتشاف تغيير في البيانات');
+                        loadRealQuizData();
+                    }
+                });
+                
+                // محاولة متكررة للعثور على البيانات
+                const dataFinder = setInterval(() => {
+                    if (window.quizLogic || window.quizData) {
+                        loadRealQuizData();
+                        if (quizQuestions.length > 0) {
+                            clearInterval(dataFinder);
+                            console.log('🎉 تم العثور على البيانات بنجاح!');
+                        }
+                    }
+                }, 500);
+                
+                // إيقاف البحث بعد 15 ثانية
+                setTimeout(() => {
+                    clearInterval(dataFinder);
+                    if (quizQuestions.length === 0) {
+                        console.log('⏰ انتهى الوقت - لم يتم العثور على بيانات الأسئلة');
+                        showDataNotFoundMessage();
+                    }
+                }, 15000);
+            }
+            
+            // عرض رسالة عندما لا توجد بيانات
+            function showDataNotFoundMessage() {
                 const totalQuestions = parseInt(document.getElementById('total-questions-display').textContent) || 0;
                 const score = parseInt(document.getElementById('score-display').textContent) || 0;
                 
                 if (totalQuestions > 0) {
-                    console.log(`📊 تم العثور على ${totalQuestions} سؤال في النتائج`);
-                    
-                    // إنشاء أسئلة افتراضية بناءً على النتائج
+                    // إنشاء بيانات افتراضية بناءً على النتائج
                     quizQuestions = [];
                     for (let i = 0; i < totalQuestions; i++) {
                         quizQuestions.push({
-                            question: `السؤال ${i + 1} (تفاصيل غير متاحة)`,
-                            options: [
-                                "الخيار الأول",
-                                "الخيار الثاني", 
-                                "الخيار الثالث",
-                                "الخيار الرابع"
-                            ],
-                            correctAnswer: 0 // تخمين الإجابة الصحيحة
+                            question: `السؤال ${i + 1}`,
+                            options: ["الخيار أ", "الخيار ب", "الخيار ج", "الخيار د"],
+                            correctAnswer: 0
                         });
                     }
-                    
-                    // إنشاء إجابات افتراضية
                     userAnswers = new Array(totalQuestions).fill(0);
-                    
-                    console.log('✅ تم إنشاء أسئلة افتراضية بناءً على النتائج');
-                    calculateTotalPages();
-                } else {
-                    console.log('❌ لا توجد بيانات كافية لإنشاء أسئلة افتراضية');
+                    console.log('📝 تم إنشاء بيانات افتراضية بناءً على النتائج');
+                    initializePreviewSystem();
                 }
+            }
+            
+            // تهيئة نظام المعاينة
+            function initializePreviewSystem() {
+                calculateTotalPages();
+                console.log(`🎯 نظام المعاينة جاهز: ${quizQuestions.length} سؤال، ${totalPages} صفحة`);
             }
             
             // حساب عدد الصفحات المطلوبة
@@ -1044,6 +1058,8 @@
             
             // معاينة النتائج مع الأسئلة بنظام الصفحات
             viewResultsBtn.addEventListener('click', function() {
+                // محاولة أخيرة لجلب البيانات قبل العرض
+                loadRealQuizData();
                 showPreviewPage(1);
                 previewModal.style.display = 'block';
             });
@@ -1073,8 +1089,8 @@
                                 <div class="question-text">
                                     <strong>السؤال ${globalIndex + 1}:</strong> ${question.question}
                                     ${isCorrect ? 
-                                        '<span class="option-status status-correct">✓ صحيح</span>' : 
-                                        '<span class="option-status status-incorrect">✗ خاطئ</span>'
+                                        '<span class="option-status status-correct">✓ إجابتك صحيحة</span>' : 
+                                        '<span class="option-status status-incorrect">✗ إجابتك خاطئة</span>'
                                     }
                                 </div>
                                 <div class="options-container">
@@ -1083,26 +1099,39 @@
                         question.options.forEach((option, optIndex) => {
                             let optionClass = '';
                             let statusIcon = '';
+                            let statusText = '';
                             
                             if (optIndex === question.correctAnswer) {
                                 optionClass = 'correct';
                                 statusIcon = '<span class="option-status status-correct">✓</span>';
+                                statusText = '<small style="color: #155724; margin-right: 10px;">(الإجابة الصحيحة)</small>';
                             } else if (optIndex === userAnswer && userAnswer !== question.correctAnswer) {
                                 optionClass = 'incorrect';
                                 statusIcon = '<span class="option-status status-incorrect">✗</span>';
+                                statusText = '<small style="color: #721c24; margin-right: 10px;">(إجابتك)</small>';
                             } else if (optIndex === userAnswer) {
                                 optionClass = 'user-answer';
                                 statusIcon = '<span class="option-status status-user">→</span>';
+                                statusText = '<small style="color: #004085; margin-right: 10px;">(إجابتك الصحيحة)</small>';
                             }
                             
                             questionsHTML += `
                                 <div class="option-review ${optionClass}">
-                                    ${option} ${statusIcon}
+                                    ${statusIcon}
+                                    ${option}
+                                    ${statusText}
                                 </div>
                             `;
                         });
                         
                         questionsHTML += `
+                                </div>
+                                <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 5px; border-right: 3px solid ${isCorrect ? '#28a745' : '#dc3545'};">
+                                    <strong>التقييم:</strong> 
+                                    ${isCorrect ? 
+                                        '🎉 إجابة صحيحة - أحسنت!' : 
+                                        '💡 إجابة خاطئة - راجع المادة الدراسية'
+                                    }
                                 </div>
                             </div>
                         `;
@@ -1112,6 +1141,8 @@
                         <div class="alert alert-warning text-center">
                             <i class="fas fa-exclamation-triangle me-2"></i>
                             لا توجد بيانات للأسئلة متاحة للعرض.
+                            <br>
+                            <small>قد يكون هذا بسبب إعادة تحميل الصفحة أو مشكلة في حفظ البيانات.</small>
                         </div>
                     `;
                 }
@@ -1120,28 +1151,29 @@
                     <div class="preview-pages">
                         <div class="preview-page">
                             <div class="page-header">
-                                <h3>نتائج الاختبار - الصفحة ${currentPage} من ${totalPages}</h3>
-                                <p>عرض الأسئلة ${startQuestion} إلى ${Math.min(startQuestion + questionsPerPage - 1, quizQuestions.length)}</p>
+                                <h3><i class="fas fa-chart-bar me-2"></i>تحليل نتائج الاختبار - الصفحة ${currentPage} من ${totalPages}</h3>
+                                <p>عرض الأسئلة ${startQuestion} إلى ${Math.min(startQuestion + questionsPerPage - 1, quizQuestions.length)} من ${quizQuestions.length} سؤال</p>
                             </div>
                             
                             ${currentPage === 1 ? `
                                 <div class="student-results-info">
-                                    <h4 style="color: #3498db; text-align: center;">معلومات الطالب:</h4>
-                                    <p><strong>الاسم:</strong> ${studentData.name}</p>
-                                    <p><strong>رقم الهوية:</strong> ${studentData.id}</p>
-                                    <p><strong>المادة:</strong> ${studentData.course}</p>
-                                    <p><strong>تاريخ الاختبار:</strong> ${studentData.date}</p>
+                                    <h4 style="color: #3498db; text-align: center;"><i class="fas fa-user-graduate me-2"></i>معلومات الطالب:</h4>
+                                    <p><strong><i class="fas fa-user me-2"></i>الاسم:</strong> ${studentData.name}</p>
+                                    <p><strong><i class="fas fa-id-card me-2"></i>رقم الهوية:</strong> ${studentData.id}</p>
+                                    <p><strong><i class="fas fa-book me-2"></i>المادة:</strong> ${studentData.course}</p>
+                                    <p><strong><i class="fas fa-calendar me-2"></i>تاريخ الاختبار:</strong> ${studentData.date}</p>
                                 </div>
                                 <div style="text-align: center; margin: 30px 0;">
                                     <div style="font-size: 3rem; font-weight: bold; color: #3498db; margin: 20px 0;">
                                         ${percentage}
                                     </div>
-                                    <h3>النتيجة: ${score} من ${total}</h3>
+                                    <h3>النتيجة النهائية: ${score} من ${total}</h3>
                                 </div>
                                 <div class="progress" style="height: 20px; margin: 20px 0;">
                                     <div class="progress-bar" style="width: ${percentage}"></div>
                                 </div>
                                 <div class="alert alert-info" style="font-size: 1.2rem; text-align: center;">
+                                    <i class="fas fa-info-circle me-2"></i>
                                     ${message}
                                 </div>
                                 <div class="legend">
@@ -1151,33 +1183,39 @@
                                     </div>
                                     <div class="legend-item">
                                         <div class="legend-color" style="background-color: #dc3545;"></div>
-                                        <span>إجابة خاطئة</span>
+                                        <span>إجابتك الخاطئة</span>
                                     </div>
                                     <div class="legend-item">
                                         <div class="legend-color" style="background-color: #007bff;"></div>
-                                        <span>إجابتك</span>
+                                        <span>إجابتك الصحيحة</span>
                                     </div>
+                                </div>
+                                <div class="alert alert-secondary text-center">
+                                    <i class="fas fa-lightbulb me-2"></i>
+                                    <strong>نصيحة:</strong> استخدم هذه المعاينة لمراجعة إجاباتك وتحديد المجالات التي تحتاج إلى تحسين
                                 </div>
                             ` : ''}
                             
-                            <h4 style="color: #3498db; margin: 30px 0 20px 0; text-align: center;">تفاصيل الأسئلة والإجابات:</h4>
+                            <h4 style="color: #3498db; margin: 30px 0 20px 0; text-align: center;">
+                                <i class="fas fa-tasks me-2"></i>تفاصيل الأسئلة والإجابات:
+                            </h4>
                             ${questionsHTML}
                         </div>
                     </div>
                     
                     <div class="questions-per-page">
-                        <label>عدد الأسئلة في الصفحة:</label>
+                        <label><i class="fas fa-sliders-h me-2"></i>عدد الأسئلة في الصفحة:</label>
                         <select id="questions-per-page-select" onchange="changeQuestionsPerPage(this.value)">
-                            <option value="2" ${questionsPerPage === 2 ? 'selected' : ''}>2</option>
-                            <option value="3" ${questionsPerPage === 3 ? 'selected' : ''}>3</option>
-                            <option value="5" ${questionsPerPage === 5 ? 'selected' : ''}>5</option>
-                            <option value="10" ${questionsPerPage === 10 ? 'selected' : ''}>10</option>
+                            <option value="2" ${questionsPerPage === 2 ? 'selected' : ''}>2 أسئلة</option>
+                            <option value="3" ${questionsPerPage === 3 ? 'selected' : ''}>3 أسئلة</option>
+                            <option value="5" ${questionsPerPage === 5 ? 'selected' : ''}>5 أسئلة</option>
+                            <option value="10" ${questionsPerPage === 10 ? 'selected' : ''}>10 أسئلة</option>
                         </select>
                     </div>
                     
                     <div class="pagination-controls">
                         <button class="page-btn" onclick="changePage(1)" ${currentPage === 1 ? 'disabled' : ''}>
-                            <i class="fas fa-fast-backward"></i> الأولى
+                            <i class="fas fa-fast-backward"></i> الصفحة الأولى
                         </button>
                         <button class="page-btn" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
                             <i class="fas fa-chevron-right"></i> السابقة
@@ -1189,15 +1227,21 @@
                             التالية <i class="fas fa-chevron-left"></i>
                         </button>
                         <button class="page-btn" onclick="changePage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}>
-                            الأخيرة <i class="fas fa-fast-forward"></i>
+                            الصفحة الأخيرة <i class="fas fa-fast-forward"></i>
                         </button>
                     </div>
                     
                     ${currentPage === totalPages ? `
                         <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #3498db;">
+                            <div class="alert alert-success text-center">
+                                <i class="fas fa-graduation-cap me-2"></i>
+                                <strong>تهانينا على إكمال المراجعة!</strong>
+                                <br>
+                                <small>استخدم هذه المعلومات لتحسين أدائك في الاختبارات القادمة</small>
+                            </div>
                             <p style="text-align: center; color: #666;">
                                 <i class="fas fa-info-circle me-2"></i>
-                                هذه معاينة للنتائج. يمكنك الطباعة أو التصدير إلى PDF.
+                                يمكنك حفظ هذه النتائج عن طريق الطباعة أو التصدير إلى PDF للمراجعة المستقبلية.
                             </p>
                         </div>
                     ` : ''}
@@ -1219,51 +1263,40 @@
                 }
             };
             
+            // ... باقي الدوال (الطباعة، PDF، إعادة الاختبار) تبقى كما هي ...
+            
             // طباعة النتائج
             printResultsBtn.addEventListener('click', function() {
                 window.print();
             });
             
-            // تصدير إلى PDF مع إصلاح اللغة العربية
+            // تصدير إلى PDF
             pdfResultsBtn.addEventListener('click', function() {
                 generatePDF();
             });
             
             // إعادة الاختبار
             retakeQuizBtn.addEventListener('click', function() {
-                // إعادة تعيين النموذج
                 studentInfoForm.style.display = 'block';
                 quizResultsContainer.style.display = 'none';
-                
-                // إعادة تعيين الحقول
                 document.getElementById('student-name').value = '';
                 document.getElementById('student-id').value = '';
-                
-                // مسح بيانات الأسئلة السابقة
                 quizQuestions = [];
                 userAnswers = [];
-                localStorage.removeItem('quizQuestions');
-                localStorage.removeItem('userAnswers');
-                
-                // إعادة تعيين الصفحات
                 currentPage = 1;
                 questionsPerPage = 3;
             });
             
-            // طباعة من المعاينة
+            // الطباعة من المعاينة
             printFromPreview.addEventListener('click', function() {
                 previewModal.style.display = 'none';
-                setTimeout(() => {
-                    window.print();
-                }, 500);
+                setTimeout(() => { window.print(); }, 500);
             });
             
             // PDF من المعاينة
             pdfFromPreview.addEventListener('click', function() {
                 previewModal.style.display = 'none';
-                setTimeout(() => {
-                    generatePDF();
-                }, 500);
+                setTimeout(() => { generatePDF(); }, 500);
             });
             
             // إغلاق نافذة المعاينة
@@ -1273,42 +1306,31 @@
                 });
             });
             
-            // إغلاق النافذة عند النقر خارج المحتوى
             previewModal.addEventListener('click', function(e) {
                 if (e.target === previewModal) {
                     previewModal.style.display = 'none';
                 }
             });
             
-            // دالة إنشاء PDF مع إصلاح اللغة العربية
+            // دالة إنشاء PDF
             function generatePDF() {
                 pdfLoading.style.display = 'flex';
-                
-                // استخدام html2canvas لالتقاط الصفحة كصورة
                 setTimeout(() => {
                     const element = document.getElementById('quiz-results-container');
-                    
                     html2canvas(element, {
-                        scale: 2,
-                        useCORS: true,
-                        logging: false,
-                        backgroundColor: '#ffffff'
+                        scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff'
                     }).then(canvas => {
                         const imgData = canvas.toDataURL('image/png');
                         const pdf = new jsPDF('p', 'mm', 'a4');
                         const pdfWidth = pdf.internal.pageSize.getWidth();
                         const pdfHeight = pdf.internal.pageSize.getHeight();
-                        
                         const imgWidth = canvas.width;
                         const imgHeight = canvas.height;
                         const ratio = imgHeight / imgWidth;
                         const pdfImageHeight = pdfWidth * ratio;
-                        
                         pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfImageHeight);
-                        
                         const fileName = `نتيجة_${document.getElementById('result-student-name').textContent}_${document.getElementById('result-course-name').textContent}.pdf`;
                         pdf.save(fileName);
-                        
                         pdfLoading.style.display = 'none';
                     }).catch(error => {
                         console.error('Error generating PDF:', error);
@@ -1318,7 +1340,7 @@
                 }, 1000);
             }
             
-            // مراقبة ظهور النتائج وتحديثها
+            // مراقبة ظهور النتائج
             const observer = new MutationObserver(function(mutations) {
                 mutations.forEach(function(mutation) {
                     if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
@@ -1328,29 +1350,7 @@
                     }
                 });
             });
-            
-            observer.observe(quizResultsContainer, {
-                attributes: true,
-                attributeFilter: ['style']
-            });
-            
-            // محاولة الحصول على بيانات الأسئلة بشكل دوري
-            const dataCheckInterval = setInterval(() => {
-                if (quizQuestions.length === 0) {
-                    loadRealQuizQuestions();
-                } else {
-                    clearInterval(dataCheckInterval);
-                    console.log('✅ توقف البحث عن البيانات - تم تحميل الأسئلة بنجاح');
-                }
-            }, 1000);
-            
-            // إيقاف البحث بعد 10 ثوانٍ
-            setTimeout(() => {
-                clearInterval(dataCheckInterval);
-                if (quizQuestions.length === 0) {
-                    console.log('⏰ انتهى الوقت - لم يتم العثور على بيانات الأسئلة');
-                }
-            }, 10000);
+            observer.observe(quizResultsContainer, { attributes: true, attributeFilter: ['style'] });
         });
     </script>
     
