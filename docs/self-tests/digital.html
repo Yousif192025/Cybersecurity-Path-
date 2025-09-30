@@ -83,6 +83,140 @@
         .student-results-info p {
             margin-bottom: 10px;
         }
+        
+        /* تحسينات للأزرار الجديدة */
+        .results-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .print-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .print-btn:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+        }
+        
+        .view-btn {
+            background-color: #17a2b8;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .view-btn:hover {
+            background-color: #138496;
+            transform: translateY(-2px);
+        }
+        
+        /* تنسيقات الطباعة */
+        @media print {
+            .navbar, 
+            .hero-section,
+            .student-info-form,
+            .quiz-content,
+            .results-actions,
+            footer {
+                display: none !important;
+            }
+            
+            .quiz-results {
+                box-shadow: none !important;
+                border: 2px solid #000 !important;
+                margin: 0 !important;
+                padding: 20px !important;
+            }
+            
+            .student-results-info {
+                background: #f0f0f0 !important;
+                border: 1px solid #000 !important;
+            }
+            
+            body {
+                background: white !important;
+                font-size: 14pt !important;
+            }
+            
+            h2 {
+                color: #000 !important;
+                font-size: 18pt !important;
+            }
+            
+            .no-print {
+                display: none !important;
+            }
+        }
+        
+        /* نافذة المعاينة */
+        .preview-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 10000;
+            overflow: auto;
+        }
+        
+        .preview-content {
+            background: white;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 800px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .close-preview {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .preview-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 15px;
+        }
+        
+        .preview-body {
+            line-height: 1.8;
+        }
     </style>
 </head>
 <body>
@@ -187,7 +321,18 @@
                     <p>درجتك: <span id="score-display">0</span> من <span id="total-questions-display">0</span></p>
                     <p id="percentage-display">نسبة النجاح: 0%</p>
                     <div id="result-message"></div>
-                    <div class="mt-4">
+                    
+                    <!-- أزرار الإجراءات الجديدة -->
+                    <div class="results-actions">
+                        <button id="view-results-btn" class="view-btn">
+                            <i class="fas fa-eye"></i> معاينة النتائج
+                        </button>
+                        <button id="print-results-btn" class="print-btn">
+                            <i class="fas fa-print"></i> طباعة النتائج
+                        </button>
+                    </div>
+                    
+                    <div class="mt-4 no-print">
                         <button id="retake-quiz-btn" class="btn secondary-btn">إعادة الاختبار</button>
                         <a href="quiz-bank.html" id="return-to-bank-btn" class="btn primary-btn">العودة لقائمة الاختبارات</a>
                     </div>
@@ -195,6 +340,28 @@
             </div>
         </section>
     </main>
+
+    <!-- نافذة المعاينة -->
+    <div id="preview-modal" class="preview-modal">
+        <div class="preview-content">
+            <button class="close-preview">&times;</button>
+            <div class="preview-header">
+                <h2>معاينة نتائج الاختبار</h2>
+                <p>هذه معاينة للنتائج قبل الطباعة</p>
+            </div>
+            <div class="preview-body" id="preview-body">
+                <!-- سيتم تعبئة المحتوى هنا -->
+            </div>
+            <div class="results-actions" style="margin-top: 30px;">
+                <button id="print-from-preview" class="print-btn">
+                    <i class="fas fa-print"></i> طباعة الآن
+                </button>
+                <button class="close-preview view-btn">
+                    <i class="fas fa-times"></i> إغلاق
+                </button>
+            </div>
+        </div>
+    </div>
 
     <footer>
         <div class="container">
@@ -233,7 +400,7 @@
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- إضافة سكريبت صغير لإدارة نموذج الطالب -->
+    <!-- إضافة سكريبت لإدارة النموذج والأزرار الجديدة -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // الحصول على معلمات URL
@@ -248,6 +415,12 @@
             const studentForm = document.getElementById('studentForm');
             const quizLoadingMessage = document.getElementById('quiz-loading-message');
             const quizContent = document.getElementById('quiz-content');
+            const previewModal = document.getElementById('preview-modal');
+            const previewBody = document.getElementById('preview-body');
+            const viewResultsBtn = document.getElementById('view-results-btn');
+            const printResultsBtn = document.getElementById('print-results-btn');
+            const printFromPreview = document.getElementById('print-from-preview');
+            const closePreviewBtns = document.querySelectorAll('.close-preview');
             
             // بدء الاختبار عند تقديم النموذج
             studentForm.addEventListener('submit', function(e) {
@@ -297,6 +470,58 @@
                     document.getElementById('test-date').textContent = studentData.date;
                 }
             }
+            
+            // معاينة النتائج
+            viewResultsBtn.addEventListener('click', function() {
+                const resultsContainer = document.getElementById('quiz-results-container');
+                const resultsHTML = resultsContainer.innerHTML;
+                
+                previewBody.innerHTML = `
+                    <div class="student-results-info">
+                        <p><strong>الاسم:</strong> ${document.getElementById('result-student-name').textContent}</p>
+                        <p><strong>رقم الهوية:</strong> ${document.getElementById('result-student-id').textContent}</p>
+                        <p><strong>المادة:</strong> ${document.getElementById('result-course-name').textContent}</p>
+                        <p><strong>تاريخ الاختبار:</strong> ${document.getElementById('test-date').textContent}</p>
+                    </div>
+                    <p>درجتك: ${document.getElementById('score-display').textContent} من ${document.getElementById('total-questions-display').textContent}</p>
+                    <p>${document.getElementById('percentage-display').textContent}</p>
+                    <div class="alert ${document.getElementById('result-message').className}">
+                        ${document.getElementById('result-message').textContent}
+                    </div>
+                    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+                        <p><strong>ملاحظة:</strong> هذه معاينة للنتائج. استخدم زر الطباعة للحصول على نسخة ورقية.</p>
+                    </div>
+                `;
+                
+                previewModal.style.display = 'block';
+            });
+            
+            // طباعة النتائج
+            printResultsBtn.addEventListener('click', function() {
+                window.print();
+            });
+            
+            // طباعة من المعاينة
+            printFromPreview.addEventListener('click', function() {
+                previewModal.style.display = 'none';
+                setTimeout(() => {
+                    window.print();
+                }, 500);
+            });
+            
+            // إغلاق نافذة المعاينة
+            closePreviewBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    previewModal.style.display = 'none';
+                });
+            });
+            
+            // إغلاق النافذة عند النقر خارج المحتوى
+            previewModal.addEventListener('click', function(e) {
+                if (e.target === previewModal) {
+                    previewModal.style.display = 'none';
+                }
+            });
             
             // استدعاء دالة تحميل النتائج عند ظهورها
             const observer = new MutationObserver(function(mutations) {
