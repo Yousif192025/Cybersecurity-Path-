@@ -305,6 +305,7 @@
             border: 1px solid #dee2e6;
             background: white;
             transition: all 0.3s ease;
+            position: relative;
         }
         
         .option-review.correct {
@@ -335,6 +336,10 @@
             line-height: 25px;
             margin-left: 10px;
             font-size: 0.9rem;
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
         }
         
         .status-correct {
@@ -350,6 +355,27 @@
         .status-user {
             background: #007bff;
             color: white;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
         }
         
         /* تنسيقات الطباعة */
@@ -718,6 +744,7 @@
             // متغيرات لتخزين بيانات الأسئلة
             let quizQuestions = [];
             let userAnswers = [];
+            let quizData = []; // بيانات الاختبار الكاملة
             
             // بدء الاختبار عند تقديم النموذج
             studentForm.addEventListener('submit', function(e) {
@@ -776,6 +803,74 @@
                     document.getElementById('percentage-circle').textContent = percentage + '%';
                     document.getElementById('progress-bar').style.width = percentage + '%';
                 }
+                
+                // محاولة الحصول على بيانات الأسئلة من quizLogic.js
+                loadQuizQuestions();
+            }
+            
+            // محاولة الحصول على بيانات الأسئلة
+            function loadQuizQuestions() {
+                // الطريقة 1: من quizLogic.js مباشرة
+                if (window.quizData && Array.isArray(window.quizData)) {
+                    quizQuestions = window.quizData;
+                    console.log('تم تحميل الأسئلة من quizLogic.js:', quizQuestions.length);
+                }
+                
+                // الطريقة 2: من localStorage
+                const savedQuestions = localStorage.getItem('quizQuestions');
+                if (savedQuestions) {
+                    quizQuestions = JSON.parse(savedQuestions);
+                    console.log('تم تحميل الأسئلة من localStorage:', quizQuestions.length);
+                }
+                
+                // الطريقة 3: من userAnswers
+                const savedAnswers = localStorage.getItem('userAnswers');
+                if (savedAnswers) {
+                    userAnswers = JSON.parse(savedAnswers);
+                    console.log('تم تحميل الإجابات من localStorage:', userAnswers.length);
+                }
+                
+                // إذا لم توجد بيانات، نستخدم بيانات افتراضية للاختبار
+                if (quizQuestions.length === 0) {
+                    quizQuestions = getSampleQuestions();
+                    console.log('تم استخدام الأسئلة الافتراضية:', quizQuestions.length);
+                }
+            }
+            
+            // بيانات افتراضية للأسئلة (للاختبار فقط)
+            function getSampleQuestions() {
+                return [
+                    {
+                        question: "ما هو الهدف الرئيسي من الأمن السيبراني؟",
+                        options: [
+                            "حماية الأجهزة من التلف",
+                            "حماية الأنظمة والشبكات والبيانات من الهجمات الرقمية", 
+                            "زيادة سرعة الإنترنت",
+                            "تشفير جميع الملفات"
+                        ],
+                        correctAnswer: 1
+                    },
+                    {
+                        question: "ما هو هجوم 'التصيد الاحتيالي' (Phishing)?",
+                        options: [
+                            "إرسال رسائل بريد إلكتروني للحصول على معلومات حساسة",
+                            "تثبيت برامج ضارة على جهاز الضحية",
+                            "إيقاف تشغيل خادم الويب", 
+                            "الاستيلاء على حسابات وسائل التواصل الاجتماعي"
+                        ],
+                        correctAnswer: 0
+                    },
+                    {
+                        question: "ما هو أفضل ممارسة لإنشاء كلمة مرور قوية؟",
+                        options: [
+                            "استخدام تاريخ الميلاد",
+                            "استخدام كلمات شائعة مثل 'password123'",
+                            "استخدام مزيج من الأحرف الكبيرة والصغيرة والأرقام والرموز",
+                            "استخدام كلمة مرور قصيرة وسهلة التذكر"
+                        ],
+                        correctAnswer: 2
+                    }
+                ];
             }
             
             // معاينة النتائج مع الأسئلة
@@ -790,7 +885,23 @@
                 
                 // عرض الأسئلة إذا كانت متوفرة
                 if (quizQuestions.length > 0) {
-                    questionsHTML = '<h4 style="color: #3498db; margin: 30px 0 20px 0;">تفاصيل الأسئلة:</h4>';
+                    questionsHTML = `
+                        <div class="legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #28a745;"></div>
+                                <span>الإجابة الصحيحة</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #dc3545;"></div>
+                                <span>إجابة خاطئة</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #007bff;"></div>
+                                <span>إجابتك</span>
+                            </div>
+                        </div>
+                        <h4 style="color: #3498db; margin: 30px 0 20px 0; text-align: center;">تفاصيل الأسئلة والإجابات:</h4>
+                    `;
                     
                     quizQuestions.forEach((question, index) => {
                         const userAnswer = userAnswers[index];
@@ -799,10 +910,10 @@
                         questionsHTML += `
                             <div class="question-review">
                                 <div class="question-text">
-                                    السؤال ${index + 1}: ${question.question}
+                                    <strong>السؤال ${index + 1}:</strong> ${question.question}
                                     ${isCorrect ? 
-                                        '<span class="option-status status-correct">✓</span>' : 
-                                        '<span class="option-status status-incorrect">✗</span>'
+                                        '<span class="option-status status-correct">✓ صحيح</span>' : 
+                                        '<span class="option-status status-incorrect">✗ خاطئ</span>'
                                     }
                                 </div>
                                 <div class="options-container">
@@ -815,7 +926,7 @@
                             if (optIndex === question.correctAnswer) {
                                 optionClass = 'correct';
                                 statusIcon = '<span class="option-status status-correct">✓</span>';
-                            } else if (optIndex === userAnswer && !isCorrect) {
+                            } else if (optIndex === userAnswer && userAnswer !== question.correctAnswer) {
                                 optionClass = 'incorrect';
                                 statusIcon = '<span class="option-status status-incorrect">✗</span>';
                             } else if (optIndex === userAnswer) {
@@ -835,11 +946,18 @@
                             </div>
                         `;
                     });
+                } else {
+                    questionsHTML = `
+                        <div class="alert alert-warning text-center">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            لا توجد بيانات للأسئلة متاحة للعرض.
+                        </div>
+                    `;
                 }
                 
                 previewBody.innerHTML = `
                     <div class="student-results-info">
-                        <h4>معلومات الطالب:</h4>
+                        <h4 style="color: #3498db; text-align: center;">معلومات الطالب:</h4>
                         <p><strong>الاسم:</strong> ${studentData.name}</p>
                         <p><strong>رقم الهوية:</strong> ${studentData.id}</p>
                         <p><strong>المادة:</strong> ${studentData.course}</p>
@@ -888,6 +1006,12 @@
                 // إعادة تعيين الحقول
                 document.getElementById('student-name').value = '';
                 document.getElementById('student-id').value = '';
+                
+                // مسح بيانات الأسئلة السابقة
+                quizQuestions = [];
+                userAnswers = [];
+                localStorage.removeItem('quizQuestions');
+                localStorage.removeItem('userAnswers');
             });
             
             // طباعة من المعاينة
@@ -974,23 +1098,8 @@
                 attributeFilter: ['style']
             });
             
-            // استقبال بيانات الأسئلة من quizLogic.js
-            window.addEventListener('quizDataLoaded', function(event) {
-                if (event.detail && event.detail.questions) {
-                    quizQuestions = event.detail.questions;
-                    userAnswers = event.detail.userAnswers || [];
-                }
-            });
-            
-            // بديل: محاولة الحصول على البيانات من quizLogic.js مباشرة
-            setTimeout(() => {
-                if (window.quizData) {
-                    quizQuestions = window.quizData;
-                }
-                if (window.userAnswers) {
-                    userAnswers = window.userAnswers;
-                }
-            }, 2000);
+            // محاولة الحصول على بيانات الأسئلة بشكل دوري
+            setInterval(loadQuizQuestions, 2000);
         });
     </script>
     
