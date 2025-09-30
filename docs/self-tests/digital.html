@@ -268,6 +268,88 @@
         .preview-body {
             line-height: 1.8;
             font-size: 1.1rem;
+            max-height: 60vh;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        /* تنسيقات الأسئلة في المعاينة */
+        .question-review {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+        }
+        
+        .question-review:hover {
+            border-color: var(--primary-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .question-text {
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: var(--dark-gray);
+            margin-bottom: 15px;
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 10px;
+        }
+        
+        .option-review {
+            padding: 12px 15px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            background: white;
+            transition: all 0.3s ease;
+        }
+        
+        .option-review.correct {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+            font-weight: bold;
+        }
+        
+        .option-review.incorrect {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+            font-weight: bold;
+        }
+        
+        .option-review.user-answer {
+            border: 2px solid #007bff;
+            background: #e7f3ff;
+        }
+        
+        .option-status {
+            display: inline-block;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 25px;
+            margin-left: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .status-correct {
+            background: #28a745;
+            color: white;
+        }
+        
+        .status-incorrect {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .status-user {
+            background: #007bff;
+            color: white;
         }
         
         /* تنسيقات الطباعة */
@@ -538,7 +620,7 @@
             <button class="close-preview">&times;</button>
             <div class="preview-header">
                 <h2><i class="fas fa-search me-2"></i>معاينة نتائج الاختبار</h2>
-                <p>هذه معاينة للنتائج قبل الطباعة أو التصدير</p>
+                <p>هذه معاينة للنتائج مع تفاصيل الأسئلة والإجابات</p>
             </div>
             <div class="preview-body" id="preview-body">
                 <!-- سيتم تعبئة المحتوى هنا -->
@@ -633,6 +715,10 @@
             const pdfFromPreview = document.getElementById('pdf-from-preview');
             const closePreviewBtns = document.querySelectorAll('.close-preview');
             
+            // متغيرات لتخزين بيانات الأسئلة
+            let quizQuestions = [];
+            let userAnswers = [];
+            
             // بدء الاختبار عند تقديم النموذج
             studentForm.addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -669,7 +755,6 @@
                 
                 // بدء تحميل الاختبار من quizLogic.js بعد تأخير بسيط
                 setTimeout(() => {
-                    // هذا سيتحكم فيه quizLogic.js
                     window.dispatchEvent(new Event('startQuizFromForm'));
                 }, 1000);
             });
@@ -693,13 +778,64 @@
                 }
             }
             
-            // معاينة النتائج
+            // معاينة النتائج مع الأسئلة
             viewResultsBtn.addEventListener('click', function() {
                 const studentData = JSON.parse(localStorage.getItem('studentQuizData') || '{}');
                 const score = document.getElementById('score-display').textContent;
                 const total = document.getElementById('total-questions-display').textContent;
                 const percentage = document.getElementById('percentage-circle').textContent;
                 const message = document.getElementById('result-message').textContent;
+                
+                let questionsHTML = '';
+                
+                // عرض الأسئلة إذا كانت متوفرة
+                if (quizQuestions.length > 0) {
+                    questionsHTML = '<h4 style="color: #3498db; margin: 30px 0 20px 0;">تفاصيل الأسئلة:</h4>';
+                    
+                    quizQuestions.forEach((question, index) => {
+                        const userAnswer = userAnswers[index];
+                        const isCorrect = userAnswer === question.correctAnswer;
+                        
+                        questionsHTML += `
+                            <div class="question-review">
+                                <div class="question-text">
+                                    السؤال ${index + 1}: ${question.question}
+                                    ${isCorrect ? 
+                                        '<span class="option-status status-correct">✓</span>' : 
+                                        '<span class="option-status status-incorrect">✗</span>'
+                                    }
+                                </div>
+                                <div class="options-container">
+                        `;
+                        
+                        question.options.forEach((option, optIndex) => {
+                            let optionClass = '';
+                            let statusIcon = '';
+                            
+                            if (optIndex === question.correctAnswer) {
+                                optionClass = 'correct';
+                                statusIcon = '<span class="option-status status-correct">✓</span>';
+                            } else if (optIndex === userAnswer && !isCorrect) {
+                                optionClass = 'incorrect';
+                                statusIcon = '<span class="option-status status-incorrect">✗</span>';
+                            } else if (optIndex === userAnswer) {
+                                optionClass = 'user-answer';
+                                statusIcon = '<span class="option-status status-user">→</span>';
+                            }
+                            
+                            questionsHTML += `
+                                <div class="option-review ${optionClass}">
+                                    ${option} ${statusIcon}
+                                </div>
+                            `;
+                        });
+                        
+                        questionsHTML += `
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
                 
                 previewBody.innerHTML = `
                     <div class="student-results-info">
@@ -721,6 +857,7 @@
                     <div class="alert alert-info" style="font-size: 1.2rem; text-align: center;">
                         ${message}
                     </div>
+                    ${questionsHTML}
                     <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #3498db;">
                         <p style="text-align: center; color: #666;">
                             <i class="fas fa-info-circle me-2"></i>
@@ -737,7 +874,7 @@
                 window.print();
             });
             
-            // تصدير إلى PDF
+            // تصدير إلى PDF مع إصلاح اللغة العربية
             pdfResultsBtn.addEventListener('click', function() {
                 generatePDF();
             });
@@ -783,78 +920,41 @@
                 }
             });
             
-            // دالة إنشاء PDF محسنة
+            // دالة إنشاء PDF مع إصلاح اللغة العربية
             function generatePDF() {
                 pdfLoading.style.display = 'flex';
                 
+                // استخدام html2canvas لالتقاط الصفحة كصورة
                 setTimeout(() => {
-                    const studentData = JSON.parse(localStorage.getItem('studentQuizData') || '{}');
-                    const score = document.getElementById('score-display').textContent;
-                    const total = document.getElementById('total-questions-display').textContent;
-                    const percentage = document.getElementById('percentage-circle').textContent;
-                    const message = document.getElementById('result-message').textContent;
+                    const element = document.getElementById('quiz-results-container');
                     
-                    const pdf = new jsPDF('p', 'mm', 'a4');
-                    const pageWidth = pdf.internal.pageSize.getWidth();
-                    const pageHeight = pdf.internal.pageSize.getHeight();
-                    
-                    // إضافة خلفية ملونة
-                    pdf.setFillColor(52, 152, 219);
-                    pdf.rect(0, 0, pageWidth, 60, 'F');
-                    
-                    // العنوان
-                    pdf.setTextColor(255, 255, 255);
-                    pdf.setFontSize(24);
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.text('نتائج الاختبار', pageWidth / 2, 35, { align: 'center' });
-                    
-                    // معلومات الطالب
-                    pdf.setFillColor(240, 240, 240);
-                    pdf.rect(20, 70, pageWidth - 40, 50, 'F');
-                    
-                    pdf.setTextColor(0, 0, 0);
-                    pdf.setFontSize(12);
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.text('معلومات الطالب:', 25, 85);
-                    
-                    pdf.setFont('helvetica', 'normal');
-                    pdf.text(`الاسم: ${studentData.name}`, 25, 95);
-                    pdf.text(`رقم الهوية: ${studentData.id}`, 25, 105);
-                    pdf.text(`المادة: ${studentData.course}`, pageWidth / 2, 95);
-                    pdf.text(`تاريخ الاختبار: ${studentData.date}`, pageWidth / 2, 105);
-                    
-                    // النتيجة
-                    pdf.setFontSize(48);
-                    pdf.setTextColor(52, 152, 219);
-                    pdf.text(percentage, pageWidth / 2, 150, { align: 'center' });
-                    
-                    pdf.setFontSize(18);
-                    pdf.setTextColor(0, 0, 0);
-                    pdf.text(`النتيجة: ${score} من ${total}`, pageWidth / 2, 170, { align: 'center' });
-                    
-                    // شريط التقدم
-                    const progressWidth = (pageWidth - 80) * (parseInt(percentage) / 100);
-                    pdf.setFillColor(52, 152, 219);
-                    pdf.rect(40, 185, progressWidth, 10, 'F');
-                    pdf.setDrawColor(200, 200, 200);
-                    pdf.rect(40, 185, pageWidth - 80, 10);
-                    
-                    // الرسالة
-                    pdf.setFontSize(14);
-                    pdf.setTextColor(0, 0, 0);
-                    const messageLines = pdf.splitTextToSize(message, pageWidth - 60);
-                    pdf.text(messageLines, pageWidth / 2, 220, { align: 'center' });
-                    
-                    // التذييل
-                    pdf.setFontSize(10);
-                    pdf.setTextColor(100, 100, 100);
-                    pdf.text('© 2025 منصة مسار الأمن السيبراني - تم إنشاء هذا التقرير آلياً', pageWidth / 2, pageHeight - 20, { align: 'center' });
-                    
-                    // حفظ الملف
-                    const fileName = `نتيجة_${studentData.name}_${studentData.course}.pdf`;
-                    pdf.save(fileName);
-                    
-                    pdfLoading.style.display = 'none';
+                    html2canvas(element, {
+                        scale: 2,
+                        useCORS: true,
+                        logging: false,
+                        backgroundColor: '#ffffff'
+                    }).then(canvas => {
+                        const imgData = canvas.toDataURL('image/png');
+                        const pdf = new jsPDF('p', 'mm', 'a4');
+                        const pdfWidth = pdf.internal.pageSize.getWidth();
+                        const pdfHeight = pdf.internal.pageSize.getHeight();
+                        
+                        const imgWidth = canvas.width;
+                        const imgHeight = canvas.height;
+                        const ratio = imgHeight / imgWidth;
+                        const pdfImageHeight = pdfWidth * ratio;
+                        
+                        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfImageHeight);
+                        
+                        const fileName = `نتيجة_${document.getElementById('result-student-name').textContent}_${document.getElementById('result-course-name').textContent}.pdf`;
+                        pdf.save(fileName);
+                        
+                        pdfLoading.style.display = 'none';
+                    }).catch(error => {
+                        console.error('Error generating PDF:', error);
+                        pdfLoading.style.display = 'none';
+                        alert('حدث خطأ في إنشاء ملف PDF. يرجى المحاولة مرة أخرى.');
+                    });
                 }, 1000);
             }
             
@@ -873,6 +973,24 @@
                 attributes: true,
                 attributeFilter: ['style']
             });
+            
+            // استقبال بيانات الأسئلة من quizLogic.js
+            window.addEventListener('quizDataLoaded', function(event) {
+                if (event.detail && event.detail.questions) {
+                    quizQuestions = event.detail.questions;
+                    userAnswers = event.detail.userAnswers || [];
+                }
+            });
+            
+            // بديل: محاولة الحصول على البيانات من quizLogic.js مباشرة
+            setTimeout(() => {
+                if (window.quizData) {
+                    quizQuestions = window.quizData;
+                }
+                if (window.userAnswers) {
+                    userAnswers = window.userAnswers;
+                }
+            }, 2000);
         });
     </script>
     
