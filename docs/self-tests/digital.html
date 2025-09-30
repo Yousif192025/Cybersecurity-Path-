@@ -12,121 +12,262 @@
     <link rel="stylesheet" href="../assets/css/quiz.css">
     <link rel="icon" type="image/x-icon" href="../assets/images/favicon.png">
 
+    <!-- مكتبات PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <style>
+        :root {
+            --primary-blue: #3498db;
+            --accent-blue: #2980b9;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --dark-gray: #333;
+            --white: #fff;
+            --light-gray: #f8f9fa;
+        }
+
         /* إضافة أنماط نموذج معلومات الطالب فقط */
         .student-info-form {
             background: var(--white);
             padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             margin-bottom: 30px;
             max-width: 600px;
             margin-left: auto;
             margin-right: auto;
+            border: 1px solid #e3f2fd;
         }
         
         .student-info-form h3 {
             color: var(--primary-blue);
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             text-align: center;
+            font-weight: 700;
+            font-size: 1.8rem;
         }
         
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         
         .form-label {
             font-weight: bold;
             color: var(--dark-gray);
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             display: block;
+            font-size: 1.1rem;
         }
         
         .form-control {
             width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
             font-size: 16px;
-            transition: border-color 0.3s;
+            transition: all 0.3s ease;
+            background: #fafafa;
         }
         
         .form-control:focus {
             border-color: var(--primary-blue);
             outline: none;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+            background: white;
+            transform: translateY(-2px);
         }
         
         .invalid-feedback {
-            color: #e74c3c;
+            color: var(--danger-color);
             font-size: 14px;
-            margin-top: 5px;
+            margin-top: 8px;
             display: none;
         }
         
         .form-control.is-invalid {
-            border-color: #e74c3c;
+            border-color: var(--danger-color);
         }
         
         .form-control.is-invalid ~ .invalid-feedback {
             display: block;
         }
         
+        /* تحسينات النتائج */
+        .quiz-results {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .quiz-results::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .quiz-results > * {
+            position: relative;
+            z-index: 1;
+        }
+        
         .student-results-info {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border-right: 4px solid var(--primary-blue);
+            background: rgba(255,255,255,0.95);
+            color: var(--dark-gray);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border-left: 5px solid var(--primary-blue);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
         
         .student-results-info p {
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
         }
         
-        /* تحسينات للأزرار الجديدة */
-        .results-actions {
+        .results-score {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: var(--success-color);
             display: flex;
-            gap: 10px;
+            align-items: center;
             justify-content: center;
-            margin: 20px 0;
-            flex-wrap: wrap;
+            margin: 0 auto 20px;
+            border: 5px solid white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: white;
         }
         
-        .print-btn {
-            background-color: #28a745;
-            color: white;
+        /* أزرار الإجراءات المحسنة */
+        .results-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .action-btn {
+            padding: 15px 25px;
             border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            gap: 12px;
+            text-decoration: none;
+            text-align: center;
         }
         
-        .print-btn:hover {
-            background-color: #218838;
-            transform: translateY(-2px);
+        .action-btn i {
+            font-size: 1.3rem;
         }
         
         .view-btn {
-            background-color: #17a2b8;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
         
-        .view-btn:hover {
-            background-color: #138496;
-            transform: translateY(-2px);
+        .print-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .pdf-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        
+        .retake-btn {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        
+        /* نافذة المعاينة المحسنة */
+        .preview-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 10000;
+            overflow: auto;
+            backdrop-filter: blur(5px);
+        }
+        
+        .preview-content {
+            background: white;
+            margin: 50px auto;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 900px;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            border: 2px solid var(--primary-blue);
+        }
+        
+        .close-preview {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .close-preview:hover {
+            transform: rotate(90deg);
+            background: #c82333;
+        }
+        
+        .preview-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid var(--primary-blue);
+        }
+        
+        .preview-body {
+            line-height: 1.8;
+            font-size: 1.1rem;
         }
         
         /* تنسيقات الطباعة */
@@ -136,15 +277,18 @@
             .student-info-form,
             .quiz-content,
             .results-actions,
-            footer {
+            footer,
+            .no-print {
                 display: none !important;
             }
             
             .quiz-results {
+                background: white !important;
+                color: black !important;
                 box-shadow: none !important;
                 border: 2px solid #000 !important;
                 margin: 0 !important;
-                padding: 20px !important;
+                padding: 30px !important;
             }
             
             .student-results-info {
@@ -159,16 +303,12 @@
             
             h2 {
                 color: #000 !important;
-                font-size: 18pt !important;
-            }
-            
-            .no-print {
-                display: none !important;
+                font-size: 20pt !important;
             }
         }
         
-        /* نافذة المعاينة */
-        .preview-modal {
+        /* تحميل PDF */
+        .pdf-loading {
             display: none;
             position: fixed;
             top: 0;
@@ -176,46 +316,63 @@
             width: 100%;
             height: 100%;
             background: rgba(0,0,0,0.8);
-            z-index: 10000;
-            overflow: auto;
-        }
-        
-        .preview-content {
-            background: white;
-            margin: 50px auto;
-            padding: 30px;
-            border-radius: 10px;
-            max-width: 800px;
-            position: relative;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
-        
-        .close-preview {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            background: #dc3545;
+            z-index: 10001;
             color: white;
-            border: none;
-            border-radius: 50%;
-            width: 35px;
-            height: 35px;
-            cursor: pointer;
-            font-size: 18px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            font-size: 1.5rem;
         }
         
-        .preview-header {
+        .pdf-loading i {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        /* تحسينات التقدم */
+        .progress-container {
+            margin: 25px 0;
+        }
+        
+        .progress {
+            height: 12px;
+            border-radius: 10px;
+            background: #e9ecef;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            transition: width 0.6s ease;
+        }
+        
+        /* رسائل النتائج */
+        .result-message {
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
             text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 15px;
+            font-size: 1.2rem;
+            font-weight: 600;
         }
         
-        .preview-body {
-            line-height: 1.8;
+        /* تحسينات للجوال */
+        @media (max-width: 768px) {
+            .results-actions {
+                grid-template-columns: 1fr;
+            }
+            
+            .preview-content {
+                margin: 20px;
+                padding: 25px;
+            }
+            
+            .score-circle {
+                width: 120px;
+                height: 120px;
+                font-size: 2rem;
+            }
         }
     </style>
 </head>
@@ -265,76 +422,97 @@
             <div class="container">
                 <!-- نموذج معلومات الطالب الجديد -->
                 <div id="student-info-form" class="student-info-form">
-                    <h3>معلومات الطالب</h3>
+                    <h3><i class="fas fa-user-graduate me-2"></i>معلومات الطالب</h3>
                     <form id="studentForm">
                         <div class="form-group">
-                            <label for="student-name" class="form-label">الاسم الكامل</label>
-                            <input type="text" class="form-control" id="student-name" minlength="10" required>
+                            <label for="student-name" class="form-label">
+                                <i class="fas fa-user me-2"></i>الاسم الكامل
+                            </label>
+                            <input type="text" class="form-control" id="student-name" minlength="10" required placeholder="أدخل الاسم الكامل">
                             <div class="invalid-feedback">
                                 يجب أن يكون الاسم الكامل 10 أحرف على الأقل.
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="student-id" class="form-label">رقم الهوية</label>
-                            <input type="text" class="form-control" id="student-id" pattern="[0-9]{10}" required>
+                            <label for="student-id" class="form-label">
+                                <i class="fas fa-id-card me-2"></i>رقم الهوية
+                            </label>
+                            <input type="text" class="form-control" id="student-id" pattern="[0-9]{10}" required placeholder="أدخل 10 أرقام">
                             <div class="invalid-feedback">
                                 يجب أن يتكون رقم الهوية من 10 أرقام بالضبط.
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="course-name" class="form-label">اسم المادة</label>
+                            <label for="course-name" class="form-label">
+                                <i class="fas fa-book me-2"></i>اسم المادة
+                            </label>
                             <input type="text" class="form-control" id="course-name" readonly>
                         </div>
                         <div class="d-grid">
-                            <button type="submit" class="btn primary-btn">بدء الاختبار</button>
+                            <button type="submit" class="btn primary-btn" style="padding: 15px; font-size: 1.2rem;">
+                                <i class="fas fa-play-circle me-2"></i>بدء الاختبار
+                            </button>
                         </div>
                     </form>
                 </div>
 
-                <div id="quiz-loading-message" class="loading-message" style="display: none;">جاري تحميل الاختبار...</div>
+                <div id="quiz-loading-message" class="loading-message" style="display: none;">
+                    <i class="fas fa-spinner fa-spin me-2"></i>جاري تحميل الاختبار...
+                </div>
 
                 <div id="quiz-content" class="main-content" style="display: none;">
-                    <div id="quiz-header" class="quiz-header">
-                        <span id="question-counter">السؤال 1 من X</span>
-                        <div id="quiz-timer">الزمن المتبقي: <span id="time-left">--:--</span></div>
-                        <h2 id="question-text">نص السؤال سيظهر هنا.</h2>
-                    </div>
-                    <div id="options-container" class="options-grid">
-                        </div>
-                    <div id="feedback-message" class="feedback-message" style="display: none;">
-                        </div>
-                    <div class="quiz-navigation">
-                        <button id="next-btn" class="btn primary-btn">السؤال التالي</button>
-                        <button id="finish-btn" class="btn primary-btn" style="display: none;">إنهاء الاختبار</button>
-                    </div>
+                    <!-- محتوى الاختبار الحالي -->
                 </div>
 
                 <div id="quiz-results-container" class="quiz-results" style="display: none;">
-                    <h2>نتائج الاختبار</h2>
+                    <h2><i class="fas fa-trophy me-2"></i>نتائج الاختبار</h2>
+                    
                     <!-- معلومات الطالب في النتائج -->
                     <div class="student-results-info">
-                        <p><strong>الاسم:</strong> <span id="result-student-name"></span></p>
-                        <p><strong>رقم الهوية:</strong> <span id="result-student-id"></span></p>
-                        <p><strong>المادة:</strong> <span id="result-course-name"></span></p>
-                        <p><strong>تاريخ الاختبار:</strong> <span id="test-date"></span></p>
+                        <p><strong><i class="fas fa-user me-2"></i>الاسم:</strong> <span id="result-student-name"></span></p>
+                        <p><strong><i class="fas fa-id-card me-2"></i>رقم الهوية:</strong> <span id="result-student-id"></span></p>
+                        <p><strong><i class="fas fa-book me-2"></i>المادة:</strong> <span id="result-course-name"></span></p>
+                        <p><strong><i class="fas fa-calendar me-2"></i>تاريخ الاختبار:</strong> <span id="test-date"></span></p>
                     </div>
-                    <p>درجتك: <span id="score-display">0</span> من <span id="total-questions-display">0</span></p>
-                    <p id="percentage-display">نسبة النجاح: 0%</p>
-                    <div id="result-message"></div>
+                    
+                    <!-- النتيجة بشكل دائري -->
+                    <div class="results-score">
+                        <div class="score-circle">
+                            <span id="percentage-circle">0%</span>
+                        </div>
+                        <h3>درجتك: <span id="score-display">0</span> من <span id="total-questions-display">0</span></h3>
+                    </div>
+                    
+                    <!-- شريط التقدم -->
+                    <div class="progress-container">
+                        <div class="progress">
+                            <div id="progress-bar" class="progress-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- رسالة النتيجة -->
+                    <div id="result-message" class="result-message"></div>
                     
                     <!-- أزرار الإجراءات الجديدة -->
                     <div class="results-actions">
-                        <button id="view-results-btn" class="view-btn">
+                        <button id="view-results-btn" class="action-btn view-btn">
                             <i class="fas fa-eye"></i> معاينة النتائج
                         </button>
-                        <button id="print-results-btn" class="print-btn">
+                        <button id="print-results-btn" class="action-btn print-btn">
                             <i class="fas fa-print"></i> طباعة النتائج
+                        </button>
+                        <button id="pdf-results-btn" class="action-btn pdf-btn">
+                            <i class="fas fa-file-pdf"></i> تصدير PDF
+                        </button>
+                        <button id="retake-quiz-btn" class="action-btn retake-btn">
+                            <i class="fas fa-redo"></i> إعادة الاختبار
                         </button>
                     </div>
                     
-                    <div class="mt-4 no-print">
-                        <button id="retake-quiz-btn" class="btn secondary-btn">إعادة الاختبار</button>
-                        <a href="quiz-bank.html" id="return-to-bank-btn" class="btn primary-btn">العودة لقائمة الاختبارات</a>
+                    <div class="mt-4 no-print text-center">
+                        <a href="quiz-bank.html" id="return-to-bank-btn" class="btn primary-btn">
+                            <i class="fas fa-arrow-right me-2"></i>العودة لقائمة الاختبارات
+                        </a>
                     </div>
                 </div>
             </div>
@@ -346,21 +524,31 @@
         <div class="preview-content">
             <button class="close-preview">&times;</button>
             <div class="preview-header">
-                <h2>معاينة نتائج الاختبار</h2>
-                <p>هذه معاينة للنتائج قبل الطباعة</p>
+                <h2><i class="fas fa-search me-2"></i>معاينة نتائج الاختبار</h2>
+                <p>هذه معاينة للنتائج قبل الطباعة أو التصدير</p>
             </div>
             <div class="preview-body" id="preview-body">
                 <!-- سيتم تعبئة المحتوى هنا -->
             </div>
             <div class="results-actions" style="margin-top: 30px;">
-                <button id="print-from-preview" class="print-btn">
+                <button id="print-from-preview" class="action-btn print-btn">
                     <i class="fas fa-print"></i> طباعة الآن
                 </button>
-                <button class="close-preview view-btn">
+                <button id="pdf-from-preview" class="action-btn pdf-btn">
+                    <i class="fas fa-file-pdf"></i> تصدير PDF
+                </button>
+                <button class="close-preview action-btn view-btn">
                     <i class="fas fa-times"></i> إغلاق
                 </button>
             </div>
         </div>
+    </div>
+
+    <!-- تحميل PDF -->
+    <div id="pdf-loading" class="pdf-loading" style="display: none;">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>جاري إنشاء ملف PDF...</p>
+        <p>يرجى الانتظار</p>
     </div>
 
     <footer>
@@ -387,9 +575,9 @@
                 </div>
                 <div class="col-md-3">
                     <h4>تواصل معنا</h4>
-                    <a href="#">تويتر</a>
-                    <a href="#">لينكدإن</a>
-                    <a href="#">يوتيوب</a>
+                    <a href="#"><i class="fab fa-twitter me-2"></i>تويتر</a>
+                    <a href="#"><i class="fab fa-linkedin me-2"></i>لينكدإن</a>
+                    <a href="#"><i class="fab fa-youtube me-2"></i>يوتيوب</a>
                 </div>
                 <div class="col-12 text-center mt-4">
                     <p class="copyright mb-0">© 2025 منصة مسار الأمن السيبراني. جميع الحقوق محفوظة.</p>
@@ -400,9 +588,11 @@
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- إضافة سكريبت لإدارة النموذج والأزرار الجديدة -->
+    <!-- سكريبت محسن لإدارة النموذج والأزرار الجديدة -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const { jsPDF } = window.jspdf;
+            
             // الحصول على معلمات URL
             const urlParams = new URLSearchParams(window.location.search);
             const quizTitle = urlParams.get('title') || 'اختبار المهارات الرقمية';
@@ -414,12 +604,17 @@
             const studentInfoForm = document.getElementById('student-info-form');
             const studentForm = document.getElementById('studentForm');
             const quizLoadingMessage = document.getElementById('quiz-loading-message');
-            const quizContent = document.getElementById('quiz-content');
+            const quizResultsContainer = document.getElementById('quiz-results-container');
             const previewModal = document.getElementById('preview-modal');
             const previewBody = document.getElementById('preview-body');
+            const pdfLoading = document.getElementById('pdf-loading');
+            
+            // أزرار الإجراءات
             const viewResultsBtn = document.getElementById('view-results-btn');
             const printResultsBtn = document.getElementById('print-results-btn');
+            const pdfResultsBtn = document.getElementById('pdf-results-btn');
             const printFromPreview = document.getElementById('print-from-preview');
+            const pdfFromPreview = document.getElementById('pdf-from-preview');
             const closePreviewBtns = document.querySelectorAll('.close-preview');
             
             // بدء الاختبار عند تقديم النموذج
@@ -455,9 +650,6 @@
                 // إخفاء النموذج وإظهار تحميل الاختبار
                 studentInfoForm.style.display = 'none';
                 quizLoadingMessage.style.display = 'block';
-                
-                // الاستمرار في تحميل الاختبار بشكل طبيعي
-                // سيقوم quizLogic.js بالاستمرار من هنا
             });
             
             // تحميل بيانات الطالب عند عرض النتائج
@@ -468,28 +660,50 @@
                     document.getElementById('result-student-id').textContent = studentData.id;
                     document.getElementById('result-course-name').textContent = studentData.course;
                     document.getElementById('test-date').textContent = studentData.date;
+                    
+                    // تحديث شريط التقدم والنسبة
+                    const score = parseInt(document.getElementById('score-display').textContent);
+                    const total = parseInt(document.getElementById('total-questions-display').textContent);
+                    const percentage = Math.round((score / total) * 100);
+                    
+                    document.getElementById('percentage-circle').textContent = percentage + '%';
+                    document.getElementById('progress-bar').style.width = percentage + '%';
                 }
             }
             
             // معاينة النتائج
             viewResultsBtn.addEventListener('click', function() {
-                const resultsContainer = document.getElementById('quiz-results-container');
-                const resultsHTML = resultsContainer.innerHTML;
+                const studentData = JSON.parse(localStorage.getItem('studentQuizData') || '{}');
+                const score = document.getElementById('score-display').textContent;
+                const total = document.getElementById('total-questions-display').textContent;
+                const percentage = document.getElementById('percentage-circle').textContent;
+                const message = document.getElementById('result-message').textContent;
                 
                 previewBody.innerHTML = `
                     <div class="student-results-info">
-                        <p><strong>الاسم:</strong> ${document.getElementById('result-student-name').textContent}</p>
-                        <p><strong>رقم الهوية:</strong> ${document.getElementById('result-student-id').textContent}</p>
-                        <p><strong>المادة:</strong> ${document.getElementById('result-course-name').textContent}</p>
-                        <p><strong>تاريخ الاختبار:</strong> ${document.getElementById('test-date').textContent}</p>
+                        <h4>معلومات الطالب:</h4>
+                        <p><strong>الاسم:</strong> ${studentData.name}</p>
+                        <p><strong>رقم الهوية:</strong> ${studentData.id}</p>
+                        <p><strong>المادة:</strong> ${studentData.course}</p>
+                        <p><strong>تاريخ الاختبار:</strong> ${studentData.date}</p>
                     </div>
-                    <p>درجتك: ${document.getElementById('score-display').textContent} من ${document.getElementById('total-questions-display').textContent}</p>
-                    <p>${document.getElementById('percentage-display').textContent}</p>
-                    <div class="alert ${document.getElementById('result-message').className}">
-                        ${document.getElementById('result-message').textContent}
+                    <div style="text-align: center; margin: 30px 0;">
+                        <div style="font-size: 3rem; font-weight: bold; color: #3498db; margin: 20px 0;">
+                            ${percentage}
+                        </div>
+                        <h3>النتيجة: ${score} من ${total}</h3>
                     </div>
-                    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
-                        <p><strong>ملاحظة:</strong> هذه معاينة للنتائج. استخدم زر الطباعة للحصول على نسخة ورقية.</p>
+                    <div class="progress" style="height: 20px; margin: 20px 0;">
+                        <div class="progress-bar" style="width: ${percentage}"></div>
+                    </div>
+                    <div class="alert alert-info" style="font-size: 1.2rem; text-align: center;">
+                        ${message}
+                    </div>
+                    <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #3498db;">
+                        <p style="text-align: center; color: #666;">
+                            <i class="fas fa-info-circle me-2"></i>
+                            هذه معاينة للنتائج. يمكنك الطباعة أو التصدير إلى PDF.
+                        </p>
                     </div>
                 `;
                 
@@ -501,11 +715,24 @@
                 window.print();
             });
             
+            // تصدير إلى PDF
+            pdfResultsBtn.addEventListener('click', function() {
+                generatePDF();
+            });
+            
             // طباعة من المعاينة
             printFromPreview.addEventListener('click', function() {
                 previewModal.style.display = 'none';
                 setTimeout(() => {
                     window.print();
+                }, 500);
+            });
+            
+            // PDF من المعاينة
+            pdfFromPreview.addEventListener('click', function() {
+                previewModal.style.display = 'none';
+                setTimeout(() => {
+                    generatePDF();
                 }, 500);
             });
             
@@ -523,19 +750,93 @@
                 }
             });
             
+            // دالة إنشاء PDF محسنة
+            function generatePDF() {
+                pdfLoading.style.display = 'flex';
+                
+                setTimeout(() => {
+                    const studentData = JSON.parse(localStorage.getItem('studentQuizData') || '{}');
+                    const score = document.getElementById('score-display').textContent;
+                    const total = document.getElementById('total-questions-display').textContent;
+                    const percentage = document.getElementById('percentage-circle').textContent;
+                    const message = document.getElementById('result-message').textContent;
+                    
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const pageWidth = pdf.internal.pageSize.getWidth();
+                    const pageHeight = pdf.internal.pageSize.getHeight();
+                    
+                    // إضافة خلفية ملونة
+                    pdf.setFillColor(52, 152, 219);
+                    pdf.rect(0, 0, pageWidth, 60, 'F');
+                    
+                    // العنوان
+                    pdf.setTextColor(255, 255, 255);
+                    pdf.setFontSize(24);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.text('نتائج الاختبار', pageWidth / 2, 35, { align: 'center' });
+                    
+                    // معلومات الطالب
+                    pdf.setFillColor(240, 240, 240);
+                    pdf.rect(20, 70, pageWidth - 40, 50, 'F');
+                    
+                    pdf.setTextColor(0, 0, 0);
+                    pdf.setFontSize(12);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.text('معلومات الطالب:', 25, 85);
+                    
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.text(`الاسم: ${studentData.name}`, 25, 95);
+                    pdf.text(`رقم الهوية: ${studentData.id}`, 25, 105);
+                    pdf.text(`المادة: ${studentData.course}`, pageWidth / 2, 95);
+                    pdf.text(`تاريخ الاختبار: ${studentData.date}`, pageWidth / 2, 105);
+                    
+                    // النتيجة
+                    pdf.setFontSize(48);
+                    pdf.setTextColor(52, 152, 219);
+                    pdf.text(percentage, pageWidth / 2, 150, { align: 'center' });
+                    
+                    pdf.setFontSize(18);
+                    pdf.setTextColor(0, 0, 0);
+                    pdf.text(`النتيجة: ${score} من ${total}`, pageWidth / 2, 170, { align: 'center' });
+                    
+                    // شريط التقدم
+                    const progressWidth = (pageWidth - 80) * (parseInt(percentage) / 100);
+                    pdf.setFillColor(52, 152, 219);
+                    pdf.rect(40, 185, progressWidth, 10, 'F');
+                    pdf.setDrawColor(200, 200, 200);
+                    pdf.rect(40, 185, pageWidth - 80, 10);
+                    
+                    // الرسالة
+                    pdf.setFontSize(14);
+                    pdf.setTextColor(0, 0, 0);
+                    const messageLines = pdf.splitTextToSize(message, pageWidth - 60);
+                    pdf.text(messageLines, pageWidth / 2, 220, { align: 'center' });
+                    
+                    // التذييل
+                    pdf.setFontSize(10);
+                    pdf.setTextColor(100, 100, 100);
+                    pdf.text('© 2025 منصة مسار الأمن السيبراني - تم إنشاء هذا التقرير آلياً', pageWidth / 2, pageHeight - 20, { align: 'center' });
+                    
+                    // حفظ الملف
+                    const fileName = `نتيجة_${studentData.name}_${studentData.course}.pdf`;
+                    pdf.save(fileName);
+                    
+                    pdfLoading.style.display = 'none';
+                }, 1000);
+            }
+            
             // استدعاء دالة تحميل النتائج عند ظهورها
             const observer = new MutationObserver(function(mutations) {
                 mutations.forEach(function(mutation) {
                     if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-                        const resultsContainer = document.getElementById('quiz-results-container');
-                        if (resultsContainer.style.display !== 'none') {
+                        if (quizResultsContainer.style.display !== 'none') {
                             loadStudentResults();
                         }
                     }
                 });
             });
             
-            observer.observe(document.getElementById('quiz-results-container'), {
+            observer.observe(quizResultsContainer, {
                 attributes: true,
                 attributeFilter: ['style']
             });
