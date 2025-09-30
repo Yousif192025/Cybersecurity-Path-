@@ -460,21 +460,8 @@
                     <i class="fas fa-spinner fa-spin me-2"></i>جاري تحميل الاختبار...
                 </div>
 
-                <!-- محتوى الاختبار الأصلي - سيتم التحكم فيه من خلال quizLogic.js -->
                 <div id="quiz-content" class="main-content" style="display: none;">
-                    <div id="quiz-header" class="quiz-header">
-                        <span id="question-counter">السؤال 1 من X</span>
-                        <div id="quiz-timer">الزمن المتبقي: <span id="time-left">--:--</span></div>
-                        <h2 id="question-text">نص السؤال سيظهر هنا.</h2>
-                    </div>
-                    <div id="options-container" class="options-grid">
-                        </div>
-                    <div id="feedback-message" class="feedback-message" style="display: none;">
-                        </div>
-                    <div class="quiz-navigation">
-                        <button id="next-btn" class="btn primary-btn">السؤال التالي</button>
-                        <button id="finish-btn" class="btn primary-btn" style="display: none;">إنهاء الاختبار</button>
-                    </div>
+                    <!-- محتوى الاختبار الحالي -->
                 </div>
 
                 <div id="quiz-results-container" class="quiz-results" style="display: none;">
@@ -601,7 +588,7 @@
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- سكريبت محسن للدمج مع quizLogic.js -->
+    <!-- سكريبت محسن لإدارة النموذج والأزرار الجديدة -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const { jsPDF } = window.jspdf;
@@ -609,7 +596,6 @@
             // الحصول على معلمات URL
             const urlParams = new URLSearchParams(window.location.search);
             const quizTitle = urlParams.get('title') || 'اختبار المهارات الرقمية';
-            const quizType = urlParams.get('type') || 'digital_skills';
             
             // تعبئة اسم المادة تلقائياً
             document.getElementById('course-name').value = quizTitle;
@@ -618,7 +604,6 @@
             const studentInfoForm = document.getElementById('student-info-form');
             const studentForm = document.getElementById('studentForm');
             const quizLoadingMessage = document.getElementById('quiz-loading-message');
-            const quizContent = document.getElementById('quiz-content');
             const quizResultsContainer = document.getElementById('quiz-results-container');
             const previewModal = document.getElementById('preview-modal');
             const previewBody = document.getElementById('preview-body');
@@ -628,7 +613,6 @@
             const viewResultsBtn = document.getElementById('view-results-btn');
             const printResultsBtn = document.getElementById('print-results-btn');
             const pdfResultsBtn = document.getElementById('pdf-results-btn');
-            const retakeQuizBtn = document.getElementById('retake-quiz-btn');
             const printFromPreview = document.getElementById('print-from-preview');
             const pdfFromPreview = document.getElementById('pdf-from-preview');
             const closePreviewBtns = document.querySelectorAll('.close-preview');
@@ -666,12 +650,6 @@
                 // إخفاء النموذج وإظهار تحميل الاختبار
                 studentInfoForm.style.display = 'none';
                 quizLoadingMessage.style.display = 'block';
-                
-                // بدء تحميل الاختبار من quizLogic.js بعد تأخير بسيط
-                setTimeout(() => {
-                    // هذا سيتحكم فيه quizLogic.js
-                    window.dispatchEvent(new Event('startQuizFromForm'));
-                }, 1000);
             });
             
             // تحميل بيانات الطالب عند عرض النتائج
@@ -684,8 +662,8 @@
                     document.getElementById('test-date').textContent = studentData.date;
                     
                     // تحديث شريط التقدم والنسبة
-                    const score = parseInt(document.getElementById('score-display').textContent) || 0;
-                    const total = parseInt(document.getElementById('total-questions-display').textContent) || 1;
+                    const score = parseInt(document.getElementById('score-display').textContent);
+                    const total = parseInt(document.getElementById('total-questions-display').textContent);
                     const percentage = Math.round((score / total) * 100);
                     
                     document.getElementById('percentage-circle').textContent = percentage + '%';
@@ -740,17 +718,6 @@
             // تصدير إلى PDF
             pdfResultsBtn.addEventListener('click', function() {
                 generatePDF();
-            });
-            
-            // إعادة الاختبار
-            retakeQuizBtn.addEventListener('click', function() {
-                // إعادة تعيين النموذج
-                studentInfoForm.style.display = 'block';
-                quizResultsContainer.style.display = 'none';
-                
-                // إعادة تعيين الحقول
-                document.getElementById('student-name').value = '';
-                document.getElementById('student-id').value = '';
             });
             
             // طباعة من المعاينة
@@ -858,12 +825,12 @@
                 }, 1000);
             }
             
-            // مراقبة ظهور النتائج وتحديثها
+            // استدعاء دالة تحميل النتائج عند ظهورها
             const observer = new MutationObserver(function(mutations) {
                 mutations.forEach(function(mutation) {
                     if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
                         if (quizResultsContainer.style.display !== 'none') {
-                            setTimeout(loadStudentResults, 100);
+                            loadStudentResults();
                         }
                     }
                 });
@@ -876,7 +843,7 @@
         });
     </script>
     
-    <!-- الملفات الأصلية -->
+    <!-- الملفات الأصلية - لن تتأثر -->
     <script src="../assets/js/quizBankLoader.js"></script>
     <script src="../assets/js/quizLogic.js"></script>
 </body>
