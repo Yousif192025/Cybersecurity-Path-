@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>المعهد الأهلي العالي للتدريب | تدريب الأمن السيبراني</title>
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-sA+e2r3y9GqX4x3f3j8YwqgVf2b0J3u0y2x0Jm0p6uI=" crossorigin=""/>
+  
+  <!-- Leaflet Locate Control CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.locatecontrol/0.79.0/L.Control.Locate.min.css" />
+  
+  <style>
+    :root {
+      --primary: #0b6efd;
+      --primary-dark: #0a5ed7;
+      --success: #198754;
+      --danger: #dc3545;
+      --gray: #6c757d;
+      --light: #f8f9fa;
+      --dark: #111;
+    }
+    
+    body { 
+      font-family: "Tahoma", "Segoe UI", Arial, sans-serif; 
+      background: #f7f7fb; 
+      color: var(--dark); 
+      padding: 0;
+      margin: 0;
+      line-height: 1.7; 
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+    
+    h1,h2,h3 { color: var(--primary); }
+    
+    .card { 
+      background: #fff; 
+      border-radius: 10px; 
+      box-shadow: 0 6px 18px rgba(0,0,0,0.06); 
+      padding: 24px; 
+      margin-bottom: 24px; 
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    #map { 
+      height: 480px; 
+      border-radius: 10px; 
+      margin-top: 16px;
+      z-index: 1;
+    }
+    
+    button { 
+      padding: 12px 20px; 
+      border-radius: 8px; 
+      border: 0; 
+      background: var(--primary); 
+      color: #fff; 
+      cursor: pointer; 
+      font-weight: 600; 
+      transition: all 0.3s ease;
+      font-size: 1rem;
+    }
+    
+    button:hover:not([disabled]) {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(11, 110, 253, 0.3);
+    }
+    
+    button[disabled] { 
+      background: #9fb8ff; 
+      cursor: not-allowed; 
+      transform: none;
+      box-shadow: none;
+    }
+    
+    .btn-secondary {
+      background: var(--gray);
+    }
+    
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+    
+    .warn { color: var(--danger); font-weight: 600; }
+    .success { color: var(--success); font-weight: 600; }
+    .muted { color: var(--gray); font-size: 0.95rem; }
+    
+    label { 
+      display: flex; 
+      gap: 12px; 
+      align-items: flex-start;
+      cursor: pointer;
+      padding: 12px;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+    
+    label:hover {
+      background: rgba(11, 110, 253, 0.05);
+    }
+    
+    input[type="checkbox"] {
+      margin-top: 2px;
+      transform: scale(1.2);
+    }
+    
+    header { 
+      text-align: center; 
+      margin-bottom: 30px; 
+      padding: 30px 0;
+      background: linear-gradient(135deg, var(--primary) 0%, #2d8fff 100%);
+      color: white;
+      border-radius: 0 0 20px 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    header h1, header h2, header h3 { 
+      color: white; 
+      margin: 8px 0;
+    }
+    
+    header h1 {
+      font-size: 2.2rem;
+      margin-bottom: 5px;
+    }
+    
+    header h2 {
+      font-size: 1.5rem;
+      opacity: 0.95;
+    }
+    
+    header h3 {
+      font-size: 1.2rem;
+      opacity: 0.9;
+      font-weight: normal;
+    }
+    
+    footer { 
+      text-align: center; 
+      margin-top: 40px; 
+      padding: 20px;
+      font-size: 0.9rem; 
+      color: var(--gray);
+      border-top: 1px solid rgba(0,0,0,0.1);
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+    
+    .coordinates {
+      background: var(--light);
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin: 16px 0;
+      font-family: monospace;
+      direction: ltr;
+      text-align: center;
+      border: 1px solid rgba(0,0,0,0.1);
+    }
+    
+    .accuracy-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    
+    .high-accuracy { background-color: var(--success); }
+    .medium-accuracy { background-color: #ffc107; }
+    .low-accuracy { background-color: var(--danger); }
+    
+    @media (max-width: 768px) {
+      .card {
+        padding: 16px;
+      }
+      
+      header h1 {
+        font-size: 1.8rem;
+      }
+      
+      header h2 {
+        font-size: 1.3rem;
+      }
+      
+      #map {
+        height: 400px;
+      }
+      
+      .button-group {
+        flex-direction: column;
+      }
+      
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>المعهد الأهلي العالي للتدريب</h1>
+      <h2>برنامج الأمن السيبراني</h2>
+      <h3>عرض تدريبي: مشاركة الموقع الجغرافي</h3>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <h3>📌 تعليمات للطلاب</h3>
+      <ul>
+        <li>الغرض من هذا التمرين هو التدريب على <strong>مفهوم تحديد الموقع</strong> باستخدام تقنيات الويب الحديثة.</li>
+        <li>التمرين يتم في بيئة تعليمية آمنة ولا يتم إرسال البيانات إلى أي طرف خارجي.</li>
+        <li>المشاركة <strong>طوعية بالكامل</strong>، ويمكنك إيقافها أو رفض الإذن في أي وقت.</li>
+        <li>الهدف هو فهم كيفية عمل <strong>Geolocation API</strong> وعرض النتيجة على <strong>خريطة تفاعلية</strong>.</li>
+        <li>بعد الحصول على الموقع، يمكنك استخدام أدوات التحكم في الخريطة للتكبير والتصغير ورؤية موقعك بدقة.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>✍️ نموذج الموافقة</h3>
+      <form id="consentForm">
+        <label>
+          <input type="checkbox" id="consentCheckbox" />
+          <span>أوافق على المشاركة في هذا التمرين التعليمي الخاص بالأمن السيبراني وأفهم أن بيانات موقعي ستستخدم لأغراض تعليمية فقط داخل هذه الصفحة.</span>
+        </label>
+        <p class="muted">بعد الموافقة يمكنك الضغط على الزر لطلب الموقع من المتصفح وعرضه على الخريطة.</p>
+      </form>
+      <div class="button-group">
+        <button id="getLocBtn" disabled>🚀 طلب الموقع</button>
+        <button id="clearBtn" class="btn-secondary">🔄 إعادة تعيين</button>
+        <button id="demoBtn" class="btn-secondary">🧭 عرض موقع تجريبي</button>
+      </div>
+      <p id="status" class="muted" style="margin-top:16px;"></p>
+    </div>
+
+    <div class="card">
+      <h3>🌍 النتيجة</h3>
+      <p id="info" class="muted">لم يتم طلب الموقع بعد.</p>
+      <div id="coordinates" class="coordinates" style="display:none;"></div>
+      <div id="map" style="display:none;"></div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      © المعهد الأهلي العالي للتدريب – وحدة الأمن السيبراني  
+      <div class="muted" style="margin-top:8px; font-size:0.85rem;">
+        هذا المشروع تعليمي ولا يخزن أي بيانات موقع خارج المتصفح.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-QVdVQao6bq3Zl3gF2z2h3j9p1Yh2sd0x5v+f3v9Qm+E=" crossorigin=""></script>
+  
+  <!-- Leaflet Locate Control JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.locatecontrol/0.79.0/L.Control.Locate.min.js"></script>
+
+  <script>
+    // عناصر DOM
+    const consentCheckbox = document.getElementById('consentCheckbox');
+    const getLocBtn = document.getElementById('getLocBtn');
+    const statusEl = document.getElementById('status');
+    const infoEl = document.getElementById('info');
+    const coordinatesEl = document.getElementById('coordinates');
+    const mapDiv = document.getElementById('map');
+    const clearBtn = document.getElementById('clearBtn');
+    const demoBtn = document.getElementById('demoBtn');
+
+    // متغيرات الخريطة
+    let map = null;
+    let userMarker = null;
+    let accuracyCircle = null;
+    let locateControl = null;
+
+    // تفعيل الزر عند الموافقة
+    consentCheckbox.addEventListener('change', () => {
+      getLocBtn.disabled = !consentCheckbox.checked;
+    });
+
+    // إعادة تعيين
+    clearBtn.addEventListener('click', () => {
+      consentCheckbox.checked = false;
+      getLocBtn.disabled = true;
+      statusEl.textContent = '';
+      infoEl.textContent = 'لم يتم طلب الموقع بعد.';
+      coordinatesEl.style.display = 'none';
+      mapDiv.style.display = 'none';
+      
+      if (map) {
+        map.remove();
+        map = null;
+        userMarker = null;
+        accuracyCircle = null;
+        locateControl = null;
+      }
+    });
+
+    // عرض موقع تجريبي (لأغراض العرض والتجربة)
+    demoBtn.addEventListener('click', () => {
+      statusEl.innerHTML = '<span class="success">✅ تم تحميل موقع تجريبي للعرض.</span>';
+      infoEl.textContent = 'هذا موقع تجريبي لأغراض العرض والاختبار فقط.';
+      
+      // إحداثيات تجريبية (رياض البطحاء، الرياض)
+      const demoLat = 24.7136;
+      const demoLon = 46.6753;
+      const demoAcc = 50;
+      
+      displayLocation(demoLat, demoLon, demoAcc, true);
+    });
+
+    // التحقق من دعم المتصفح
+    if (!('geolocation' in navigator)) {
+      statusEl.innerHTML = '<span class="warn">⚠️ المتصفح لا يدعم خاصية تحديد الموقع.</span>';
+      getLocBtn.disabled = true;
+      demoBtn.disabled = false;
+    }
+
+    // طلب الموقع
+    getLocBtn.addEventListener('click', () => {
+      statusEl.innerHTML = '⏳ طلب إذن الموقع من المتصفح...';
+      infoEl.textContent = 'الرجاء السماح للمتصفح بمشاركة الموقع.';
+      
+      navigator.geolocation.getCurrentPosition(onSuccess, onError, {
+        enableHighAccuracy: true,
+        timeout: 20000,
+        maximumAge: 0
+      });
+    });
+
+    function onSuccess(pos) {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      const acc = pos.coords.accuracy;
+      
+      statusEl.innerHTML = '<span class="success">✅ تم الحصول على الموقع بنجاح.</span>';
+      displayLocation(lat, lon, acc, false);
+    }
+
+    function displayLocation(lat, lon, acc, isDemo) {
+      // عرض الإحداثيات
+      const accuracyLevel = acc <= 50 ? 'high-accuracy' : (acc <= 500 ? 'medium-accuracy' : 'low-accuracy');
+      const accuracyText = acc <= 50 ? 'عالية' : (acc <= 500 ? 'متوسطة' : 'منخفضة');
+      
+      coordinatesEl.innerHTML = `
+        <div>
+          <strong>الإحداثيات:</strong>
+          <div>خط العرض: ${lat.toFixed(6)}</div>
+          <div>خط الطول: ${lon.toFixed(6)}</div>
+          <div style="margin-top: 8px;">
+            <span class="accuracy-indicator ${accuracyLevel}"></span>
+            <strong>الدقة:</strong> ±${Math.round(acc)} متر (${accuracyText})
+          </div>
+          ${isDemo ? '<div style="margin-top: 8px; color: #ffc107;"><strong>💡 ملاحظة:</strong> هذا موقع تجريبي للعرض</div>' : ''}
+        </div>
+      `;
+      coordinatesEl.style.display = 'block';
+      
+      // إعداد الخريطة
+      mapDiv.style.display = 'block';
+      
+      if (map) {
+        map.remove();
+      }
+      
+      // إنشاء الخريطة
+      map = L.map('map').setView([lat, lon], 16);
+      
+      // إضافة طبقة الخريطة
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+      
+      // إضافة علامة الموقع
+      const icon = L.divIcon({
+        className: 'user-location-marker',
+        html: '<div style="background-color: #0b6efd; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);"></div>',
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+      });
+      
+      userMarker = L.marker([lat, lon], { icon: icon }).addTo(map);
+      userMarker.bindPopup(`
+        <div style="text-align: center;">
+          <strong>${isDemo ? '📍 الموقع التجريبي' : '📍 موقعك الحالي'}</strong><br>
+          الدقة ≈ ${Math.round(acc)} متر
+        </div>
+      `).openPopup();
+      
+      // إضافة دائرة الدقة
+      accuracyCircle = L.circle([lat, lon], {
+        radius: acc,
+        color: '#0b6efd',
+        fillColor: '#0b6efd',
+        fillOpacity: 0.1,
+        weight: 1
+      }).addTo(map);
+      
+      // إضافة عناصر تحكم إضافية
+      L.control.zoom({ position: 'topright' }).addTo(map);
+      
+      // إضافة تحكم تحديد الموقع
+      locateControl = L.control.locate({
+        position: 'topright',
+        strings: {
+          title: "اظهر موقعي الحالي"
+        },
+        locateOptions: {
+          enableHighAccuracy: true,
+          maxZoom: 16
+        }
+      }).addTo(map);
+    }
+
+    function onError(err) {
+      console.warn('Geolocation error:', err);
+      switch(err.code) {
+        case err.PERMISSION_DENIED:
+          statusEl.innerHTML = '<span class="warn">❌ تم رفض الإذن.</span> الرجاء السماح للصفحة بالوصول إلى الموقع.';
+          infoEl.textContent = 'الموقع لم يتم الحصول عليه بسبب رفض الإذن.';
+          break;
+        case err.POSITION_UNAVAILABLE:
+          statusEl.innerHTML = '<span class="warn">⚠️ الموقع غير متاح.</span>';
+          infoEl.textContent = 'تعذر الحصول على الموقع (غير متاح).';
+          break;
+        case err.TIMEOUT:
+          statusEl.innerHTML = '<span class="warn">⌛ انتهت مهلة الطلب.</span>';
+          infoEl.textContent = 'انتهت مهلة الحصول على الموقع. حاول مرة أخرى.';
+          break;
+        default:
+          statusEl.innerHTML = '<span class="warn">⚠️ خطأ غير معروف.</span>';
+          infoEl.textContent = 'حدث خطأ أثناء محاولة الحصول على الموقع.';
+      }
+      
+      // تفعيل زر العرض التجريبي في حالة الخطأ
+      demoBtn.disabled = false;
+    }
+  </script>
+</body>
+</html>
