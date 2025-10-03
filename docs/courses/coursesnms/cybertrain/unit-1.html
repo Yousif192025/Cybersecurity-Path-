@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Unit1 — شرائح: الغلاف، الأهداف، الاختبار القبلي</title>
+  <style>
+    :root{
+      --bg:#0f172a; --card:#0b1220; --accent:#06b6d4; --muted:#94a3b8; --white:#ffffff;
+      --radius:12px; --gap:14px;
+    }
+    html,body{height:100%;margin:0;font-family: "Segoe UI", Tahoma, Arial, "Noto Naskh Arabic", sans-serif;background:linear-gradient(180deg,#071029 0%, #071b2e 100%);color:var(--white)}
+    .app{display:flex;height:100vh;gap:var(--gap);padding:20px;box-sizing:border-box}
+    .sidebar{width:320px;background:rgba(255,255,255,0.04);border-radius:12px;padding:16px;box-sizing:border-box;overflow:auto}
+    .brand{display:flex;gap:12px;align-items:center;margin-bottom:8px}
+    .logo{width:48px;height:48px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#7c3aed);display:flex;align-items:center;justify-content:center;font-weight:700}
+    h1{font-size:18px;margin:0}
+    .slides-list{margin-top:14px}
+    .slide-item{padding:10px;border-radius:8px;margin-bottom:8px;background:rgba(255,255,255,0.02);cursor:pointer}
+    .slide-item.active{outline:2px solid rgba(6,182,212,0.15);background:rgba(6,182,212,0.06)}
+    .controls{display:flex;gap:8px;margin-top:8px}
+    .btn{background:var(--accent);color:#002;border:none;padding:8px 10px;border-radius:8px;cursor:pointer}
+    .btn.ghost{background:transparent;color:var(--white);border:1px solid rgba(255,255,255,0.06)}
+
+    .stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
+    .slide-card{width:900px;max-width:calc(100% - 40px);min-height:540px;background:var(--card);border-radius:16px;padding:28px;box-sizing:border-box;box-shadow:0 10px 30px rgba(2,6,23,0.6);display:flex;flex-direction:column;gap:14px}
+    .slide-header{display:flex;justify-content:space-between;align-items:center}
+    .slide-title{font-size:26px;margin:0}
+    .slide-content{background:rgba(255,255,255,0.02);padding:16px;border-radius:10px;flex:1;overflow:auto}
+    .notes{background:#021226;padding:12px;border-radius:8px;color:var(--muted);font-size:14px}
+
+    .toolbar{display:flex;gap:8px;align-items:center}
+    .nav{display:flex;gap:6px}
+    .small{padding:6px 8px;font-size:13px}
+
+    /* editable styling */
+    [contenteditable]{outline:2px dashed transparent}
+    [contenteditable]:focus{outline:2px dashed rgba(6,182,212,0.25)}
+
+    /* print friendly */
+    @media print{
+      body{background:#fff;color:#000}
+      .app{padding:0}
+      .sidebar{display:none}
+      .slide-card{box-shadow:none;background:#fff;border-radius:0}
+    }
+
+    /* responsive */
+    @media (max-width:1000px){.sidebar{display:none}.slide-card{width:100%}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="logo">CS</div>
+        <div>
+          <h1>حقيبة: الأمن السيبراني + الهاكر الأخلاقي</h1>
+          <div style="color:var(--muted);font-size:13px;margin-top:6px">Unit1 — الغلاف والأهداف والاختبار القبلي</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="btn" id="addSlide">إضافة شريحة</button>
+        <button class="btn ghost" id="duplicateSlide">نسخ</button>
+        <button class="btn ghost" id="deleteSlide">حذف</button>
+      </div>
+
+      <div class="slides-list" id="slidesList">
+        <!-- Slide items injected here -->
+      </div>
+
+      <div style="margin-top:12px;padding-top:12px;border-top:1px dashed rgba(255,255,255,0.03);">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:6px">خيارات العرض:</div>
+        <button class="btn ghost small" id="toggleEdit">تفعيل/إيقاف التحرير</button>
+        <button class="btn ghost small" id="saveBtn">حفظ (المتصفح)</button>
+        <button class="btn small" id="exportHTML">تحميل HTML</button>
+      </div>
+
+      <div style="margin-top:18px;color:var(--muted);font-size:13px">ملاحظات سريعة: انقر على أي شريحة لعرضها — استخدم زر 'تحميل HTML' لحفظ نسخة قابلة للمشاركة.</div>
+    </aside>
+
+    <main class="stage">
+      <div class="slide-card">
+        <div class="slide-header">
+          <div>
+            <h2 class="slide-title" id="slideTitle" contenteditable="false"></h2>
+            <div style="color:var(--muted);font-size:13px" id="slideSubtitle"></div>
+          </div>
+          <div class="toolbar">
+            <div class="nav">
+              <button class="btn ghost small" id="prevBtn">السابق</button>
+              <button class="btn ghost small" id="nextBtn">التالي</button>
+            </div>
+            <button class="btn small" id="printBtn">طباعة</button>
+          </div>
+        </div>
+
+        <div class="slide-content">
+          <div id="slideBody" contenteditable="false" style="line-height:1.7;font-size:17px"></div>
+        </div>
+
+        <div class="notes" id="trainerNotes" contenteditable="false"></div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Sample initial slides for Unit1 (cover, why, agenda, objectives, objectives detail, pre-test)
+    const initialSlides = [
+      {
+        id: crypto.randomUUID(),
+        title: 'شريحة الغلاف',
+        subtitle: 'اسم الحقيبة • الشعار • المدة • التاريخ/المكان (قابلة للتعديل)',
+        body: `<strong>حقيبة تدريبية:</strong> الأمن السيبراني + الهاكر الأخلاقي<br><br><strong>المدة:</strong> 7 أيام — 35 ساعة<br><strong>المكان:</strong> ________<br><strong>التاريخ:</strong> ________`,
+        notes: 'ملاحظة المدرب: ترحيب، تقديم سريع للمدرب.'
+      },
+      {
+        id: crypto.randomUUID(),
+        title: 'لماذا هذه الدورة؟',
+        subtitle: 'قيمة ومخرجات',
+        body: `<ul><li>رفع مستوى الوعي الأمني للمؤسسة.</li><li>تأسيس فهم عملي لمنهجيات الاختبار الأخلاقي.</li><li>تقليل مخاطر الاختراق وفقدان البيانات.</li></ul>`,
+        notes: 'اطرح سؤالاً للمجموعة: ما أكثر تهديد يقلقكم؟'
+      },
+      {
+        id: crypto.randomUUID(),
+        title: 'جدول المحتوى — البرنامج',
+        subtitle: 'نظرة عامة على الأيام والجلسات',
+        body: `<ol><li>اليوم 1: مدخل الأمن السيبراني</li><li>اليوم 2: التهديدات والهجمات</li><li>اليوم 3: الهاكر الأخلاقي والمنهجية</li><li>اليوم 4: حماية الأسرار</li><li>اليوم 5: تطبيقات الويب</li><li>اليوم 6: شبكات لاسلكية وIoT</li><li>اليوم 7: محاكاة حادث والحوكمة</li></ol>`,
+        notes: 'اذكر توقيت البدء والانتهاء، ووقت الاستراحات.'
+      },
+      {
+        id: crypto.randomUUID(),
+        title: 'الأهداف العامة',
+        subtitle: '',
+        body: '<p>بنهاية الدورة سيكون المتدرب قادرًا على فهم مفهوم الأمن السيبراني ومبادئ الهاكر الأخلاقي ضمن إطار قانوني وأخلاقي.</p>',
+        notes: 'اشرح كيف سيقاس الهدف: اختبار بعدي، نشاط عملي.'
+      },
+      {
+        id: crypto.randomUUID(),
+        title: 'الأهداف التفصيلية',
+        subtitle: '',
+        body: `<ul><li>التعرف على مفهوم الأمن السيبراني وعناصره.</li><li>الإطلاع على معايير الأمن السيبراني الوطني.</li><li>التعرف على أنواع الهجمات وطرق الوقاية.</li></ul>`,
+        notes: 'اذكر أن كل هدف مرتبط بجلسة واختبار عملي.'
+      },
+      {
+        id: crypto.randomUUID(),
+        title: 'الاختبار القبلي — تعليمات',
+        subtitle: 'غرض الاختبار ومدة الحل',
+        body: `<p>الغرض: قياس مستوى المعرفة الابتدائية لدى المتدربين.<br>المدة: 20 دقيقة.<br>الرجاء الإجابة بصراحة — هذه النتائج ستستخدم لتحسين الجلسات العملية.</p><p><a href="#" id="pretestLink">تحميل ورقة الاختبار (Word)</a></p>`,
+        notes: 'ضع رابطًا إلى ملف الاختبار أو QR قابل للطباعة.'
+      }
+    ];
+
+    // State
+    let slides = loadSlides() || initialSlides;
+    let currentIndex = 0;
+    let editing = false;
+
+    // DOM refs
+    const slidesList = document.getElementById('slidesList');
+    const slideTitle = document.getElementById('slideTitle');
+    const slideSubtitle = document.getElementById('slideSubtitle');
+    const slideBody = document.getElementById('slideBody');
+    const trainerNotes = document.getElementById('trainerNotes');
+
+    function renderList(){
+      slidesList.innerHTML = '';
+      slides.forEach((s, i) => {
+        const el = document.createElement('div');
+        el.className = 'slide-item' + (i===currentIndex? ' active':'');
+        el.dataset.index = i;
+        el.innerHTML = `<strong>${i+1}. ${escapeHtml(s.title)}</strong><div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(s.subtitle || '')}</div>`;
+        el.addEventListener('click', ()=>{ currentIndex = i; render(); });
+        slidesList.appendChild(el);
+      });
+    }
+
+    function render(){
+      const s = slides[currentIndex];
+      slideTitle.innerHTML = s.title;
+      slideSubtitle.innerHTML = s.subtitle || '';
+      slideBody.innerHTML = s.body;
+      trainerNotes.innerHTML = s.notes || '';
+      renderList();
+      saveSlides();
+    }
+
+    // Buttons
+    document.getElementById('addSlide').addEventListener('click', ()=>{
+      const newS = {id: crypto.randomUUID(), title:'شريحة جديدة', subtitle:'', body:'<p>محتوى قابل للتعديل...</p>', notes:'ملاحظة المدرب...'};
+      slides.push(newS); currentIndex = slides.length-1; render();
+    });
+
+    document.getElementById('duplicateSlide').addEventListener('click', ()=>{
+      const s = slides[currentIndex];
+      const copy = JSON.parse(JSON.stringify(s)); copy.id = crypto.randomUUID(); copy.title += ' (نسخة)';
+      slides.splice(currentIndex+1,0,copy); currentIndex = currentIndex+1; render();
+    });
+
+    document.getElementById('deleteSlide').addEventListener('click', ()=>{
+      if(!confirm('هل تريد حذف الشريحة الحالية؟')) return;
+      slides.splice(currentIndex,1);
+      if(currentIndex>=slides.length) currentIndex = slides.length-1;
+      render();
+    });
+
+    document.getElementById('prevBtn').addEventListener('click', ()=>{ if(currentIndex>0) currentIndex--; render(); });
+    document.getElementById('nextBtn').addEventListener('click', ()=>{ if(currentIndex<slides.length-1) currentIndex++; render(); });
+
+    // Toggle edit
+    document.getElementById('toggleEdit').addEventListener('click', ()=>{
+      editing = !editing;
+      [slideTitle, slideBody, trainerNotes, slideSubtitle].forEach(el=> el.contentEditable = editing);
+      document.getElementById('toggleEdit').textContent = editing ? 'إيقاف التحرير' : 'تفعيل/إيقاف التحرير';
+    });
+
+    // Save to localStorage
+    function saveSlides(){
+      try{ localStorage.setItem('unit1_slides', JSON.stringify(slides)); }
+      catch(e){ console.warn('حفظ فشل', e); }
+    }
+    function loadSlides(){
+      try{ const s = localStorage.getItem('unit1_slides'); return s? JSON.parse(s): null; }
+      catch(e){ return null; }
+    }
+
+    document.getElementById('saveBtn').addEventListener('click', ()=>{ saveSlides(); alert('تم حفظ التغييرات في المتصفح (localStorage).'); });
+
+    // Export HTML
+    document.getElementById('exportHTML').addEventListener('click', ()=>{
+      // build a standalone HTML with current slides
+      const html = buildExportHTML(slides);
+      const blob = new Blob([html],{type:'text/html'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'unit1_slides.html'; a.click(); URL.revokeObjectURL(url);
+    });
+
+    // Print
+    document.getElementById('printBtn').addEventListener('click', ()=> window.print() );
+
+    // Export builder
+    function buildExportHTML(slidesData){
+      return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Unit1 — Slides Export</title><style>body{font-family:Arial,\'Noto Naskh Arabic\',sans-serif;padding:20px;background:#fff;color:#000} .slide{page-break-after:always;border:1px solid #ddd;padding:20px;margin-bottom:18px;border-radius:8px} h2{margin-top:0}</style></head><body>${slidesData.map(s=>`<div class="slide"><h2>${escapeHtml(s.title)}</h2><div>${s.subtitle?'<em>'+escapeHtml(s.subtitle)+'</em>':''}</div><div style="margin-top:12px">${s.body}</div><hr><div><strong>ملاحظة المدرب:</strong><div>${escapeHtml(s.notes)}</div></div></div>`).join('')}</body></html>`;
+    }
+
+    // Utility
+    function escapeHtml(str){ return String(str).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#39;"); }
+
+    // Persist edits back to slides array
+    function applyEdits(){
+      const s = slides[currentIndex];
+      s.title = slideTitle.innerText.trim();
+      s.subtitle = slideSubtitle.innerText.trim();
+      s.body = slideBody.innerHTML;
+      s.notes = trainerNotes.innerText.trim();
+      saveSlides(); renderList();
+    }
+
+    // Detect blur events to save edits
+    [slideTitle, slideSubtitle, slideBody, trainerNotes].forEach(el=> el.addEventListener('blur', applyEdits));
+
+    // init
+    render();
+  </script>
+</body>
+</html>
