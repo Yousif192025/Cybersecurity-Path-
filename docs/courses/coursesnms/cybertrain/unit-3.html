@@ -1,954 +1,905 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Unit3 — أمن تطبيقات الويب وحماية الأسرار | CyberPath</title>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
-  <style>
-    :root{
-      --bg:#0f172a; --card:#0b1220; --accent:#06b6d4; --muted:#94a3b8; --white:#ffffff;
-      --radius:12px; --gap:14px; --success:#10b981; --warning:#f59e0b; --danger:#ef4444;
-      --web-color:#3b82f6; --crypto-color:#8b5cf6;
-    }
-    html,body{height:100%;margin:0;font-family: "Segoe UI", Tahoma, Arial, "Noto Naskh Arabic", sans-serif;background:linear-gradient(180deg,#071029 0%, #071b2e 100%);color:var(--white)}
-    .app{display:flex;height:100vh;gap:var(--gap);padding:20px;box-sizing:border-box}
-    .sidebar{width:320px;background:rgba(255,255,255,0.04);border-radius:12px;padding:16px;box-sizing:border-box;overflow:auto}
-    .brand{display:flex;gap:12px;align-items:center;margin-bottom:8px}
-    .logo{width:48px;height:48px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#7c3aed);display:flex;align-items:center;justify-content:center;font-weight:700}
-    h1{font-size:18px;margin:0}
-    .slides-list{margin-top:14px}
-    .slide-item{padding:10px;border-radius:8px;margin-bottom:8px;background:rgba(255,255,255,0.02);cursor:pointer;transition:all 0.3s ease}
-    .slide-item:hover{background:rgba(255,255,255,0.05)}
-    .slide-item.active{outline:2px solid rgba(6,182,212,0.15);background:rgba(6,182,212,0.06)}
-    .controls{display:flex;gap:8px;margin-top:8px}
-    .btn{background:var(--accent);color:#002;border:none;padding:8px 10px;border-radius:8px;cursor:pointer;transition:all 0.3s ease}
-    .btn:hover{opacity:0.9;transform:translateY(-1px)}
-    .btn.ghost{background:transparent;color:var(--white);border:1px solid rgba(255,255,255,0.06)}
-    .btn.success{background:var(--success)}
-    .btn.warning{background:var(--warning)}
-
-    .stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
-    .slide-card{width:900px;max-width:calc(100% - 40px);min-height:540px;background:var(--card);border-radius:16px;padding:28px;box-sizing:border-box;box-shadow:0 10px 30px rgba(2,6,23,0.6);display:flex;flex-direction:column;gap:14px}
-    .slide-header{display:flex;justify-content:space-between;align-items:center}
-    .slide-title{font-size:26px;margin:0}
-    .slide-content{background:rgba(255,255,255,0.02);padding:16px;border-radius:10px;flex:1;overflow:auto}
-    .notes{background:#021226;padding:12px;border-radius:8px;color:var(--muted);font-size:14px}
-    .resource-link{display:inline-flex;align-items:center;gap:6px;background:rgba(6,182,212,0.1);padding:6px 10px;border-radius:6px;margin:4px;text-decoration:none;color:var(--accent);font-size:14px}
-    .resource-link:hover{background:rgba(6,182,212,0.2)}
-
-    .toolbar{display:flex;gap:8px;align-items:center}
-    .nav{display:flex;gap:6px}
-    .small{padding:6px 8px;font-size:13px}
-
-    /* content styling */
-    .content-section{margin-bottom:20px}
-    .content-title{color:var(--accent);font-size:18px;margin-bottom:10px}
-    .content-list{padding-right:20px}
-    .content-list li{margin-bottom:8px;line-height:1.6}
-    .video-container{margin:15px 0;text-align:center}
-    .vulnerability-card{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:8px;padding:15px;margin:10px 0}
-    .vulnerability-card h4{color:var(--danger);margin:0 0 10px 0}
-    .crypto-card{background:rgba(139,69,19,0.1);border:1px solid rgba(139,69,19,0.3);border-radius:8px;padding:15px;margin:10px 0}
-    .crypto-card h4{color:#8b4513;margin:0 0 10px 0}
-    .protection-card{background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:15px;margin:10px 0}
-    .protection-card h4{color:var(--success);margin:0 0 10px 0}
-    .activity-card{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:15px;margin:10px 0}
-    .activity-card h4{color:var(--warning);margin:0 0 10px 0}
-
-    /* code styling */
-    .code-block{background:#0b1220;color:#e6f1f8;padding:12px;border-radius:8px;overflow:auto;font-family:monospace;margin:10px 0}
-    .code-comment{color:#94a3b8}
-    .code-keyword{color:#f472b6}
-    .code-string{color:#86efac}
-
-    /* editable styling */
-    [contenteditable]{outline:2px dashed transparent}
-    [contenteditable]:focus{outline:2px dashed rgba(6,182,212,0.25)}
-
-    @media print{
-      body{background:#fff;color:#000}
-      .app{padding:0}
-      .sidebar{display:none}
-      .slide-card{box-shadow:none;background:#fff;border-radius:0}
-    }
-
-    @media (max-width:1000px){.sidebar{display:none}.slide-card{width:100%}}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الوحدة الثالثة - أمن تطبيقات الويب وحماية الأسرار | CyberPath</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --web-color: #9b59b6;
+            --crypto-color: #16a085;
+            --light-bg: #f8f9fa;
+            --dark-bg: #171b34;
+            --text-dark: #2c3e50;
+            --text-light: #7f8c8d;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Tajawal', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--text-dark);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: var(--dark-bg);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, #3498db, #9b59b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            color: #bdc3c7;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 2rem;
+        }
+        
+        .slides-container {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+        
+        .slide {
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        
+        .slide:last-child {
+            border-bottom: none;
+        }
+        
+        .slide-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, #9b59b6, #3498db);
+            color: white;
+            border-radius: 10px;
+        }
+        
+        .slide-number {
+            background: white;
+            color: var(--primary-color);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .slide-title {
+            font-size: 1.5rem;
+            margin: 0;
+        }
+        
+        .content-box {
+            background: var(--light-bg);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            border-right: 4px solid var(--web-color);
+        }
+        
+        .crypto-box {
+            border-right: 4px solid var(--crypto-color);
+        }
+        
+        .content-title {
+            color: var(--secondary-color);
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .web-title {
+            color: var(--web-color);
+        }
+        
+        .crypto-title {
+            color: var(--crypto-color);
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .comparison-table th {
+            background: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            text-align: right;
+        }
+        
+        .comparison-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        .comparison-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .vulnerability-card {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        }
+        
+        .protection-card {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+        
+        .crypto-card {
+            background: linear-gradient(135deg, #16a085, #1abc9c);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            box-shadow: 0 5px 15px rgba(22, 160, 133, 0.3);
+        }
+        
+        .tool-card {
+            background: white;
+            border: 2px solid #3498db;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.1);
+        }
+        
+        .tool-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(52, 152, 219, 0.3);
+        }
+        
+        .tool-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            color: var(--secondary-color);
+        }
+        
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #ecf0f1;
+        }
+        
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #9b59b6, #3498db);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .sidebar-list {
+            list-style: none;
+        }
+        
+        .sidebar-list li {
+            margin-bottom: 0.5rem;
+            padding: 1rem;
+            background: var(--light-bg);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-right: 3px solid transparent;
+        }
+        
+        .sidebar-list li:hover {
+            background: var(--secondary-color);
+            color: white;
+            border-right-color: var(--primary-color);
+            transform: translateX(-5px);
+        }
+        
+        .sidebar-list li.active {
+            background: var(--primary-color);
+            color: white;
+            border-right-color: var(--accent-color);
+        }
+        
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 1.5rem;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            margin: 1rem 0;
+            overflow-x: auto;
+            border-left: 4px solid #3498db;
+        }
+        
+        .notes-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-right: 4px solid #f39c12;
+        }
+        
+        .resource-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            margin: 0.25rem;
+            transition: all 0.3s ease;
+        }
+        
+        .resource-link:hover {
+            background: #bbdefb;
+            transform: translateY(-2px);
+        }
+        
+        .step-card {
+            background: white;
+            border: 2px solid #e3f2fd;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            transition: all 0.3s ease;
+        }
+        
+        .step-card:hover {
+            border-color: #3498db;
+            transform: translateY(-2px);
+        }
+        
+        .activity-card {
+            background: #e8f5e8;
+            border: 2px solid #27ae60;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                position: static;
+                order: -1;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .nav-buttons {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-btn {
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="app">
-    <aside class="sidebar" id="sidebar">
-      <div class="brand">
-        <div class="logo"><i class="fas fa-code"></i></div>
-        <div>
-          <h1>أمن تطبيقات الويب وحماية الأسرار</h1>
-          <div style="color:var(--muted);font-size:13px;margin-top:6px">الوحدة الثالثة - الثغرات والتشفير والتطبيق العملي</div>
-        </div>
-      </div>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-lock"></i> الوحدة الثالثة - أمن تطبيقات الويب وحماية الأسرار</h1>
+            <p>ثغرات OWASP Top 10، التشفير، وإدارة المفاتيح في بيئة آمنة</p>
+        </header>
 
-      <div class="controls">
-        <button class="btn" id="addSlide"><i class="fas fa-plus"></i> إضافة شريحة</button>
-        <button class="btn ghost" id="duplicateSlide"><i class="fas fa-copy"></i> نسخ</button>
-        <button class="btn ghost" id="deleteSlide"><i class="fas fa-trash"></i> حذف</button>
-      </div>
+        <div class="main-content">
+            <div class="slides-container">
+                <!-- الشريحة 1 -->
+                <section id="slide1" class="slide">
+                    <div class="slide-header">
+                        <div class="slide-number">1</div>
+                        <h2 class="slide-title">مقدمة في أمن تطبيقات الويب</h2>
+                    </div>
+                    
+                    <div class="content-box">
+                        <h3 class="content-title web-title"><i class="fas fa-globe"></i> أهمية أمن تطبيقات الويب</h3>
+                        <p>تطبيقات الويب أصبحت الهدف الرئيسي للمهاجمين بسبب انتشارها الواسع واحتوائها على بيانات حساسة.</p>
+                        
+                        <div class="protection-card">
+                            <h4><i class="fas fa-chart-bar"></i> إحصائيات هامة:</h4>
+                            <ul>
+                                <li>70% من الثغرات الأمنية توجد في تطبيقات الويب</li>
+                                <li>94% من التطبيقات تحتوي على ثغرات من نوع OWASP Top 10</li>
+                                <li>متوسط تكلفة خرق بيانات التطبيقات: 4.2 مليون دولار</li>
+                                <li>SQL Injection وXSS تمثل 50% من الهجمات على الويب</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="content-box">
+                        <h3 class="content-title web-title"><i class="fas fa-bullseye"></i> أهداف مهاجمي تطبيقات الويب</h3>
+                        <ul>
+                            <li>سرقة البيانات الحساسة والمعلومات الشخصية</li>
+                            <li>الوصول غير المصرح به إلى الحسابات والأنظمة</li>
+                            <li>تعديل أو تدمير البيانات المهمة</li>
+                            <li>استخدام الخوادم في هجمات أخرى</li>
+                            <li>ابتزاز المؤسسات والأفراد</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="content-box">
+                        <h3 class="content-title"><i class="fas fa-shield-alt"></i> OWASP Top 10 2021</h3>
+                        <p>قائمة أهم 10 ثغرات أمنية في تطبيقات الويب حسب مشروع OWASP:</p>
+                        <ol>
+                            <li>Broken Access Control</li>
+                            <li>Cryptographic Failures</li>
+                            <li>Injection</li>
+                            <li>Insecure Design</li>
+                            <li>Security Misconfiguration</li>
+                            <li>Vulnerable and Outdated Components</li>
+                            <li>Identification and Authentication Failures</li>
+                            <li>Software and Data Integrity Failures</li>
+                            <li>Security Logging and Monitoring Failures</li>
+                            <li>Server-Side Request Forgery (SSRF)</li>
+                        </ol>
+                    </div>
+                </section>
 
-      <div class="slides-list" id="slidesList">
-        <!-- Slide items injected here -->
-      </div>
+                <!-- الشريحة 2 -->
+                <section id="slide2" class="slide">
+                    <div class="slide-header">
+                        <div class="slide-number">2</div>
+                        <h2 class="slide-title">ثغرات الحقن - SQL Injection</h2>
+                    </div>
+                    
+                    <div class="content-box">
+                        <h3 class="content-title web-title"><i class="fas fa-database"></i> ما هي SQL Injection؟</h3>
+                        <p>ثغرة تسمح للمهاجم بحقن أوامر SQL خبيثة في استعلامات قاعدة البيانات عن طريق مدخلات المستخدم غير المفلترة.</p>
+                        
+                        <div class="vulnerability-card">
+                            <h4><i class="fas fa-bug"></i> مثال عملي على SQL Injection:</h4>
+                            <div class="code-block">
+                                <span class="code-comment"># في نموذج تسجيل الدخول:</span><br>
+                                اسم المستخدم: <strong>admin' OR '1'='1</strong><br>
+                                كلمة المرور: أي قيمة<br><br>
+                                
+                                <span class="code-comment"># يصبح الاستعلام:</span><br>
+                                SELECT * FROM users WHERE username = 'admin' OR '1'='1' AND password = '...'
+                            </div>
+                            <p>هذا يتجاوز التحقق من كلمة المرور ويعيد جميع المستخدمين!</p>
+                        </div>
+                    </div>
+                    
+                    <div class="content-box">
+                        <h3 class="content-title"><i class="fas fa-exclamation-triangle"></i> التأثير المحتمل</h3>
+                        <ul>
+                            <li><strong>سرقة البيانات:</strong> استخراج معلومات حساسة من قاعدة البيانات</li>
+                            <li><strong>تعديل البيانات:</strong> تغيير أو حذف السجلات</li>
+                            <li><strong>تصعيد الصلاحيات:</strong> الوصول إلى وظائف إدارية</li>
+                            <li><strong>تنفيذ أوامر:</strong> في بعض الحالات، تنفيذ أوامر نظام</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="content-box">
+                        <h3 class="content-title"><i class="fas fa-shield-alt"></i> طرق الوقاية</h3>
+                        <div class="protection-card">
+                            <ul>
+                                <li><strong>Prepared Statements:</strong> استخدام استعلامات معدّة مسبقاً</li>
+                                <li><strong>Input Validation:</strong> التحقق من صحة المدخلات</li>
+                                <li><strong>Parameterized Queries:</strong> استخدام المعلمات بدلاً من concatenation</li>
+                                <li><strong>ORM:</strong> استخدام Object-Relational Mapping</li>
+                                <li><strong>Least Privilege:</strong> تقليل صلاحيات حساب قاعدة البيانات</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
 
-      <div style="margin-top:12px;padding-top:12px;border-top:1px dashed rgba(255,255,255,0.03);">
-        <div style="font-size:13px;color:var(--muted);margin-bottom:6px">خيارات العرض:</div>
-        <button class="btn ghost small" id="toggleEdit"><i class="fas fa-edit"></i> تفعيل/إيقاف التحرير</button>
-        <button class="btn ghost small" id="saveBtn"><i class="fas fa-save"></i> حفظ</button>
-        <button class="btn success small" id="exportHTML"><i class="fas fa-download"></i> تحميل HTML</button>
-      </div>
+                <!-- الشريحة 3 -->
+                <section id="slide3" class="slide">
+                    <div class="slide-header">
+                        <div class="slide-number">3</div>
+                        <h2 class="slide-title">ثغرات XSS - Cross-Site Scripting</h2>
+                    </div>
+                    
+                    <div class="content-box">
+                        <h3 class="content-title web-title"><i class="fas fa-code"></i> فهم ثغرات XSS</h3>
+                        <p>XSS تسمح للمهاجمين بحقن شيفرة JavaScript خبيثة في صفحات الويب التي يشاهدها مستخدمون آخرون.</p>
+                        
+                        <div class="vulnerability-card">
+                            <h4><i class="fas fa-box"></i> Stored XSS (المخزن)</h4>
+                            <p>يتم تخزين الشيفرة الخبيثة في الخادم وتظهر لجميع المستخدمين</p>
+                            <div class="code-block">
+                                <span class="code-comment"># مثال في حقل التعليقات:</span><br>
+                                &lt;script&gt;alert('XSS')&lt;/script&gt;
+                            </div>
+                        </div>
 
-      <div style="margin-top:18px;color:var(--muted);font-size:13px">
-        <i class="fas fa-info-circle"></i> ملاحظات: انقر على أي شريحة لعرضها — استخدم زر التحميل لحفظ نسخة قابلة للمشاركة.
-      </div>
-    </aside>
+                        <div class="vulnerability-card">
+                            <h4><i class="fas fa-retweet"></i> Reflected XSS (المنعكس)</h4>
+                            <p>تظهر الشيفرة الخبيثة فوراً في الاستجابة دون التخزين</p>
+                            <div class="code-block">
+                                <span class="code-comment"># مثال في شريط البحث:</span><br>
+                                http://example.com/search?q=&lt;script&gt;alert(1)&lt;/script&gt;
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="content-box">
+                        <h3 class="content-title"><i class="fas fa-shield-virus"></i> استراتيجيات الوقاية</h3>
+                        <div class="protection-card">
+                            <ul>
+                                <li><strong>Output Encoding:</strong> ترميز البيانات قبل عرضها</li>
+                                <li><strong>Content Security Policy (CSP):</strong> سياسات أمان المحتوى</li>
+                                <li><strong>Input Validation:</strong> التحقق من المدخلات وتنظيفها</li>
+                                <li><strong>HTTPOnly Cookies:</strong> منع الوصول إلى الكوكيز عبر JavaScript</li>
+                                <li><strong>XSS Filters:</strong> استخدام فلاتر المتصفح والخدمة</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
 
-    <main class="stage">
-      <div class="slide-card">
-        <div class="slide-header">
-          <div>
-            <h2 class="slide-title" id="slideTitle" contenteditable="false"></h2>
-            <div style="color:var(--muted);font-size:13px" id="slideSubtitle"></div>
-          </div>
-          <div class="toolbar">
-            <div class="nav">
-              <button class="btn ghost small" id="prevBtn"><i class="fas fa-arrow-right"></i> السابق</button>
-              <button class="btn ghost small" id="nextBtn">التالي <i class="fas fa-arrow-left"></i></button>
-            </div>
-            <button class="btn small" id="printBtn"><i class="fas fa-print"></i> طباعة</button>
-          </div>
-        </div>
+                <!-- الشريحة 4 -->
+                <section id="slide4" class="slide">
+                    <div class="slide-header">
+                        <div class="slide-number">4</div>
+                        <h2 class="slide-title">ثغرات التحكم في الوصول والمصادقة</h2>
+                    </div>
+                    
+                    <div class="content-box">
+                        <h3 class="content-title web-title"><i class="fas fa-user-lock"></i> Broken Access Control</h3>
+                        <p>تحدث عندما لا يتم تطبيق قيود مناسبة على ما يمكن للمستخدمين القيام به بعد تسجيل الدخول.</p>
+                        
+                        <div class="vulnerability-card">
+                            <h4><i class="fas fa-exclamation-circle"></i> أمثلة شائعة:</h4>
+                            <ul>
+                                <li>تعديل معرف المستخدم في URL للوصول إلى بيانات مستخدم آخر</li>
+                                <li>الوصول إلى واجهات إدارية بدون صلاحيات مناسبة</li>
+                                <li>تجاوز التحقق من الصلاحيات على مستوى الواجهة فقط</li>
+                                <li>عدم تقييد معدل الطلبات (Rate Limiting)</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="content-box">
+                        <h3 class="content-title web-title"><i class="fas fa-key"></i> إخفاقات المصادقة</h3>
+                        <p>مشاكل في أنظمة تسجيل الدخول والتحقق من الهوية.</p>
+                        
+                        <div class="vulnerability-card">
+                            <h4><i class="fas fa-unlock-alt"></i> نقاط الضعف الشائعة:</h4>
+                            <ul>
+                                <li>هجمات القوة الغاشمة (Brute Force) المسموحة</li>
+                                <li>كلمات مرور ضعيفة أو افتراضية</li>
+                                <li>نقل بيانات الاعتماد عبر قنوات غير مشفرة</li>
+                                <li>جلسات لا تنتهي بشكل صحيح</li>
+                                <li>عدم تنفيذ المصادقة متعددة العوامل</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="content-box">
+                        <h3 class="content-title"><i class="fas fa-shield-alt"></i> أفضل الممارسات</h3>
+                        <div class="protection-card">
+                            <ul>
+                                <li>تنفيذ مبدأ "الصلاحيات الدنيا" (Least Privilege)</li>
+                                <li>التحقق من الصلاحيات على مستوى الخادم لكل طلب</li>
+                                <li>استخدام جلسات آمنة مع انتهاء الصلاحية المناسبة</li>
+                                <li>تنفيذ المصادقة متعددة العوامل (MFA)</li>
+                                <li>تطبيق حدود معدل الطلبات (Rate Limiting)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
 
-        <div class="slide-content">
-          <div id="slideBody" contenteditable="false" style="line-height:1.7;font-size:17px"></div>
-        </div>
+                <!-- الشريحة 5 -->
+                <section id="slide5" class="slide">
+                    <div class="slide-header">
+                        <div class="slide-number">5</div>
+                        <h2 class="slide-title">مقدمة في التشفير وأساسياته</h2>
+                    </div>
+                    
+                    <div class="content-box crypto-box">
+                        <h3 class="content-title crypto-title"><i class="fas fa-lock"></i> ما هو التشفير ولماذا نحتاجه؟</h3>
+                        <p>التشفير هو عملية تحويل البيانات القابلة للقراءة (plaintext) إلى شكل غير مقروء (ciphertext) لحمايتها من الوصول غير المصرح به.</p>
+                        
+                        <div class="crypto-card">
+                            <h4><i class="fas fa-bullseye"></i> أهداف التشفير:</h4>
+                            <ul>
+                                <li><strong>السرية (Confidentiality):</strong> منع الوصول غير المصرح للبيانات</li>
+                                <li><strong>السلامة (Integrity):</strong> ضمان عدم تعديل البيانات</li>
+                                <li><strong>المصادقة (Authentication):</strong> التحقق من هوية المرسل</li>
+                                <li><strong>عدم الإنكار (Non-repudiation):</strong> منع إنكار الإجراءات</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="content-box crypto-box">
+                        <h3 class="content-title crypto-title"><i class="fas fa-history"></i> نبذة تاريخية</h3>
+                        <ul>
+                            <li><strong>التشفير الكلاسيكي:</strong> شيفرة قيصر، آلة Enigma</li>
+                            <li><strong>التشفير الحديث:</strong> DES، AES، RSA</li>
+                            <li><strong>التشفير المعاصر:</strong> تشفير كمي، تشفير متجانس</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="content-box crypto-box">
+                        <h3 class="content-title crypto-title"><i class="fas fa-link"></i> مصطلحات أساسية</h3>
+                        <ul>
+                            <li><strong>المفتاح (Key):</strong> قيمة سرية تستخدم في التشفير وفك التشفير</li>
+                            <li><strong>الخوارزمية (Algorithm):</strong> طريقة رياضية للتشفير</li>
+                            <li><strong>النص المشفر (Ciphertext):</strong> البيانات بعد التشفير</li>
+                            <li><strong>النص الأصلي (Plaintext):</strong> البيانات قبل التشفير</li>
+                        </ul>
+                    </div>
+                </section>
 
-        <div class="notes" id="trainerNotes" contenteditable="false"></div>
-      </div>
-    </main>
-  </div>
+                <!-- الشريحة 6 -->
+                <section id="slide6" class="slide">
+                    <div class="slide-header">
+                        <div class="slide-number">6</div>
+                        <h2 class="slide-title">أنواع التشفير: المتماثل وغير المتماثل</h2>
+                    </div>
+                    
+                    <div class="content-box crypto-box">
+                        <h3 class="content-title crypto-title"><i class="fas fa-balance-scale"></i> مقارنة بين نوعي التشفير</h3>
+                        
+                        <table class="comparison-table">
+                            <thead>
+                                <tr>
+                                    <th>التشفير المتماثل</th>
+                                    <th>التشفير غير المتماثل</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>نفس المفتاح للتشفير وفك التشفير</td>
+                                    <td>زوج مفاتيح (عام وخاص)</td>
+                                </tr>
+                                <tr>
+                                    <td>سريع وكفؤ</td>
+                                    <td>بطيء compared للمتماثل</td>
+                                </tr>
+                                <tr>
+                                    <td>مناسب للبيانات الكبيرة</td>
+                                    <td>مناسب لنقل المفاتيح والتوقيعات</td>
+                                </tr>
+                                <tr>
+                                    <td>مشكلة توزيع المفاتيح</td>
+                                    <td>حل مشكلة توزيع المفاتيح</td>
+                                </tr>
+                                <tr>
+                                    <td>أمثلة: AES، DES، 3DES</td>
+                                    <td>أمثلة: RSA، ECC، Diffie-Hellman</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="content-box crypto-box">
+                        <h3 class="content-title crypto-title"><i class="fas fa-project-diagram"></i> التكامل بين النوعين</h3>
+                        <p>في التطبيقات العملية، غالباً ما يتم الجمع بين النوعين:</p>
+                        <ol>
+                            <li>يستخدم التشفير غير المتماثل لنقل مفتاح التشفير المتماثل</li>
+                            <li>يستخدم التشفير المتماثل لتشفير البيانات نفسها</li>
+                            <li>مثال: بروتوكول TLS في HTTPS</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="content-box crypto-box">
+                        <h3 class="content-title crypto-title"><i class="fas fa-cogs"></i> أمثلة عملية</h3>
+                        <ul>
+                            <li><strong>HTTPS:</strong> TLS يستخدم كلا النوعين</li>
+                            <li><strong>PGP/GPG:</strong> تشفير البريد الإلكتروني</li>
+                            <li><strong>SSH:</strong> الوصول الآمن للخوادم</li>
+                            <li><strong>VPN:</strong> الشبكات الخاصة الافتراضية</li>
+                        </ul>
+                    </div>
+                </section>
 
-  <script>
-    // الشرائح المحسنة للوحدة الثالثة - أمن تطبيقات الويب وحماية الأسرار
-    const initialSlides = [
-      {
-        id: crypto.randomUUID(),
-        title: 'مقدمة في ثغرات تطبيقات الويب',
-        subtitle: 'فهم بيئة التهديدات الحديثة',
-        body: `
-          <div class="content-section">
-            <div class="content-title"><i class="fas fa-bug"></i> لماذا أمن تطبيقات الويب مهم؟</div>
-            <p>تطبيقات الويب أصبحت الوجهة الرئيسية للهجمات الإلكترونية بسبب:</p>
-            <ul class="content-list">
-              <li>التعقيد المتزايد في التطبيقات الحديثة</li>
-              <li>اعتماد الأعمال بشكل كامل على الخدمات الرقمية</li>
-              <li>سهولة استغلال بعض الثغرات من قبل المهاجمين</li>
-              <li>التكلفة العالية لخرق البيانات عبر التطبيقات</li>
-            </ul>
-            
-            <div class="content-title" style="margin-top:20px"><i class="fas fa-chart-bar"></i> إحصائيات هامة:</div>
-            <ul class="content-list">
-              <li>70% من الثغرات الأمنية توجد في تطبيقات الويب</li>
-              <li>94% من التطبيقات تحتوي على ثغرات من نوع OWASP Top 10</li>
-              <li>متوسط تكلفة خرق بيانات التطبيقات: 4.2 مليون دولار</li>
-              <li>SQL Injection وXSS تمثل 50% من الهجمات على الويب</li>
-            </ul>
-          </div>
-          
-          <div class="content-section">
-            <div class="content-title"><i class="fas fa-link"></i> موارد إثرائية:</div>
-            <div style="text-align:center;margin:15px 0">
-              <a href="https://owasp.org/www-project-top-ten/" class="resource-link" target="_blank">
-                <i class="fas fa-external-link-alt"></i> OWASP Top 10 2021
-              </a>
-              <a href="https://portswigger.net/web-security" class="resource-link" target="_blank">
-                <i class="fas fa-book"></i> PortSwigger Web Security Academy
-              </a>
-            </div>
-          </div>
-        `,
-        notes: 'ابدأ بسؤال: "ما آخر تطبيق ويب استخدمتموه اليوم؟ تخيلوا لو تم اختراقه - ما التأثير؟" ناقش الإجابات لمدة 5 دقائق.'
-      },
-      {
-        id: crypto.randomUUID(),
-        title: 'ثغرة SQL Injection',
-        subtitle: 'المفهوم، التأثير، والوقاية',
-        body: `
-          <div class="content-section">
-            <div class="content-title"><i class="fas fa-database"></i> ما هي SQL Injection؟</div>
-            <p>ثغرة SQL Injection تسمح للمهاجم بحقن أوامر SQL خبيثة في استعلامات قاعدة البيانات عن طريق مدخلات المستخدم غير المفلترة.</p>
-            
-            <div class="vulnerability-card">
-              <h4><i class="fas fa-bolt"></i> مثال عملي:</h4>
-              <p>في نموذج تسجيل الدخول، بدلاً من إدخال اسم مستخدم عادي، يدخل المهاجم:</p>
-              <div class="code-block">
-                <span class="code-comment"># الإدخال الخبيث:</span><br>
-                admin' OR '1'='1<br><br>
-                <span class="code-comment"># يصبح الاستعلام:</span><br>
-                SELECT * FROM users WHERE username = 'admin' OR '1'='1' AND password = '...'
-              </div>
-              <p>هذا يتجاوز التحقق من كلمة المرور ويعيد جميع المستخدمين!</p>
-            </div>
-          </div>
+                <!-- الشريحة 7 -->
+                <section id="slide7" class="slide">
+                    <div class="slide-header">
+                        <div class="slide-number">7</div>
+                        <h2 class="slide-title">إدارة المفاتيح والتوقيعات الرقمية</h2>
+                    </div>
+                    
+                    <div class="content-box crypto-box">
+                        <h3 class="content-title crypto-title"><i class="fas fa-key"></i> إدارة المفاتيح - Key Management</h3>
+                        <p>إدارة المفاتيح هي عملية إنشاء، تخزين، توزيع، واستبدال المفاتيح المشفرة بشكل آمن.</p>
+                        
+                        <div class="crypto-card">
+                            <h4><i class="fas fa-shield-alt"></i> مبادئ إدارة المفاتيح:</h4>
+                            <ul>
+                                <li><strong>توليد آمن:</strong> استخدام مولدات أرقام عشوائية آمنة</li>
+                                <li><strong>تخزين آمن:</strong> حماية المفاتيح من الوصول غير المصرح</li>
+                                <li><strong>توزيع آمن:</strong> نقل المفاتيح بطريقة مشفرة</li>
+                                <li><strong>استبدال دوري:</strong> تغيير المفاتيح بانتظام</li>
+                                <li><strong>إتلاف آمن:</strong> حذف المفاتيح بشكل نهائي</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="content-box crypto-box">
+                        <h3 class="content-title crypto-title"><i class="fas fa-certificate"></i> التوقيعات الرقمية</h3>
+                        <p>التوقيع الرقمي هو عملية رياضية تثبت صحة وسلامة الرسالة أو المستند الرقمي.</p>
+                        
+                        <div class="protection-card">
+                            <h4><i class="fas fa-signature"></i> كيفية عمل التوقيع الرقمي:</h4>
+                            <ol>
+                                <li>المرسل ينشئ hash للرسالة</li>
+                                <li>المرسل يشفر الـ hash باستخدام مفتاحه الخاص</li>
+                                <li>يرسل الرسالة والتوقيع المشفر</li>
+                                <li>المستقبل يفك التوقيع باستخدام المفتاح العام للمرسل</li>
+                                <li>المستقبل يحسب hash للرسالة ويتحقق من تطابقه</li>
+                            </ol>
+                        </div>
+                    </div>
+                </section>
 
-          <div class="content-section">
-            <div class="content-title"><i class="fas fa-exclamation-triangle"></i> التأثير المحتمل:</div>
-            <ul class="content-list">
-              <li><strong>سرقة البيانات:</strong> استخراج معلومات حساسة من قاعدة البيانات</li>
-              <li><strong>تعديل البيانات:</strong> تغيير أو حذف السجلات</li>
-              <li><strong>تصعيد الصلاحيات:</strong> الوصول إلى وظائف إدارية</li>
-              <li><strong>تنفيذ أوامر:</strong> في بعض الحالات، تنفيذ أوامر نظام</li>
-            </ul>
-          </div>
+                <!-- الشريحة 8 -->
+                <section id="slide8" class="slide">
+                    <div class="slide-header">
+                        <div class="slide-number">8</div>
+                        <h2 class="slide-title">النشاط العملي: OWASP Juice Shop</h2>
+                    </div>
+                    
+                    <div class="content-box">
+                        <div class="activity-card">
+                            <h3 class="content-title"><i class="fas fa-tasks"></i> تعليمات النشاط</h3>
+                            <p><strong>الهدف:</strong> تطبيق عملي على اكتشاف واستغلال ثغرات الويب في بيئة آمنة</p>
+                            <p><strong>المدة:</strong> 90 دقيقة</p>
+                            <p><strong>المتطلبات:</strong> OWASP Juice Shop مثبت على جهاز افتراضي</p>
+                            <p><strong>المخرجات:</strong> تقرير يوثق الثغرات المكتشفة وطرق استغلالها</p>
+                        </div>
+                    </div>
 
-          <div class="content-section">
-            <div class="protection-card">
-              <h4><i class="fas fa-shield-alt"></i> طرق الوقاية:</h4>
-              <ul class="content-list">
-                <li><strong>Prepared Statements:</strong> استخدام استعلامات معدّة مسبقاً</li>
-                <li><strong>Input Validation:</strong> التحقق من صحة المدخلات</li>
-                <li><strong>Parameterized Queries:</strong> استخدام المعلمات بدلاً من concatenation</li>
-                <li><strong>ORM:</strong> استخدام Object-Relational Mapping</li>
-                <li><strong>Least Privilege:</strong> تقليل صلاحيات حساب قاعدة البيانات</li>
-              </ul>
-            </div>
-          </div>
+                    <div class="content-box">
+                        <h3 class="content-title"><i class="fas fa-flask"></i> مقدمة عن OWASP Juice Shop</h3>
+                        <p>Juice Shop هو تطبيق ويب متعمد الضعف يحتوي على جميع ثغرات OWASP Top 10، مصمم للتدريب والتعلم.</p>
+                        
+                        <div class="code-block">
+                            <span class="code-comment"># تشغيل Juice Shop باستخدام Docker:</span><br>
+                            docker run -d -p 3000:3000 bkimminich/juice-shop
+                        </div>
+                    </div>
 
-          <div class="content-section">
-            <div class="video-container">
-              <p>شاهد شرحاً عملياً لثغرة SQL Injection:</p>
-              <div style="background:#000;padding:10px;border-radius:8px;display:inline-block">
-                <div style="width:300px;height:200px;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;border-radius:4px">
-                  <i class="fas fa-play-circle" style="font-size:48px;color:var(--accent)"></i>
+                    <div class="content-box">
+                        <h3 class="content-title"><i class="fas fa-list-ol"></i> خطوات النشاط</h3>
+                        <ol>
+                            <li>تشغيل OWASP Juice Shop في بيئة معزولة</li>
+                            <li>استكشاف التطبيق وفهم وظائفه المختلفة</li>
+                            <li>اكتشاف ثغرات SQL Injection في نماذج البحث وتسجيل الدخول</li>
+                            <li>اختبار ثغرات XSS في حقول التعليقات والتقييمات</li>
+                            <li>فحص مشاكل التحكم في الوصول والصلاحيات</li>
+                            <li>اختبار إخفاقات المصادقة وكلمات المرور</li>
+                            <li>توثيق جميع الاكتشافات في تقرير منظم</li>
+                            <li>تقديم توصيات أمنية للإصلاح</li>
+                        </ol>
+                    </div>
+
+                    <div class="content-box">
+                        <h3 class="content-title"><i class="fas fa-bullseye"></i> مهام تدريبية مقترحة</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                            <div class="tool-card">
+                                <div class="tool-header">
+                                    <i class="fas fa-database"></i>
+                                    <h4>SQL Injection</h4>
+                                </div>
+                                <p>ابحث عن نموذج تسجيل دخول قابل للحقن</p>
+                                <p><strong>التلميح:</strong> جرب إدخالات مثل ' OR 1=1--</p>
+                            </div>
+                            <div class="tool-card">
+                                <div class="tool-header">
+                                    <i class="fas fa-code"></i>
+                                    <h4>XSS</h4>
+                                </div>
+                                <p>ابحث عن حقول إدخال تقبل JavaScript</p>
+                                <p><strong>التلميح:</strong> جرب &lt;script&gt;alert('XSS')&lt;/script&gt;</p>
+                            </div>
+                            <div class="tool-card">
+                                <div class="tool-header">
+                                    <i class="fas fa-unlock"></i>
+                                    <h4>Broken Authentication</h4>
+                                </div>
+                                <p>ابحث عن مشاكل في نظام المصادقة</p>
+                                <p><strong>التلميح:</strong> جرب هجوم brute-force بسيط</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="nav-buttons">
+                    <a href="unit-2.html" class="nav-btn">
+                        <i class="fas fa-arrow-right"></i>
+                        الوحدة الثانية
+                    </a>
+                    <a href="unit-4.html" class="nav-btn">
+                        الوحدة الرابعة
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
                 </div>
-              </div>
-            </div>
-          </div>
-        `,
-        notes: 'اعرض كود برمجي حقيقي يوضح الفرق بين الطريقة الآمنة وغير الآمنة. استخدم أمثلة بلغات برمجة مختلفة (PHP, Python, Java).'
-      },
-      {
-        id: crypto.randomUUID(),
-        title: 'ثغرات XSS - Cross-Site Scripting',
-        subtitle: 'الأنواع، الأمثلة، والوقاية',
-        body: `
-          <div class="content-section">
-            <div class="content-title"><i class="fas fa-code"></i> فهم ثغرات XSS:</div>
-            <p>XSS تسمح للمهاجمين بحقن شيفرة JavaScript خبيثة في صفحات الويب التي يشاهدها مستخدمون آخرون.</p>
-            
-            <div class="vulnerability-card">
-              <h4><i class="fas fa-box"></i> Stored XSS (المخزن)</h4>
-              <p>يتم تخزين الشيفرة الخبيثة في الخادم وتظهر لجميع المستخدمين</p>
-              <div class="code-block">
-                <span class="code-comment"># مثال في حقل التعليقات:</span><br>
-                &lt;script&gt;alert('XSS')&lt;/script&gt;
-              </div>
             </div>
 
-            <div class="vulnerability-card">
-              <h4><i class="fas fa-retweet"></i> Reflected XSS (المنعكس)</h4>
-              <p>تظهر الشيفرة الخبيثة فوراً في الاستجابة دون التخزين</p>
-              <div class="code-block">
-                <span class="code-comment"># مثال في شريط البحث:</span><br>
-                http://example.com/search?q=&lt;script&gt;alert(1)&lt;/script&gt;
-              </div>
-            </div>
-
-            <div class="vulnerability-card">
-              <h4><i class="fas fa-sitemap"></i> DOM-based XSS</h4>
-              <p>يحدث على جانب العميل من خلال معالجة DOM</p>
-              <div class="code-block">
-                <span class="code-comment"># مثال في JavaScript:</span><br>
-                document.write('&lt;img src="x" onerror="stealCookies()"&gt;');
-              </div>
-            </div>
-          </div>
-
-          <div class="content-section">
-            <div class="protection-card">
-              <h4><i class="fas fa-shield-virus"></i> استراتيجيات الوقاية:</h4>
-              <ul class="content-list">
-                <li><strong>Output Encoding:</strong> ترميز البيانات قبل عرضها</li>
-                <li><strong>Content Security Policy (CSP):</strong> سياسات أمان المحتوى</li>
-                <li><strong>Input Validation:</strong> التحقق من المدخلات وتنظيفها</li>
-                <li><strong>HTTPOnly Cookies:</strong> منع الوصول إلى الكوكيز عبر JavaScript</li>
-                <li><strong>XSS Filters:</strong> استخدام فلاتر المتصفح والخدمة</li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="content-section">
-            <div class="content-title"><i class="fas fa-tools"></i> أدوات الكشف:</div>
-            <div style="text-align:center;margin:15px 0">
-              <a href="https://portswigger.net/burp" class="resource-link" target="_blank">
-                <i class="fas fa-spider"></i> Burp Suite
-              </a>
-              <a href="https://www.zaproxy.org/" class="resource-link" target="_blank">
-                <i class="fas fa-bug"></i> OWASP ZAP
-              </a>
-              <a href="https://beefproject.com/" class="resource-link" target="_blank">
-                <i class="fas fa-hook"></i> BeEF Framework
-              </a>
-            </div>
-          </div>
-        `,
-        notes: 'قدم عرضاً حياً لكيفية عمل XSS في بيئة آمنة. ناقش التأثير الحقيقي لسرقة الجلسات والكوكيز.'
-      },
-      {
-        id: crypto.randomUUID(),
-        title: 'ثغرة CSRF - Cross-Site Request Forgery',
-        subtitle: 'المبدأ، الآلية، والوقاية',
-        body: `
-          <div class="content-section">
-            <div class="content-title"><i class="fas fa-exchange-alt"></i> فهم هجوم CSRF:</div>
-            <p>CSRF يجبر متصفح المستخدم على إرسال طلبات غير مرغوب فيها إلى تطبيق ويب يكون المستخدم قد سجل دخوله مسبقاً.</p>
-            
-            <div class="vulnerability-card">
-              <h4><i class="fas fa-play-circle"></i> سيناريو هجوم نموذجي:</h4>
-              <ol class="content-list">
-                <li>المستخدم يسجل الدخول إلى موقع البنك (bank.com)</li>
-                <li>المستخدم يزور موقعاً ضاراً يحتوي على نموذج خفي</li>
-                <li>النموذج يرسل طلب تحويل أموال إلى bank.com</li>
-                <li>الطلب ينفذ لأن المستخدم مسجل دخول بالفعل</li>
-              </ol>
-            </div>
-
-            <div class="content-section">
-              <div class="content-title"><i class="fas fa-code"></i> مثال على الهجوم:</div>
-              <div class="code-block">
-                <span class="code-comment">&lt;!-- في موقع ضار --&gt;</span><br>
-                &lt;form action="https://bank.com/transfer" method="POST"&gt;<br>
-                &nbsp;&nbsp;&lt;input type="hidden" name="amount" value="1000"&gt;<br>
-                &nbsp;&nbsp;&lt;input type="hidden" name="to" value="attacker"&gt;<br>
-                &lt;/form&gt;<br>
-                &lt;script&gt;document.forms[0].submit();&lt;/script&gt;
-              </div>
-            </div>
-          </div>
-
-          <div class="content-section">
-            <div class="protection-card">
-              <h4><i class="fas fa-lock"></i> آليات الحماية:</h4>
-              <ul class="content-list">
-                <li><strong>CSRF Tokens:</strong> رموز فريدة لكل جلسة ونموذج</li>
-                <li><strong>SameSite Cookies:</strong> ضبط خاصية SameSite للكوكيز</li>
-                <li><strong>Custom Headers:</strong> استخدام رؤوس مخصصة للطلبات</li>
-                <li><strong>Referrer Validation:</strong> التحقق من مصدر الطلبات</li>
-                <li><strong>Re-authentication:</strong> طلب إعادة المصادقة للإجراءات الحساسة</li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="content-section">
-            <div class="video-container">
-              <p>شاهد شرحاً تفصيلياً لهجوم CSRF:</p>
-              <div style="background:#000;padding:10px;border-radius:8px;display:inline-block">
-                <div style="width:300px;height:200px;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;border-radius:4px">
-                  <i class="fas fa-play-circle" style="font-size:48px;color:var(--accent)"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-        `,
-        notes: 'اعرض أمثلة حية لكيفية تنفيذ الحماية في تطبيقات ويب حقيقية. ناقش أهمية CSRF tokens وكيفية توليدها.'
-      },
-      {
-        id: crypto.randomUUID(),
-        title: 'تقرير الثغرات الأمنية',
-        subtitle: 'مسار الكشف والتوثيق الاحترافي',
-        body: `
-          <div class="content-section">
-            <div class="content-title"><i class="fas fa-file-alt"></i> هيكل التقرير الاحترافي:</div>
-            
-            <div class="protection-card">
-              <h4><i class="fas fa-list-ol"></i> عناصر التقرير الأساسية:</h4>
-              <ol class="content-list">
-                <li><strong>ملخص تنفيذي:</strong> وصف موجز للإدارة غير التقنية</li>
-                <li><strong>تفاصيل الثغرة:</strong> وصف تقني مفصل</li>
-                <li><strong>خطوات إعادة الإنتاج:</strong> دليل خطوة بخطوة</li>
-                <li><strong>الأدلة:</strong> لقطات شاشة، سجلات، أكواد</li>
-                <li><strong>تقييم الخطورة:</strong> استخدام CVSS أو نظام مشابه</li>
-                <li><strong>التأثير:</strong> الآثار المترتبة على الأعمال</li>
-                <li><strong>التوصيات:</strong> حلول عملية للإصلاح</li>
-                <li><strong>المراجع:</strong> مصادر إضافية للمعلومات</li>
-              </ol>
-            </div>
-          </div>
-
-          <div class="content-section">
-            <div class="content-title"><i class="fas fa-ruler"></i> نظام تقييم CVSS:</div>
-            <ul class="content-list">
-              <li><strong>Base Score:</strong> الخصائص الثابتة للثغرة</li>
-              <li><strong>Temporal Score:</strong> العوامل المتغيرة مع الوقت</li>
-              <li><strong>Environmental Score:</strong> التأثير في البيئة المحددة</li>
-              <li><strong>مستويات الخطورة:</strong> منخفض (0-3.9)، متوسط (4.0-6.9)، مرتفع (7.0-8.9)، حرج (9.0-10.0)</li>
-            </ul>
-          </div>
-
-          <div class="content-section">
-            <div class="content-title"><i class="fas fa-download"></i> قوالب وتقارير جاهزة:</div>
-            <div style="text-align:center;margin:15px 0">
-              <a href="#" class="resource-link">
-                <i class="fas fa-file-word"></i> قالب تقرير Word
-              </a>
-              <a href="#" class="resource-link">
-                <i class="fas fa-file-pdf"></i> قالب تقرير PDF
-              </a>
-              <a href="https://www.first.org/cvss/" class="resource-link" target="_blank">
-                <i class="fas fa-calculator"></i> حاسبة CVSS
-              </a>
-            </div>
-          </div>
-
-          <div class="content-section">
-            <div class="activity-card">
-              <h4><i class="fas fa-tasks"></i> نشاط كتابة التقرير:</h4>
-              <p><strong>المهمة:</strong> اكتب تقريراً عن ثغرة XSS مكتشفة في تطبيق تدريبي</p>
-              <p><strong>المدة:</strong> 45 دقيقة</p>
-              <p><strong>المخرجات:</strong> تقرير كامل يحتوي على جميع العناصر المذكورة</p>
-            </div>
-          </div>
-        `,
-        notes: 'وزع أمثلة لتقارير حقيقية (مموهة). درب المتدربين على استخدام نظام CVSS. قدم نموذج تقييم للتقرير النهائي.'
-      },
-      {
-        id: crypto.randomUUID(),
-        title: 'النشاط العملي: OWASP Juice Shop',
-        subtitle: 'تطبيق عملي في بيئة آمنة',
-        body: `
-          <div class="content-section">
-            <div class="content-title"><i class="fas fa-flask"></i> مقدمة عن OWASP Juice Shop:</div>
-            <p>Juice Shop هو تطبيق ويب متعمد الضعف يحتوي على جميع ثغرات OWASP Top 10، مصمم للتدريب والتعلم.</p>
-            
-            <div class="activity-card">
-              <h4><i class="fas fa-rocket"></i> خطوات البدء السريعة:</h4>
-              <ol class="content-list">
-                <li><strong>التثبيت باستخدام Docker:</strong>
-                  <div class="code-block">docker run -d -p 3000:3000 bkimminich/juice-shop</div>
-                </li>
-                <li><strong>الوصول للتطبيق:</strong> http://localhost:3000</li>
-                <li><strong>استكشاف الثغرات:</strong> ابدأ بالثغرات البسيطة ثم تقدم</li>
-                <li><strong>التوثيق:</strong> سجل جميع الاكتشافات في تقارير</li>
-              </ol>
-            </div>
-          </div>
-
-          <div class="content-section">
-            <div class="content-title"><i class="fas fa-bullseye"></i> مهام تدريبية مقترحة:</div>
-            
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin:15px 0">
-              <div style="background:rgba(239,68,68,0.1);padding:15px;border-radius:8px">
-                <h4 style="color:var(--danger);margin:0 0 10px 0"><i class="fas fa-database"></i> SQL Injection</h4>
-                <p>ابحث عن نموذج تسجيل دخول قابل للحقن</p>
-                <p><strong>التلميح:</strong> جرب إدخالات مثل ' OR 1=1--</p>
-              </div>
-              
-              <div style="background:rgba(59,130,246,0.1);padding:15px;border-radius:8px">
-                <h4 style="color:#3b82f6;margin:0 0 10px 0"><i class="fas fa-code"></i> XSS</h4>
-                <p>ابحث عن حقول إدخال تقبل JavaScript</p>
-                <p><strong>التلميح:</strong> جرب &lt;script&gt;alert('XSS')&lt;/script&gt;</p>
-              </div>
-              
-              <div style="background:rgba(245,158,11,0.1);padding:15px;border-radius:8px">
-                <h4 style="color:var(--warning);margin:0 0 10px 0"><i class="fas fa-unlock"></i> Broken Authentication</h4>
-                <p>ابحث عن مشاكل في نظام المصادقة</p>
-                <p><strong>التلميح:</strong> جرب هجوم brute-force بسيط</p>
-              </div>
-              
-              <div style="background:rgba(16,185,129,0.1);padding:15px;border-radius:8px">
-                <h4 style="color:var(--success);margin:0 0 10px 0"><i class="fas fa-eye"></i> Security Misconfiguration</h4>
-                <p>ابحث عن ملفات أو أدوات متاحة للعموم</p>
-                <p><strong>التلميح:</strong> افحص الدلائل والملفات المخفية</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="content-section">
-            <div class="content-title"><i class="fas fa-shield-alt"></i> قواعد السلامة في المختبر:</div>
-            <ul class="content-list">
-              <li>التأكد من عزل الشبكة تماماً</li>
-              <li>عدم مشاركة الصور الافتراضية مع الآخرين</li>
-              <li>أخذ لقطات (snapshots) قبل التجارب الخطرة</li>
-              <li>التوثيق الكامل لجميع الإجراءات</li>
-              <li>الالتزام بالإطار الأخلاقي في جميع الأنشطة</li>
-            </ul>
-          </div>
-        `,
-        notes: 'قسّم المتدربين إلى فرق، وزع المهام. قدم تلميحات تدريجية. خصص وقتاً لعرض النتائج والمناقشة الجماعية.'
-      },
-      {
-        id: crypto.randomUUID(),
-        title: 'مقدمة في التشفير',
-        subtitle: 'أساسيات حماية البيانات',
-        body: `
-          <div class="content-section">
-            <div class="content-title"><i class="fas fa-lock"></i> ما هو التشفير ولماذا نحتاجه؟</div>
-            <p>التشفير هو عملية تحويل البيانات القابلة للقراءة (plaintext) إلى شكل غير مقروء (ciphertext) لحمايتها من الوصول غير المصرح به.</p>
-            
-            <div class="crypto-card">
-              <h4><i class="fas fa-bullseye"></i> أهداف التشفير:</h4>
-              <ul class="content-list">
-                <li><strong>السرية (Confidentiality):</strong> منع الوصول غير المصرح للبيانات</li>
-                <li><strong>السلامة (Integrity):</strong> ضمان عدم تعديل البيانات</li>
-                <li><strong>المصادقة (Authentication):</strong> التحقق من هوية المرسل</li>
-                <li><strong>عدم الإنكار (Non-repudiation):</strong> منع إنكار الإجراءات</li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="content-section">
-            <div class="content-title"><i class="fas fa-history"></i> نبذة تاريخية:</div>
-            <ul class="content-list">
-              <li><strong>التشفير الكلاسيكي:</strong> شيفرة قيصر، آلة Enigma</li>
-              <li><strong>التشفير الحديث:</strong> DES، AES، RSA</li>
-              <li><strong>التشفير المعاصر:</strong> تشفير كمي، تشفير متجانس</li>
-            </ul>
-          </div>
-
-          <div class="content-section">
-            <div class="content-title"><i class="fas fa-link"></i> مصطلحات أساسية:</div>
-            <ul class="content-list">
-              <li><strong>المفتاح (Key):</strong> قيمة سرية تستخدم في التشفير وفك التشفير</li>
-              <li><strong>الخوارزمية (Algorithm):</strong> طريقة رياضية للتشفير</li>
-              <li><strong>النص المشفر (Ciphertext):</strong> البيانات بعد التشفير</li>
-              <li><strong>النص الأصلي (Plaintext):</strong> البيانات قبل التشفير</li>
-            </ul>
-          </div>
-
-          <div class="content-section">
-            <div class="video-container">
-              <p>شاهد مقدمة مرئية عن التشفير:</p>
-              <div style="background:#000;padding:10px;border-radius:8px;display:inline-block">
-                <div style="width:300px;height:200px;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;border-radius:4px">
-                  <i class="fas fa-play-circle" style="font-size:48px;color:var(--accent)"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-        `,
-        notes: 'استخدم أمثلة بصرية لشرح مفاهيم التشفير. ناقش أهمية التشفير في الحياة اليومية (HTTPS، الرسائل المشفرة، etc).'
-      },
-      {
-        id: crypto.randomUUID(),
-        title: 'أنواع التشفير: المتماثل وغير المتماثل',
-        subtitle: 'مقارنة شاملة بين النهجين',
-        body: `
-          <div class="content-section">
-            <div class="content-title"><i class="fas fa-balance-scale"></i> مقارنة بين نوعي التشفير:</div>
-            
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin:15px 0">
-              <div style="background:rgba(59,130,246,0.1);padding:15px;border-radius:8px">
-                <h4 style="color:#3b82f6;margin:0 0 10px 0"><i class="fas fa-key"></i> التشفير المتماثل</h4>
-                <p><strong>المبدأ:</strong> نفس المفتاح للتشفير وفك التشفير</p>
-                <p><strong>المميزات:</strong>
-                  <ul style="margin:10px 0;padding-right:15px">
-                    <li>سريع وكفؤ</li>
-                    <li>مناسب للبيانات الكبيرة</li>
-                    <li>تنفيذ بسيط</li>
-                  </ul>
-                </p>
-                <p><strong>العيوب:</strong>
-                  <ul style="margin:10px 0;padding-right:15px">
-                    <li>مشكلة توزيع المفاتيح</li>
-                    <li>صعوبة إدارة المفاتيح</li>
-                  </ul>
-                </p>
-                <p><strong>أمثلة:</strong> AES، DES، 3DES</p>
-              </div>
-              
-              <div style="background:rgba(139,69,19,0.1);padding:15px;border-radius:8px">
-                <h4 style="color:#8b4513;margin:0 0 10px 0"><i class="fas fa-key"></i><i class="fas fa-key"></i> التشفير غير المتماثل</h4>
-                <p><strong>المبدأ:</strong> زوج مفاتيح (عام وخاص)</p>
-                <p><strong>المميزات:</strong>
-                  <ul style="margin:10px 0;padding-right:15px">
-                    <li>حل مشكلة توزيع المفاتيح</li>
-                    <li>يدعم التوقيعات الرقمية</li>
-                    <li>أكثر أماناً</li>
-                  </ul>
-                </p>
-                <p><strong>العيوب:</strong>
-                  <ul style="margin:10px 0;padding-right:15px">
-                    <li>بطيء compared للمتماثل</li>
-                    <li>معقد في التنفيذ</li>
-                  </ul>
-                </p>
-                <p><strong>أمثلة:</strong> RSA، ECC، Diffie-Hellman</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="content-section">
-            <div class="content-title"><i class="fas fa-project-diagram"></i> التكامل بين النوعين:</div>
-            <p>في التطبيقات العملية، غالباً ما يتم الجمع بين النوعين:</p>
-            <ol class="content-list">
-              <li>يستخدم التشفير غير المتماثل لنقل مفتاح التشفير المتماثل</li>
-              <li>يستخدم التشفير المتماثل لتشفير البيانات نفسها</li>
-              <li>مثال: بروتوكول TLS في HTTPS</li>
-            </ol>
-          </div>
-
-          <div class="content-section">
-            <div class="content-title"><i class="fas fa-cogs"></i> أمثلة عملية:</div>
-            <ul class="content-list">
-              <li><strong>HTTPS:</strong> TLS يستخدم كلا النوعين</li>
-              <li><strong>PGP/GPG:</strong> تشفير البريد الإلكتروني</li>
-              <li><strong>SSH:</strong> الوصول الآمن للخوادم</li>
-              <li><strong>VPN:</strong> الشبكات الخاصة الافتراضية</li>
-            </ul>
-          </div>
-        `,
-        notes: 'استخدم تشبيهاً: التشفير المتماثل مثل صندوق بمفتاح واحد، وغير المتماثل مثل صندوق بقفل يمكن للجميع إغلاقه ولكن مفتاح فتحه عند شخص واحد فقط.'
-      },
-      {
-        id: crypto.randomUUID(),
-        title: 'إدارة المفاتيح والتوقيعات الرقمية',
-        subtitle: 'حماية أساسيات التشفير',
-        body: `
-          <div class="content-section">
-            <div class="content-title"><i class="fas fa-key"></i> إدارة المفاتيح - Key Management:</div>
-            <p>إدارة المفاتيح هي عملية إنشاء، تخزين، توزيع، واستبدال المفاتيح المشفرة بشكل آمن.</p>
-            
-            <div class="crypto-card">
-              <h4><i class="fas fa-shield-alt"></i> مبادئ إدارة المفاتيح:</h4>
-              <ul class="content-list">
-                <li><strong>توليد آمن:</strong> استخدام مولدات أرقام عشوائية آمنة</li>
-                <li><strong>تخزين آمن:</strong> حماية المفاتيح من الوصول غير المصرح</li>
-                <li><strong>توزيع آمن:</strong> نقل المفاتيح بطريقة مشفرة</li>
-                <li><strong>استبدال دوري:</strong> تغيير المفاتيح بانتظام</li>
-                <li><strong>إتلاف آمن:</strong> حذف المفاتيح بشكل نهائي</li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="content-section">
-            <div class="content-title"><i class="fas fa-certificate"></i> التوقيعات الرقمية:</div>
-            <p>التوقيع الرقمي هو عملية رياضية تثبت صحة وسلامة الرسالة أو المستند الرقمي.</p>
-            
-            <div class="protection-card">
-              <h4><i class="fas fa-signature"></i> كيفية عمل التوقيع الرقمي:</h4>
-              <ol class="content-list">
-                <li>المرسل ينشئ hash للرسالة</li>
-                <li>المرسل يشفر الـ hash باستخدام مفتاحه الخاص</li>
-                <li>يرسل الرسالة والتوقيع المشفر</li>
-                <li>المستقبل يفك التوقيع باستخدام المفتاح العام للمرسل</li>
-                <li>المستقبل يحسب hash للرسالة ويتحقق من تطابقه</li>
-              </ol>
-            </div>
-          </div>
-
-          <div class="content-section">
-            <div class="content-title"><i class="fas fa-building"></i> البنية التحتية للمفاتيح العامة (PKI):</div>
-            <ul class="content-list">
-              <li><strong>شهادات رقمية:</strong> وثائق رقمية تربط المفاتيح بالهويات</li>
-              <li><strong>سلطات الشهادات (CA):</strong> جهات موثوقة تصدر الشهادات</li>
-              <li><strong>قوائم سحب الشهادات (CRL):</strong> قوائم بالشهادات الملغاة</li>
-              <li><strong>OCSP:</strong> بروتوكول التحقق من حالة الشهادات</li>
-            </ul>
-          </div>
-
-          <div class="content-section">
-            <div class="content-title"><i class="fas fa-tools"></i> أدوات عملية:</div>
-            <div style="text-align:center;margin:15px 0">
-              <a href="https://gnupg.org/" class="resource-link" target="_blank">
-                <i class="fas fa-lock"></i> GnuPG
-              </a>
-              <a href="https://openSSL.org/" class="resource-link" target="_blank">
-                <i class="fas fa-certificate"></i> OpenSSL
-              </a>
-              <a href="https://letsencrypt.org/" class="resource-link" target="_blank">
-                <i class="fas fa-globe"></i> Let's Encrypt
-              </a>
-            </div>
-          </div>
-        `,
-        notes: 'قدم عرضاً عملياً لإنشاء زوج مفاتيح وتوقيع مستند. ناقش أهمية PKI في تأمين الاتصالات عبر الإنترنت.'
-      },
-      {
-        id: crypto.randomUUID(),
-        title: 'تعتيم البيانات والتخزين الآمن',
-        subtitle: 'استراتيجيات حماية متقدمة',
-        body: `
-          <div class="content-section">
-            <div class="content-title"><i class="fas fa-eye-slash"></i> تعتيم البيانات - Data Masking:</div>
-            <p>تعتيم البيانات هو عملية إخفاء البيانات الحساسة عن طريق استبدالها بقيم وهمية تبدو حقيقية ولكنها غير قابلة للاستخدام الضار.</p>
-            
-            <div class="protection-card">
-              <h4><i class="fas fa-cogs"></i> تقنيات تعتيم البيانات:</h4>
-              <ul class="content-list">
-                <li><strong>الاستبدال:</strong> استبدال البيانات بقيم من مجموعة محددة</li>
-                <li><strong>الخلط:</strong> إعادة ترتيب البيانات بشكل عشوائي</li>
-                <li><strong>التشفير:</strong> تشفير البيانات مع الاحتفاظ بالتنسيق</li>
-                <li><strong>الإخفاء:</strong> إظهار جزء فقط من البيانات (مثل: ****1234)</li>
-                <li><strong>التعمية:</strong> جعل البيانات غير قابلة للتمييز</li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="content-section">
-            <div class="content-title"><i class="fas fa-database"></i> أنماط التخزين الآمن:</div>
-            
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin:15px 0">
-              <div style="background:rgba(6,182,212,0.1);padding:15px;border-radius:8px">
-                <h4 style="color:var(--accent);margin:0 0 10px 0"><i class="fas fa-hdd"></i> التشفير في السكون</h4>
-                <p>حماية البيانات المخزنة على الأقراص</p>
-                <ul style="margin:10px 0;padding-right:15px">
-                  <li>Full Disk Encryption (FDE)</li>
-                  <li>Database Encryption</li>
-                  <li>File-level Encryption</li>
-                  <li>Backup Encryption</li>
+            <aside class="sidebar">
+                <h3 style="margin-bottom: 1rem; color: var(--primary-color);">
+                    <i class="fas fa-list-ol"></i> قائمة الشرائح
+                </h3>
+                <ul class="sidebar-list">
+                    <li onclick="scrollToSlide('slide1')">1. مقدمة في أمن تطبيقات الويب</li>
+                    <li onclick="scrollToSlide('slide2')">2. ثغرات الحقن - SQL Injection</li>
+                    <li onclick="scrollToSlide('slide3')">3. ثغرات XSS - Cross-Site Scripting</li>
+                    <li onclick="scrollToSlide('slide4')">4. ثغرات التحكم في الوصول والمصادقة</li>
+                    <li onclick="scrollToSlide('slide5')">5. مقدمة في التشفير وأساسياته</li>
+                    <li onclick="scrollToSlide('slide6')">6. أنواع التشفير: المتماثل وغير المتماثل</li>
+                    <li onclick="scrollToSlide('slide7')">7. إدارة المفاتيح والتوقيعات الرقمية</li>
+                    <li onclick="scrollToSlide('slide8')">8. النشاط العملي: OWASP Juice Shop</li>
                 </ul>
-              </div>
-              
-              <div style="background:rgba(16,185,129,0.1);padding:15px;border-radius:8px">
-                <h4 style="color:var(--success);margin:0 0 10px 0"><i class="fas fa-exchange-alt"></i> التشفير أثناء النقل</h4>
-                <p>حماية البيانات أثناء انتقالها عبر الشبكات</p>
-                <ul style="margin:10px 0;padding-right:15px">
-                  <li>TLS/SSL</li>
-                  <li>VPN</li>
-                  <li>SSH</li>
-                  <li>IPsec</li>
-                </ul>
-              </div>
-            </div>
-          </div>
+                
+                <div style="margin-top: 2rem; padding: 1rem; background: var(--light-bg); border-radius: 8px;">
+                    <h4 style="color: var(--primary-color); margin-bottom: 0.5rem;">
+                        <i class="fas fa-clock"></i> الوقت المقترح
+                    </h4>
+                    <p style="font-size: 0.9rem; color: var(--text-light);">
+                        <strong>المدة الإجمالية:</strong> 8 ساعات<br>
+                        <strong>النظري:</strong> 4 ساعات<br>
+                        <strong>العملي:</strong> 4 ساعات
+                    </p>
+                </div>
+                
+                <div style="margin-top: 1rem; padding: 1rem; background: #e8f5e8; border-radius: 8px; border-right: 4px solid var(--success-color);">
+                    <h4 style="color: var(--success-color); margin-bottom: 0.5rem;">
+                        <i class="fas fa-check-circle"></i> الأهداف التعليمية
+                    </h4>
+                    <ul style="font-size: 0.9rem; padding-right: 1rem;">
+                        <li>فهم ثغرات OWASP Top 10</li>
+                        <li>تعلم أساسيات التشفير وأنواعه</li>
+                        <li>إتقان اكتشاف ثغرات الويب</li>
+                        <li>تطبيق عملي على بيئة آمنة</li>
+                    </ul>
+                </div>
 
-          <div class="content-section">
-            <div class="content-title"><i class="fas fa-vial"></i> نشاط عملي: اختيار خوارزمية مناسبة</div>
-            
-            <div class="activity-card">
-              <h4><i class="fas fa-tasks"></i> السيناريوهات:</h4>
-              <ol class="content-list">
-                <li><strong>تشفير قاعدة بيانات العملاء:</strong> أي خوارزمية تختار ولماذا؟</li>
-                <li><strong>توقيع عقود إلكترونية:</strong> ما نوع التشفير المناسب؟</li>
-                <li><strong>حماية اتصالات الخادم:</strong> كيف تحمي البيانات أثناء النقل؟</li>
-                <li><strong>تخزين كلمات المرور:</strong> ما أفضل ممارسة لتخزين آمن؟</li>
-              </ol>
-              
-              <p><strong>المدة:</strong> 40 دقيقة تحضير + 20 دقيقة مناقشة</p>
-              <p><strong>المخرجات:</strong> تقرير يبرر الاختيارات مع المقارنات</p>
-            </div>
-          </div>
-
-          <div class="content-section">
-            <div class="content-title"><i class="fas fa-download"></i> موارد إضافية:</div>
-            <div style="text-align:center;margin:15px 0">
-              <a href="#" class="resource-link">
-                <i class="fas fa-file-pdf"></i> دليل تعتيم البيانات
-              </a>
-              <a href="#" class="resource-link">
-                <i class="fas fa-table"></i> قالب تحليل الخوارزميات
-              </a>
-              <a href="https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.140-3.pdf" class="resource-link" target="_blank">
-                <i class="fas fa-gavel"></i> معايير FIPS 140-3
-              </a>
-            </div>
-          </div>
-        `,
-        notes: 'قدم أمثلة حية من بيئات عمل حقيقية. ناقش مقاييس الأداء والأمان عند اختيار الخوارزميات. وزع قائمة بالخوارزميات الموصى بها.'
-      }
-    ];
-
-    // باقي الكود JavaScript يبقى كما هو في الوحدات السابقة مع تعديل اسم التخزين
-    // State
-    let slides = loadSlides() || initialSlides;
-    let currentIndex = 0;
-    let editing = false;
-
-    // DOM refs
-    const slidesList = document.getElementById('slidesList');
-    const slideTitle = document.getElementById('slideTitle');
-    const slideSubtitle = document.getElementById('slideSubtitle');
-    const slideBody = document.getElementById('slideBody');
-    const trainerNotes = document.getElementById('trainerNotes');
-
-    function renderList(){
-      slidesList.innerHTML = '';
-      slides.forEach((s, i) => {
-        const el = document.createElement('div');
-        el.className = 'slide-item' + (i===currentIndex? ' active':'');
-        el.dataset.index = i;
-        el.innerHTML = `
-          <div style="display:flex;align-items:flex-start;gap:8px">
-            <div style="background:rgba(255,255,255,0.1);width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">${i+1}</div>
-            <div>
-              <strong>${escapeHtml(s.title)}</strong>
-              <div style="color:var(--muted);font-size:13px;margin-top:4px">${escapeHtml(s.subtitle || '')}</div>
-            </div>
-          </div>
-        `;
-        el.addEventListener('click', ()=>{ currentIndex = i; render(); });
-        slidesList.appendChild(el);
-      });
-    }
-
-    function render(){
-      const s = slides[currentIndex];
-      slideTitle.innerHTML = s.title;
-      slideSubtitle.innerHTML = s.subtitle || '';
-      slideBody.innerHTML = s.body;
-      trainerNotes.innerHTML = s.notes || '';
-      renderList();
-      saveSlides();
-    }
-
-    // Buttons
-    document.getElementById('addSlide').addEventListener('click', ()=>{
-      const newS = {
-        id: crypto.randomUUID(), 
-        title:'شريحة جديدة', 
-        subtitle:'', 
-        body:'<p>محتوى قابل للتعديل...</p>', 
-        notes:'ملاحظة المدرب...'
-      };
-      slides.push(newS); 
-      currentIndex = slides.length-1; 
-      render();
-    });
-
-    document.getElementById('duplicateSlide').addEventListener('click', ()=>{
-      const s = slides[currentIndex];
-      const copy = JSON.parse(JSON.stringify(s)); 
-      copy.id = crypto.randomUUID(); 
-      copy.title += ' (نسخة)';
-      slides.splice(currentIndex+1,0,copy); 
-      currentIndex = currentIndex+1; 
-      render();
-    });
-
-    document.getElementById('deleteSlide').addEventListener('click', ()=>{
-      if(slides.length <= 1) {
-        alert('لا يمكن حذف جميع الشرائح');
-        return;
-      }
-      if(!confirm('هل تريد حذف الشريحة الحالية؟')) return;
-      slides.splice(currentIndex,1);
-      if(currentIndex>=slides.length) currentIndex = slides.length-1;
-      render();
-    });
-
-    document.getElementById('prevBtn').addEventListener('click', ()=>{ 
-      if(currentIndex>0) currentIndex--; 
-      render(); 
-    });
-    
-    document.getElementById('nextBtn').addEventListener('click', ()=>{ 
-      if(currentIndex<slides.length-1) currentIndex++; 
-      render(); 
-    });
-
-    // Toggle edit
-    document.getElementById('toggleEdit').addEventListener('click', ()=>{
-      editing = !editing;
-      [slideTitle, slideBody, trainerNotes].forEach(el=> el.contentEditable = editing);
-      document.getElementById('toggleEdit').innerHTML = editing ? 
-        '<i class="fas fa-times"></i> إيقاف التحرير' : 
-        '<i class="fas fa-edit"></i> تفعيل التحرير';
-    });
-
-    // Save to localStorage
-    function saveSlides(){
-      try{ 
-        localStorage.setItem('unit3_slides', JSON.stringify(slides)); 
-      }
-      catch(e){ 
-        console.warn('فشل في الحفظ', e); 
-      }
-    }
-    
-    function loadSlides(){
-      try{ 
-        const s = localStorage.getItem('unit3_slides'); 
-        return s ? JSON.parse(s) : null; 
-      }
-      catch(e){ 
-        return null; 
-      }
-    }
-
-    document.getElementById('saveBtn').addEventListener('click', ()=>{ 
-      saveSlides(); 
-      alert('تم حفظ التغييرات في المتصفح (localStorage).'); 
-    });
-
-    // Export HTML
-    document.getElementById('exportHTML').addEventListener('click', ()=>{
-      const html = buildExportHTML(slides);
-      const blob = new Blob([html],{type:'text/html'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); 
-      a.href = url; 
-      a.download = 'unit3_slides.html'; 
-      a.click(); 
-      URL.revokeObjectURL(url);
-    });
-
-    // Print
-    document.getElementById('printBtn').addEventListener('click', ()=> window.print() );
-
-    // Export builder
-    function buildExportHTML(slidesData){
-      return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>الوحدة الثالثة - أمن تطبيقات الويب وحماية الأسرار | CyberPath</title><style>body{font-family:Arial,'Noto Naskh Arabic',sans-serif;padding:20px;background:#fff;color:#000} .slide{page-break-after:always;border:1px solid #ddd;padding:20px;margin-bottom:18px;border-radius:8px} h2{margin-top:0;color:#06b6d4} .notes{background:#f5f5f5;padding:10px;border-radius:6px;margin-top:15px} .resource-link{display:inline-block;background:#e3f2fd;padding:5px 10px;border-radius:4px;margin:5px;text-decoration:none;color:#06b6d4} .vulnerability-card{background:#ffeaa7;padding:15px;border-radius:8px;margin:10px 0} .crypto-card{background:#a5b4fc;padding:15px;border-radius:8px;margin:10px 0} .protection-card{background:#bbf7d0;padding:15px;border-radius:8px;margin:10px 0} .activity-card{background:#fef3c7;padding:15px;border-radius:8px;margin:10px 0} .code-block{background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;margin:10px 0}</style></head><body>${slidesData.map(s=>`<div class="slide"><h2>${escapeHtml(s.title)}</h2><div>${s.subtitle?'<em>'+escapeHtml(s.subtitle)+'</em>':''}</div><div style="margin-top:12px">${s.body}</div><div class="notes"><strong>ملاحظة المدرب:</strong><div>${escapeHtml(s.notes)}</div></div></div>`).join('')}</body></html>`;
-    }
-
-    // Utility
-    function escapeHtml(str){ 
-      return String(str).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#39;"); 
-    }
-
-    // Persist edits back to slides array
-    function applyEdits(){
-      const s = slides[currentIndex];
-      s.title = slideTitle.innerText.trim();
-      s.subtitle = slideSubtitle.innerText.trim();
-      s.body = slideBody.innerHTML;
-      s.notes = trainerNotes.innerText.trim();
-      saveSlides(); 
-      renderList();
-    }
-
-    // Detect blur events to save edits
-    [slideTitle, slideSubtitle, slideBody, trainerNotes].forEach(el=> {
-      el.addEventListener('blur', applyEdits);
-      el.addEventListener('input', applyEdits);
-    });
-
-    // Keyboard navigation
-    document.addEventListener('keydown', (e) => {
-      if(e.key === 'ArrowRight' && currentIndex > 0) {
-        currentIndex--;
-        render();
-      } else if(e.key === 'ArrowLeft' && currentIndex < slides.length - 1) {
-        currentIndex++;
-        render();
-      }
-    });
-
-    // init
-    render();
-  </script>
-   <div class="text-center mt-5">
-         <h4 class="mb-3 fw-bold">هل أنت مستعد لبدء رحلة الأمن السيبراني؟</h4>
-         <p class="text-muted mb-4">انطلق الآن في رحلة تعلم شيّقة تجمع بين المعرفة النظرية والتطبيق العملي الآمن</p>
-           <a href="unit-4.html" class="btn btn-outline-dark btn-lg px-5">
-             <i class="fas fa-play-circle me-2"></i> الوحدة الثانية
-           </a>
-       </div>
-   <footer class="bg-dark text-white py-5 mt-5">
-        <div class="container">
-            <hr class="my-4">
-            <div class="text-center">
-                <p class="mb-2">جميع الحقوق محفوظة © 2025 CyberPath</p>
-                <p class="mt-3 small">
-                    هذا المحتوى مقدم كجزء من مسار: <code>Cybersecurity-Path</code>
-                </p>
-            </div>
+                <div style="margin-top: 1rem; padding: 1rem; background: #e3f2fd; border-radius: 8px; border-right: 4px solid var(--secondary-color);">
+                    <h4 style="color: var(--secondary-color); margin-bottom: 0.5rem;">
+                        <i class="fas fa-download"></i> روابط هامة
+                    </h4>
+                    <div style="text-align: center;">
+                        <a href="https://owasp.org/www-project-juice-shop/" class="resource-link" target="_blank">
+                            <i class="fas fa-shopping-cart"></i> OWASP Juice Shop
+                        </a>
+                        <a href="https://portswigger.net/web-security" class="resource-link" target="_blank">
+                            <i class="fas fa-book"></i> Web Security Academy
+                        </a>
+                    </div>
+                </div>
+            </aside>
         </div>
-    </footer>
+    </div>
+
+    <script>
+        function scrollToSlide(slideId) {
+            const slide = document.getElementById(slideId);
+            if (slide) {
+                slide.scrollIntoView({ behavior: 'smooth' });
+                
+                // تحديث القائمة النشطة
+                document.querySelectorAll('.sidebar-list li').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                // إضافة النشط للعنصر المناسب
+                const listItem = Array.from(document.querySelectorAll('.sidebar-list li')).find(item => 
+                    item.textContent.includes(slideId.replace('slide', ''))
+                );
+                if (listItem) {
+                    listItem.classList.add('active');
+                }
+            }
+        }
+
+        // إضافة تأثيرات تفاعلية إضافية
+        document.addEventListener('DOMContentLoaded', function() {
+            const toolCards = document.querySelectorAll('.tool-card');
+            toolCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-5px)';
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+            
+            // تفعيل الشريحة الأولى عند التحميل
+            scrollToSlide('slide1');
+        });
+
+        // إضافة تفاعل للروابط
+        document.querySelectorAll('.resource-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        });
+    </script>
 </body>
 </html>
