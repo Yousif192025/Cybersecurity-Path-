@@ -225,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function startTimer() {
-        const totalTimeInSeconds = quizQuestions.length * 30;
+        const totalTimeInSeconds = quizQuestions.length * 90;
         let timeRemaining = totalTimeInSeconds;
 
         function updateTimerDisplay() {
