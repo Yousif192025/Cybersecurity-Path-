@@ -62,6 +62,7 @@
             padding: 20px;
             margin-bottom: 20px;
             border-right: 4px solid var(--info);
+            scroll-margin-top: 20px;
         }
 
         .question-text {
@@ -142,6 +143,12 @@
             border-radius: 8px;
             margin-top: 10px;
             font-family: "Tajawal", sans-serif;
+            transition: all 0.3s;
+        }
+
+        .essay-answer:focus {
+            border-color: var(--info);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
         }
 
         .submit-section {
@@ -208,6 +215,107 @@
             justify-content: space-between;
         }
 
+        /* التحسينات الجديدة */
+        .progress-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+
+        .questions-nav {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+
+        .question-nav-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+
+        .question-nav-btn.answered {
+            background: #d1ecf1;
+            border-color: var(--info);
+        }
+
+        .question-nav-btn.current {
+            background: var(--secondary);
+            color: white;
+            border-color: var(--secondary);
+        }
+
+        .certificate-badge {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .certificate-gold {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #000;
+        }
+
+        .certificate-silver {
+            background: linear-gradient(135deg, #C0C0C0, #A9A9A9);
+            color: #000;
+        }
+
+        .certificate-bronze {
+            background: linear-gradient(135deg, #CD7F32, #8B4513);
+            color: #fff;
+        }
+
+        .certificate-participant {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: #fff;
+        }
+
+        .analysis-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            height: 100%;
+        }
+
+        .save-indicator {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: var(--success);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+
+        .warning-message {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            display: none;
+        }
+
         @media (max-width: 768px) {
             .exam-container {
                 padding: 20px;
@@ -225,11 +333,44 @@
             .nav-buttons .btn {
                 width: 100%;
             }
+            
+            .question-nav-btn {
+                width: 35px;
+                height: 35px;
+                font-size: 0.9rem;
+            }
+            
+            .save-indicator {
+                left: 10px;
+                bottom: 10px;
+                font-size: 0.8rem;
+                padding: 8px 12px;
+            }
+        }
+
+        /* تحسينات للهواتف الصغيرة */
+        @media (max-width: 576px) {
+            .score-value {
+                font-size: 2.5rem;
+            }
+            
+            .timer-display {
+                font-size: 1.5rem;
+            }
+            
+            .question-card {
+                padding: 15px;
+            }
         }
     </style>
 </head>
 
 <body>
+
+    <!-- مؤشر الحفظ -->
+    <div class="save-indicator" id="saveIndicator">
+        <i class="fas fa-check me-2"></i>تم حفظ التقدم
+    </div>
 
     <!-- Header Section -->
     <div class="header-section">
@@ -264,6 +405,33 @@
             <p class="text-muted mb-0">مدة الاختبار: 60 دقيقة</p>
         </div>
 
+        <!-- Progress Section -->
+        <div class="progress-section">
+            <h5 class="fw-bold mb-3"><i class="fas fa-list-ol me-2"></i>تقدم الأسئلة</h5>
+            <div class="progress mb-2" style="height: 12px;">
+                <div class="progress-bar" id="questionsProgress" role="progressbar" style="width: 0%;" 
+                     aria-valuenow="0" aria-valuemin="0" aria-valuemax="19"></div>
+            </div>
+            <div class="d-flex justify-content-between text-muted small">
+                <span>أسئلة مكتملة: <span id="completedQuestions">0</span>/19</span>
+                <span id="progressPercentage">0%</span>
+            </div>
+        </div>
+
+        <!-- Questions Navigation -->
+        <div class="questions-nav">
+            <h6 class="mb-3"><i class="fas fa-compass me-2"></i>التنقل السريع بين الأسئلة</h6>
+            <div class="d-flex flex-wrap gap-2" id="questionsNav">
+                <!-- سيتم إنشاء أزرار الأسئلة ديناميكياً -->
+            </div>
+        </div>
+
+        <!-- Warning Message -->
+        <div class="warning-message" id="warningMessage">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <span id="warningText"></span>
+        </div>
+
         <!-- Exam Instructions -->
         <div class="exam-container">
             <div class="alert alert-info">
@@ -283,7 +451,7 @@
                 <p class="text-muted mb-4">اختر الإجابة الأنسب لكل سؤال:</p>
 
                 <!-- Question 1 -->
-                <div class="question-card">
+                <div class="question-card" id="question1">
                     <div class="question-text">
                         1. ما هو الهدف الرئيسي لـ RPO (Recovery Point Objective)؟
                     </div>
@@ -304,7 +472,7 @@
                 </div>
 
                 <!-- Question 2 -->
-                <div class="question-card">
+                <div class="question-card" id="question2">
                     <div class="question-text">
                         2. ما هو نوع النسخ الاحتياطي الذي ينسخ التغييرات التي حدثت منذ آخر نسخة احتياطية كاملة فقط؟
                     </div>
@@ -325,7 +493,7 @@
                 </div>
 
                 <!-- Question 3 -->
-                <div class="question-card">
+                <div class="question-card" id="question3">
                     <div class="question-text">
                         3. أي من المواقع البديلة التالية هو الأسرع في الانتقال إليه والعمل منه، ولكنه الأعلى تكلفة؟
                     </div>
@@ -346,7 +514,7 @@
                 </div>
 
                 <!-- Question 4 -->
-                <div class="question-card">
+                <div class="question-card" id="question4">
                     <div class="question-text">
                         4. في دورة حياة الاستجابة للحوادث (NIST)، أي مرحلة تأتي مباشرة بعد "الكشف والتحليل"؟
                     </div>
@@ -367,7 +535,7 @@
                 </div>
 
                 <!-- Question 5 -->
-                <div class="question-card">
+                <div class="question-card" id="question5">
                     <div class="question-text">
                         5. ما هو الفرق الأساسي بين IDS (نظام كشف التسلل) و IPS (نظام منع التسلل)؟
                     </div>
@@ -388,7 +556,7 @@
                 </div>
 
                 <!-- Question 6 -->
-                <div class="question-card">
+                <div class="question-card" id="question6">
                     <div class="question-text">
                         6. ما هو الأداة التي تستخدم لتحويل الإجراءات اليدوية للاستجابة للحوادث إلى مهام سير عمل آلية؟
                     </div>
@@ -409,7 +577,7 @@
                 </div>
 
                 <!-- Question 7 -->
-                <div class="question-card">
+                <div class="question-card" id="question7">
                     <div class="question-text">
                         7. يُعتبر انقطاع سلسلة التوريد أو تقلبات الأسعار من الأمثلة على مخاطر:
                     </div>
@@ -430,7 +598,7 @@
                 </div>
 
                 <!-- Question 8 -->
-                <div class="question-card">
+                <div class="question-card" id="question8">
                     <div class="question-text">
                         8. الإجراء الذي يركز على فصل الجهاز المصاب فوراً لمنع انتشار برامج الفدية يندرج تحت استراتيجية:
                     </div>
@@ -451,7 +619,7 @@
                 </div>
 
                 <!-- Question 9 -->
-                <div class="question-card">
+                <div class="question-card" id="question9">
                     <div class="question-text">
                         9. أي من المستويات التالية في فريق CSIRT يكون مسؤولاً عن الفرز والتحليل السطحي للتنبيهات (Triage)؟
                     </div>
@@ -472,7 +640,7 @@
                 </div>
 
                 <!-- Question 10 -->
-                <div class="question-card">
+                <div class="question-card" id="question10">
                     <div class="question-text">
                         10. ما هو الهدف من إجراء تمارين طاولة (Tabletop Exercises)؟
                     </div>
@@ -499,7 +667,7 @@
                 <p class="text-muted mb-4">ضع علامة (صح) أو (خطأ) أمام العبارات التالية:</p>
 
                 <!-- Question 11 -->
-                <div class="question-card">
+                <div class="question-card" id="question11">
                     <div class="question-text">
                         11. النسخ الاحتياطي التزايدي (Incremental Backup) هو الأسرع في عملية الاستعادة لأنه يتطلب أحدث ملف نسخ احتياطي فقط.
                     </div>
@@ -510,7 +678,7 @@
                 </div>
 
                 <!-- Question 12 -->
-                <div class="question-card">
+                <div class="question-card" id="question12">
                     <div class="question-text">
                         12. يجب أن تقتصر خطة الاستجابة للحوادث (IR Plan) على الجوانب التقنية فقط، دون الحاجة لدمج الموارد البشرية أو الشؤون القانونية.
                     </div>
@@ -521,7 +689,7 @@
                 </div>
 
                 <!-- Question 13 -->
-                <div class="question-card">
+                <div class="question-card" id="question13">
                     <div class="question-text">
                         13. Playbooks (كتب اللعب) هي وثائق إجرائية مفصلة وموجهة بالسيناريو، تصف كيفية الاستجابة لهجوم محدد مثل هجوم الفدية.
                     </div>
@@ -532,7 +700,7 @@
                 </div>
 
                 <!-- Question 14 -->
-                <div class="question-card">
+                <div class="question-card" id="question14">
                     <div class="question-text">
                         14. الهدف من مرحلة الإزالة/الاستئصال (Eradication) هو فقط إزالة الملفات الضارة، ولا تشمل معالجة الثغرات الأمنية التي استخدمت في الاختراق.
                     </div>
@@ -543,7 +711,7 @@
                 </div>
 
                 <!-- Question 15 -->
-                <div class="question-card">
+                <div class="question-card" id="question15">
                     <div class="question-text">
                         15. التأمين السيبراني (Cyber Insurance) هو أداة لـ تحويل المخاطر وليس لـ تقليلها.
                     </div>
@@ -560,7 +728,7 @@
                 <p class="text-muted mb-4">أجب عن الأسئلة التالية بوضوح وإيجاز:</p>
 
                 <!-- Question 16 -->
-                <div class="question-card">
+                <div class="question-card" id="question16">
                     <div class="question-text">
                         16. اشرح باختصار الفرق الرئيسي بين Runbook و Playbook في سياق الاستجابة للحوادث.
                     </div>
@@ -568,7 +736,7 @@
                 </div>
 
                 <!-- Question 17 -->
-                <div class="question-card">
+                <div class="question-card" id="question17">
                     <div class="question-text">
                         17. اذكر ثلاثة (3) مصادر مختلفة يمكن لفريق CSIRT الاعتماد عليها للكشف عن الحوادث الأمنية.
                     </div>
@@ -576,7 +744,7 @@
                 </div>
 
                 <!-- Question 18 -->
-                <div class="question-card">
+                <div class="question-card" id="question18">
                     <div class="question-text">
                         18. فيما يتعلق بالتعافي من الكوارث، اشرح كيف يتم تحديد أولوية استعادة الأنظمة بعد وقوع كارثة (على ماذا تعتمد الأولوية)؟
                     </div>
@@ -584,7 +752,7 @@
                 </div>
 
                 <!-- Question 19 -->
-                <div class="question-card">
+                <div class="question-card" id="question19">
                     <div class="question-text">
                         19. في مرحلة التعافي (Recovery)، ما هي الخطوة الحاسمة التي يجب القيام بها قبل إعادة الأنظمة للخدمة لضمان أقصى درجات الأمان؟
                     </div>
@@ -606,6 +774,7 @@
             <div class="score-display">
                 <div class="score-value" id="finalScore">0/20</div>
                 <div class="score-message" id="scoreMessage">نتيجتك في الاختبار</div>
+                <div class="certificate-level" id="certificateLevel"></div>
             </div>
 
             <h3 class="section-title">تفصيل النتائج</h3>
@@ -635,6 +804,37 @@
                          aria-valuenow="0" aria-valuemin="0" aria-valuemax="5"></div>
                 </div>
                 <p class="mb-0">الدرجة: <span id="essayScore">0</span>/5 نقطة</p>
+            </div>
+
+            <!-- Performance Analysis -->
+            <div class="performance-analysis mt-4">
+                <h5 class="section-title">📊 تحليل أدائك</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="analysis-card">
+                            <h6><i class="fas fa-check-circle text-success me-2"></i>نقاط القوة</h6>
+                            <ul id="strengthsList">
+                                <!-- سيتم ملؤها ديناميكياً -->
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="analysis-card">
+                            <h6><i class="fas fa-lightbulb text-warning me-2"></i>مجالات التحسين</h6>
+                            <ul id="improvementsList">
+                                <!-- سيتم ملؤها ديناميكياً -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Learning Recommendations -->
+            <div class="learning-recommendations mt-4">
+                <h5 class="section-title">🎯 توصيات التعلم</h5>
+                <div class="alert alert-info" id="learningRecommendations">
+                    <!-- سيتم ملؤها ديناميكياً -->
+                </div>
             </div>
 
             <div class="alert alert-info mt-4">
@@ -701,63 +901,293 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Timer functionality
+            // تهيئة المتغيرات
             let timeLeft = 60 * 60; // 60 minutes in seconds
             const timerElement = document.getElementById('timer');
+            let autoSaveInterval;
+            let currentQuestion = 1;
+
+            // تهيئة التنقل بين الأسئلة
+            initializeQuestionsNavigation();
             
+            // بدء المؤقت
+            const timerInterval = setInterval(updateTimer, 1000);
+            
+            // بدء الحفظ التلقائي
+            startAutoSave();
+
+            // تحميل التقدم المحفوظ
+            loadSavedProgress();
+
+            // إعداد المستمعين للأحداث
+            setupEventListeners();
+
+            function initializeQuestionsNavigation() {
+                const navContainer = document.getElementById('questionsNav');
+                for (let i = 1; i <= 19; i++) {
+                    const btn = document.createElement('div');
+                    btn.className = 'question-nav-btn';
+                    btn.textContent = i;
+                    btn.setAttribute('data-question', i);
+                    btn.addEventListener('click', function() {
+                        navigateToQuestion(i);
+                    });
+                    navContainer.appendChild(btn);
+                }
+                updateNavigationButtons();
+            }
+
+            function navigateToQuestion(questionNumber) {
+                currentQuestion = questionNumber;
+                const questionElement = document.getElementById(`question${questionNumber}`);
+                if (questionElement) {
+                    questionElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    updateNavigationButtons();
+                }
+            }
+
+            function updateNavigationButtons() {
+                document.querySelectorAll('.question-nav-btn').forEach(btn => {
+                    const questionNum = parseInt(btn.getAttribute('data-question'));
+                    btn.classList.remove('current', 'answered');
+                    
+                    if (questionNum === currentQuestion) {
+                        btn.classList.add('current');
+                    }
+                    
+                    if (isQuestionAnswered(questionNum)) {
+                        btn.classList.add('answered');
+                    }
+                });
+            }
+
+            function isQuestionAnswered(questionNumber) {
+                if (questionNumber <= 10) {
+                    return document.querySelector(`.option-item.selected[data-question="${questionNumber}"]`) !== null;
+                } else if (questionNumber <= 15) {
+                    return document.querySelector(`.true-false-btn.selected[data-question="${questionNumber}"]`) !== null;
+                } else {
+                    const answer = document.getElementById(`answer${questionNumber}`).value.trim();
+                    return answer.length > 0;
+                }
+            }
+
+            function setupEventListeners() {
+                // Multiple choice selection
+                const optionItems = document.querySelectorAll('.option-item');
+                optionItems.forEach(item => {
+                    item.addEventListener('click', function() {
+                        const question = this.getAttribute('data-question');
+                        const option = this.getAttribute('data-option');
+                        
+                        // Remove selected class from all options for this question
+                        document.querySelectorAll(`.option-item[data-question="${question}"]`).forEach(opt => {
+                            opt.classList.remove('selected');
+                        });
+                        
+                        // Add selected class to clicked option
+                        this.classList.add('selected');
+                        
+                        // Update progress
+                        updateProgress();
+                        updateNavigationButtons();
+                    });
+                });
+                
+                // True/False selection
+                const trueFalseBtns = document.querySelectorAll('.true-false-btn');
+                trueFalseBtns.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const question = this.getAttribute('data-question');
+                        
+                        // Remove selected class from all options for this question
+                        document.querySelectorAll(`.true-false-btn[data-question="${question}"]`).forEach(tfBtn => {
+                            tfBtn.classList.remove('selected');
+                        });
+                        
+                        // Add selected class to clicked option
+                        this.classList.add('selected');
+                        
+                        // Update progress
+                        updateProgress();
+                        updateNavigationButtons();
+                    });
+                });
+
+                // Essay answers input
+                const essayAnswers = document.querySelectorAll('.essay-answer');
+                essayAnswers.forEach(textarea => {
+                    textarea.addEventListener('input', function() {
+                        updateProgress();
+                        updateNavigationButtons();
+                    });
+                });
+                
+                // Submit exam with confirmation
+                document.getElementById('submitExam').addEventListener('click', confirmSubmission);
+            }
+
+            function startAutoSave() {
+                autoSaveInterval = setInterval(autoSaveProgress, 30000); // Save every 30 seconds
+            }
+
+            function autoSaveProgress() {
+                const examData = {
+                    answers: {},
+                    timeLeft: timeLeft,
+                    lastSaved: new Date().toISOString()
+                };
+                
+                // حفظ إجابات الاختيار من متعدد
+                document.querySelectorAll('.option-item.selected').forEach(item => {
+                    const question = item.getAttribute('data-question');
+                    const answer = item.getAttribute('data-option');
+                    examData.answers[question] = answer;
+                });
+                
+                // حفظ إجابات صح/خطأ
+                document.querySelectorAll('.true-false-btn.selected').forEach(btn => {
+                    const question = btn.getAttribute('data-question');
+                    const answer = btn.getAttribute('data-answer');
+                    examData.answers[question] = answer;
+                });
+                
+                // حفظ الإجابات المقالية
+                for (let i = 16; i <= 19; i++) {
+                    const answer = document.getElementById(`answer${i}`).value;
+                    examData.answers[i] = answer;
+                }
+                
+                localStorage.setItem('exam_progress', JSON.stringify(examData));
+                showSaveIndicator();
+            }
+
+            function showSaveIndicator() {
+                const indicator = document.getElementById('saveIndicator');
+                indicator.style.display = 'block';
+                setTimeout(() => {
+                    indicator.style.display = 'none';
+                }, 2000);
+            }
+
+            function loadSavedProgress() {
+                const saved = localStorage.getItem('exam_progress');
+                if (saved) {
+                    try {
+                        const examData = JSON.parse(saved);
+                        
+                        // استعادة الوقت
+                        if (examData.timeLeft) {
+                            timeLeft = examData.timeLeft;
+                        }
+                        
+                        // استعادة الإجابات
+                        Object.keys(examData.answers).forEach(question => {
+                            if (question <= 10) {
+                                // اختيار من متعدد
+                                const option = document.querySelector(`.option-item[data-question="${question}"][data-option="${examData.answers[question]}"]`);
+                                if (option) option.click();
+                            } else if (question <= 15) {
+                                // صح/خطأ
+                                const btn = document.querySelector(`.true-false-btn[data-question="${question}"][data-answer="${examData.answers[question]}"]`);
+                                if (btn) btn.click();
+                            } else {
+                                // مقالية
+                                const textarea = document.getElementById(`answer${question}`);
+                                if (textarea) textarea.value = examData.answers[question];
+                            }
+                        });
+
+                        // إظهار رسالة استعادة البيانات
+                        showWarningMessage('تم استعادة إجاباتك السابقة. يمكنك متابعة الاختبار من حيث توقفت.');
+                        
+                    } catch (e) {
+                        console.error('Error loading saved progress:', e);
+                    }
+                }
+                updateProgress();
+                updateNavigationButtons();
+            }
+
+            function showWarningMessage(message) {
+                const warningDiv = document.getElementById('warningMessage');
+                const warningText = document.getElementById('warningText');
+                warningText.textContent = message;
+                warningDiv.style.display = 'block';
+                
+                setTimeout(() => {
+                    warningDiv.style.display = 'none';
+                }, 5000);
+            }
+
             function updateTimer() {
                 const minutes = Math.floor(timeLeft / 60);
                 const seconds = timeLeft % 60;
                 timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
                 
+                if (timeLeft <= 300) { // 5 minutes left
+                    timerElement.style.color = 'var(--danger)';
+                } else if (timeLeft <= 600) { // 10 minutes left
+                    timerElement.style.color = 'var(--warning)';
+                }
+                
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
+                    clearInterval(autoSaveInterval);
                     submitExam();
                 } else {
                     timeLeft--;
                 }
             }
-            
-            const timerInterval = setInterval(updateTimer, 1000);
-            
-            // Multiple choice selection
-            const optionItems = document.querySelectorAll('.option-item');
-            optionItems.forEach(item => {
-                item.addEventListener('click', function() {
-                    const question = this.getAttribute('data-question');
-                    const option = this.getAttribute('data-option');
-                    
-                    // Remove selected class from all options for this question
-                    document.querySelectorAll(`.option-item[data-question="${question}"]`).forEach(opt => {
-                        opt.classList.remove('selected');
-                    });
-                    
-                    // Add selected class to clicked option
-                    this.classList.add('selected');
-                });
-            });
-            
-            // True/False selection
-            const trueFalseBtns = document.querySelectorAll('.true-false-btn');
-            trueFalseBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const question = this.getAttribute('data-question');
-                    
-                    // Remove selected class from all options for this question
-                    document.querySelectorAll(`.true-false-btn[data-question="${question}"]`).forEach(tfBtn => {
-                        tfBtn.classList.remove('selected');
-                    });
-                    
-                    // Add selected class to clicked option
-                    this.classList.add('selected');
-                });
-            });
-            
-            // Submit exam
-            document.getElementById('submitExam').addEventListener('click', submitExam);
+
+            function updateProgress() {
+                const totalQuestions = 19;
+                const answered = totalQuestions - checkUnansweredQuestions();
+                const progress = (answered / totalQuestions) * 100;
+                
+                document.getElementById('questionsProgress').style.width = `${progress}%`;
+                document.getElementById('completedQuestions').textContent = answered;
+                document.getElementById('progressPercentage').textContent = `${Math.round(progress)}%`;
+            }
+
+            function checkUnansweredQuestions() {
+                let unanswered = 0;
+                
+                // التحقق من الأسئلة من 1 إلى 10
+                for (let i = 1; i <= 10; i++) {
+                    const selected = document.querySelector(`.option-item.selected[data-question="${i}"]`);
+                    if (!selected) unanswered++;
+                }
+                
+                // التحقق من الأسئلة من 11 إلى 15
+                for (let i = 11; i <= 15; i++) {
+                    const selected = document.querySelector(`.true-false-btn.selected[data-question="${i}"]`);
+                    if (!selected) unanswered++;
+                }
+                
+                // التحقق من الأسئلة المقالية
+                for (let i = 16; i <= 19; i++) {
+                    const answer = document.getElementById(`answer${i}`).value.trim();
+                    if (!answer) unanswered++;
+                }
+                
+                return unanswered;
+            }
+
+            function confirmSubmission() {
+                const unanswered = checkUnansweredQuestions();
+                
+                if (unanswered > 0) {
+                    const confirmSubmit = confirm(`لديك ${unanswered} أسئلة لم تتم الإجابة عليها. هل تريد التسليم anyway?`);
+                    if (!confirmSubmit) return;
+                }
+                
+                submitExam();
+            }
             
             function submitExam() {
                 clearInterval(timerInterval);
+                clearInterval(autoSaveInterval);
                 
                 // Calculate scores
                 const mcqScore = calculateMCQScore();
@@ -782,27 +1212,133 @@
                 document.getElementById('essayProgress').style.width = `${(essayScore / 5) * 100}%`;
                 document.getElementById('essayProgress').setAttribute('aria-valuenow', essayScore);
                 
-                // Set score message
+                // Set score message and certificate
+                setScoreMessage(totalScore);
+                generateCertificate(totalScore);
+                
+                // Generate performance analysis
+                generatePerformanceAnalysis(mcqScore, tfScore, essayScore, totalScore);
+                
+                // Show results section
+                document.getElementById('resultsSection').style.display = 'block';
+                
+                // Clear saved progress
+                localStorage.removeItem('exam_progress');
+                
+                // Scroll to results
+                document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+            }
+            
+            function setScoreMessage(totalScore) {
                 const scoreMessage = document.getElementById('scoreMessage');
-                if (totalScore >= 16) {
+                if (totalScore >= 18) {
                     scoreMessage.textContent = "ممتاز! لقد أظهرت فهمًا رائعًا للمفاهيم.";
                     scoreMessage.style.color = "var(--success)";
-                } else if (totalScore >= 12) {
+                } else if (totalScore >= 16) {
                     scoreMessage.textContent = "جيد جدًا! لديك فهم قوي للموضوع.";
                     scoreMessage.style.color = "var(--info)";
-                } else if (totalScore >= 8) {
+                } else if (totalScore >= 12) {
                     scoreMessage.textContent = "مقبول! قد تحتاج إلى مراجعة بعض المفاهيم.";
                     scoreMessage.style.color = "var(--warning)";
                 } else {
                     scoreMessage.textContent = "يحتاج تحسين! نوصي بمراجعة المادة الدراسية.";
                     scoreMessage.style.color = "var(--danger)";
                 }
+            }
+
+            function generateCertificate(score) {
+                const certificateLevel = getCertificateLevel(score);
+                const certificateDiv = document.getElementById('certificateLevel');
                 
-                // Show results section
-                document.getElementById('resultsSection').style.display = 'block';
+                certificateDiv.innerHTML = `
+                    <div class="certificate-badge ${certificateLevel.class}">
+                        <i class="${certificateLevel.icon} me-2"></i>
+                        ${certificateLevel.text}
+                    </div>
+                `;
+            }
+
+            function getCertificateLevel(score) {
+                if (score >= 18) {
+                    return {
+                        text: "شهادة تميز 🏅",
+                        class: "certificate-gold",
+                        icon: "fas fa-trophy"
+                    };
+                } else if (score >= 16) {
+                    return {
+                        text: "شهادة إنجاز 🥈", 
+                        class: "certificate-silver",
+                        icon: "fas fa-medal"
+                    };
+                } else if (score >= 12) {
+                    return {
+                        text: "شهادة إتمام 🥉",
+                        class: "certificate-bronze", 
+                        icon: "fas fa-award"
+                    };
+                } else {
+                    return {
+                        text: "شهادة مشاركة 📜",
+                        class: "certificate-participant",
+                        icon: "fas fa-certificate"
+                    };
+                }
+            }
+
+            function generatePerformanceAnalysis(mcqScore, tfScore, essayScore, totalScore) {
+                const strengthsList = document.getElementById('strengthsList');
+                const improvementsList = document.getElementById('improvementsList');
+                const recommendationsDiv = document.getElementById('learningRecommendations');
                 
-                // Scroll to results
-                document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+                // Clear previous content
+                strengthsList.innerHTML = '';
+                improvementsList.innerHTML = '';
+                
+                // Analyze strengths
+                if (mcqScore >= 8) {
+                    strengthsList.innerHTML += '<li>فهم ممتاز لمفاهيم الاختيار من متعدد</li>';
+                }
+                if (tfScore >= 4) {
+                    strengthsList.innerHTML += '<li>تمييز جيد بين المعلومات الصحيحة والخاطئة</li>';
+                }
+                if (essayScore >= 4) {
+                    strengthsList.innerHTML += '<li>قدرة تحليلية جيدة في الأسئلة المقالية</li>';
+                }
+                if (totalScore >= 16) {
+                    strengthsList.innerHTML += '<li>إلمام شامل بموضوعات الاستجابة والتعافي</li>';
+                }
+                
+                // Analyze improvements
+                if (mcqScore < 6) {
+                    improvementsList.innerHTML += '<li>تحتاج لمراجعة مفاهيم RTO/RPO والمواقع البديلة</li>';
+                }
+                if (tfScore < 3) {
+                    improvementsList.innerHTML += '<li>تحتاج لتحسين فهم الفروق بين المصطلحات التقنية</li>';
+                }
+                if (essayScore < 3) {
+                    improvementsList.innerHTML += '<li>تحتاج لتطوير مهارات التعبير الكتابي والتحليل</li>';
+                }
+                
+                // Generate recommendations
+                let recommendations = '';
+                if (totalScore < 12) {
+                    recommendations = 'نوصي بمراجعة شاملة لجميع وحدات المقرر، مع التركيز على المفاهيم الأساسية للاستجابة للحوادث والتعافي من الكوارث.';
+                } else if (totalScore < 16) {
+                    recommendations = 'أداؤك جيد، لكن نوصي بمراجعة الوحدات المتعلقة بإدارة المخاطر والتخطيط للتعافي لتحسين النتيجة.';
+                } else {
+                    recommendations = 'أداؤك ممتاز! يمكنك الآن الانتقال إلى مواضيع متقدمة في الأمن السيبراني أو التطبيقات العملية.';
+                }
+                
+                recommendationsDiv.innerHTML = recommendations;
+                
+                // Add default messages if lists are empty
+                if (strengthsList.innerHTML === '') {
+                    strengthsList.innerHTML = '<li>أظهرت فهمًا أساسيًا للموضوعات</li>';
+                }
+                if (improvementsList.innerHTML === '') {
+                    improvementsList.innerHTML = '<li>مواصلة التعلم والتطوير المستمر</li>';
+                }
             }
             
             function calculateMCQScore() {
@@ -885,51 +1421,102 @@
             }
             
             function calculateEssayScore() {
-                // This is a simplified version - in a real scenario, essays would be graded manually
-                // Here we'll give points based on whether the answer contains key terms
-                
                 let score = 0;
                 
                 // Question 16 - Runbook vs Playbook
                 const answer16 = document.getElementById('answer16').value.toLowerCase();
-                if (answer16.includes('runbook') && answer16.includes('playbook') && 
-                   (answer16.includes('روتين') || answer16.includes('مهمة') || answer16.includes('خطوة بخطوة')) &&
-                   (answer16.includes('سيناريو') || answer16.includes('شامل') || answer16.includes('هجوم محدد'))) {
-                    score += 1;
-                }
+                const q16Points = evaluateEssay16(answer16);
+                score += q16Points;
                 
                 // Question 17 - CSIRT detection sources
                 const answer17 = document.getElementById('answer17').value.toLowerCase();
-                const sources = ['siem', 'edr', 'مستخدم', 'logs', 'ids', 'ips'];
+                const q17Points = evaluateEssay17(answer17);
+                score += q17Points;
+                
+                // Question 18 - System recovery priority
+                const answer18 = document.getElementById('answer18').value.toLowerCase();
+                const q18Points = evaluateEssay18(answer18);
+                score += q18Points;
+                
+                // Question 19 - Critical step before system restoration
+                const answer19 = document.getElementById('answer19').value.toLowerCase();
+                const q19Points = evaluateEssay19(answer19);
+                score += q19Points;
+                
+                return Math.min(score, 5);
+            }
+
+            function evaluateEssay16(answer) {
+                let points = 0;
+                const keywords = {
+                    'runbook': ['runbook', 'روتين', 'مهمة', 'خطوة بخطوة', 'إجراءات روتينية'],
+                    'playbook': ['playbook', 'سيناريو', 'شامل', 'هجوم محدد', 'استجابة متكاملة'],
+                    'difference': ['فرق', 'اختلاف', 'مقارنة', 'تمييز']
+                };
+                
+                // التحقق من وجود الكلمات المفتاحية
+                if (keywords.runbook.some(kw => answer.includes(kw))) points += 0.5;
+                if (keywords.playbook.some(kw => answer.includes(kw))) points += 0.5;
+                if (keywords.difference.some(kw => answer.includes(kw))) points += 0.5;
+                
+                // نقاط إضافية للإجابات الشاملة
+                if (answer.length > 100) points += 0.5;
+                
+                return Math.min(points, 1);
+            }
+
+            function evaluateEssay17(answer) {
+                let points = 0;
+                const sources = ['siem', 'edr', 'مستخدم', 'logs', 'ids', 'ips', 'نظام كشف', 'سجلات', 'مستخدمين'];
                 let sourceCount = 0;
                 
                 sources.forEach(source => {
-                    if (answer17.includes(source)) {
+                    if (answer.includes(source)) {
                         sourceCount++;
                     }
                 });
                 
                 if (sourceCount >= 3) {
-                    score += 1;
+                    points = 1;
+                } else if (sourceCount >= 2) {
+                    points = 0.5;
                 }
                 
-                // Question 18 - System recovery priority
-                const answer18 = document.getElementById('answer18').value.toLowerCase();
-                if ((answer18.includes('أولوية') || answer18.includes('أهمية') || answer18.includes('تأثير')) &&
-                   (answer18.includes('rto') || answer18.includes('rpo') || answer18.includes('أعمال') || 
-                    answer18.includes('إيرادات') || answer18.includes('حيوية'))) {
-                    score += 1.5;
-                }
+                return points;
+            }
+
+            function evaluateEssay18(answer) {
+                let points = 0;
+                const keywords = {
+                    'priority': ['أولوية', 'أهمية', 'تأثير', 'أسبقية'],
+                    'criteria': ['rto', 'rpo', 'أعمال', 'إيرادات', 'حيوية', 'استراتيجي', 'عملاء'],
+                    'explanation': ['تعتمد', 'بناء', 'استناد', 'حسب']
+                };
                 
-                // Question 19 - Critical step before system restoration
-                const answer19 = document.getElementById('answer19').value.toLowerCase();
-                if ((answer19.includes('تحقق') || answer19.includes('تأكد') || answer19.includes('فحص')) &&
-                   (answer19.includes('نظيف') || answer19.includes('آمن') || answer19.includes('خالي') || 
-                    answer19.includes('ضارة') || answer19.includes('ثغرات') || answer19.includes('سد'))) {
-                    score += 1.5;
-                }
+                if (keywords.priority.some(kw => answer.includes(kw))) points += 0.5;
+                if (keywords.criteria.some(kw => answer.includes(kw))) points += 0.5;
+                if (keywords.explanation.some(kw => answer.includes(kw))) points += 0.5;
                 
-                return Math.min(score, 5); // Cap at 5 points
+                if (answer.length > 80) points += 0.5;
+                
+                return Math.min(points, 1.5);
+            }
+
+            function evaluateEssay19(answer) {
+                let points = 0;
+                const keywords = {
+                    'verification': ['تحقق', 'تأكد', 'فحص', 'اختبار', 'مراجعة'],
+                    'security': ['نظيف', 'آمن', 'خالي', 'ضارة', 'ثغرات', 'سد', 'حماية', 'أمان'],
+                    'process': ['قبل', 'إعادة', 'تشغيل', 'خدمة', 'تشغيل']
+                };
+                
+                if (keywords.verification.some(kw => answer.includes(kw))) points += 0.5;
+                if (keywords.security.some(kw => answer.includes(kw))) points += 0.5;
+                if (keywords.process.some(kw => answer.includes(kw))) points += 0.5;
+                
+                if (answer.length > 80) points += 0.5;
+                
+                return Math.min(points, 1.5);
             }
         });
     </script>
