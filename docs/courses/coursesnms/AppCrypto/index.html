@@ -1,1 +1,626 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مقرر التشفير التطبيقي | Applied Cryptography</title>
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="../../assets/css/course-style.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header Styles */
+        .course-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+            border-bottom: 5px solid var(--accent-color);
+        }
+        
+        .course-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .course-header h2 {
+            font-size: 1.8rem;
+            font-weight: 300;
+            margin-bottom: 1.5rem;
+        }
+        
+        .course-desc {
+            max-width: 800px;
+            margin: 0 auto;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+        
+        /* Navigation */
+        .course-nav {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+        
+        .course-logo {
+            font-weight: bold;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+        
+        .nav-links li {
+            margin-left: 1.5rem;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: var(--dark-color);
+            font-weight: 500;
+            transition: color 0.3s;
+            padding: 0.5rem 0;
+            position: relative;
+        }
+        
+        .nav-links a:hover {
+            color: var(--secondary-color);
+        }
+        
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--secondary-color);
+            transition: width 0.3s;
+        }
+        
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+        
+        /* Main Content */
+        .course-overview {
+            padding: 3rem 0;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            color: var(--primary-color);
+            position: relative;
+            padding-bottom: 1rem;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background-color: var(--secondary-color);
+        }
+        
+        .course-objectives {
+            background-color: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 3rem;
+        }
+        
+        .objectives-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .objective-card {
+            background-color: var(--light-color);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--secondary-color);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .objective-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .objective-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Units Section */
+        .units-section {
+            padding: 2rem 0;
+        }
+        
+        .units-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .unit-card {
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: block;
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .unit-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        
+        .unit-header {
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.2rem;
+        }
+        
+        .unit-number {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 0.3rem;
+        }
+        
+        .unit-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .unit-content {
+            padding: 1.5rem;
+        }
+        
+        .unit-desc {
+            margin-bottom: 1rem;
+            color: #555;
+        }
+        
+        .unit-objectives, .unit-topics {
+            margin-bottom: 1rem;
+        }
+        
+        .unit-objectives h4, .unit-topics h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .unit-objectives ul, .unit-topics ul {
+            padding-right: 1.2rem;
+            font-size: 0.9rem;
+        }
+        
+        .unit-objectives li, .unit-topics li {
+            margin-bottom: 0.3rem;
+        }
+        
+        .summary-card {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, var(--primary-color), #34495e);
+            color: white;
+        }
+        
+        .summary-card .unit-header {
+            background: transparent;
+        }
+        
+        .summary-card .unit-content {
+            color: var(--light-color);
+        }
+        
+        /* Footer */
+        .course-footer {
+            background-color: var(--dark-color);
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+            }
+            
+            .nav-links {
+                margin-top: 1rem;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .nav-links li {
+                margin: 0 0.5rem 0.5rem;
+            }
+            
+            .units-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .objectives-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="course-header">
+        <div class="container">
+            <h1>مقرر التشفير التطبيقي</h1>
+            <h2>Applied Cryptography</h2>
+            <p class="course-desc">
+                رحلة متكاملة في عالم أمن المعلومات، تغطي خوارزميات التشفير المتماثل (AES, DES) وغير المتماثل (RSA, ECC)، 
+                وسلامة البيانات (Hashing, MACs)، وصولاً إلى البنية التحتية للمفاتيح العامة (PKI) وأمن الشبكات.
+            </p>
+        </div>
+    </header>
 
+    <nav class="course-nav">
+        <div class="container nav-container">
+            <div class="course-logo">التشفير التطبيقي</div>
+            <ul class="nav-links">
+                <li><a href="#overview">نظرة عامة</a></li>
+                <li><a href="#objectives">الأهداف</a></li>
+                <li><a href="#units">الوحدات</a></li>
+                <li><a href="unit-1.html">بدء الدراسة</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section id="overview" class="course-overview">
+            <h2 class="section-title">نظرة عامة على المقرر</h2>
+            <div class="course-objectives">
+                <p>
+                    يعد هذا المقرر مقدمة شاملة للتشفير الحديث والمعايير المرتبطة به. يركز على تطبيق وتنفيذ التقنيات المختلفة 
+                    لتحقيق سرية الرسالة وسلامتها وتوثيقها وعدم التنصل. يشمل المقرر دراسة الأصفار المتماثلة وغير المتماثلة، 
+                    تشفير الكتلة والتدفق، توليد البيانات العشوائية، وظائف التجزئة، رموز المصادقة، والتوقيعات الرقمية.
+                </p>
+            </div>
+        </section>
+
+        <section id="objectives" class="course-objectives">
+            <h2 class="section-title">أهداف المقرر</h2>
+            <div class="objectives-grid">
+                <div class="objective-card">
+                    <h4>فهم أساسيات التشفير</h4>
+                    <p>استيعاب المفاهيم الأساسية للتشفير ودوره في أمن المعلومات والشبكات</p>
+                </div>
+                <div class="objective-card">
+                    <h4>التمييز بين أنواع التشفير</h4>
+                    <p>القدرة على التمييز بين التشفير المتماثل وغير المتماثل وتطبيقات كل منهما</p>
+                </div>
+                <div class="objective-card">
+                    <h4>تحليل الخوارزميات</h4>
+                    <p>تحليل خوارزميات سلامة البيانات المشفرة وتقييم قوتها الأمنية</p>
+                </div>
+                <div class="objective-card">
+                    <h4>إدارة المفاتيح</h4>
+                    <p>فهم آليات إدارة المفاتيح والتوزيع في الأنظمة الأمنية</p>
+                </div>
+                <div class="objective-card">
+                    <h4>التطبيق العملي</h4>
+                    <p>تطبيق تقنيات التشفير الكلاسيكية والحديثة في سيناريوهات واقعية</p>
+                </div>
+                <div class="objective-card">
+                    <h4>الأمن الشامل</h4>
+                    <p>ربط مفاهيم التشفير بالخدمات والآليات الأمنية الشاملة</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="units" class="units-section">
+            <h2 class="section-title">الوحدات الدراسية</h2>
+            <div class="units-grid">
+                <!-- Unit 1 -->
+                <a href="unit-1.html" class="unit-card">
+                    <div class="unit-header">
+                        <div class="unit-number">الوحدة 1</div>
+                        <div class="unit-title">مقدمة في التشفير وأمن الشبكات</div>
+                    </div>
+                    <div class="unit-content">
+                        <p class="unit-desc">تقدم المفاهيم الأساسية لأمن المعلومات، أسلوب عمل التشفير، وأهم الهجمات التي تستهدف البيانات.</p>
+                        <div class="unit-objectives">
+                            <h4>الأهداف:</h4>
+                            <ul>
+                                <li>فهم مفهوم التشفير ودوره في أمن المعلومات</li>
+                                <li>التمييز بين الخدمات والآليات الأمنية</li>
+                                <li>التعرف على نموذج أمن الشبكات وطبقات OSI</li>
+                            </ul>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Unit 2 -->
+                <a href="unit-2.html" class="unit-card">
+                    <div class="unit-header">
+                        <div class="unit-number">الوحدة 2</div>
+                        <div class="unit-title">الأصفار المتماثلة: التقنيات الكلاسيكية</div>
+                    </div>
+                    <div class="unit-content">
+                        <p class="unit-desc">تتناول الأساليب التقليدية التي شكلت الأساس لنظم التشفير الحديثة.</p>
+                        <div class="unit-objectives">
+                            <h4>الأهداف:</h4>
+                            <ul>
+                                <li>فهم نموذج التشفير المتماثل</li>
+                                <li>تطبيق تقنيات الاستبدال والنقل</li>
+                                <li>التعرف على الآلات الدوّارة وإخفاء المعلومات</li>
+                            </ul>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Unit 3 -->
+                <a href="unit-3.html" class="unit-card">
+                    <div class="unit-header">
+                        <div class="unit-number">الوحدة 3</div>
+                        <div class="unit-title">الأصفار المتماثلة: تشفير الكتل وDES</div>
+                    </div>
+                    <div class="unit-content">
+                        <p class="unit-desc">تشرح بنية نظم تشفير الكتل ودراسة DES ومعايير تصميم التشفير.</p>
+                        <div class="unit-objectives">
+                            <h4>الأهداف:</h4>
+                            <ul>
+                                <li>فهم بنية تشفير الكتل</li>
+                                <li>تحليل DES وقوة التشفير</li>
+                                <li>التعرف على مبادئ تصميم التشفير</li>
+                            </ul>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Unit 4 -->
+                <a href="unit-4.html" class="unit-card">
+                    <div class="unit-header">
+                        <div class="unit-number">الوحدة 4</div>
+                        <div class="unit-title">معيار التشفير المتقدم AES</div>
+                    </div>
+                    <div class="unit-content">
+                        <p class="unit-desc">تركّز على خوارزمية AES الأكثر استخدامًا في العالم.</p>
+                        <div class="unit-objectives">
+                            <h4>الأهداف:</h4>
+                            <ul>
+                                <li>فهم هيكل AES ووظائف التحويل</li>
+                                <li>دراسة توسعة المفاتيح</li>
+                                <li>تطبيق عمليات AES عمليًا</li>
+                            </ul>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Unit 5 -->
+                <a href="unit-5.html" class="unit-card">
+                    <div class="unit-header">
+                        <div class="unit-number">الوحدة 5</div>
+                        <div class="unit-title">أوضاع التشفير (Modes of Operation)</div>
+                    </div>
+                    <div class="unit-content">
+                        <p class="unit-desc">شرح طرق تشغيل تشفير الكتل وتأثير كل وضع على أمان البيانات.</p>
+                        <div class="unit-objectives">
+                            <h4>الأهداف:</h4>
+                            <ul>
+                                <li>فهم التشفير المتعدد DES-EDE3</li>
+                                <li>التعرف على أوضاع ECB, CBC, CFB, OFB, CTR</li>
+                                <li>فهم وضع XTS وFPE</li>
+                            </ul>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Unit 6 -->
+                <a href="unit-6.html" class="unit-card">
+                    <div class="unit-header">
+                        <div class="unit-number">الوحدة 6</div>
+                        <div class="unit-title">مبادئ توليد الأرقام العشوائية والـ Stream Ciphers</div>
+                    </div>
+                    <div class="unit-content">
+                        <p class="unit-desc">توضح أساس العشوائية في التشفير وتطبيقات مولدات الأرقام.</p>
+                        <div class="unit-objectives">
+                            <h4>الأهداف:</h4>
+                            <ul>
+                                <li>فهم دور العشوائية في التشفير</li>
+                                <li>التعرف على PRNGs و TRNGs</li>
+                                <li>دراسة RC4 ومولدات التشفير المتدفقة</li>
+                            </ul>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Unit 7 -->
+                <a href="unit-7.html" class="unit-card">
+                    <div class="unit-header">
+                        <div class="unit-number">الوحدة 7</div>
+                        <div class="unit-title">التشفير غير المتماثل وRSA</div>
+                    </div>
+                    <div class="unit-content">
+                        <p class="unit-desc">مدخل شامل إلى أنظمة المفاتيح العامة ومبدأ عمل RSA.</p>
+                        <div class="unit-objectives">
+                            <h4>الأهداف:</h4>
+                            <ul>
+                                <li>فهم مفهوم المفاتيح العامة والخاصة</li>
+                                <li>دراسة خوارزمية RSA</li>
+                                <li>تطبيق المفاهيم على حماية البيانات</li>
+                            </ul>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Unit 8 -->
+                <a href="unit-8.html" class="unit-card">
+                    <div class="unit-header">
+                        <div class="unit-number">الوحدة 8</div>
+                        <div class="unit-title">أنظمة التشفير غير المتماثل الأخرى</div>
+                    </div>
+                    <div class="unit-content">
+                        <p class="unit-desc">تغطي الأنظمة المكملة لـ RSA مثل DH, ECC, ElGamal.</p>
+                        <div class="unit-objectives">
+                            <h4>الأهداف:</h4>
+                            <ul>
+                                <li>التمييز بين أنماط التشفير غير المتماثل</li>
+                                <li>تطبيق تبادل مفاتيح Diffie-Hellman</li>
+                                <li>فهم التشفير البيضاوي ECC</li>
+                            </ul>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Unit 9 -->
+                <a href="unit-9.html" class="unit-card">
+                    <div class="unit-header">
+                        <div class="unit-number">الوحدة 9</div>
+                        <div class="unit-title">خوارزميات سلامة البيانات (Integrity Algorithms)</div>
+                    </div>
+                    <div class="unit-content">
+                        <p class="unit-desc">تغطية التجزئة، التحقق، التوثيق، والتشفير الموثق.</p>
+                        <div class="unit-objectives">
+                            <h4>الأهداف:</h4>
+                            <ul>
+                                <li>فهم وظائف التجزئة (Hash Functions)</li>
+                                <li>تطبيق HMAC وMAC المعتمد على الكتل</li>
+                                <li>التعرف على GCM, CCM</li>
+                            </ul>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Unit 10 -->
+                <a href="unit-10.html" class="unit-card">
+                    <div class="unit-header">
+                        <div class="unit-number">الوحدة 10</div>
+                        <div class="unit-title">إدارة المفاتيح والتوزيع</div>
+                    </div>
+                    <div class="unit-content">
+                        <p class="unit-desc">تشرح البنية التحتية للمفاتيح العامة PKI وأسس توزيع المفاتيح.</p>
+                        <div class="unit-objectives">
+                            <h4>الأهداف:</h4>
+                            <ul>
+                                <li>فهم آليات توزيع المفاتيح</li>
+                                <li>التعرف على شهادات X.509</li>
+                                <li>دراسة إدارة المفاتيح للمؤسسات</li>
+                            </ul>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Summary Unit -->
+                <a href="unit-summary.html" class="unit-card summary-card">
+                    <div class="unit-header">
+                        <div class="unit-number">الوحدة الختامية</div>
+                        <div class="unit-title">الملخص والمراجعة الشاملة</div>
+                    </div>
+                    <div class="unit-content">
+                        <p class="unit-desc">تشمل ملخص شامل لجميع المفاهيم، خرائط ذهنية، أهم الخوارزميات، مقارنات، وأمثلة تدريبية.</p>
+                        <div class="unit-objectives">
+                            <h4>المحتوى:</h4>
+                            <ul>
+                                <li>ملخص شامل لجميع المفاهيم</li>
+                                <li>خرائط ذهنية</li>
+                                <li>أهم الخوارزميات</li>
+                                <li>مقارنة بين AES – DES – RSA – ECC</li>
+                                <li>أمثلة تدريبية وأسئلة مراجعة</li>
+                            </ul>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </section>
+    </main>
+
+      <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>مسار الأمن السيبراني</h5>
+                    <p>منصة تعليمية متخصصة في تقديم محتوى أكاديمي وعملي في مجال الأمن السيبراني.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>روابط سريعة</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="../../../index.html" class="text-white">الرئيسية</a></li>
+                        <li><a href="../../index.html" class="text-white">جميع المقررات</a></li>
+                        <li><a href="#" class="text-white">الدعم الفني</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>تواصل معنا</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> info@cyberpath.com</li>
+                        <li><i class="fas fa-phone me-2"></i> 0502161465</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2025 مسار الأمن السيبراني. جميع الحقوق محفوظة.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-linkedin fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-youtube fa-lg"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-github fa-lg"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
