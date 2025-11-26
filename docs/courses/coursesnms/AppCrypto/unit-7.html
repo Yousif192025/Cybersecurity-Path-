@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الوحدة السابعة - التشفير غير المتماثل و RSA | التشفير التطبيقي</title>
+
+    <!-- Bootstrap RTL -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --info: #9b59b6;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f7f9fc 0%, #e8ecf1 100%);
+            font-family: "Tajawal", sans-serif;
+            min-height: 100vh;
+            line-height: 1.7;
+            direction: rtl;
+        }
+
+        .unit-header {
+            background: linear-gradient(135deg, var(--primary) 0%, #34495e 100%);
+            color: white;
+            padding: 50px 0 30px 0;
+            border-radius: 0 0 30px 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .unit-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        .content-card:hover {
+            transform: translateY(-5px);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .content-card {
+                animation: none;
+            }
+        }
+
+        .section-title {
+            color: var(--primary);
+            border-right: 4px solid var(--secondary);
+            padding-right: 15px;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .objective-card {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-right: 4px solid var(--success);
+        }
+
+        .topic-item {
+            background: var(--light);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-right: 4px solid var(--info);
+        }
+
+        .nav-pills .nav-link {
+            border-radius: 12px;
+            margin: 5px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .concept-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .concept-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-top: 4px solid var(--secondary);
+        }
+
+        .comparison-table {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .principle-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid var(--warning);
+        }
+
+        .navigation-buttons {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin: 30px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .interactive-demo {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .demo-container {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .rsa-process {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            border: 2px solid #e9ecef;
+        }
+
+        .process-step {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            border-right: 3px solid var(--primary);
+        }
+
+        .key-visual {
+            background: linear-gradient(135deg, #ffeaa7, #fab1a0);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .math-formula {
+            background: #2c3e50;
+            color: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .unit-header {
+                padding: 30px 0 20px 0;
+            }
+            
+            .content-card {
+                padding: 20px;
+            }
+            
+            .concept-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .learning-objectives {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .content-section {
+            margin-bottom: 40px;
+        }
+
+        .application-card {
+            background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 10px 0;
+        }
+
+        .security-alert {
+            background: linear-gradient(135deg, #ff7675, #d63031);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .quiz-card {
+            background: linear-gradient(135deg, #55efc4, #00b894);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .quick-summary {
+            background: linear-gradient(135deg, #fd79a8, #e84393);
+            color: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .flowchart {
+            background: #2c3e50;
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .flowchart-step {
+            background: #34495e;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .flowchart-step:hover {
+            background: #4a5f7a;
+        }
+
+        .progress {
+            height: 8px;
+            margin-bottom: 30px;
+        }
+
+        /* تحسينات للعرض باللغة العربية */
+        .text-start {
+            text-align: right !important;
+        }
+        
+        .text-end {
+            text-align: left !important;
+        }
+        
+        .me-2 {
+            margin-left: 0.5rem !important;
+            margin-right: 0 !important;
+        }
+        
+        .ms-2 {
+            margin-right: 0.5rem !important;
+            margin-left: 0 !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Unit Header -->
+    <div class="unit-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <span class="unit-badge">
+                        <i class="fas fa-key me-2"></i>الوحدة السابعة
+                    </span>
+                    <h1 class="fw-bold mb-3" style="font-size: 2.3rem;">
+                        التشفير غير المتماثل و RSA
+                    </h1>
+                    <p class="lead mb-4" style="font-size: 1.2rem; opacity: 0.9;">
+                        Public-Key Cryptography & RSA Algorithm
+                    </p>
+                    <p class="mb-4" style="opacity: 0.8;">
+                        رحلة في عالم التشفير بالمفاتيح العامة، حيث نستكشف خوارزمية RSA التي شكلت ثورة في أمن المعلومات 
+                        وحماية الاتصالات الرقمية حول العالم.
+                    </p>
+                    <div class="d-flex gap-3 flex-wrap">
+                        <span class="badge bg-light text-dark p-2">
+                            <i class="fas fa-clock me-1"></i> 6-7 ساعات دراسة
+                        </span>
+                        <span class="badge bg-light text-dark p-2">
+                            <i class="fas fa-book me-1"></i> 4 أقسام رئيسية
+                        </span>
+                        <span class="badge bg-light text-dark p-2">
+                            <i class="fas fa-tasks me-1"></i> 5 أهداف تعليمية
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-4 text-center d-none d-md-block">
+                    <div style="font-size: 7rem; opacity: 0.8;">
+                        🔑
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <!-- Progress Bar -->
+        <div class="progress mb-4">
+            <div class="progress-bar" role="progressbar" style="width: 25%;" 
+                 aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+
+        <!-- Learning Objectives -->
+        <div class="learning-objectives">
+            <h3 class="text-center mb-4"><i class="fas fa-bullseye me-2"></i>الأهداف التعليمية للوحدة</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="objective-card">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        فهم فكرة المفتاح العام والمفتاح الخاص وآلية استخدامهما
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="objective-card">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        التمييز بين التشفير المتماثل وغير المتماثل
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="objective-card">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        تحليل خطوات خوارزمية RSA الرياضية
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="objective-card">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        تطبيق RSA في سيناريوهات واقعية وحماية البروتوكولات
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="objective-card">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        تحليل نقاط القوة والضعف في RSA والتهديدات الحديثة
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Quiz -->
+        <div class="quiz-card">
+            <h5><i class="fas fa-question-circle me-2"></i>اختبار سريع</h5>
+            <div id="quickQuiz">
+                <p class="question">ما الفرق الأساسي بين التشفير المتماثل وغير المتماثل؟</p>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="quiz1" id="quiz1a">
+                    <label class="form-check-label" for="quiz1a">المتماثل أسرع من غير المتماثل</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="quiz1" id="quiz1b">
+                    <label class="form-check-label" for="quiz1b">غير المتماثل يستخدم مفتاحين بينما المتماثل يستخدم مفتاحًا واحدًا</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="quiz1" id="quiz1c">
+                    <label class="form-check-label" for="quiz1c">لا يوجد فرق بينهما</label>
+                </div>
+                <button class="btn btn-light btn-sm mt-2" onclick="checkQuiz()">تحقق من الإجابة</button>
+                <div id="quizResult" class="mt-2" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Navigation Pills -->
+        <ul class="nav nav-pills justify-content-center mb-4" id="unitTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="principles-tab" data-bs-toggle="pill" data-bs-target="#principles" type="button" role="tab">
+                    <i class="fas fa-brain me-2"></i>المبادئ الأساسية
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="rsa-tab" data-bs-toggle="pill" data-bs-target="#rsa" type="button" role="tab">
+                    <i class="fas fa-calculator me-2"></i>خوارزمية RSA
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="applications-tab" data-bs-toggle="pill" data-bs-target="#applications" type="button" role="tab">
+                    <i class="fas fa-laptop-code me-2"></i>التطبيقات العملية
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="security-tab" data-bs-toggle="pill" data-bs-target="#security" type="button" role="tab">
+                    <i class="fas fa-shield-alt me-2"></i>الأمان والتهديدات
+                </button>
+            </li>
+        </ul>
+
+        <!-- Content Tabs -->
+        <div class="tab-content" id="unitTabsContent">
+            
+            <!-- Principles Tab -->
+            <div class="tab-pane fade show active" id="principles" role="tabpanel">
+                
+                <div class="content-section">
+                    <div class="content-card">
+                        <h3 class="section-title">🎯 مبادئ أنظمة المفتاح العام</h3>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h5><i class="fas fa-key text-primary me-2"></i>الفكرة الأساسية</h5>
+                                <p>أنظمة التشفير غير المتماثل تستخدم زوجًا من المفاتيح: مفتاح عام للتشفير ومفتاح خاص لفك التشفير.</p>
+                                
+                                <div class="key-visual">
+                                    <div class="row text-center">
+                                        <div class="col-6">
+                                            <i class="fas fa-lock fa-3x mb-3"></i>
+                                            <h6>المفتاح العام</h6>
+                                            <small>مشترك مع الجميع</small>
+                                        </div>
+                                        <div class="col-6">
+                                            <i class="fas fa-unlock fa-3x mb-3"></i>
+                                            <h6>المفتاح الخاص</h6>
+                                            <small>سري ومحمي</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-info mt-3">
+                                    <h6><i class="fas fa-lightbulb me-2"></i>لماذا نحتاج التشفير غير المتماثل؟</h6>
+                                    <p class="mb-0">لحل مشكلة تبادل المفاتيح التي عانى منها التشفير المتماثل التقليدي.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h5><i class="fas fa-balance-scale me-2"></i>المقارنة بين نوعي التشفير</h5>
+                                
+                                <div class="comparison-table">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered">
+                                            <thead class="table-dark">
+                                                <tr>
+                                                    <th>المعيار</th>
+                                                    <th>التشفير المتماثل</th>
+                                                    <th>التشفير غير المتماثل</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td><strong>عدد المفاتيح</strong></td>
+                                                    <td>مفتاح واحد</td>
+                                                    <td>مفتاحان (عام وخاص)</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>سرعة الأداء</strong></td>
+                                                    <td>سريع جدًا</td>
+                                                    <td>بطيء نسبيًا</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>تبادل المفاتيح</strong></td>
+                                                    <td>مشكلة أمنية</td>
+                                                    <td>لا توجد مشكلة</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>الاستخدام الأمثل</strong></td>
+                                                    <td>تشفير البيانات</td>
+                                                    <td>تبادل المفاتيح والتوقيع</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>الأمثلة</strong></td>
+                                                    <td>AES, DES, 3DES</td>
+                                                    <td>RSA, ECC, ElGamal</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Use Cases -->
+                        <div class="content-card mt-4">
+                            <h5><i class="fas fa-cogs me-2"></i>أهم استخدامات التشفير غير المتماثل</h5>
+                            <div class="concept-grid">
+                                <div class="concept-card">
+                                    <h6><i class="fas fa-exchange-alt me-2"></i>تبادل المفاتيح</h6>
+                                    <p class="mb-0">في بروتوكولات TLS/SSL لتأمين الاتصالات</p>
+                                </div>
+                                <div class="concept-card">
+                                    <h6><i class="fas fa-signature me-2"></i>التوقيع الرقمي</h6>
+                                    <p class="mb-0">للتحقق من صحة المرسل وعدم الإنكار</p>
+                                </div>
+                                <div class="concept-card">
+                                    <h6><i class="fas fa-user-check me-2"></i>التحقق من الهوية</h6>
+                                    <p class="mb-0">في أنظمة المصادقة المتقدمة</p>
+                                </div>
+                                <div class="concept-card">
+                                    <h6><i class="fas fa-lock me-2"></i>التشفير طويل المدى</h6>
+                                    <p class="mb-0">لحماية البيانات الحساسة</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mathematical Foundations -->
+                        <div class="content-card mt-4">
+                            <h5><i class="fas fa-square-root-variable me-2"></i>الأساس الرياضي</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="principle-card">
+                                        <h6><i class="fas fa-calculator me-2"></i>الأعداد الأولية الكبيرة</h6>
+                                        <p class="mb-0">يعتمد الأمان على صعوبة تحليل الأعداد الكبيرة إلى عواملها الأولية</p>
+                                    </div>
+                                    <div class="principle-card">
+                                        <h6><i class="fas fa-arrow-right me-2"></i>الدوال أحادية الاتجاه</h6>
+                                        <p class="mb-0">عمليات سهلة في اتجاه وصعبة في الاتجاه المعاكس</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="principle-card">
+                                        <h6><i class="fas fa-puzzle-piece me-2"></i>مشكلة التحليل</h6>
+                                        <p class="mb-0">Factoring Problem - صعوبة تحليل n = p × q عندما تكون p,q أعداد أولية كبيرة</p>
+                                    </div>
+                                    <div class="principle-card">
+                                        <h6><i class="fas fa-clock me-2"></i>تعقيد زمني</h6>
+                                        <p class="mb-0">الوقت المطلوب لكسر الشفرة ينمو أضعافًا مضاعفة مع زيادة حجم المفتاح</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RSA Algorithm Tab -->
+            <div class="tab-pane fade" id="rsa" role="tabpanel">
+                <div class="content-card">
+                    <h3 class="section-title">🔐 خوارزمية RSA</h3>
+                    
+                    <div class="rsa-process">
+                        <h5 class="text-center mb-4"><i class="fas fa-sitemap me-2"></i>عملية RSA خطوة بخطوة</h5>
+                        
+                        <!-- Key Generation -->
+                        <div class="process-step">
+                            <h6><i class="fas fa-key me-2"></i>الخطوة 1: توليد المفاتيح</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="math-formula">
+                                        <div>اختيار عددين أوليين كبيرين:</div>
+                                        <code>p, q</code>
+                                    </div>
+                                    <div class="math-formula mt-2">
+                                        <div>حساب n:</div>
+                                        <code>n = p × q</code>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="math-formula">
+                                        <div>حساب φ(n):</div>
+                                        <code>φ(n) = (p-1) × (q-1)</code>
+                                    </div>
+                                    <div class="math-formula mt-2">
+                                        <div>اختيار e ثم حساب d:</div>
+                                        <code>d × e ≡ 1 mod φ(n)</code>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Encryption -->
+                        <div class="process-step">
+                            <h6><i class="fas fa-lock me-2"></i>الخطوة 2: التشفير</h6>
+                            <div class="text-center">
+                                <div class="math-formula">
+                                    <code>C = M<sup>e</sup> mod n</code>
+                                </div>
+                                <p class="mt-2">حيث M هي الرسالة الأصلية و C هي الرسالة المشفرة</p>
+                            </div>
+                        </div>
+
+                        <!-- Decryption -->
+                        <div class="process-step">
+                            <h6><i class="fas fa-unlock me-2"></i>الخطوة 3: فك التشفير</h6>
+                            <div class="text-center">
+                                <div class="math-formula">
+                                    <code>M = C<sup>d</sup> mod n</code>
+                                </div>
+                                <p class="mt-2">يتم فك التشفير باستخدام المفتاح الخاص d</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Example -->
+                    <div class="interactive-demo mt-4">
+                        <h5><i class="fas fa-calculator me-2"></i>مثال عملي مبسط</h5>
+                        <div class="demo-container">
+                            <div class="row text-center">
+                                <div class="col-md-3">
+                                    <small>p = 61</small>
+                                </div>
+                                <div class="col-md-3">
+                                    <small>q = 53</small>
+                                </div>
+                                <div class="col-md-3">
+                                    <small>n = 3233</small>
+                                </div>
+                                <div class="col-md-3">
+                                    <small>e = 17</small>
+                                </div>
+                            </div>
+                            <div class="row text-center mt-3">
+                                <div class="col-md-6">
+                                    <small>الرسالة: M = 65</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <small>التشفير: C = 65<sup>17</sup> mod 3233 = 2790</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Digital Signature -->
+                    <div class="content-card mt-4">
+                        <h5><i class="fas fa-signature me-2"></i>التوقيع الرقمي باستخدام RSA</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="principle-card">
+                                    <h6><i class="fas fa-pen me-2"></i>إنشاء التوقيع</h6>
+                                    <div class="math-formula">
+                                        <code>S = H(M)<sup>d</sup> mod n</code>
+                                    </div>
+                                    <p class="mt-2">حيث H(M) هي بصمة الرسالة بعد التجزئة</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="principle-card">
+                                    <h6><i class="fas fa-check-circle me-2"></i>التحقق من التوقيع</h6>
+                                    <div class="math-formula">
+                                        <code>H(M) = S<sup>e</sup> mod n</code>
+                                    </div>
+                                    <p class="mt-2">يستخدم المفتاح العام للتحقق من صحة التوقيع</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert alert-info mt-3">
+                            <h6><i class="fas fa-info-circle me-2"></i>ملاحظة هامة</h6>
+                            <p class="mb-0">التوقيع الرقمي هو عكس التشفير تمامًا - يستخدم المفتاح الخاص للتوقيع والعام للتحقق.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Applications Tab -->
+            <div class="tab-pane fade" id="applications" role="tabpanel">
+                <div class="content-card">
+                    <h3 class="section-title">💻 التطبيقات العملية لـ RSA</h3>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-globe text-primary me-2"></i>في بروتوكولات الإنترنت</h5>
+                            
+                            <div class="application-card">
+                                <h6><i class="fas fa-lock me-2"></i>HTTPS / TLS</h6>
+                                <p class="mb-0">تأمين الاتصال بين المتصفح والخوادم</p>
+                            </div>
+                            
+                            <div class="application-card">
+                                <h6><i class="fas fa-envelope me-2"></i>PGP / GPG</h6>
+                                <p class="mb-0">حماية رسائل البريد الإلكتروني</p>
+                            </div>
+                            
+                            <div class="application-card">
+                                <h6><i class="fas fa-terminal me-2"></i>SSH</h6>
+                                <p class="mb-0">المصادقة الآمنة للخوادم البعيدة</p>
+                            </div>
+
+                            <div class="application-card">
+                                <h6><i class="fas fa-download me-2"></i>توقيع البرمجيات</h6>
+                                <p class="mb-0">التحقق من تحديثات الأنظمة والبرامج</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-cogs me-2"></i>التشفير الهجين</h5>
+                            <div class="principle-card">
+                                <h6><i class="fas fa-question-circle me-2"></i>لماذا لا نستخدم RSA للبيانات الكبيرة؟</h6>
+                                <ul class="feature-list">
+                                    <li>RSA بطيء جدًا مقارنة بالتشفير المتماثل</li>
+                                    <li>يستهلك موارد معالجة كبيرة</li>
+                                    <li>محدود بحجم البيانات التي يمكن تشفيرها</li>
+                                </ul>
+                            </div>
+
+                            <div class="principle-card">
+                                <h6><i class="fas fa-puzzle-piece me-2"></i>الحل: التشفير الهجين</h6>
+                                <div class="text-center">
+                                    <div class="mb-2">1. توليد مفتاح جلسة عشوائي (AES)</div>
+                                    <div class="mb-2">2. تشفير البيانات بالمفتاح المتماثل</div>
+                                    <div class="mb-2">3. تشفير مفتاح الجلسة باستخدام RSA</div>
+                                    <div class="mb-2">4. إرسال البيانات المشفرة + المفتاح المشفر</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Real World Scenario -->
+                    <div class="content-card mt-4">
+                        <h5><i class="fas fa-project-diagram me-2"></i>سيناريو عملي: اتصال HTTPS</h5>
+                        <div class="flowchart">
+                            <div class="flowchart-step">
+                                <strong>المرحلة 1: مصافحة TLS</strong>
+                                <br>
+                                <small>العميل والخادم يتفقان على المفاتيح باستخدام RSA</small>
+                            </div>
+                            <div class="text-center">
+                                <i class="fas fa-arrow-down text-white"></i>
+                            </div>
+                            <div class="flowchart-step">
+                                <strong>المرحلة 2: تبادل المفاتيح</strong>
+                                <br>
+                                <small>العميل يشفر مفتاح الجلسة باستخدام المفتاح العام للخادم</small>
+                            </div>
+                            <div class="text-center">
+                                <i class="fas fa-arrow-down text-white"></i>
+                            </div>
+                            <div class="flowchart-step">
+                                <strong>المرحلة 3: الاتصال الآمن</strong>
+                                <br>
+                                <small>جميع البيانات مشفرة باستخدام AES بالمفتاح المتبادل</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tools -->
+                    <div class="content-card mt-4">
+                        <h5><i class="fas fa-tools me-2"></i>أدوات تدريبية مقترحة</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="concept-card">
+                                    <h6><i class="fas fa-terminal me-2"></i>OpenSSL</h6>
+                                    <p class="mb-0 small">لإنشاء وإدارة مفاتيح RSA</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="concept-card">
+                                    <h6><i class="fas fa-globe me-2"></i>مواقع تعليمية</h6>
+                                    <p class="mb-0 small">تعرض خطوات RSA تفاعليًا</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="concept-card">
+                                    <h6><i class="fas fa-search me-2"></i>أدوات التحليل</h6>
+                                    <p class="mb-0 small">لفحص قوة المفاتيح والأعداد الأولية</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Tab -->
+            <div class="tab-pane fade" id="security" role="tabpanel">
+                <div class="content-card">
+                    <h3 class="section-title">🛡️ الأمان والتهديدات</h3>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-shield-alt text-primary me-2"></i>نقاط القوة في RSA</h5>
+                            
+                            <div class="principle-card">
+                                <h6><i class="fas fa-lock me-2"></i>الأمان الرياضي</h6>
+                                <p class="mb-0">يعتمد على صعوبة تحليل الأعداد الكبيرة إلى عواملها الأولية</p>
+                            </div>
+                            
+                            <div class="principle-card">
+                                <h6><i class="fas fa-check-circle me-2"></i>التجربة والاختبار</h6>
+                                <p class="mb-0">خوارزمية مجربة ومختبرة منذ 1977</p>
+                            </div>
+                            
+                            <div class="principle-card">
+                                <h6><i class="fas fa-cogs me-2"></i>المرونة</h6>
+                                <p class="mb-0">يمكن زيادة الأمان بزيادة طول المفتاح</p>
+                            </div>
+
+                            <div class="principle-card">
+                                <h6><i class="fas fa-infinity me-2"></i>التوافق</h6>
+                                <p class="mb-0">مدعوم في جميع الأنظمة والبروتوكولات</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-exclamation-triangle text-danger me-2"></i>التهديدات والتحديات</h5>
+                            
+                            <div class="security-alert">
+                                <h6><i class="fas fa-microchip me-2"></i>التقدم في قدرات المعالجة</h6>
+                                <p class="mb-0">أجهزة أسرع تقلل الوقت اللازم لكسر المفاتيح</p>
+                            </div>
+                            
+                            <div class="security-alert">
+                                <h6><i class="fas fa-cloud me-2"></i>الحوسبة السحابية</h6>
+                                <p class="mb-0">إمكانية تجميع قوى معالجة هائلة</p>
+                            </div>
+
+                            <div class="security-alert">
+                                <h6><i class="fas fa-atom me-2"></i>الحوسبة الكمية</h6>
+                                <p class="mb-0">خوارزمية شور تهدد أمان RSA بالكامل</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Key Size Recommendations -->
+                    <div class="content-card mt-4">
+                        <h5><i class="fas fa-ruler me-2"></i>أطوال المفاتيح الموصى بها</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>طول المفتاح (بت)</th>
+                                        <th>مستوى الأمان</th>
+                                        <th>الاستخدام المقترح</th>
+                                        <th>الحالة</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>1024</strong></td>
+                                        <td><span class="badge bg-danger">ضعيف</span></td>
+                                        <td>غير موصى به</td>
+                                        <td>تم كسره عمليًا</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>2048</strong></td>
+                                        <td><span class="badge bg-warning">جيد</span></td>
+                                        <td>التطبيقات العامة</td>
+                                        <td>الحد الأدنى الحالي</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>3072</strong></td>
+                                        <td><span class="badge bg-success">قوي</span></td>
+                                        <td>البيانات الحساسة</td>
+                                        <td>موصى به</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>4096</strong></td>
+                                        <td><span class="badge bg-info">قوي جدًا</span></td>
+                                        <td>البيانات شديدة الحساسية</td>
+                                        <td>للتطبيقات الحرجة</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Quantum Computing Threat -->
+                    <div class="content-card mt-4">
+                        <h5><i class="fas fa-atom me-2"></i>تهديد الحوسبة الكمية</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="principle-card">
+                                    <h6><i class="fas fa-exclamation-triangle text-danger me-2"></i>خوارزمية شور</h6>
+                                    <p class="mb-0">يمكنها كسر RSA في وقت كثيري الحدود بدلاً من الوقت الأسي</p>
+                                </div>
+                                <div class="principle-card">
+                                    <h6><i class="fas fa-clock me-2"></i>التأثير المتوقع</h6>
+                                    <p class="mb-0">قد تصبح مفاتيح RSA 2048 بت قابلة للكسر خلال دقائق</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="principle-card">
+                                    <h6><i class="fas fa-shield-alt text-success me-2"></i>الحلول المستقبلية</h6>
+                                    <ul class="feature-list">
+                                        <li>التشفير المقاوم للكم</li>
+                                        <li>خوارزميات ما بعد الكم</li>
+                                        <li>التوقيعات الرقمية المقاومة للكم</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Summary -->
+        <div class="quick-summary">
+            <h5><i class="fas fa-lightbulb me-2"></i>النقاط الرئيسية</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <ul class="feature-list">
+                        <li><strong>التشفير غير المتماثل</strong> يستخدم مفتاحين مختلفين</li>
+                        <li><strong>RSA</strong> يعتمد على صعوبة تحليل الأعداد الكبيرة</li>
+                        <li>يستخدم <strong>التشفير الهجين</strong> RSA + AES للأداء الأمثل</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <ul class="feature-list">
+                        <li>التوقيع الرقمي يعكس عملية التشفير</li>
+                        <li>الحد الأدنى للمفاتيح حالياً هو <strong>2048 بت</strong></li>
+                        <li>الحوسبة الكمية تهدد أمان RSA مستقبلاً</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="navigation-buttons">
+            <div class="row">
+                <div class="col-md-4">
+                    <a href="unit-6.html" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-arrow-right me-2"></i>الوحدة السابقة
+                        <br>
+                        <small>مولدات الأرقام العشوائية</small>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="../index.html" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-home me-2"></i>الصفحة الرئيسية
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="unit-8.html" class="btn btn-primary w-100">
+                        الوحدة التالية <i class="fas fa-arrow-left me-2"></i>
+                        <br>
+                        <small>خوارزميات التوقيع الرقمي</small>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>مسار الأمن السيبراني</h5>
+                    <p>منصة تعليمية متخصصة في تقديم محتوى أكاديمي وعملي في مجال الأمن السيبراني.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>روابط سريعة</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="../../../index.html" class="text-white">الرئيسية</a></li>
+                        <li><a href="../../index.html" class="text-white">جميع المقررات</a></li>
+                        <li><a href="#" class="text-white">الدعم الفني</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>تواصل معنا</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> info@cyberpath.com</li>
+                        <li><i class="fas fa-phone me-2"></i> 0502161465</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2025 مسار الأمن السيبراني. جميع الحقوق محفوظة.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-linkedin fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-youtube fa-lg"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-github fa-lg"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // إضافة تأثيرات تفاعلية إضافية
+            const cards = document.querySelectorAll('.content-card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.style.boxShadow = '0 5px 15px rgba(0,0,0,0.08)';
+                });
+            });
+
+            // تأثيرات للخطوات في المخططات
+            const flowchartSteps = document.querySelectorAll('.flowchart-step');
+            flowchartSteps.forEach(step => {
+                step.addEventListener('mouseenter', function() {
+                    this.style.backgroundColor = '#4a5f7a';
+                });
+                step.addEventListener('mouseleave', function() {
+                    this.style.backgroundColor = '#34495e';
+                });
+            });
+
+            // حفظ التقدم
+            function saveProgress(tabName) {
+                localStorage.setItem('unit7-progress', tabName);
+                updateProgressBar();
+            }
+
+            function updateProgressBar() {
+                const tabs = ['principles', 'rsa', 'applications', 'security'];
+                const currentTab = localStorage.getItem('unit7-progress') || 'principles';
+                const progress = (tabs.indexOf(currentTab) + 1) / tabs.length * 100;
+                document.querySelector('.progress-bar').style.width = `${progress}%`;
+            }
+
+            // تحديث التبويبات لحفظ التقدم
+            document.querySelectorAll('.nav-link').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const target = this.getAttribute('data-bs-target').replace('#', '');
+                    saveProgress(target);
+                });
+            });
+
+            // تهيئة شريط التقدم
+            updateProgressBar();
+        });
+
+        // وظيفة اختبار سريع
+        function checkQuiz() {
+            const selected = document.querySelector('input[name="quiz1"]:checked');
+            const result = document.getElementById('quizResult');
+            
+            if (!selected) {
+                result.innerHTML = '<div class="alert alert-warning">الرجاء اختيار إجابة!</div>';
+                result.style.display = 'block';
+                return;
+            }
+
+            if (selected.id === 'quiz1b') {
+                result.innerHTML = '<div class="alert alert-success">إجابة صحيحة! أحسنت ✅</div>';
+            } else {
+                result.innerHTML = '<div class="alert alert-danger">إجابة خاطئة! الجواب الصحيح: غير المتماثل يستخدم مفتاحين بينما المتماثل يستخدم مفتاحًا واحدًا</div>';
+            }
+            result.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
