@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="ar" dir="trtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الوحدة السادسة - مبادئ توليد الأرقام العشوائية والـ Stream Ciphers | التشفير التطبيقي</title>
+
+    <!-- Bootstrap RTL -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --info: #9b59b6;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f7f9fc 0%, #e8ecf1 100%);
+            font-family: "Tajawal", sans-serif;
+            min-height: 100vh;
+            line-height: 1.7;
+        }
+
+        .unit-header {
+            background: linear-gradient(135deg, var(--primary) 0%, #34495e 100%);
+            color: white;
+            padding: 50px 0 30px 0;
+            border-radius: 0 0 30px 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .unit-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .content-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .section-title {
+            color: var(--primary);
+            border-right: 4px solid var(--secondary);
+            padding-right: 15px;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .objective-card {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-right: 4px solid var(--success);
+        }
+
+        .topic-item {
+            background: var(--light);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-right: 4px solid var(--info);
+        }
+
+        .nav-pills .nav-link {
+            border-radius: 12px;
+            margin: 5px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .concept-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .concept-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-top: 4px solid var(--secondary);
+        }
+
+        .comparison-table {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .principle-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid var(--warning);
+        }
+
+        .navigation-buttons {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin: 30px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .interactive-demo {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .demo-container {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .rng-type {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 15px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-top: 5px solid;
+        }
+
+        .trng-card { border-color: #27ae60; }
+        .prng-card { border-color: #3498db; }
+        .csprng-card { border-color: #9b59b6; }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+
+        .flowchart {
+            background: #2c3e50;
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .flowchart-step {
+            background: #34495e;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .unit-header {
+                padding: 30px 0 20px 0;
+            }
+            
+            .content-card {
+                padding: 20px;
+            }
+            
+            .concept-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .learning-objectives {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .content-section {
+            margin-bottom: 40px;
+        }
+
+        .rc4-algorithm {
+            background: linear-gradient(135deg, #ffeaa7, #fab1a0);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .entropy-meter {
+            background: #34495e;
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .meter-bar {
+            height: 20px;
+            background: #7f8c8d;
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .meter-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e74c3c, #f39c12, #27ae60);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Unit Header -->
+    <div class="unit-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <span class="unit-badge">
+                        <i class="fas fa-random me-2"></i>الوحدة السادسة
+                    </span>
+                    <h1 class="fw-bold mb-3" style="font-size: 2.3rem;">
+                        مبادئ توليد الأرقام العشوائية والـ Stream Ciphers
+                    </h1>
+                    <p class="lead mb-4" style="font-size: 1.2rem; opacity: 0.9;">
+                        أساس أمن التشفير الحديث - العشوائية الحقيقية والزائفة
+                    </p>
+                    <p class="mb-4" style="opacity: 0.8;">
+                        رحلة في عالم العشوائية التي تشكل العمود الفقري لأمن التشفير الحديث، 
+                        من المفاتيح إلى المتجهات الابتدائية، ومن تشفير الدفق إلى مولدات الأرقام الآمنة.
+                    </p>
+                    <div class="d-flex gap-3 flex-wrap">
+                        <span class="badge bg-light text-dark p-2">
+                            <i class="fas fa-clock me-1"></i> 5-6 ساعات دراسة
+                        </span>
+                        <span class="badge bg-light text-dark p-2">
+                            <i class="fas fa-book me-1"></i> 5 أقسام رئيسية
+                        </span>
+                        <span class="badge bg-light text-dark p-2">
+                            <i class="fas fa-tasks me-1"></i> 6 أهداف تعليمية
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-4 text-center d-none d-md-block">
+                    <div style="font-size: 7rem; opacity: 0.8;">
+                        🎲
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <!-- Learning Objectives -->
+        <div class="learning-objectives">
+            <h3 class="text-center mb-4"><i class="fas fa-bullseye me-2"></i>الأهداف التعليمية للوحدة</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="objective-card">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        فهم دور العشوائية في بناء الأنظمة الأمنية الحديثة
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="objective-card">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        التمييز بين TRNG و PRNG و CSPRNG
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="objective-card">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        تحليل كيفية توليد المفاتيح باستخدام PRNGs و AES-CTR
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="objective-card">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        فهم آلية عمل تشفير الدفق Stream Cipher
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="objective-card">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        تحليل خوارزمية RC4 وأسباب توقف استخدامها
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="objective-card">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        معرفة مصادر العشوائية الفيزيائية في الأجهزة
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Pills -->
+        <ul class="nav nav-pills justify-content-center mb-4" id="unitTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="rng-tab" data-bs-toggle="pill" data-bs-target="#rng" type="button" role="tab">
+                    <i class="fas fa-dice me-2"></i>مولدات الأرقام
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="block-tab" data-bs-toggle="pill" data-bs-target="#block" type="button" role="tab">
+                    <i class="fas fa-cube me-2"></i>تشفير الكتل والعشوائية
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="stream-tab" data-bs-toggle="pill" data-bs-target="#stream" type="button" role="tab">
+                    <i class="fas fa-stream me-2"></i>Stream Ciphers
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="rc4-tab" data-bs-toggle="pill" data-bs-target="#rc4" type="button" role="tab">
+                    <i class="fas fa-history me-2"></i>خوارزمية RC4
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="entropy-tab" data-bs-toggle="pill" data-bs-target="#entropy" type="button" role="tab">
+                    <i class="fas fa-atom me-2"></i>الإنتروبيا والعشوائية
+                </button>
+            </li>
+        </ul>
+
+        <!-- Content Tabs -->
+        <div class="tab-content" id="unitTabsContent">
+            
+            <!-- RNG Types Tab -->
+            <div class="tab-pane fade show active" id="rng" role="tabpanel">
+                
+                <div class="content-section">
+                    <div class="content-card">
+                        <h3 class="section-title">🎯 مولدات الأرقام العشوائية</h3>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h5><i class="fas fa-question-circle text-primary me-2"></i>لماذا العشوائية مهمة؟</h5>
+                                <p>العشوائية تشكل العمود الفقري لأمن التشفير الحديث. جميع مفاهيم التشفير تعتمد على وجود أرقام عشوائية قوية:</p>
+                                
+                                <div class="concept-grid">
+                                    <div class="concept-card">
+                                        <h6><i class="fas fa-key me-2"></i>المفاتيح</h6>
+                                        <p class="mb-0">توليد مفاتيح التشفير</p>
+                                    </div>
+                                    <div class="concept-card">
+                                        <h6><i class="fas fa-hashtag me-2"></i>الأعداد الأولية</h6>
+                                        <p class="mb-0">لخوارزميات RSA وغيرها</p>
+                                    </div>
+                                    <div class="concept-card">
+                                        <h6><i class="fas fa-vector-square me-2"></i>المتجهات IV</h6>
+                                        <p class="mb-0">في أوضاع التشغيل</p>
+                                    </div>
+                                    <div class="concept-card">
+                                        <h6><i class="fas fa-shield-alt me-2"></i>Salts و Nonces</h6>
+                                        <p class="mb-0">للتجزئة والبروتوكولات</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="alert alert-danger">
+                                    <h6><i class="fas fa-exclamation-triangle me-2"></i>تحذير أمني</h6>
+                                    <p class="mb-0">ضعف العشوائية = ضعف التشفير بالكامل. إذا كان مولد الأرقام ينتج أرقامًا يسهل توقعها → يمكن استنتاج المفاتيح بسهولة.</p>
+                                </div>
+
+                                <div class="entropy-meter">
+                                    <h6 class="text-center">مقياس الإنتروبيا</h6>
+                                    <div class="meter-bar">
+                                        <div class="meter-fill" style="width: 20%;"></div>
+                                    </div>
+                                    <div class="row text-center">
+                                        <div class="col-4">
+                                            <small>123456</small>
+                                            <div class="text-danger">منخفضة</div>
+                                        </div>
+                                        <div class="col-4">
+                                            <small>P@ssw0rd</small>
+                                            <div class="text-warning">متوسطة</div>
+                                        </div>
+                                        <div class="col-4">
+                                            <small>مفتاح 256-bit</small>
+                                            <div class="text-success">عالية جدًا</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RNG Types -->
+                        <div class="rng-type trng-card">
+                            <h4><i class="fas fa-atom text-success me-2"></i>TRNG - True Random Number Generator</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>المبدأ العلمي</h6>
+                                    <p>يعتمد على ظواهر فيزيائية حقيقية غير قابلة للتوقع مطلقًا.</p>
+                                    
+                                    <div class="principle-card">
+                                        <h6><i class="fas fa-bolt me-2"></i>مصادر العشوائية</h6>
+                                        <ul class="feature-list small">
+                                            <li>الضوضاء الحرارية في الدوائر</li>
+                                            <li>اهتزازات إلكترونية</li>
+                                            <li>أشعة كونية</li>
+                                            <li>تغيرات في التأخير الزمني</li>
+                                            <li>حركة الماوس وضغطات لوحة المفاتيح</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>التقييم</h6>
+                                    <div class="principle-card">
+                                        <h6><i class="fas fa-check text-success me-2"></i>المزايا</h6>
+                                        <ul class="feature-list small">
+                                            <li>غير قابلة للتوقع مطلقًا</li>
+                                            <li>مثالية للتشفير على مستوى الأجهزة</li>
+                                            <li>لا تحتاج بذرة عشوائية</li>
+                                        </ul>
+                                    </div>
+                                    <div class="principle-card">
+                                        <h6><i class="fas fa-times text-danger me-2"></i>العيوب</h6>
+                                        <ul class="feature-list small">
+                                            <li>بطيئة في توليد الأرقام</li>
+                                            <li>تحتاج معايرة مستمرة</li>
+                                            <li>قد تنتج نتائج غير منتظمة</li>
+                                            <li>تكلفة عالية في التصنيع</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="rng-type prng-card">
+                            <h4><i class="fas fa-cogs text-primary me-2"></i>PRNG - Pseudo Random Number Generator</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>المبدأ العلمي</h6>
+                                    <p>ينتج أرقامًا "تشبه" العشوائية باستخدام خوارزميات رياضية.</p>
+                                    
+                                    <div class="principle-card">
+                                        <h6><i class="fas fa-code me-2"></i>خوارزميات شائعة</h6>
+                                        <ul class="feature-list small">
+                                            <li>Linear Congruential Generator</li>
+                                            <li>Mersenne Twister</li>
+                                            <li>Xorshift</li>
+                                            <li>Middle-square method</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>التقييم</h6>
+                                    <div class="principle-card">
+                                        <h6><i class="fas fa-check text-success me-2"></i>المزايا</h6>
+                                        <ul class="feature-list small">
+                                            <li>سريع جدًا في التوليد</li>
+                                            <li>يمكن إعادة النتائج بنفس البذرة</li>
+                                            <li>سهل التنفيذ</li>
+                                        </ul>
+                                    </div>
+                                    <div class="principle-card">
+                                        <h6><i class="fas fa-times text-danger me-2"></i>العيوب</h6>
+                                        <ul class="feature-list small">
+                                            <li>قابل للتوقع عند معرفة الحالة</li>
+                                            <li>غير مناسب للتشفير بمفرده</li>
+                                            <li>قد يكون له فترات تكرار</li>
+                                        </ul>
+                                    </div>
+                                    <div class="alert alert-warning">
+                                        <h6><i class="fas fa-ban me-2"></i>تحذير</h6>
+                                        <p class="mb-0">PRNG العادي غير مناسب للتشفير دون حماية إضافية</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="rng-type csprng-card">
+                            <h4><i class="fas fa-shield-alt text-info me-2"></i>CSPRNG - Cryptographically Secure PRNG</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>المبدأ العلمي</h6>
+                                    <p>النوع المستخدم فعليًا في التشفير - يجمع بين سرعة PRNG وأمان TRNG.</p>
+                                    
+                                    <div class="principle-card">
+                                        <h6><i class="fas fa-lock me-2"></i>خوارزميات آمنة</h6>
+                                        <ul class="feature-list small">
+                                            <li>AES-CTR</li>
+                                            <li>SHA-DRBG</li>
+                                            <li>HMAC-DRBG</li>
+                                            <li>Fortuna</li>
+                                            <li>Yarrow</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>التقييم</h6>
+                                    <div class="principle-card">
+                                        <h6><i class="fas fa-check text-success me-2"></i>المزايا</h6>
+                                        <ul class="feature-list small">
+                                            <li>مقاوم للهجمات التنبؤية</li>
+                                            <li>سريع وكفؤ</li>
+                                            <li>يمر باختبارات عشوائية صارمة</li>
+                                            <li>معتمد في المعايير العالمية</li>
+                                        </ul>
+                                    </div>
+                                    <div class="principle-card">
+                                        <h6><i class="fas fa-times text-danger me-2"></i>العيوب</h6>
+                                        <ul class="feature-list small">
+                                            <li>أكثر تعقيدًا في التنفيذ</li>
+                                            <li>يتطلب بذرة عشوائية قوية</li>
+                                            <li>أبطأ قليلاً من PRNG العادي</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Block Cipher RNG Tab -->
+            <div class="tab-pane fade" id="block" role="tabpanel">
+                <div class="content-card">
+                    <h3 class="section-title">🔐 إنشاء أرقام عشوائية باستخدام تشفير الكتل</h3>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-cube text-primary me-2"></i>فكرة العمل</h5>
+                            <p>يمكن استخدام خوارزمية كتل (مثل AES) كمولّد أرقام عشوائية آمن عبر وضع CTR.</p>
+                            
+                            <div class="flowchart">
+                                <h6 class="text-center">عملية توليد الأرقام باستخدام AES-CTR</h6>
+                                <div class="flowchart-step">
+                                    <strong>الخطوة 1:</strong> اختيار عداد Counter فريد
+                                </div>
+                                <div class="text-center">
+                                    <i class="fas fa-arrow-down text-white"></i>
+                                </div>
+                                <div class="flowchart-step">
+                                    <strong>الخطوة 2:</strong> تشفير العداد باستخدام AES
+                                </div>
+                                <div class="text-center">
+                                    <i class="fas fa-arrow-down text-white"></i>
+                                </div>
+                                <div class="flowchart-step">
+                                    <strong>الخطوة 3:</strong> الناتج هو سلسلة شبه عشوائية (Keystream)
+                                </div>
+                                <div class="text-center">
+                                    <i class="fas fa-arrow-down text-white"></i>
+                                </div>
+                                <div class="flowchart-step">
+                                    <strong>الخطوة 4:</strong> زيادة العداد وتكرار العملية
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="principle-card">
+                                <h6><i class="fas fa-bolt me-2"></i>المزايا</h6>
+                                <ul class="feature-list">
+                                    <li><strong>سريع للغاية:</strong> يستفيد من معجلات AES في العتاد</li>
+                                    <li><strong>مقاوم للتنبؤ:</strong> يعتمد على قوة AES</li>
+                                    <li><strong>أساس قوي:</strong> لـ CSPRNG الحديثة</li>
+                                    <li><strong>مناسب للأجهزة:</strong> معالجات حديثة وشرائح أمنية</li>
+                                </ul>
+                            </div>
+
+                            <div class="principle-card">
+                                <h6><i class="fas fa-cogs me-2"></i>الاستخدامات العملية</h6>
+                                <ul class="feature-list">
+                                    <li>بروتوكولات VPN و TLS</li>
+                                    <li>توليد المفاتيح التشفيرية</li>
+                                    <li>خوارزميات توليد Nonces</li>
+                                    <li>أنظمة التشغيل الآمنة</li>
+                                    <li>المعالجات الحديثة</li>
+                                </ul>
+                            </div>
+
+                            <!-- Example -->
+                            <div class="interactive-demo mt-3">
+                                <h6><i class="fas fa-code me-2"></i>مثال عملي</h6>
+                                <div class="demo-container">
+                                    <div class="row text-center">
+                                        <div class="col-6">
+                                            <small>العداد:</small>
+                                            <code>00 00 00 00 00 00 00 01</code>
+                                        </div>
+                                        <div class="col-6">
+                                            <small>بعد AES:</small>
+                                            <code>6B C1 BE E2 2E 40 9F 96</code>
+                                        </div>
+                                    </div>
+                                    <div class="text-center mt-2">
+                                        <small>ناتج عشوائي آمن للاستخدام في التشفير</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CSPRNG Flowchart -->
+                    <div class="content-card mt-4">
+                        <h5><i class="fas fa-project-diagram me-2"></i>مخطط عمل CSPRNG الحديث</h5>
+                        <div class="flowchart">
+                            <div class="flowchart-step">
+                                <strong>المرحلة 1:</strong> جمع الإنتروبيا من الجهاز
+                                <br>
+                                <small>(حركة ماوس، ضوضاء، توقيتات...)</small>
+                            </div>
+                            <div class="text-center">
+                                <i class="fas fa-arrow-down text-white"></i>
+                            </div>
+                            <div class="flowchart-step">
+                                <strong>المرحلة 2:</strong> معالجة الإنتروبيا (Hash)
+                                <br>
+                                <small>(SHA-256, SHA-512)</small>
+                            </div>
+                            <div class="text-center">
+                                <i class="fas fa-arrow-down text-white"></i>
+                            </div>
+                            <div class="flowchart-step">
+                                <strong>المرحلة 3:</strong> تغذية خوارزمية DRBG
+                                <br>
+                                <small>(AES-CTR, HMAC-DRBG)</small>
+                            </div>
+                            <div class="text-center">
+                                <i class="fas fa-arrow-down text-white"></i>
+                            </div>
+                            <div class="flowchart-step">
+                                <strong>المرحلة 4:</strong> توليد أرقام عشوائية عند الطلب
+                                <br>
+                                <small>(مفاتيح، IVs، Nonces...)</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stream Ciphers Tab -->
+            <div class="tab-pane fade" id="stream" role="tabpanel">
+                <div class="content-card">
+                    <h3 class="section-title">🌊 تيار الأصفار (Stream Ciphers)</h3>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-water text-primary me-2"></i>المفهوم الأساسي</h5>
+                            <p>نوع من التشفير يقوم بتوليد تيار مفاتيح Key Stream، ثم دمجه مع النص الأصلي بعملية XOR.</p>
+                            
+                            <div class="principle-card">
+                                <h6><i class="fas fa-sync-alt me-2"></i>آلية العمل</h6>
+                                <div class="text-center">
+                                    <div class="mb-2">المفتاح → CSPRNG → Key Stream</div>
+                                    <div class="mb-2">Key Stream ⊕ النص الأصلي = النص المشفر</div>
+                                    <div class="mb-2">نفس Key Stream ⊕ النص المشفر = النص الأصلي</div>
+                                </div>
+                            </div>
+
+                            <div class="principle-card">
+                                <h6><i class="fas fa-check-circle me-2"></i>الخصائص</h6>
+                                <ul class="feature-list small">
+                                    <li>سريع جدًا في التنفيذ</li>
+                                    <li>مناسب للاتصال المباشر والبث</li>
+                                    <li>يعمل بايتًا بايتًا أو بتًا بتًا</li>
+                                    <li>لا يحتاج تقسيم البيانات إلى كتل</li>
+                                    <li>خفيف على الموارد</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-network-wired me-2"></i>الاستخدامات العملية</h5>
+                            <div class="concept-grid">
+                                <div class="concept-card">
+                                    <h6><i class="fas fa-wifi me-2"></i>الشبكات اللاسلكية</h6>
+                                    <p class="mb-0 small">WEP (قديم)، أنظمة لاسلكية متخصصة</p>
+                                </div>
+                                <div class="concept-card">
+                                    <h6><i class="fas fa-broadcast-tower me-2"></i>البث الصوتي والمرئي</h6>
+                                    <p class="mb-0 small">بث مباشر، اتصالات وسائط متعددة</p>
+                                </div>
+                                <div class="concept-card">
+                                    <h6><i class="fas fa-microchip me-2"></i>أنظمة مدمجة</h6>
+                                    <p class="mb-0 small">أجهزة ذات موارد محدودة</p>
+                                </div>
+                                <div class="concept-card">
+                                    <h6><i class="fas fa-bolt me-2"></i>تطبيقات الأداء العالي</h6>
+                                    <p class="mb-0 small">حيث السرعة عامل حاسم</p>
+                                </div>
+                            </div>
+
+                            <!-- Comparison Table -->
+                            <div class="comparison-table mt-3">
+                                <h6>مقارنة: Stream Ciphers vs Block Ciphers</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th>المعيار</th>
+                                                <th>Stream Ciphers</th>
+                                                <th>Block Ciphers</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>طريقة العمل</strong></td>
+                                                <td>بايتًا بايتًا</td>
+                                                <td>كتل ثابتة</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>السرعة</strong></td>
+                                                <td>أسرع في الاتصالات</td>
+                                                <td>أقوى في التخزين</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>حساسية الخطأ</strong></td>
+                                                <td>عالية</td>
+                                                <td>منخفضة</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>المتطلبات</strong></td>
+                                                <td>CSPRNG قوي</td>
+                                                <td>وضع تشغيل</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Usage Scenarios -->
+                    <div class="content-card mt-4">
+                        <h5><i class="fas fa-map-signs me-2"></i>سيناريوهات استخدام Stream Ciphers</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="scenario-card">
+                                    <h6><i class="fas fa-broadcast-tower me-2"></i>بث الصوت والفيديو</h6>
+                                    <p class="mb-0"><strong>السبب:</strong> يحتاج معالجة سريعة بدون تقسيم كتل</p>
+                                </div>
+                                <div class="scenario-card">
+                                    <h6><i class="fas fa-mobile-alt me-2"></i>أجهزة منخفضة القدرة</h6>
+                                    <p class="mb-0"><strong>السبب:</strong> خفيفة وسريعة على الموارد</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="scenario-card">
+                                    <h6><i class="fas fa-network-wired me-2"></i>بروتوكولات شبكية</h6>
+                                    <p class="mb-0"><strong>السبب:</strong> لا تحتاج تقسيم البيانات إلى كتل</p>
+                                </div>
+                                <div class="scenario-card">
+                                    <h6><i class="fas fa-clock me-2"></i>اتصالات حساسة للوقت</h6>
+                                    <p class="mb-0"><strong>السبب:</strong> لا توجد معالجة إضافية للكتل</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Warning -->
+                    <div class="alert alert-danger mt-4">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>تحذير أمني مهم</h6>
+                        <p class="mb-0">
+                            عدم إعادة استخدام نفس المفتاح Key أو المتجه الابتدائي IV في Stream Ciphers 
+                            يؤدي إلى اختراق فوري. هذا هو السبب الرئيسي في اختراق WEP بسهولة!
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RC4 Algorithm Tab -->
+            <div class="tab-pane fade" id="rc4" role="tabpanel">
+                <div class="content-card">
+                    <h3 class="section-title">📜 خوارزمية RC4</h3>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-history text-primary me-2"></i>نبذة تاريخية</h5>
+                            <p>طُورت RC4 في 1987 بواسطة Ron Rivest وأصبحت أحد أشهر Stream Ciphers في التاريخ.</p>
+                            
+                            <div class="principle-card">
+                                <h6><i class="fas fa-star me-2"></i>شهرة RC4</h6>
+                                <ul class="feature-list">
+                                    <li>اشتهرت كأسرع Stream Cipher في زمانها</li>
+                                    <li>استخدمت على نطاق واسع لمدة 20+ سنة</li>
+                                    <li>نفذت في البرامج والأجهزة</li>
+                                    <li>كانت الخيار الأول للعديد من التطبيقات</li>
+                                </ul>
+                            </div>
+
+                            <div class="principle-card">
+                                <h6><i class="fas fa-wifi me-2"></i>التطبيقات السابقة</h6>
+                                <ul class="feature-list">
+                                    <li>WEP - Wireless Encryption Protocol</li>
+                                    <li>WPA القديم (TKIP)</li>
+                                    <li>TLS 1.0 و SSL</li>
+                                    <li>بروتوكولات Microsoft القديمة</li>
+                                    <li>تطبيقات VPN مبكرة</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="rc4-algorithm">
+                                <h6 class="text-center"><i class="fas fa-cogs me-2"></i>بنية RC4</h6>
+                                <div class="text-center">
+                                    <div class="mb-2"><strong>الجزء 1: KSA</strong></div>
+                                    <div class="small">Key Scheduling Algorithm</div>
+                                    <div class="mb-2">← توليد حالة أولية من المفتاح</div>
+                                    
+                                    <div class="mb-2"><strong>الجزء 2: PRGA</strong></div>
+                                    <div class="small">Pseudo Random Generation Algorithm</div>
+                                    <div class="mb-2">← توليد التيار العشوائي</div>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-warning mt-3">
+                                <h6><i class="fas fa-graduation-cap me-2"></i>لماذا ما زلنا ندرس RC4؟</h6>
+                                <p class="mb-0">
+                                    لأنه نموذج واضح لفهم طريقة عمل Stream Ciphers، 
+                                    ولوجودها في الأنظمة القديمة التي قد نواجهها في العمل الميداني.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RC4 Problems -->
+                    <div class="content-card mt-4">
+                        <h5><i class="fas fa-bug me-2"></i>مشاكل RC4 الأمنية</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="principle-card">
+                                    <h6><i class="fas fa-chart-bar text-danger me-2"></i>انحرافات إحصائية</h6>
+                                    <ul class="feature-list small">
+                                        <li>توزيع غير متجانس للبايتات</li>
+                                        <li>انحياز في البايتات الأولى من التيار</li>
+                                        <li>ضعف في الإنتروبيا الإحصائية</li>
+                                    </ul>
+                                </div>
+                                <div class="principle-card">
+                                    <h6><i class="fas fa-shield-alt text-danger me-2"></i>هجمات عملية</h6>
+                                    <ul class="feature-list small">
+                                        <li>هجمات تمييزية فعالة</li>
+                                        <li>إمكانية استعادة المفتاح</li>
+                                        <li>هجمات إعادة الاستخدام</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="principle-card">
+                                    <h6><i class="fas fa-ban text-danger me-2"></i>الحظر الرسمي</h6>
+                                    <ul class="feature-list small">
+                                        <li><strong>Microsoft:</strong> حظرت في جميع المنتجات</li>
+                                        <li><strong>Mozilla:</strong> إزالة من Firefox</li>
+                                        <li><strong>IETF:</strong> منع في RFC 7465</li>
+                                        <li><strong>Google:</strong> إزالة من Chrome</li>
+                                        <li><strong>Apple:</strong> منع في iOS و macOS</li>
+                                    </ul>
+                                </div>
+                                <div class="principle-card">
+                                    <h6><i class="fas fa-calendar-times text-danger me-2"></i>نهاية العمر</h6>
+                                    <ul class="feature-list small">
+                                        <li>غير آمن في TLS و SSL</li>
+                                        <li>ممنوع في المعايير الحديثة</li>
+                                        <li>لا يوصى به لأي استخدام</li>
+                                        <li>استبدال بـ AES-GCM و ChaCha20</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RC4 Code Example -->
+                    <div class="interactive-demo mt-4">
+                        <h5><i class="fas fa-code me-2"></i>مثال توضيحي لبنية RC4</h5>
+                        <div class="demo-container">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>KSA - Key Scheduling</h6>
+                                    <pre class="bg-light p-3 rounded small">
+for i from 0 to 255
+    S[i] = i
+j = 0
+for i from 0 to 255
+    j = (j + S[i] + key[i mod keylength]) mod 256
+    swap S[i] and S[j]
+                                    </pre>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>PRGA - Stream Generation</h6>
+                                    <pre class="bg-light p-3 rounded small">
+i = 0, j = 0
+while GeneratingOutput:
+    i = (i + 1) mod 256
+    j = (j + S[i]) mod 256
+    swap S[i] and S[j]
+    K = S[(S[i] + S[j]) mod 256]
+    output K
+                                    </pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Entropy Tab -->
+            <div class="tab-pane fade" id="entropy" role="tabpanel">
+                <div class="content-card">
+                    <h3 class="section-title">⚛️ الإنتروبيا والعشوائية الحقيقية</h3>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-snowflake text-primary me-2"></i>مفهوم الإنتروبيا</h5>
+                            <p>الإنتروبيا هي مقياس مقدار "المجهولية" أو "عدم القابلية للتنبؤ" في البيانات.</p>
+                            
+                            <div class="principle-card">
+                                <h6><i class="fas fa-ruler me-2"></i>مقاييس الإنتروبيا</h6>
+                                <ul class="feature-list">
+                                    <li><strong>إنتروبيا شانون:</strong> قياس عدم اليقين</li>
+                                    <li><strong>إنتروبيا min-entropy:</strong> أسوأ حالة تنبؤ</li>
+                                    <li><strong>إنتروبيا التجميع:</strong> للأنظمة المعقدة</li>
+                                </ul>
+                            </div>
+
+                            <div class="principle-card">
+                                <h6><i class="fas fa-microchip me-2"></i>مصادر الإنتروبيا في الأجهزة</h6>
+                                <ul class="feature-list">
+                                    <li>الضوضاء الحرارية في الترانزستورات</li>
+                                    <li>تذبذب توقيت الساعة clock jitter</li>
+                                    <li>الضوضاء الكهربائية في الدوائر</li>
+                                    <li>حركة الهواء والاهتزازات الميكانيكية</li>
+                                    <li>التحلل الإشعاعي (في أنظمة عالية الأمان)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-laptop me-2"></i>تطبيقات عملية</h5>
+                            <div class="concept-grid">
+                                <div class="concept-card">
+                                    <h6><i class="fas fa-key me-2"></i>/dev/random</h6>
+                                    <p class="mb-0 small">في أنظمة Unix - ينتظر إنتروبيا كافية</p>
+                                </div>
+                                <div class="concept-card">
+                                    <h6><i class="fas fa-bolt me-2"></i>/dev/urandom</h6>
+                                    <p class="mb-0 small">لا ينتظر - يستخدم CSPRNG</p>
+                                </div>
+                                <div class="concept-card">
+                                    <h6><i class="fas fa-shield-alt me-2"></i>RDRAND</h6>
+                                    <p class="mb-0 small">تعليمة معالج Intel للعشوائية</p>
+                                </div>
+                                <div class="concept-card">
+                                    <h6><i class="fas fa-memory me-2"></i>TRNG شرائح</h6>
+                                    <p class="mb-0 small">شرائح مخصصة للعشوائية الحقيقية</p>
+                                </div>
+                            </div>
+
+                            <!-- Entropy Sources -->
+                            <div class="entropy-meter mt-3">
+                                <h6 class="text-center">مصادر الإنتروبيا في الحاسوب</h6>
+                                <div class="principle-card">
+                                    <h6><i class="fas fa-mouse me-2"></i>مصادر برمجية</h6>
+                                    <ul class="feature-list small">
+                                        <li>حركة الماوس وضغطات لوحة المفاتيح</li>
+                                        <li>توقيتات المدخلات والمخرجات</li>
+                                        <li>حركة الشبكة وحزم البيانات</li>
+                                        <li>أوقات الوصول للقرص الصلب</li>
+                                    </ul>
+                                </div>
+                                <div class="principle-card">
+                                    <h6><i class="fas fa-microchip me-2"></i>مصادر عتادية</h6>
+                                    <ul class="feature-list small">
+                                        <li>الضوضاء الحرارية في المعالج</li>
+                                        <li>تذبذب توقيت الساعة</li>
+                                        <li>الضوضاء في كاميرا الويب</li>
+                                        <li>ميكروفون (في أنظمة متقدمة)</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Best Practices -->
+                    <div class="content-card mt-4">
+                        <h5><i class="fas fa-graduation-cap me-2"></i>أفضل الممارسات</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="principle-card">
+                                    <h6><i class="fas fa-check text-success me-2"></i>ما يجب فعله</h6>
+                                    <ul class="feature-list small">
+                                        <li>استخدم CSPRNG معتمدة (AES-CTR, HMAC-DRBG)</li>
+                                        <li>تأكد من وجود إنتروبيا كافية عند التهيئة</li>
+                                        <li>استخدم مصادر متعددة للإنتروبيا</li>
+                                        <li>اختر مولدات معتمدة من NIST</li>
+                                        <li>استخدم /dev/urandom للتطبيقات العامة</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="principle-card">
+                                    <h6><i class="fas fa-times text-danger me-2"></i>ما يجب تجنبه</h6>
+                                    <ul class="feature-list small">
+                                        <li>لا تستخدم PRNG عادية للتشفير</li>
+                                        <li>لا تعيد استخدام المفاتيح أو IVs</li>
+                                        <li>لا تعتمد على وقت النظام فقط</li>
+                                        <li>لا تستخدم RC4 في التطبيقات الجديدة</li>
+                                        <li>لا تهمل تجميع الإنتروبيا</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Future of RNG -->
+                    <div class="alert alert-info mt-4">
+                        <h6><i class="fas fa-crystal-ball me-2"></i>مستقبل توليد الأرقام العشوائية</h6>
+                        <p class="mb-0">
+                            يتجه العالم نحو دمج TRNG و CSPRNG في شرائح واحدة، مع استخدام فيزياء الكم 
+                            لتوليد عشوائية حقيقية غير قابلة للتنبؤ مطلقًا، مما يضمن أمانًا أعلى للتطبيقات الحساسة.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="navigation-buttons">
+            <div class="row">
+                <div class="col-md-4">
+                    <a href="unit-5.html" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-arrow-right me-2"></i>الوحدة السابقة
+                        <br>
+                        <small>أوضاع التشفير</small>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="../index.html" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-home me-2"></i>الصفحة الرئيسية
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="unit-7.html" class="btn btn-primary w-100">
+                        الوحدة التالية <i class="fas fa-arrow-left me-2"></i>
+                        <br>
+                        <small>التشفير غير المتماثل و RSA</small>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>مسار الأمن السيبراني</h5>
+                    <p>منصة تعليمية متخصصة في تقديم محتوى أكاديمي وعملي في مجال الأمن السيبراني.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>روابط سريعة</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="../../../index.html" class="text-white">الرئيسية</a></li>
+                        <li><a href="../../index.html" class="text-white">جميع المقررات</a></li>
+                        <li><a href="#" class="text-white">الدعم الفني</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>تواصل معنا</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> info@cyberpath.com</li>
+                        <li><i class="fas fa-phone me-2"></i> 0502161465</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2025 مسار الأمن السيبراني. جميع الحقوق محفوظة.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-linkedin fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-youtube fa-lg"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-github fa-lg"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // إضافة تأثيرات تفاعلية إضافية
+            const cards = document.querySelectorAll('.content-card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.style.boxShadow = '0 5px 15px rgba(0,0,0,0.08)';
+                });
+            });
+
+            // تأثيرات لبطاقات أنواع RNG
+            const rngCards = document.querySelectorAll('.rng-type');
+            rngCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-5px)';
+                    this.style.transition = 'all 0.3s ease';
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+
+            // تأثيرات للخطوات في المخططات
+            const flowchartSteps = document.querySelectorAll('.flowchart-step');
+            flowchartSteps.forEach(step => {
+                step.addEventListener('mouseenter', function() {
+                    this.style.backgroundColor = '#4a5f7a';
+                });
+                step.addEventListener('mouseleave', function() {
+                    this.style.backgroundColor = '#34495e';
+                });
+            });
+
+            // محاكاة عشوائية للعداد
+            function updateCounter() {
+                const counter = document.querySelector('.demo-container code');
+                if (counter) {
+                    const randomBytes = Array.from({length: 16}, () => 
+                        Math.floor(Math.random() * 256).toString(16).padStart(2, '0')
+                    ).join(' ');
+                    counter.textContent = randomBytes.toUpperCase();
+                }
+            }
+
+            // تحديث العداد كل 3 ثواني
+            setInterval(updateCounter, 3000);
+            updateCounter();
+        });
+    </script>
+</body>
+</html>
