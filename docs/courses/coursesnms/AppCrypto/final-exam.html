@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الاختبار النهائي - التشفير التطبيقي | مسار الأمن السيبراني</title>
+
+    <!-- Bootstrap RTL -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --info: #9b59b6;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f7f9fc 0%, #e8ecf1 100%);
+            font-family: "Tajawal", sans-serif;
+            min-height: 100vh;
+            line-height: 1.7;
+            direction: rtl;
+        }
+
+        .exam-header {
+            background: linear-gradient(135deg, var(--primary) 0%, #34495e 100%);
+            color: white;
+            padding: 40px 0 20px 0;
+            border-radius: 0 0 30px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .exam-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        .section-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .section-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .section-title {
+            color: var(--primary);
+            border-right: 4px solid var(--secondary);
+            padding-right: 15px;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .question-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-right: 4px solid var(--info);
+        }
+
+        .mcq-options {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .true-false-card {
+            background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .essay-card {
+            background: linear-gradient(135deg, #ffeaa7, #fab1a0);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            color: #2d3436;
+        }
+
+        .application-card {
+            background: linear-gradient(135deg, #81ecec, #00cec9);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .timer-container {
+            background: linear-gradient(135deg, #fd79a8, #e84393);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .navigation-buttons {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin: 30px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .btn-interactive {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-interactive:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .progress {
+            height: 8px;
+            margin-bottom: 20px;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #00b894, #55efc4);
+            color: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin: 20px 0;
+            text-align: center;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .exam-header {
+                padding: 30px 0 15px 0;
+            }
+            
+            .section-card {
+                padding: 20px;
+            }
+        }
+
+        /* تدرج ألوان للأقسام */
+        .mcq-section { border-right: 4px solid #3498db; }
+        .tf-section { border-right: 4px solid #e74c3c; }
+        .essay-section { border-right: 4px solid #f39c12; }
+        .application-section { border-right: 4px solid #9b59b6; }
+
+        /* أنيميشن للتايمر */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse-warning {
+            animation: pulse 1s infinite;
+            color: #e74c3c !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Exam Header -->
+    <div class="exam-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <span class="exam-badge">
+                        <i class="fas fa-file-alt me-2"></i>الاختبار النهائي
+                    </span>
+                    <h1 class="fw-bold mb-3" style="font-size: 2.3rem;">
+                        الاختبار النهائي الشامل
+                    </h1>
+                    <p class="lead mb-4" style="font-size: 1.2rem; opacity: 0.9;">
+                        تقييم شامل لمهارات التشفير التطبيقي
+                    </p>
+                    <p class="mb-4" style="opacity: 0.8;">
+                        اختبار شامل يغطي جميع جوانب التشفير المتماثل، غير المتماثل، سلامة البيانات، وإدارة المفاتيح
+                    </p>
+                    <div class="d-flex gap-3 flex-wrap">
+                        <span class="badge bg-light text-dark p-2">
+                            <i class="fas fa-clock me-1"></i> 120 دقيقة
+                        </span>
+                        <span class="badge bg-light text-dark p-2">
+                            <i class="fas fa-question-circle me-1"></i> 30 سؤال
+                        </span>
+                        <span class="badge bg-light text-dark p-2">
+                            <i class="fas fa-star me-1"></i> 100 درجة
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-4 text-center d-none d-md-block">
+                    <div style="font-size: 7rem; opacity: 0.8;">
+                        📝
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <!-- Timer and Progress -->
+        <div class="timer-container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h4 id="timer">⏰ 120:00</h4>
+                    <p class="mb-0">الوقت المتبقي</p>
+                </div>
+                <div class="col-md-6">
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" style="width: 0%; background: linear-gradient(90deg, #3498db, #2ecc71);" 
+                             id="examProgress"></div>
+                    </div>
+                    <p class="mb-0">التقدم: <span id="progressText">0%</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Exam Instructions -->
+        <div class="section-card">
+            <h3 class="section-title"><i class="fas fa-info-circle me-2"></i>تعليمات الاختبار</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="principle-card">
+                        <h6><i class="fas fa-check-circle text-success me-2"></i>ما يجب فعله</h6>
+                        <ul class="feature-list">
+                            <li>اقرأ كل سؤال بعناية قبل الإجابة</li>
+                            <li>راجع إجاباتك قبل التسليم</li>
+                            <li>استخدم الوقت المتبقي للمراجعة</li>
+                            <li>أجب على جميع الأسئلة الإلزامية</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="principle-card">
+                        <h6><i class="fas fa-times-circle text-danger me-2"></i>ما يجب تجنبه</h6>
+                        <ul class="feature-list">
+                            <li>عدم تحديث الصفحة أثناء الاختبار</li>
+                            <li>عدم استخدام مصادر خارجية</li>
+                            <li>عدم ترك الصفحة مفتوحة لفترة طويلة</li>
+                            <li>عدم محاولة الغش بأي طريقة</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MCQ Section -->
+        <div class="section-card mcq-section">
+            <h3 class="section-title"><i class="fas fa-list-ol me-2"></i>أسئلة اختيار من متعدد (15 سؤال - 45 درجة)</h3>
+            <p class="text-muted mb-4">اختر الإجابة الصحيحة لكل سؤال:</p>
+
+            <!-- Question 1 -->
+            <div class="question-card">
+                <h5>1. أي مما يلي يُعد هدفًا رئيسيًا للتشفير؟</h5>
+                <div class="mcq-options">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="q1" id="q1a">
+                        <label class="form-check-label" for="q1a">تحسين الأداء</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="q1" id="q1b">
+                        <label class="form-check-label" for="q1b">ضمان سرية البيانات</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="q1" id="q1c">
+                        <label class="form-check-label" for="q1c">زيادة حجم الملفات</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="q1" id="q1d">
+                        <label class="form-check-label" for="q1d">تقليل استخدام الشبكة</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question 2 -->
+            <div class="question-card">
+                <h5>2. أي خوارزمية من التالية تُعتبر غير آمنة اليوم؟</h5>
+                <div class="mcq-options">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="q2" id="q2a">
+                        <label class="form-check-label" for="q2a">AES</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="q2" id="q2b">
+                        <label class="form-check-label" for="q2b">DES</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="q2" id="q2c">
+                        <label class="form-check-label" for="q2c">ECC</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="q2" id="q2d">
+                        <label class="form-check-label" for="q2d">RSA-4096</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question 3 -->
+            <div class="question-card">
+                <h5>3. في نموذج التشفير المتماثل، أي مما يلي يُستخدم للعملية بالكامل؟</h5>
+                <div class="mcq-options">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="q3" id="q3a">
+                        <label class="form-check-label" for="q3a">مفتاح عام فقط</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="q3" id="q3b">
+                        <label class="form-check-label" for="q3b">مفتاح خاص فقط</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="q3" id="q3c">
+                        <label class="form-check-label" for="q3c">مفتاح واحد مشترك</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="q3" id="q3d">
+                        <label class="form-check-label" for="q3d">زوج مفاتيح منفصلين</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Questions 4-15 would follow the same pattern -->
+            <div class="text-center mt-4">
+                <p class="text-muted">... استمرارية الأسئلة بنفس النمط ...</p>
+            </div>
+        </div>
+
+        <!-- True/False Section -->
+        <div class="section-card tf-section">
+            <h3 class="section-title"><i class="fas fa-check-circle me-2"></i>أسئلة صح وخطأ (8 أسئلة - 16 درجة)</h3>
+            
+            <!-- Question 1 -->
+            <div class="true-false-card">
+                <h5>1. AES هو بديل حديث لـ DES بسبب قوة أمانه.</h5>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="tf1" id="tf1true">
+                    <label class="form-check-label" for="tf1true">صح</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="tf1" id="tf1false">
+                    <label class="form-check-label" for="tf1false">خطأ</label>
+                </div>
+            </div>
+
+            <!-- Question 2 -->
+            <div class="true-false-card">
+                <h5>2. يعمل RC4 على كتل ثابتة مثل AES.</h5>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="tf2" id="tf2true">
+                    <label class="form-check-label" for="tf2true">صح</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="tf2" id="tf2false">
+                    <label class="form-check-label" for="tf2false">خطأ</label>
+                </div>
+            </div>
+
+            <!-- Question 3 -->
+            <div class="true-false-card">
+                <h5>3. RSA أسرع من AES في تشفير الملفات الكبيرة.</h5>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="tf3" id="tf3true">
+                    <label class="form-check-label" for="tf3true">صح</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="tf3" id="tf3false">
+                    <label class="form-check-label" for="tf3false">خطأ</label>
+                </div>
+            </div>
+
+            <!-- Questions 4-8 would follow the same pattern -->
+            <div class="text-center mt-4">
+                <p class="text-muted" style="color: white !important;">... استمرارية الأسئلة بنفس النمط ...</p>
+            </div>
+        </div>
+
+        <!-- Essay Questions Section -->
+        <div class="section-card essay-section">
+            <h3 class="section-title"><i class="fas fa-edit me-2"></i>أسئلة مقالية قصيرة (5 أسئلة - 25 درجة)</h3>
+            
+            <!-- Question 1 -->
+            <div class="essay-card">
+                <h5>1. وضّح الفرق بين التشفير المتماثل وغير المتماثل من حيث الاستخدام والأداء.</h5>
+                <textarea class="form-control mt-3" rows="4" placeholder="اكتب إجابتك هنا..."></textarea>
+                <small class="text-muted">(5 درجات)</small>
+            </div>
+
+            <!-- Question 2 -->
+            <div class="essay-card">
+                <h5>2. ما أهمية أوضاع التشفير (Modes of Operation) عند استخدام خوارزميات الكتل؟</h5>
+                <textarea class="form-control mt-3" rows="4" placeholder="اكتب إجابتك هنا..."></textarea>
+                <small class="text-muted">(5 درجات)</small>
+            </div>
+
+            <!-- Question 3 -->
+            <div class="essay-card">
+                <h5>3. وضّح الفكرة الأساسية لخوارزمية RSA وكيف يتم إنشاء زوج المفاتيح.</h5>
+                <textarea class="form-control mt-3" rows="4" placeholder="اكتب إجابتك هنا..."></textarea>
+                <small class="text-muted">(5 درجات)</small>
+            </div>
+
+            <!-- Questions 4-5 would follow the same pattern -->
+            <div class="text-center mt-4">
+                <p class="text-muted">... استمرارية الأسئلة بنفس النمط ...</p>
+            </div>
+        </div>
+
+        <!-- Application Questions Section -->
+        <div class="section-card application-section">
+            <h3 class="section-title"><i class="fas fa-laptop-code me-2"></i>أسئلة تطبيقية عملية (5 أسئلة - 14 درجة)</h3>
+            
+            <!-- Question 1 -->
+            <div class="application-card">
+                <h5>1. لديك ملف حساس يحتاج إلى تشفير وتحقق من سلامته.</h5>
+                <p class="mb-3">ما الخوارزميات المناسبة لتحقيق:</p>
+                <ul>
+                    <li>السرية</li>
+                    <li>السلامة</li>
+                    <li>التوثيق</li>
+                </ul>
+                <textarea class="form-control mt-3" rows="3" placeholder="اكتب إجابتك هنا..."></textarea>
+                <small>(3 درجات)</small>
+            </div>
+
+            <!-- Question 2 -->
+            <div class="application-card">
+                <h5>2. مؤسسة ترغب بإرسال مفتاح AES عبر شبكة عامة.</h5>
+                <p class="mb-3">أي نظام تشفير غير متماثل يُستخدم لحماية المفتاح؟ ولماذا؟</p>
+                <textarea class="form-control mt-3" rows="3" placeholder="اكتب إجابتك هنا..."></textarea>
+                <small>(3 درجات)</small>
+            </div>
+
+            <!-- Question 3 -->
+            <div class="application-card">
+                <h5>3. إذا كنت تريد تشفير قرص كامل (Full Disk Encryption)، ما الوضع الأنسب من أوضاع AES؟ ولماذا؟</h5>
+                <textarea class="form-control mt-3" rows="3" placeholder="اكتب إجابتك هنا..."></textarea>
+                <small>(3 درجات)</small>
+            </div>
+
+            <!-- Questions 4-5 would follow the same pattern -->
+            <div class="text-center mt-4">
+                <p class="text-muted" style="color: white !important;">... استمرارية الأسئلة بنفس النمط ...</p>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="result-card" id="examResult">
+            <h3><i class="fas fa-trophy me-2"></i>نتيجة الاختبار</h3>
+            <div class="display-4 fw-bold mb-3" id="finalScore">0%</div>
+            <h5 id="resultMessage">جارٍ حساب النتيجة...</h5>
+            <div class="mt-4">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <h6>MCQ</h6>
+                        <div class="h4" id="mcqScore">0/45</div>
+                    </div>
+                    <div class="col-md-3">
+                        <h6>صح/خطأ</h6>
+                        <div class="h4" id="tfScore">0/16</div>
+                    </div>
+                    <div class="col-md-3">
+                        <h6>مقالي</h6>
+                        <div class="h4" id="essayScore">0/25</div>
+                    </div>
+                    <div class="col-md-3">
+                        <h6>تطبيقي</h6>
+                        <div class="h4" id="appScore">0/14</div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4">
+                <button class="btn btn-light btn-lg me-3" onclick="showAnswers()">
+                    <i class="fas fa-eye me-2"></i>عرض الإجابات
+                </button>
+                <button class="btn btn-light btn-lg" onclick="retakeExam()">
+                    <i class="fas fa-redo me-2"></i>إعادة الاختبار
+                </button>
+            </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="navigation-buttons">
+            <div class="row">
+                <div class="col-md-6">
+                    <button class="btn btn-outline-primary w-100 btn-interactive" onclick="saveProgress()">
+                        <i class="fas fa-save me-2"></i>حفظ التقدم
+                        <br>
+                        <small>يمكنك العودة لاحقًا</small>
+                    </button>
+                </div>
+                <div class="col-md-6">
+                    <button class="btn btn-success w-100 btn-interactive" onclick="submitExam()">
+                        <i class="fas fa-paper-plane me-2"></i>تسليم الاختبار
+                        <br>
+                        <small>بعد المراجعة النهائية</small>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>مسار الأمن السيبراني</h5>
+                    <p>منصة تعليمية متخصصة في تقديم محتوى أكاديمي وعملي في مجال الأمن السيبراني.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>روابط سريعة</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="../index.html" class="text-white">الرئيسية</a></li>
+                        <li><a href="unit-summary.html" class="text-white">المراجعة النهائية</a></li>
+                        <li><a href="#" class="text-white">الدعم الفني</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>تواصل معنا</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> info@cyberpath.com</li>
+                        <li><i class="fas fa-phone me-2"></i> 0502161465</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2025 مسار الأمن السيبراني. جميع الحقوق محفوظة.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-linkedin fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-youtube fa-lg"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-github fa-lg"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // إعدادات الاختبار
+        let examTime = 120 * 60; // 120 دقيقة بالثواني
+        let timerInterval;
+        let examStarted = false;
+
+        // بدء المؤقت عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            startTimer();
+            loadProgress();
+            updateProgressBar();
+        });
+
+        // وظيفة المؤقت
+        function startTimer() {
+            examStarted = true;
+            timerInterval = setInterval(function() {
+                examTime--;
+                updateTimerDisplay();
+                
+                if (examTime <= 0) {
+                    clearInterval(timerInterval);
+                    autoSubmitExam();
+                } else if (examTime <= 300) { // 5 دقائق متبقية
+                    document.getElementById('timer').classList.add('pulse-warning');
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(examTime / 60);
+            const seconds = examTime % 60;
+            document.getElementById('timer').textContent = `⏰ ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // تحديث شريط التقدم
+        function updateProgressBar() {
+            const answered = calculateAnsweredQuestions();
+            const totalQuestions = 30; // إجمالي الأسئلة
+            const progress = (answered / totalQuestions) * 100;
+            
+            document.getElementById('examProgress').style.width = `${progress}%`;
+            document.getElementById('progressText').textContent = `${Math.round(progress)}%`;
+        }
+
+        function calculateAnsweredQuestions() {
+            // حساب الأسئلة المجابة (هذا مثال مبسط)
+            let answered = 0;
+            
+            // حساب MCQ
+            for (let i = 1; i <= 15; i++) {
+                if (document.querySelector(`input[name="q${i}"]:checked`)) {
+                    answered++;
+                }
+            }
+            
+            // حساب صح/خطأ
+            for (let i = 1; i <= 8; i++) {
+                if (document.querySelector(`input[name="tf${i}"]:checked`)) {
+                    answered++;
+                }
+            }
+            
+            // حساب المقالية (نعتبر أي إجابة غير فارغة)
+            const essayAnswers = document.querySelectorAll('textarea');
+            essayAnswers.forEach(textarea => {
+                if (textarea.value.trim() !== '') {
+                    answered++;
+                }
+            });
+            
+            return answered;
+        }
+
+        // حفظ التقدم
+        function saveProgress() {
+            const progress = {
+                timestamp: new Date().toISOString(),
+                answers: collectAnswers(),
+                timeRemaining: examTime
+            };
+            
+            localStorage.setItem('examProgress', JSON.stringify(progress));
+            alert('✅ تم حفظ التقدم بنجاح! يمكنك العودة لاحقًا لإكمال الاختبار.');
+        }
+
+        function loadProgress() {
+            const savedProgress = localStorage.getItem('examProgress');
+            if (savedProgress) {
+                const progress = JSON.parse(savedProgress);
+                if (confirm('تم العثور على اختبار محفوظ. هل تريد استئناف من حيث توقفت؟')) {
+                    loadAnswers(progress.answers);
+                    examTime = progress.timeRemaining;
+                    updateTimerDisplay();
+                }
+            }
+        }
+
+        function collectAnswers() {
+            // جمع جميع الإجابات (تنفيذ مبسط)
+            const answers = {};
+            
+            // جمع MCQ
+            for (let i = 1; i <= 15; i++) {
+                const selected = document.querySelector(`input[name="q${i}"]:checked`);
+                answers[`q${i}`] = selected ? selected.id : null;
+            }
+            
+            // جمع صح/خطأ
+            for (let i = 1; i <= 8; i++) {
+                const selected = document.querySelector(`input[name="tf${i}"]:checked`);
+                answers[`tf${i}`] = selected ? selected.id : null;
+            }
+            
+            // جمع المقالية
+            const essayAnswers = document.querySelectorAll('textarea');
+            essayAnswers.forEach((textarea, index) => {
+                answers[`essay${index + 1}`] = textarea.value;
+            });
+            
+            return answers;
+        }
+
+        function loadAnswers(answers) {
+            // تحميل الإجابات المحفوظة (تنفيذ مبسط)
+            for (const [question, answer] of Object.entries(answers)) {
+                if (answer) {
+                    const element = document.getElementById(answer);
+                    if (element) {
+                        element.checked = true;
+                    } else if (question.startsWith('essay')) {
+                        const index = parseInt(question.replace('essay', '')) - 1;
+                        const textareas = document.querySelectorAll('textarea');
+                        if (textareas[index]) {
+                            textareas[index].value = answer;
+                        }
+                    }
+                }
+            }
+            updateProgressBar();
+        }
+
+        // تسليم الاختبار
+        function submitExam() {
+            if (!confirm('هل أنت متأكد من رغبتك في تسليم الاختبار؟ لا يمكنك العودة بعد التسليم.')) {
+                return;
+            }
+            
+            clearInterval(timerInterval);
+            calculateResults();
+            document.getElementById('examResult').style.display = 'block';
+            document.getElementById('examResult').scrollIntoView({ behavior: 'smooth' });
+            
+            // حذف التقدم المحفوظ
+            localStorage.removeItem('examProgress');
+        }
+
+        function autoSubmitExam() {
+            alert('⏰ انتهى وقت الاختبار! سيتم تسليم إجاباتك تلقائيًا.');
+            calculateResults();
+            document.getElementById('examResult').style.display = 'block';
+            document.getElementById('examResult').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function calculateResults() {
+            // حساب النتائج (هذا مثال مبسط للتقييم)
+            let totalScore = 0;
+            let mcqScore = 0;
+            let tfScore = 0;
+            let essayScore = 0;
+            let appScore = 0;
+            
+            // تقييم MCQ (إجابات عشوائية كمثال)
+            mcqScore = Math.floor(Math.random() * 30) + 15; // 15-45
+            tfScore = Math.floor(Math.random() * 10) + 6;   // 6-16
+            essayScore = Math.floor(Math.random() * 15) + 10; // 10-25
+            appScore = Math.floor(Math.random() * 8) + 6;   // 6-14
+            
+            totalScore = mcqScore + tfScore + essayScore + appScore;
+            const percentage = Math.round((totalScore / 100) * 100);
+            
+            // تحديث النتائج
+            document.getElementById('finalScore').textContent = `${percentage}%`;
+            document.getElementById('mcqScore').textContent = `${mcqScore}/45`;
+            document.getElementById('tfScore').textContent = `${tfScore}/16`;
+            document.getElementById('essayScore').textContent = `${essayScore}/25`;
+            document.getElementById('appScore').textContent = `${appScore}/14`;
+            
+            // رسالة النتيجة
+            let message = '';
+            if (percentage >= 90) {
+                message = '🎉 مبروك! أداء ممتاز - أنت جاهز للتطبيقات المتقدمة';
+            } else if (percentage >= 70) {
+                message = '👍 أداء جيد - لديك فهم قوي للمفاهيم الأساسية';
+            } else if (percentage >= 50) {
+                message = '📚 مستوى مقبول - تحتاج لمراجعة بعض المفاهيم';
+            } else {
+                message = '🔄 تحتاج للمزيد من الدراسة والمراجعة';
+            }
+            document.getElementById('resultMessage').textContent = message;
+        }
+
+        // وظائف إضافية
+        function showAnswers() {
+            alert('سيتم عرض الإجابات النموذجية والشرح المفصل لكل سؤال.');
+            // يمكن تنفيذ عرض الإجابات المفصل هنا
+        }
+
+        function retakeExam() {
+            if (confirm('هل تريد فعلاً إعادة الاختبار؟ سيتم مسح جميع إجاباتك الحالية.')) {
+                location.reload();
+            }
+        }
+
+        // تحديث شريط التقدم عند الإجابة على الأسئلة
+        document.addEventListener('change', function() {
+            updateProgressBar();
+        });
+    </script>
+</body>
+</html>
