@@ -69,12 +69,20 @@
             margin-bottom: 25px;
             border-right: 4px solid var(--info);
             transition: all 0.3s;
+            display: none;
         }
         
         .question-card.active {
+            display: block;
             border-right-color: var(--primary);
             background: #e8eaf6;
             box-shadow: 0 5px 15px rgba(26, 35, 126, 0.1);
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .question-number {
@@ -598,7 +606,7 @@
                                 <p class="mb-0">لقد أكملت بنجاح جميع النماذج التدريبية والاختبار النهائي الشامل.</p>
                             </div>
                             <div class="col-md-3 text-end">
-                                <button class="btn btn-outline-success" onclick="printCertificate()">
+                                <button class="btn btn-outline-success" id="certificateBtn">
                                     <i class="fas fa-certificate me-2"></i>شهادة الإنجاز
                                 </button>
                             </div>
@@ -732,9 +740,6 @@
             </div>
         </div>
     </footer>
-
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         // الأسئلة والإجابات الكاملة (60 سؤالاً)
@@ -1301,6 +1306,14 @@
             startTimer();
             updateProgress();
             createQuestionNavigation();
+            
+            // إضافة مستمعي الأحداث
+            document.getElementById('prevBtn').addEventListener('click', showPrevQuestion);
+            document.getElementById('nextBtn').addEventListener('click', showNextQuestion);
+            document.getElementById('clearBtn').addEventListener('click', clearCurrentAnswer);
+            document.getElementById('submitBtn').addEventListener('click', submitExam);
+            document.getElementById('restartBtn').addEventListener('click', restartExam);
+            document.getElementById('certificateBtn').addEventListener('click', printCertificate);
         });
 
         // تهيئة الاختبار
@@ -1322,7 +1335,7 @@
                         <div class="options-container mt-4" id="options-${index}">
                             ${q.options.map((option, optIndex) => `
                                 <div class="option-item ${userAnswers[index] === optIndex ? 'selected' : ''}" 
-                                     onclick="selectAnswer(${index}, ${optIndex})">
+                                     data-question="${index}" data-option="${optIndex}">
                                     <div class="option-letter">${String.fromCharCode(65 + optIndex)}</div>
                                     <div>${option}</div>
                                 </div>
@@ -1332,6 +1345,16 @@
                     </div>
                 `;
                 container.innerHTML += questionHTML;
+            });
+            
+            // إضافة مستمعي الأحداث للخيارات
+            document.querySelectorAll('.option-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    if (examSubmitted) return;
+                    const questionIndex = parseInt(this.getAttribute('data-question'));
+                    const optionIndex = parseInt(this.getAttribute('data-option'));
+                    selectAnswer(questionIndex, optionIndex);
+                });
             });
             
             updateQuestionDisplay();
@@ -1348,6 +1371,7 @@
             const currentCard = document.getElementById(`question-${currentQuestion}`);
             if (currentCard) {
                 currentCard.classList.add('active');
+                // الانتقال للسؤال الحالي
                 currentCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
             
@@ -1411,10 +1435,10 @@
                 const btn = document.createElement('div');
                 btn.className = 'nav-btn';
                 btn.textContent = q.id;
-                btn.onclick = () => {
+                btn.addEventListener('click', () => {
                     currentQuestion = index;
                     updateQuestionDisplay();
-                };
+                });
                 navContainer.appendChild(btn);
             });
             
@@ -1438,23 +1462,23 @@
         }
 
         // السؤال السابق
-        document.getElementById('prevBtn').addEventListener('click', function() {
+        function showPrevQuestion() {
             if (currentQuestion > 0) {
                 currentQuestion--;
                 updateQuestionDisplay();
             }
-        });
+        }
 
         // السؤال التالي
-        document.getElementById('nextBtn').addEventListener('click', function() {
+        function showNextQuestion() {
             if (currentQuestion < questions.length - 1) {
                 currentQuestion++;
                 updateQuestionDisplay();
             }
-        });
+        }
 
-        // مسح الإجابة
-        document.getElementById('clearBtn').addEventListener('click', function() {
+        // مسح الإجابة الحالية
+        function clearCurrentAnswer() {
             if (examSubmitted) return;
             
             userAnswers[currentQuestion] = null;
@@ -1465,10 +1489,10 @@
             
             updateProgress();
             updateNavigationButtons();
-        });
+        }
 
         // إعادة الاختبار
-        document.getElementById('restartBtn').addEventListener('click', function() {
+        function restartExam() {
             if (confirm('هل تريد إعادة الاختبار؟ سيتم حذف جميع إجاباتك الحالية.')) {
                 currentQuestion = 0;
                 userAnswers = new Array(questions.length).fill(null);
@@ -1486,8 +1510,14 @@
                 
                 // إخفاء النتائج
                 document.getElementById('resultsSection').style.display = 'none';
+                
+                // إعادة تعيين العدادات
+                document.getElementById('correctCountDisplay').textContent = '0';
+                document.getElementById('wrongCountDisplay').textContent = '0';
+                document.getElementById('scoreDisplay').textContent = '0';
+                document.getElementById('scoreValue').textContent = '0%';
             }
-        });
+        }
 
         // بدء المؤقت
         function startTimer() {
@@ -1534,7 +1564,15 @@
         }
 
         // عرض النتائج
-        function showResults() {
+        function submitExam() {
+            const answered = userAnswers.filter(answer => answer !== null).length;
+            
+            if (answered < questions.length) {
+                if (!confirm(`لقد أجبت على ${answered} من ${questions.length} سؤالاً. هل تريد المتابعة وتصحيح الإجابات؟`)) {
+                    return;
+                }
+            }
+            
             examSubmitted = true;
             clearInterval(timerInterval);
             
@@ -1798,6 +1836,14 @@
             return 'text-danger';
         }
 
+        function getPerformanceLevel(percentage) {
+            if (percentage >= 90) return "ممتاز";
+            if (percentage >= 75) return "جيد جداً";
+            if (percentage >= 60) return "جيد";
+            if (percentage >= 40) return "مقبول";
+            return "يحتاج تحسين";
+        }
+
         // طباعة الشهادة
         function printCertificate() {
             const score = calculateScore();
@@ -1979,14 +2025,6 @@
                         window.onload = function() {
                             window.print();
                         }
-                        
-                        function getPerformanceLevel(percentage) {
-                            if (percentage >= 90) return "ممتاز";
-                            if (percentage >= 75) return "جيد جداً";
-                            if (percentage >= 60) return "جيد";
-                            if (percentage >= 40) return "مقبول";
-                            return "يحتاج تحسين";
-                        }
                     </script>
                 </body>
                 </html>
@@ -1994,19 +2032,6 @@
             
             certificateWindow.document.close();
         }
-
-        // تقديم الإجابات
-        document.getElementById('submitBtn').addEventListener('click', function() {
-            const answered = userAnswers.filter(answer => answer !== null).length;
-            
-            if (answered < questions.length) {
-                if (!confirm(`لقد أجبت على ${answered} من ${questions.length} سؤالاً. هل تريد المتابعة وتصحيح الإجابات؟`)) {
-                    return;
-                }
-            }
-            
-            showResults();
-        });
     </script>
 </body>
 </html>
