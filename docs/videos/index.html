@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CyberPath | مكتبة الفيديوهات</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+  <!-- Header -->
+  <header class="bg-black text-white p-4 shadow">
+    <h1 class="text-2xl font-bold">🎥 CyberPath – مكتبة الفيديوهات</h1>
+    <p class="text-sm text-gray-300">مصنفة حسب المسار والمقرر</p>
+  </header>
+
+  <!-- Filters -->
+  <section class="p-4 bg-white shadow flex flex-col md:flex-row gap-4">
+    <select id="trackFilter" class="p-2 border rounded md:w-1/4">
+      <option value="all">كل المسارات</option>
+    </select>
+
+    <select id="courseFilter" class="p-2 border rounded md:w-1/4">
+      <option value="all">كل المقررات</option>
+    </select>
+  </section>
+
+  <!-- Videos -->
+  <main id="videoGrid" class="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></main>
+
+  <script>
+    // مصدر البيانات (يمكن نقله لملف videos.js لاحقًا)
+    const videos = [
+      {
+        track: "أمن الشبكات",
+        course: "Network Security Basics",
+        title: "مقدمة في أمن الشبكات",
+        youtubeId: "VIDEO_ID_1"
+      },
+      {
+        track: "الاختبار الاختراقي",
+        course: "Penetration Testing",
+        title: "What is Penetration Testing",
+        youtubeId: "VIDEO_ID_2"
+      },
+      {
+        track: "نظم التشغيل",
+        course: "Operating Systems",
+        title: "أساسيات نظم التشغيل",
+        youtubeId: "VIDEO_ID_3"
+      }
+    ];
+
+    const trackFilter = document.getElementById('trackFilter');
+    const courseFilter = document.getElementById('courseFilter');
+    const grid = document.getElementById('videoGrid');
+
+    function populateFilters() {
+      const tracks = [...new Set(videos.map(v => v.track))];
+      const courses = [...new Set(videos.map(v => v.course))];
+
+      tracks.forEach(t => trackFilter.innerHTML += `<option value="${t}">${t}</option>`);
+      courses.forEach(c => courseFilter.innerHTML += `<option value="${c}">${c}</option>`);
+    }
+
+    function renderVideos() {
+      grid.innerHTML = '';
+      const tVal = trackFilter.value;
+      const cVal = courseFilter.value;
+
+      videos
+        .filter(v => (tVal === 'all' || v.track === tVal))
+        .filter(v => (cVal === 'all' || v.course === cVal))
+        .forEach(v => {
+          grid.innerHTML += `
+            <div class="bg-white rounded shadow p-3">
+              <h3 class="font-bold mb-1">${v.title}</h3>
+              <p class="text-sm text-gray-500 mb-2">${v.track} • ${v.course}</p>
+              <iframe class="w-full h-48 rounded"
+                src="https://www.youtube.com/embed/${v.youtubeId}"
+                allowfullscreen></iframe>
+            </div>`;
+        });
+    }
+
+    trackFilter.addEventListener('change', renderVideos);
+    courseFilter.addEventListener('change', renderVideos);
+
+    populateFilters();
+    renderVideos();
+  </script>
+
+</body>
+</html>
