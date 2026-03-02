@@ -3,239 +3,413 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مختبر التوعية المتقدم | EduSocial</title>
+    <title>مختبر التوعية المتقدم | منصة مكافحة التصيد</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <style>
         * { font-family: 'Tajawal', sans-serif; }
-        .tab-active { border-bottom: 4px solid #3b82f6; color: #3b82f6; font-weight: bold; }
-        .hacker-console { background-color: #0a0a0a; color: #00ff00; font-family: monospace; }
-        .blink { animation: blinker 1s linear infinite; }
-        @keyframes blinker { 50% { opacity: 0; } }
+        .tab-active { border-bottom: 4px solid #2563eb; color: #2563eb; font-weight: 700; }
+        .hacker-console { background-color: #0d1117; color: #2ecc71; font-family: 'Courier New', monospace; border: 1px solid #2ecc71; }
+        .blink { animation: blinker 1s step-start infinite; }
+        @keyframes blinker { 50% { opacity: 0.4; } }
+        .threat-badge { position: absolute; top: -10px; left: -10px; background: #ef4444; color: white; border-radius: 999px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; }
     </style>
 </head>
 <body class="bg-gray-100">
 
-    <div class="bg-black text-yellow-400 py-2 px-4 text-center text-xs border-b border-yellow-400/30">
-        <i class="fas fa-biohazard ml-2"></i> مختبر أمني محايد - البيانات المدخلة تذهب لمحاكي "صندوق الرمل" فقط.
+    <!-- شريط تحذيري -->
+    <div class="bg-black text-yellow-300 py-2 px-4 text-center text-sm border-b border-yellow-500/30">
+        <i class="fas fa-shield-alt ml-2"></i> بيئة تعليمية محمية – جميع البيانات وهمية ولا تُخزَّن خارج متصفحك.
     </div>
 
-    <header class="bg-white border-b py-6 shadow-sm">
-        <div class="max-w-6xl mx-auto px-4 flex justify-between items-center">
-            <h1 class="text-2xl font-black text-indigo-900 flex items-center gap-2">
-                <i class="fas fa-user-shield text-blue-600"></i> مختبر محاكاة الهجوم
-            </h1>
-            <div class="flex gap-4">
-                <span id="victimCounter" class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-bold">الضحايا: 0</span>
-                <span id="safeCounter" class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm font-bold">الناجون: 0</span>
+    <!-- رأس الصفحة مع إحصائيات سريعة -->
+    <header class="bg-white border-b shadow-sm sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-bug text-2xl text-red-500"></i>
+                <h1 class="text-xl font-black text-indigo-900">مختبر التهديدات المتقدم</h1>
+            </div>
+            <div class="flex gap-4 text-sm">
+                <span id="victimCounter" class="bg-red-100 text-red-700 px-4 py-1 rounded-full font-bold"><i class="fas fa-skull ml-1"></i> الضحايا: 0</span>
+                <span id="safeCounter" class="bg-green-100 text-green-700 px-4 py-1 rounded-full font-bold"><i class="fas fa-shield ml-1"></i> الناجون: 0</span>
+                <span id="dataPoints" class="bg-blue-100 text-blue-700 px-4 py-1 rounded-full font-bold"><i class="fas fa-database ml-1"></i> 0</span>
             </div>
         </div>
     </header>
 
-    <main class="max-w-6xl mx-auto px-4 py-8">
+    <main class="max-w-7xl mx-auto px-4 py-8">
         
+        <!-- تبويبات التهديدات (5 أنواع) -->
         <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
-            <div class="flex border-b overflow-x-auto bg-gray-50">
-                <button onclick="switchTab('email')" id="tab-email" class="flex-1 py-4 px-6 text-center hover:bg-white transition tab-active">
-                    <i class="fas fa-envelope ml-2"></i> تصيد البريد
+            <div class="flex flex-wrap border-b bg-gray-50">
+                <button onclick="switchTab('email')" id="tab-email" class="tab-btn flex-1 py-4 px-2 text-center hover:bg-white transition tab-active" data-tab="email">
+                    <i class="fas fa-envelope ml-2"></i> تصيد بريد
                 </button>
-                <button onclick="switchTab('sms')" id="tab-sms" class="flex-1 py-4 px-6 text-center hover:bg-white transition text-gray-500">
-                    <i class="fas fa-comment-dots ml-2"></i> رسائل SMS (Smishing)
+                <button onclick="switchTab('sms')" id="tab-sms" class="tab-btn flex-1 py-4 px-2 text-center hover:bg-white transition text-gray-500" data-tab="sms">
+                    <i class="fas fa-comment-dots ml-2"></i> رسائل نصية
                 </button>
-                <button onclick="switchTab('prize')" id="tab-prize" class="flex-1 py-4 px-6 text-center hover:bg-white transition text-gray-500">
-                    <i class="fas fa-gift ml-2"></i> وهم الجوائز
+                <button onclick="switchTab('tech')" id="tab-tech" class="tab-btn flex-1 py-4 px-2 text-center hover:bg-white transition text-gray-500" data-tab="tech">
+                    <i class="fas fa-headset ml-2"></i> دعم فني
+                </button>
+                <button onclick="switchTab('update')" id="tab-update" class="tab-btn flex-1 py-4 px-2 text-center hover:bg-white transition text-gray-500" data-tab="update">
+                    <i class="fas fa-download ml-2"></i> تحديث وهمي
+                </button>
+                <button onclick="switchTab('qr')" id="tab-qr" class="tab-btn flex-1 py-4 px-2 text-center hover:bg-white transition text-gray-500" data-tab="qr">
+                    <i class="fas fa-qrcode ml-2"></i> رمز QR
                 </button>
             </div>
 
-            <div class="p-8">
-                <div id="content-email" class="tab-content">
-                    <div class="bg-blue-50 border-r-4 border-blue-500 p-4 mb-6">
-                        <h3 class="font-bold text-blue-800">سيناريو: تحديث كلمة المرور</h3>
-                        <p class="text-sm text-blue-600">يصلك بريد يدعي أنه من "أمن المعلومات" يطلب منك الضغط على رابط.</p>
+            <!-- محتوى كل تبويب -->
+            <div class="p-6 md:p-8">
+                <!-- بريد إلكتروني -->
+                <div id="content-email" class="tab-content block">
+                    <div class="bg-blue-50 border-r-4 border-blue-600 p-4 mb-6 rounded">
+                        <h3 class="font-bold text-blue-800">📧 هجوم التصيد عبر البريد</h3>
+                        <p class="text-sm">تتلقى بريداً يدّعي أنه من "خدمة العملاء" ويطلب تحديث بياناتك العاجل.</p>
                     </div>
-                    <div class="border rounded-xl p-4 bg-white shadow-inner">
-                        <div class="text-sm border-b pb-2 mb-4">من: <strong>IT-Support <span class="text-red-500 underline">info@it-moj-sa.net</span></strong></div>
-                        <p class="font-bold mb-2">يرجى تحديث حسابك فوراً</p>
-                        <p class="text-gray-600 mb-4 text-sm">تم رصد نشاط مشبوه، اضغط أدناه لتأمين حسابك:</p>
-                        <button onclick="openAttack('email')" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">تأمين الحساب</button>
+                    <div class="border-2 border-blue-200 rounded-xl p-5 bg-white max-w-2xl mx-auto shadow-md">
+                        <div class="flex items-center gap-3 border-b pb-3 mb-3 text-sm">
+                            <i class="fas fa-building text-gray-400"></i>
+                            <span class="font-bold text-red-500">المرسل: support@paypal-security.tk</span>
+                        </div>
+                        <p class="font-bold text-lg mb-3">🚨 تقييد حسابك مؤقتاً</p>
+                        <p class="text-gray-600">نلاحظ محاولات دخول غير معتادة. يرجى تأكيد هويتك خلال 24 ساعة.</p>
+                        <div class="text-center my-5">
+                            <button onclick="openAttack('email')" class="bg-blue-600 text-white px-8 py-3 rounded-full font-bold hover:bg-blue-700 shadow-md transition"><i class="fas fa-link ml-2"></i>تأكيد الحساب</button>
+                        </div>
                     </div>
                 </div>
 
+                <!-- رسائل SMS -->
                 <div id="content-sms" class="tab-content hidden">
-                    <div class="bg-orange-50 border-r-4 border-orange-500 p-4 mb-6">
-                        <h3 class="font-bold text-orange-800">سيناريو: إيقاف الخدمات البنكية</h3>
-                        <p class="text-sm text-orange-600">رسالة نصية تخبرك بأن بطاقتك الصراف ستتوقف.</p>
+                    <div class="bg-orange-50 border-r-4 border-orange-600 p-4 mb-6 rounded">
+                        <h3 class="font-bold text-orange-800">📱 التصيد عبر الرسائل النصية (Smishing)</h3>
+                        <p class="text-sm">رسالة نصية تخبرك أن بطاقتك البنكية سيتم إيقافها.</p>
                     </div>
-                    <div class="max-w-xs mx-auto border-8 border-gray-800 rounded-[3rem] p-4 bg-white shadow-2xl">
-                        <div class="bg-gray-100 p-3 rounded-2xl text-sm mb-4">
-                            عزيزي العميل، تم تجميد حسابك البنكي مؤقتاً. لتنشيطه قم بزيارة: <span class="text-blue-600 underline">bit.ly/bank-verify-2026</span>
+                    <div class="max-w-xs mx-auto bg-white border-4 border-gray-300 rounded-3xl p-4 shadow-xl">
+                        <div class="bg-gray-100 p-4 rounded-2xl text-sm mb-4">
+                            <p class="font-bold">مصرف الأهلي</p>
+                            <p class="text-gray-600 mt-1">عزيزي العميل، تم تجميد حسابك. لرفع التجميد يرجى زيارة الرابط: <span class="text-blue-600 underline">bit.ly/ahli-verify</span></p>
                         </div>
-                        <button onclick="openAttack('sms')" class="w-full bg-green-500 text-white py-2 rounded-xl font-bold">فتح الرابط</button>
+                        <button onclick="openAttack('sms')" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700">فتح الرابط</button>
                     </div>
                 </div>
 
-                <div id="content-prize" class="tab-content hidden">
-                    <div class="text-center py-10">
-                        <div class="inline-block p-6 bg-yellow-400 rounded-full mb-4 blink">
-                            <i class="fas fa-trophy text-5xl text-white"></i>
+                <!-- دعم فني احتيالي -->
+                <div id="content-tech" class="tab-content hidden">
+                    <div class="bg-red-50 border-r-4 border-red-600 p-4 mb-6 rounded">
+                        <h3 class="font-bold text-red-800">🖥️ هجوم الدعم الفني (Tech Support)</h3>
+                        <p class="text-sm">نافذة منبثقة تظهر فجأة تخبرك أن جهازك مصاب بفيروس.</p>
+                    </div>
+                    <div class="border-2 border-red-200 p-6 rounded-2xl bg-white shadow-lg">
+                        <div class="flex items-center gap-4 flex-wrap">
+                            <i class="fas fa-exclamation-triangle text-5xl text-red-500 animate-pulse"></i>
+                            <div>
+                                <p class="text-2xl font-bold text-red-600">تحذير أمني!</p>
+                                <p class="text-gray-700">جهازك مصاب بـ (5) فيروسات. اتصل بالدعم الفني على الرقم 0091-123-4567890 فوراً.</p>
+                            </div>
                         </div>
-                        <h2 class="text-3xl font-black text-yellow-600">مبروك! لقد ربحت آيفون 17 برو</h2>
-                        <p class="text-gray-500 mb-6">أنت الزائر رقم مليون اليوم! اضغط لاستلام جائزتك</p>
-                        <button onclick="openAttack('prize')" class="bg-yellow-500 text-white px-10 py-4 rounded-full font-black text-xl hover:scale-105 transition shadow-xl">استلم هديتك الآن 🎁</button>
+                        <div class="mt-6 flex gap-4">
+                            <button onclick="openAttack('tech')" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700">الاتصال بالرقم (محاكاة)</button>
+                            <button onclick="openAttack('tech')" class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700">تنزيل برنامج الحماية</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- تحديث وهمي -->
+                <div id="content-update" class="tab-content hidden">
+                    <div class="bg-purple-50 border-r-4 border-purple-600 p-4 mb-6 rounded">
+                        <h3 class="font-bold text-purple-800">🔄 تحديث مزيف (Fake Update)</h3>
+                        <p class="text-sm">نافذة تطلب تثبيت تحديث عاجل لبرنامج معين.</p>
+                    </div>
+                    <div class="border-2 border-purple-200 p-6 rounded-2xl bg-white max-w-md mx-auto shadow-lg">
+                        <div class="flex items-center gap-4">
+                            <i class="fab fa-chrome text-6xl text-blue-500"></i>
+                            <div>
+                                <p class="font-bold text-xl">Google Chrome</p>
+                                <p class="text-sm text-gray-500">الإصدار 114.0.5735.90</p>
+                            </div>
+                        </div>
+                        <div class="mt-4 bg-yellow-50 p-3 rounded-xl border">
+                            <p class="text-sm">يتوفر تحديث أمني عاجل. يرجى التحديث لحماية بياناتك.</p>
+                        </div>
+                        <button onclick="openAttack('update')" class="mt-5 w-full bg-purple-600 text-white py-3 rounded-xl font-bold hover:bg-purple-700">تحديث الآن</button>
+                    </div>
+                </div>
+
+                <!-- رمز QR خبيث -->
+                <div id="content-qr" class="tab-content hidden">
+                    <div class="bg-gray-800 border-r-4 border-yellow-400 p-4 mb-6 rounded text-white">
+                        <h3 class="font-bold text-yellow-300">📲 هجوم رمز الاستجابة السريعة (QRishing)</h3>
+                        <p class="text-sm">رمز QR يوضع في مكان عام يدعي أنه لخدمة معينة.</p>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="bg-white p-4 rounded-2xl shadow-xl inline-block">
+                            <i class="fas fa-qrcode text-9xl text-gray-800"></i>
+                        </div>
+                        <p class="mt-4 text-gray-600">امسح الرمز للحصول على خصم 50%</p>
+                        <button onclick="openAttack('qr')" class="mt-4 bg-yellow-500 text-white px-8 py-2 rounded-full font-bold hover:bg-yellow-600 transition">مسح QR (محاكاة)</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div class="hacker-console rounded-2xl p-6 shadow-2xl border-2 border-green-900/50">
-                <div class="flex justify-between items-center mb-4 border-b border-green-900 pb-2">
-                    <h3 class="text-green-500 font-bold"><i class="fas fa-terminal ml-2"></i> شاشة المخترق (جمع البيانات)</h3>
-                    <span class="text-xs bg-green-900 px-2 py-1 rounded">LIVE FEED</span>
+        <!-- لوحة التحكم: شاشة الهاكر + التعليم + بيانات مجمعة -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- شاشة الهاكر (جمع المعلومات) -->
+            <div class="lg:col-span-1 hacker-console rounded-2xl p-5 shadow-2xl">
+                <div class="flex justify-between items-center mb-4 border-b border-green-800 pb-2">
+                    <h3 class="text-green-400 font-bold text-lg"><i class="fas fa-terminal ml-2"></i> وحدة جمع البيانات</h3>
+                    <span class="text-xs bg-green-900 px-2 py-1 rounded text-green-300">real-time</span>
                 </div>
-                <div id="hackerLog" class="text-sm space-y-2 h-48 overflow-y-auto custom-scrollbar">
-                    <p class="opacity-50 mt-4 text-center">بانتظار وقوع ضحية في الفخ...</p>
+                <div id="hackerLog" class="text-xs space-y-3 h-64 overflow-y-auto custom-scrollbar pl-1">
+                    <p class="text-green-700 opacity-70 text-center mt-6">في انتظار تفاعل الضحية...</p>
                 </div>
-                <div class="mt-4 pt-4 border-t border-green-900">
-                    <p class="text-xs text-green-700 italic font-bold">كيف يستفيد الهكر؟</p>
-                    <p id="hackerBenefit" class="text-xs mt-1 text-gray-400">سيظهر هنا تحليل لكيفية استغلال البيانات المسروقة.</p>
+                <div class="mt-4 pt-4 border-t border-green-800">
+                    <p class="text-green-500 text-sm font-bold">🔍 كيف يستغل الهاكر هذه البيانات؟</p>
+                    <p id="hackerBenefit" class="text-green-700/80 text-xs mt-1 leading-relaxed">سيتم عرض تأثير كل معلومة مسروقة هنا.</p>
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
-                <h3 class="text-xl font-bold mb-4 text-indigo-900"><i class="fas fa-graduation-cap ml-2 text-indigo-500"></i> ماذا حدث خلف الكواليس؟</h3>
-                <div id="eduContent" class="space-y-4">
-                    <p class="text-gray-500">اختر أحد السيناريوهات أعلاه وقم بتنفيذ الهجوم لترى كيف يتم خداع المستخدمين.</p>
+            <!-- لوحة التوعية والمعلومات -->
+            <div class="lg:col-span-2 bg-white rounded-2xl p-6 shadow-xl">
+                <h3 class="text-2xl font-bold text-indigo-900 mb-4 flex items-center gap-2"><i class="fas fa-graduation-cap text-indigo-500"></i> تحليل الهجوم والتوعية</h3>
+                <div id="eduContent" class="space-y-4 min-h-[160px] text-gray-700">
+                    <p class="text-gray-500">اختر نوع تهديد من الأعلى وقم بتنفيذ المحاكاة لتشاهد كيف تُسرق البيانات وتُستغل.</p>
+                </div>
+                
+                <!-- بيانات مجمعة (إحصائيات) -->
+                <div class="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div class="bg-gray-100 p-3 rounded-xl text-center">
+                        <div class="text-2xl font-bold text-indigo-700" id="statEmail">0</div>
+                        <div class="text-xs text-gray-600">هجمات البريد</div>
+                    </div>
+                    <div class="bg-gray-100 p-3 rounded-xl text-center">
+                        <div class="text-2xl font-bold text-orange-700" id="statSms">0</div>
+                        <div class="text-xs text-gray-600">رسائل sms</div>
+                    </div>
+                    <div class="bg-gray-100 p-3 rounded-xl text-center">
+                        <div class="text-2xl font-bold text-red-700" id="statTech">0</div>
+                        <div class="text-xs text-gray-600">دعم فني</div>
+                    </div>
+                    <div class="bg-gray-100 p-3 rounded-xl text-center">
+                        <div class="text-2xl font-bold text-purple-700" id="statUpdate">0</div>
+                        <div class="text-xs text-gray-600">تحديثات</div>
+                    </div>
+                </div>
+
+                <!-- توضيح نطاق الضرر -->
+                <div class="mt-6 p-4 bg-yellow-50 border-r-4 border-yellow-500 rounded-xl">
+                    <p class="font-bold text-yellow-800"><i class="fas fa-biohazard ml-2"></i> ماذا يمكن للهاكر أن يفعل بهذه المعلومات؟</p>
+                    <p class="text-sm text-yellow-900 mt-1" id="damageScope">(يظهر حسب نوع الهجوم) بيع البيانات في الدارك ويب، انتحال الشخصية، سرقة حسابات، ابتزاز.</p>
                 </div>
             </div>
+        </div>
+
+        <!-- زر إعادة الضبط -->
+        <div class="text-center mt-12">
+            <button onclick="resetAllStats()" class="bg-gray-600 hover:bg-gray-700 text-white px-8 py-3 rounded-full transition shadow-lg"><i class="fas fa-undo-alt ml-2"></i>إعادة ضبط المختبر</button>
         </div>
     </main>
 
+    <!-- نافذة منبثقة (صفحة الهجوم المزيفة) -->
     <div id="attackModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 hidden p-4">
         <div class="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl">
-            <div id="modalHeader" class="p-6 bg-blue-600 text-white flex justify-between">
-                <h3 class="font-bold">صفحة تسجيل دخول مزيفة</h3>
-                <button onclick="closeAttack()" class="hover:rotate-90 transition"><i class="fas fa-times"></i></button>
+            <div id="modalHeader" class="p-5 text-white flex justify-between items-center" style="background: #2563eb;">
+                <h3 class="font-bold text-xl" id="modalTitle">صفحة دخول آمنة</h3>
+                <button onclick="closeAttack()" class="hover:scale-110 transition"><i class="fas fa-times"></i></button>
             </div>
             <div class="p-8">
-                <p class="text-sm text-gray-500 mb-6 text-center" id="modalDesc">يرجى تسجيل الدخول للمتابعة</p>
+                <p class="text-sm text-gray-500 mb-6 text-center" id="modalDesc">يرجى إدخال بيانات الدخول للمتابعة</p>
                 <div class="space-y-4">
-                    <input type="text" id="fakeUser" placeholder="البريد الإلكتروني / رقم الجوال" class="w-full p-4 bg-gray-50 border rounded-xl focus:ring-2 ring-blue-500 outline-none">
-                    <input type="password" id="fakePass" placeholder="كلمة المرور" class="w-full p-4 bg-gray-50 border rounded-xl focus:ring-2 ring-blue-500 outline-none">
-                    <button onclick="processVictim()" class="w-full py-4 rounded-xl font-bold text-white transition shadow-lg" id="submitBtn">تسجيل الدخول</button>
+                    <input type="text" id="fakeUser" placeholder="البريد الإلكتروني / رقم الجوال" class="w-full p-4 bg-gray-50 border rounded-xl focus:ring-2 ring-blue-500 outline-none" value="user@example.com">
+                    <input type="password" id="fakePass" placeholder="كلمة المرور" class="w-full p-4 bg-gray-50 border rounded-xl focus:ring-2 ring-blue-500 outline-none" value="12345678">
+                    <button onclick="processVictim()" class="w-full py-4 rounded-xl font-bold text-white transition shadow-lg" id="submitBtn" style="background: #2563eb;">تسجيل الدخول</button>
                 </div>
-                <p class="text-[10px] text-gray-400 mt-6 text-center leading-tight">هذه الصفحة مصممة لأغراض التوعية. أي بيانات تدخلها لن تخرج من متصفحك الحالي.</p>
+                <p class="text-[10px] text-gray-400 mt-6 text-center leading-tight">هذه الصفحة محاكاة تعليمية – لا تُرسل أي بيانات حقيقية.</p>
             </div>
         </div>
     </div>
 
     <script>
-        let victimCount = 0;
-        let safeCount = 0;
-        let currentType = '';
+        // بيانات التهديدات والخلفية التعليمية
+        const threatTypes = {
+            email: { name: 'تصيد البريد', headerColor: '#2563eb', btnColor: '#2563eb', title: 'تحديث حساب PayPal' },
+            sms: { name: 'رسالة بنكية', headerColor: '#16a34a', btnColor: '#16a34a', title: 'التحقق البنكي' },
+            tech: { name: 'دعم فني', headerColor: '#dc2626', btnColor: '#dc2626', title: 'برنامج مكافحة الفيروسات' },
+            update: { name: 'تحديث مزيف', headerColor: '#9333ea', btnColor: '#9333ea', title: 'تحديث المتصفح' },
+            qr: { name: 'رمز QR', headerColor: '#ca8a04', btnColor: '#ca8a04', title: 'تسجيل الدخول عبر QR' }
+        };
 
-        const educationData = {
+        const educationDetails = {
             email: {
-                title: "تصيد البريد الإلكتروني",
-                tips: "المخترق أنشأ نطاقاً مشابهاً (it-moj-sa.net). لاحظ غياب التشفير أو استخدام بريد غير رسمي لطلب بيانات حساسة.",
-                benefit: "الهكر يبيع حسابك في 'دارك ويب' أو يستخدمه للوصول لمراسلات العمل السرية."
+                tips: "هذا البريد يستخدم عنوان مرسل غير رسمي (paypal-security.tk) ويهدد بإغلاق الحساب. الشركات الحقيقية لا تطلب معلومات حساسة عبر البريد.",
+                benefit: "البيانات المسروقة تُباع في منتديات تحت الأرض أو تستخدم لسرقة حسابات PayPal حقيقية.",
+                damage: "الوصول إلى البريد الإلكتروني، تغيير كلمات المرور، سرقة الهوية الرقمية."
             },
             sms: {
-                title: "تصيد الرسائل (Smishing)",
-                tips: "الروابط المختصرة (bit.ly) هي المفضلة للهكرز لأنها تخفي الوجهة الحقيقية. البنوك لا تطلب تنشيط الحساب عبر رابط أبداً.",
-                benefit: "الهدف هو رقم بطاقتك الائتمانية وتاريخ انتهائها للقيام بعمليات شراء دولية."
+                tips: "البنوك لا ترسل روابط مختصرة (bit.ly) لتنشيط الحساب. الرابط يؤدي إلى صفحة مصرف مزيفة.",
+                benefit: "يتم جمع أرقام البطاقات وتواريخ انتهائها لاستخدامها في عمليات شراء عبر الإنترنت.",
+                damage: "سرقة أرصدة بنكية، مديونيات باسم الضحية، فتح حسابات ائتمانية."
             },
-            prize: {
-                title: "هجوم الجوائز الوهمية",
-                tips: "يعتمد هذا الهجوم على 'الطمع' والسرعة. لا توجد شركة توزع هواتف مجانية لمجرد أنك زرت صفحة ويب.",
-                benefit: "غالباً ما تُستخدم لجمع أرقام الهواتف وبيعها لشركات الدعاية المزعجة أو لاشتراكك في خدمات مدفوعة دون علمك."
+            tech: {
+                tips: "النوافذ المنبثقة التي تطلب الاتصال برقم أو تحميل برنامج هي احتيال. لا تتصل بتلك الأرقام.",
+                benefit: "الهاكر يحاول إقناعك بتثبيت برنامج تحكم عن بعد (مثل AnyDesk) ليتمكن من سرقة ملفاتك.",
+                damage: "سرقة جميع الملفات الشخصية، الصور، المستندات، واستخدامها في الابتزاز."
+            },
+            update: {
+                tips: "التحديثات الحقيقية تتم عبر متجر التطبيقات أو إعدادات النظام، وليس عبر نوافد مفاجئة.",
+                benefit: "يتم تثبيت برمجيات خبيثة تسجل ضغطات لوحة المفاتيح (keylogger) لسرقة كلمات المرور.",
+                damage: "مراقبة كل ما تكتبه (بيانات بنكية، رسائل خاصة)."
+            },
+            qr: {
+                tips: "رمز QR قد يقود إلى رابط خبيث أو تحميل تطبيق ضار. تأكد من المصدر قبل المسح.",
+                benefit: "يمكن تحويلك إلى صفحة تصيد أو تنزيل برنامج يسرق جهات الاتصال والرسائل.",
+                damage: "اختراق هاتفك بالكامل والوصول إلى تطبيقات الدفع الإلكتروني."
             }
         };
 
-        function switchTab(type) {
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-            document.querySelectorAll('button[id^="tab-"]').forEach(b => b.classList.remove('tab-active', 'text-blue-600'));
-            
-            document.getElementById(`content-${type}`).classList.remove('hidden');
-            document.getElementById(`tab-${type}`).classList.add('tab-active');
-            currentType = type;
+        // إحصائيات
+        let stats = {
+            victims: 0,
+            safe: 0,
+            email: 0,
+            sms: 0,
+            tech: 0,
+            update: 0,
+            qr: 0,
+            logs: []
+        };
+
+        let currentType = 'email';
+
+        // تحديث واجهة الإحصائيات
+        function refreshStatsUI() {
+            document.getElementById('victimCounter').innerHTML = `<i class="fas fa-skull ml-1"></i> الضحايا: ${stats.victims}`;
+            document.getElementById('safeCounter').innerHTML = `<i class="fas fa-shield ml-1"></i> الناجون: ${stats.safe}`;
+            document.getElementById('dataPoints').innerHTML = `<i class="fas fa-database ml-1"></i> ${stats.logs.length}`;
+            document.getElementById('statEmail').innerText = stats.email;
+            document.getElementById('statSms').innerText = stats.sms;
+            document.getElementById('statTech').innerText = stats.tech;
+            document.getElementById('statUpdate').innerText = stats.update;
+            // QR not shown in stats grid (simplified)
         }
 
+        // تبديل التبويبات
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById(`content-${tabId}`).classList.remove('hidden');
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('tab-active', 'text-blue-600');
+                btn.classList.add('text-gray-500');
+            });
+            document.getElementById(`tab-${tabId}`).classList.add('tab-active');
+            document.getElementById(`tab-${tabId}`).classList.remove('text-gray-500');
+            currentType = tabId;
+        }
+
+        // فتح نافذة الهجوم
         function openAttack(type) {
             currentType = type;
             const modal = document.getElementById('attackModal');
             const header = document.getElementById('modalHeader');
             const btn = document.getElementById('submitBtn');
+            const title = document.getElementById('modalTitle');
             const desc = document.getElementById('modalDesc');
-
-            if(type === 'email') {
-                header.className = "p-6 bg-blue-600 text-white flex justify-between";
-                btn.className = "w-full py-4 rounded-xl font-bold text-white transition shadow-lg bg-blue-600 hover:bg-blue-700";
-                desc.innerText = "سجل دخولك بحساب العمل لتأمين النظام";
-            } else if(type === 'sms') {
-                header.className = "p-6 bg-green-700 text-white flex justify-between";
-                btn.className = "w-full py-4 rounded-xl font-bold text-white transition shadow-lg bg-green-700 hover:bg-green-800";
-                desc.innerText = "بوابة التحقق البنكي الموحدة";
-            } else {
-                header.className = "p-6 bg-yellow-500 text-white flex justify-between";
-                btn.className = "w-full py-4 rounded-xl font-bold text-white transition shadow-lg bg-yellow-500 hover:bg-yellow-600";
-                desc.innerText = "أدخل بيانات الشحن لاستلام الجائزة";
-            }
-
+            const threat = threatTypes[type];
+            header.style.background = threat.headerColor;
+            btn.style.background = threat.btnColor;
+            title.innerText = threat.title;
+            desc.innerText = `أدخل بياناتك لتأمين حسابك (محاكاة)`;
             modal.classList.remove('hidden');
         }
 
         function closeAttack() {
             document.getElementById('attackModal').classList.add('hidden');
-            safeCount++;
-            document.getElementById('safeCounter').innerText = `الناجون: ${safeCount}`;
+            stats.safe++;
+            refreshStatsUI();
         }
 
+        // معالجة إدخال الضحية
         function processVictim() {
-            const user = document.getElementById('fakeUser').value;
-            const pass = document.getElementById('fakePass').value;
+            const user = document.getElementById('fakeUser').value.trim();
+            const pass = document.getElementById('fakePass').value.trim();
 
-            if(!user || !pass) {
-                alert("يرجى ملء البيانات لتجربة المحاكاة");
+            if (!user || !pass) {
+                alert("يرجى إدخال بيانات تجريبية.");
                 return;
             }
 
-            victimCount++;
-            document.getElementById('victimCounter').innerText = `الضحايا: ${victimCount}`;
-            
-            // تحديث شاشة الهكر
-            const log = document.getElementById('hackerLog');
-            if(log.innerText.includes("بانتظار")) log.innerHTML = "";
-            
-            const time = new Date().toLocaleTimeString();
-            log.innerHTML += `<div class="p-2 bg-green-900/20 rounded border-l-2 border-green-500 mb-2">
-                <p class="text-[10px] text-green-700">${time} - استلام بيانات جديدة</p>
-                <p>👤 USER: ${user}</p>
-                <p>🔑 PASS: ${pass.replace(/./g, '*')}</p>
-                <p class="text-[10px] text-yellow-600 font-bold">🎯 النوع: ${educationData[currentType].title}</p>
-            </div>`;
-            log.scrollTop = log.scrollHeight;
+            // تحديث الإحصائيات
+            stats.victims++;
+            stats[currentType]++;
 
-            document.getElementById('hackerBenefit').innerText = educationData[currentType].benefit;
+            // إنشاء سجل للهاكر
+            const time = new Date().toLocaleTimeString('ar-EG');
+            const ip = `192.168.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`;
+            const location = randomLocation();
+            const browser = navigator.userAgent.includes('Chrome') ? 'Chrome' : (navigator.userAgent.includes('Firefox') ? 'Firefox' : 'Safari');
+            const os = navigator.platform;
+
+            stats.logs.push({ time, type: currentType, user, ip, location, browser, os });
+            if (stats.logs.length > 15) stats.logs.shift();
+
+            // عرض في شاشة الهاكر
+            const logDiv = document.getElementById('hackerLog');
+            if (logDiv.innerHTML.includes('في انتظار')) logDiv.innerHTML = '';
+            const entry = document.createElement('div');
+            entry.className = 'p-2 border border-green-800 rounded text-green-400 text-xs mb-2';
+            entry.innerHTML = `<span class="text-gray-500">${time}</span> <span class="text-red-400 font-bold">[${threatTypes[currentType].name}]</span><br>👤 <span class="text-yellow-400">${user}</span><br>🔐 ${pass.replace(/./g,'*')}<br>🌍 ${ip} (${location})<br>📱 ${browser} / ${os}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+
+            // تحديث فقرة "كيف يستغل الهاكر"
+            document.getElementById('hackerBenefit').innerText = educationDetails[currentType].benefit;
+            document.getElementById('damageScope').innerText = educationDetails[currentType].damage;
 
             // تحديث لوحة التوعية
             const edu = document.getElementById('eduContent');
             edu.innerHTML = `
-                <div class="p-4 bg-red-50 rounded-xl border-r-4 border-red-500">
-                    <h4 class="font-bold text-red-800 mb-1">لقد تم "اختراقك" (محاكاة)!</h4>
-                    <p class="text-sm text-red-700">${educationData[currentType].tips}</p>
+                <div class="p-4 bg-red-50 border-r-4 border-red-600 rounded-xl">
+                    <h4 class="font-bold text-red-800 mb-2">⚠️ لقد وقعت في المحاكاة!</h4>
+                    <p class="text-sm text-red-700">${educationDetails[currentType].tips}</p>
                 </div>
-                <div class="grid grid-cols-2 gap-2 mt-4">
-                    <div class="p-3 bg-gray-100 rounded-lg text-xs font-bold">المتصفح: ${navigator.platform}</div>
-                    <div class="p-3 bg-gray-100 rounded-lg text-xs font-bold">IP (وهمي): 192.168.1.1</div>
+                <div class="grid grid-cols-2 gap-3 mt-4">
+                    <div class="p-3 bg-gray-100 rounded-lg text-xs font-bold">المتصفح: ${browser}</div>
+                    <div class="p-3 bg-gray-100 rounded-lg text-xs font-bold">نظام التشغيل: ${os}</div>
+                    <div class="p-3 bg-gray-100 rounded-lg text-xs font-bold">IP (وهمي): ${ip}</div>
+                    <div class="p-3 bg-gray-100 rounded-lg text-xs font-bold">الموقع التقريبي: ${location}</div>
                 </div>
             `;
 
-            document.getElementById('fakeUser').value = "";
-            document.getElementById('fakePass').value = "";
+            // إعادة تعيين الحقول
+            document.getElementById('fakeUser').value = '';
+            document.getElementById('fakePass').value = '';
             document.getElementById('attackModal').classList.add('hidden');
+            refreshStatsUI();
         }
+
+        // موقع عشوائي للعرض
+        function randomLocation() {
+            const cities = ['الرياض', 'جدة', 'دبي', 'القاهرة', 'لندن', 'نيويورك', 'تونس', 'الدار البيضاء'];
+            return cities[Math.floor(Math.random() * cities.length)];
+        }
+
+        // إعادة ضبط الكل
+        function resetAllStats() {
+            stats = { victims:0, safe:0, email:0, sms:0, tech:0, update:0, qr:0, logs:[] };
+            document.getElementById('hackerLog').innerHTML = '<p class="text-green-700 opacity-70 text-center mt-6">في انتظار تفاعل الضحية...</p>';
+            document.getElementById('eduContent').innerHTML = '<p class="text-gray-500">اختر نوع تهديد من الأعلى وقم بتنفيذ المحاكاة لتشاهد كيف تُسرق البيانات وتُستغل.</p>';
+            document.getElementById('hackerBenefit').innerText = 'سيتم عرض تأثير كل معلومة مسروقة هنا.';
+            document.getElementById('damageScope').innerText = '(يظهر حسب نوع الهجوم)';
+            refreshStatsUI();
+        }
+
+        // تهيئة الصفحة
+        window.onload = function() {
+            refreshStatsUI();
+        };
     </script>
 </body>
 </html>
