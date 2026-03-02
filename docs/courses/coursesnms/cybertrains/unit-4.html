@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مختبر التوعية المتقدم | موسوعة التصيد</title>
+    <title>مختبر التوعية المتقدم | تحدي اكتشف الخطأ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -13,8 +13,9 @@
         .hacker-console { background-color: #0d1117; color: #2ecc71; font-family: 'Courier New', monospace; border: 1px solid #2ecc71; }
         .blink { animation: blinker 1s step-start infinite; }
         @keyframes blinker { 50% { opacity: 0.4; } }
-        .threat-badge { position: absolute; top: -10px; left: -10px; background: #ef4444; color: white; border-radius: 999px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; }
         .scrollable-tabs { overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
+        .timer-danger { color: #ef4444; font-family: monospace; font-size: 1.5rem; }
+        .hint-success { background-color: #d1fae5; border-right: 4px solid #10b981; }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -286,21 +287,45 @@
         </div>
     </main>
 
-    <!-- نافذة منبثقة (صفحة الهجوم المزيفة) -->
+    <!-- نافذة منبثقة متطورة (مؤقت + خيار الإبلاغ) -->
     <div id="attackModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 hidden p-4">
         <div class="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl">
             <div id="modalHeader" class="p-5 text-white flex justify-between items-center" style="background: #2563eb;">
                 <h3 class="font-bold text-xl" id="modalTitle">صفحة دخول آمنة</h3>
                 <button onclick="closeAttack()" class="hover:scale-110 transition"><i class="fas fa-times"></i></button>
             </div>
-            <div class="p-8">
-                <p class="text-sm text-gray-500 mb-6 text-center" id="modalDesc">يرجى إدخال بيانات الدخول للمتابعة</p>
-                <div class="space-y-4">
+            <div class="p-6">
+                <!-- مؤقت التهديد -->
+                <div class="bg-red-50 p-3 rounded-xl mb-4 text-center border border-red-200">
+                    <p class="text-sm text-red-600 font-bold mb-1"><i class="fas fa-hourglass-half ml-1"></i> سيتم إغلاق حسابك خلال:</p>
+                    <div id="timerDisplay" class="timer-danger text-3xl font-mono">05:00</div>
+                </div>
+
+                <p class="text-sm text-gray-500 mb-4 text-center" id="modalDesc">يرجى إدخال بيانات الدخول للمتابعة</p>
+
+                <!-- حقول النموذج -->
+                <div class="space-y-4 mb-4">
                     <input type="text" id="fakeUser" placeholder="البريد الإلكتروني / رقم الجوال" class="w-full p-4 bg-gray-50 border rounded-xl focus:ring-2 ring-blue-500 outline-none" value="user@example.com">
                     <input type="password" id="fakePass" placeholder="كلمة المرور" class="w-full p-4 bg-gray-50 border rounded-xl focus:ring-2 ring-blue-500 outline-none" value="12345678">
-                    <button onclick="processVictim()" class="w-full py-4 rounded-xl font-bold text-white transition shadow-lg" id="submitBtn" style="background: #2563eb;">تسجيل الدخول</button>
                 </div>
-                <p class="text-[10px] text-gray-400 mt-6 text-center leading-tight">هذه الصفحة محاكاة تعليمية – لا تُرسل أي بيانات حقيقية.</p>
+
+                <!-- خياران: دخول (فخ) أو إبلاغ (وعي) -->
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="processVictim()" class="w-full py-4 rounded-xl font-bold text-white transition shadow-lg hover:opacity-90" id="submitBtn" style="background: #2563eb;">
+                        <i class="fas fa-sign-in-alt ml-2"></i> دخول
+                    </button>
+                    <button onclick="reportPhishing()" class="w-full py-4 rounded-xl font-bold text-white bg-green-600 hover:bg-green-700 transition shadow-lg">
+                        <i class="fas fa-flag ml-2"></i> تبليغ كرسالة احتيال
+                    </button>
+                </div>
+
+                <!-- ملاحظات الأخطاء (تظهر عند الإبلاغ) -->
+                <div id="errorHints" class="mt-4 p-3 bg-green-50 rounded-xl hidden border-r-4 border-green-500">
+                    <p class="font-bold text-green-700 text-sm"><i class="fas fa-check-circle ml-1"></i> أحسنت! لقد اكتشفت العلامات التالية:</p>
+                    <ul id="errorList" class="text-xs text-green-600 mt-2 list-disc list-inside"></ul>
+                </div>
+
+                <p class="text-[10px] text-gray-400 mt-4 text-center leading-tight">هذه الصفحة محاكاة تعليمية – لا تُرسل أي بيانات حقيقية.</p>
             </div>
         </div>
     </div>
@@ -316,6 +341,18 @@
             update: { name: 'تحديث وهمي', headerColor: '#9333ea', btnColor: '#9333ea', title: 'تحديث البرنامج' },
             tech: { name: 'دعم فني', headerColor: '#dc2626', btnColor: '#dc2626', title: 'برنامج مكافحة الفيروسات' },
             qr: { name: 'رمز QR', headerColor: '#ca8a04', btnColor: '#ca8a04', title: 'تسجيل الدخول عبر QR' }
+        };
+
+        // أخطاء محددة لكل نوع (سيتم عرضها عند الإبلاغ)
+        const errorDetails = {
+            email: ['المرسل: support@paypal-security.tk (نطاق غير رسمي)', 'تهديد بإغلاق الحساب (أسلوب التخويف)', 'الرابط لا يبدأ بـ https://', 'أخطاء إملائية في النص (اختبارية)'],
+            sms: ['الرابط مختصر (bit.ly) يخفي الوجهة الحقيقية', 'المرسل رقم خاص وليس بنك', 'الرسالة تستعجل بتجميد الحساب', 'البنوك لا ترسل روابط لتنشيط الحسابات'],
+            social: ['الرابط مختصر (goo.gl) غير موثوق', 'الصفحة غير رسمية (عدد المتابعين قليل)', 'رسالة الجائزة بدون شروط', 'الحساب المرسل غير موثق'],
+            ad: ['خصم 90% غير منطقي', 'الموقع لا يظهر سياسة الخصوصية', 'الرابط يبدأ بـ http (غير آمن)', 'الإعلان من مصدر غير معروف'],
+            shop: ['السعر منخفض جداً مقارنة بالسوق', 'الموقع لا يحتوي على معلومات الاتصال', 'طرق الدفع غير آمنة (تحويل بنكي فقط)', 'لا يوجد عنوان فيزيائي للمتجر'],
+            update: ['نافذة التحديث ظهرت فجأة', 'الرابط لا ينتهي بـ google.com', 'التحديثات الحقيقية تتم عبر المتجر', 'الملف المطلوب تحميله بامتداد .exe'],
+            tech: ['النافذة المنبثقة تحاكي رسالة نظام', 'الرقم المطلوب الاتصال به دولي (احتيال)', 'برامج مكافحة الفيروسات لا تظهر بهذه الطريقة', 'الطلب بتثبيت برنامج تحكم عن بعد'],
+            qr: ['الرمز في مكان غير آمن (عام)', 'الرابط الناتج يبدأ بـ http', 'العنوان المختصر غير معروف', 'الوعد بخصم 50% مبالغ فيه']
         };
 
         const educationDetails = {
@@ -377,6 +414,8 @@
         };
 
         let currentType = 'email';
+        let timerInterval = null;
+        let secondsLeft = 300; // 5 دقائق
 
         // تحديث واجهة الإحصائيات
         function refreshStatsUI() {
@@ -419,16 +458,82 @@
             btn.style.background = threat.btnColor;
             title.innerText = threat.title;
             desc.innerText = `أدخل بياناتك للمتابعة (محاكاة)`;
+
+            // إعادة تعيين المؤقت
+            secondsLeft = 300;
+            updateTimerDisplay();
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                secondsLeft--;
+                if (secondsLeft <= 0) {
+                    secondsLeft = 0;
+                    clearInterval(timerInterval);
+                    // اختياري: إغلاق النافذة أو تنبيه
+                }
+                updateTimerDisplay();
+            }, 1000);
+
+            // إخفاء قائمة الأخطاء إذا كانت ظاهرة
+            document.getElementById('errorHints').classList.add('hidden');
+            
             modal.classList.remove('hidden');
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(secondsLeft / 60);
+            const secs = secondsLeft % 60;
+            document.getElementById('timerDisplay').innerText = `${minutes.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
         }
 
         function closeAttack() {
             document.getElementById('attackModal').classList.add('hidden');
-            stats.safe++;
-            refreshStatsUI();
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            // لا نزيد الناجين هنا لأن الإغلاق لا يعني بالضرورة وعي
         }
 
-        // معالجة إدخال الضحية
+        // الإبلاغ عن رسالة احتيال (الوعي)
+        function reportPhishing() {
+            // زيادة عداد الناجين
+            stats.safe++;
+            refreshStatsUI();
+
+            // إيقاف المؤقت
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+
+            // عرض قائمة الأخطاء
+            const errorHints = document.getElementById('errorHints');
+            const errorList = document.getElementById('errorList');
+            const errors = errorDetails[currentType] || ['لا توجد أخطاء محددة'];
+            errorList.innerHTML = errors.map(err => `<li>${err}</li>`).join('');
+            errorHints.classList.remove('hidden');
+
+            // تحديث لوحة التعليم
+            const edu = document.getElementById('eduContent');
+            edu.innerHTML = `
+                <div class="p-4 bg-green-50 border-r-4 border-green-500 rounded-xl">
+                    <h4 class="font-bold text-green-800 mb-2">✅ وعي ممتاز! لقد اكتشفت الاحتيال</h4>
+                    <p class="text-sm text-green-700">${educationDetails[currentType].tips}</p>
+                </div>
+            `;
+
+            // تسجيل في شاشة الهاكر (محاولة فاشلة للهاكر)
+            const logDiv = document.getElementById('hackerLog');
+            const time = new Date().toLocaleTimeString('ar-EG');
+            if (logDiv.innerHTML.includes('في انتظار')) logDiv.innerHTML = '';
+            const entry = document.createElement('div');
+            entry.className = 'p-2 border border-green-800 rounded text-green-400 text-xs mb-2';
+            entry.innerHTML = `<span class="text-gray-500">${time}</span> <span class="text-blue-400 font-bold">[محاولة إبلاغ]</span><br> نوع: ${threatTypes[currentType].name}<br> النتيجة: فشل الهجوم (تم اكتشافه)`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        // معالجة إدخال الضحية (الوقوع في الفخ)
         function processVictim() {
             const user = document.getElementById('fakeUser').value.trim();
             const pass = document.getElementById('fakePass').value.trim();
@@ -483,6 +588,12 @@
             // إعادة تعيين الحقول
             document.getElementById('fakeUser').value = '';
             document.getElementById('fakePass').value = '';
+
+            // إيقاف المؤقت وإغلاق النافذة
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
             document.getElementById('attackModal').classList.add('hidden');
             refreshStatsUI();
         }
