@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wireshark - محلل بروتوكولات الشبكة | موسوعة الأمن السيبراني</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Tajawal', sans-serif; }
+        .tab-active { border-bottom: 4px solid #2563eb; color: #2563eb; font-weight: 700; }
+        .hacker-console { background-color: #0d1117; color: #2ecc71; font-family: 'Courier New', monospace; border: 1px solid #2ecc71; }
+        .blink { animation: blinker 1s step-start infinite; }
+        @keyframes blinker { 50% { opacity: 0.4; } }
+        .scrollable-tabs { overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
+        .threat-level { color: #ef4444; font-family: monospace; font-size: 1.5rem; }
+        .feature-card { background-color: #f3f4f6; border-right: 4px solid #3b82f6; }
+        .packet-example { background-color: #1e1e1e; color: #e0e0e0; padding: 1rem; border-radius: 0.5rem; font-family: 'Courier New', monospace; direction: ltr; text-align: left; font-size: 0.8rem; }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <!-- شريط تحذيري -->
+    <div class="bg-black text-yellow-300 py-2 px-4 text-center text-sm border-b border-yellow-500/30">
+        <i class="fas fa-shield-alt ml-2"></i> موسوعة أدوات الأمن السيبراني – معلومات تثقيفية وتفاعلية.
+    </div>
+
+    <!-- رأس الصفحة مع إحصائيات سريعة -->
+    <header class="bg-white border-b shadow-sm sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-search text-2xl text-green-600"></i>
+                <h1 class="text-xl font-black text-indigo-900">Wireshark - محلل بروتوكولات الشبكة</h1>
+            </div>
+            <div class="flex gap-4 text-sm">
+                <span class="bg-red-100 text-red-700 px-4 py-1 rounded-full font-bold"><i class="fas fa-exclamation-triangle ml-1"></i> حزم مشبوهة: ١٤٢</span>
+                <span class="bg-green-100 text-green-700 px-4 py-1 rounded-full font-bold"><i class="fas fa-chart-line ml-1"></i> بروتوكولات: ١٬٥٠٠+</span>
+                <span class="bg-blue-100 text-blue-700 px-4 py-1 rounded-full font-bold"><i class="fas fa-database ml-1"></i> فلترة نشطة: ٨٬٢٣٠</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        
+        <!-- تبويبات موسعة (جوانب Wireshark) -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
+            <div class="scrollable-tabs flex border-b bg-gray-50">
+                <button onclick="switchTab('overview')" id="tab-overview" class="tab-btn flex-1 py-4 px-4 text-center hover:bg-white transition tab-active min-w-[120px]" data-tab="overview">
+                    <i class="fas fa-info-circle ml-2"></i> نظرة عامة
+                </button>
+                <button onclick="switchTab('features')" id="tab-features" class="tab-btn flex-1 py-4 px-4 text-center hover:bg-white transition text-gray-500 min-w-[120px]" data-tab="features">
+                    <i class="fas fa-star ml-2"></i> الميزات
+                </button>
+                <button onclick="switchTab('capture')" id="tab-capture" class="tab-btn flex-1 py-4 px-4 text-center hover:bg-white transition text-gray-500 min-w-[120px]" data-tab="capture">
+                    <i class="fas fa-download ml-2"></i> التقاط الحزم
+                </button>
+                <button onclick="switchTab('filter')" id="tab-filter" class="tab-btn flex-1 py-4 px-4 text-center hover:bg-white transition text-gray-500 min-w-[120px]" data-tab="filter">
+                    <i class="fas fa-filter ml-2"></i> التصفية
+                </button>
+                <button onclick="switchTab('security')" id="tab-security" class="tab-btn flex-1 py-4 px-4 text-center hover:bg-white transition text-gray-500 min-w-[120px]" data-tab="security">
+                    <i class="fas fa-shield-alt ml-2"></i> استخدامات أمنية
+                </button>
+                <button onclick="switchTab('alternatives')" id="tab-alternatives" class="tab-btn flex-1 py-4 px-4 text-center hover:bg-white transition text-gray-500 min-w-[120px]" data-tab="alternatives">
+                    <i class="fas fa-cogs ml-2"></i> بدائل وأدوات
+                </button>
+            </div>
+
+            <!-- محتوى كل تبويب -->
+            <div class="p-6 md:p-8">
+                <!-- نظرة عامة -->
+                <div id="content-overview" class="tab-content block">
+                    <div class="bg-green-50 border-r-4 border-green-600 p-4 mb-6 rounded">
+                        <h3 class="font-bold text-green-800">🔍 ما هو Wireshark؟</h3>
+                        <p class="text-sm">محلل بروتوكولات شبكات مجاني ومفتوح المصدر، يستخدم لالتقاط وتحليل حركة المرور على الشبكة بشكل تفصيلي.</p>
+                    </div>
+                    <div class="border-2 border-green-200 rounded-xl p-5 bg-white max-w-3xl mx-auto shadow-md">
+                        <div class="flex items-center gap-3 border-b pb-3 mb-3">
+                            <i class="fas fa-network-wired text-green-600 text-2xl"></i>
+                            <span class="font-bold">يُمكن من فحص الحزم، تحليل البروتوكولات، واكتشاف المشاكل والتهديدات.</span>
+                        </div>
+                        <p class="text-gray-600">يُستخدم في استكشاف الأخطاء، تحليل الشبكات، والتعليم الأمني.</p>
+                        <div class="flex gap-3 mt-4 flex-wrap">
+                            <a href="siem.html" class="bg-green-600 text-white px-4 py-2 rounded-full text-sm hover:bg-green-700"><i class="fas fa-chart-pie ml-1"></i> SIEM</a>
+                            <a href="edr.html" class="bg-gray-600 text-white px-4 py-2 rounded-full text-sm hover:bg-gray-700"><i class="fas fa-network-wired ml-1"></i> EDR</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- الميزات -->
+                <div id="content-features" class="tab-content hidden">
+                    <div class="bg-blue-50 border-r-4 border-blue-600 p-4 mb-6 rounded">
+                        <h3 class="font-bold text-blue-800">✨ ميزات Wireshark الرئيسية</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="border-2 border-blue-200 rounded-xl p-4 bg-white">
+                            <i class="fas fa-cube text-2xl text-blue-600"></i>
+                            <h4 class="font-bold mt-2">دعم مئات البروتوكولات</h4>
+                            <p class="text-sm">يمكنه فك تشفير وعرض أكثر من 1500 بروتوكول.</p>
+                        </div>
+                        <div class="border-2 border-blue-200 rounded-xl p-4 bg-white">
+                            <i class="fas fa-filter text-2xl text-blue-600"></i>
+                            <h4 class="font-bold mt-2">تصفية متقدمة</h4>
+                            <p class="text-sm">لغة فلترة قوية لتحديد الحزم بدقة.</p>
+                        </div>
+                        <div class="border-2 border-blue-200 rounded-xl p-4 bg-white">
+                            <i class="fas fa-chart-bar text-2xl text-blue-600"></i>
+                            <h4 class="font-bold mt-2">إحصائيات وتحليلات</h4>
+                            <p class="text-sm">رسوم بيانية، تدفقات، وتحليلات زمنية.</p>
+                        </div>
+                        <div class="border-2 border-blue-200 rounded-xl p-4 bg-white">
+                            <i class="fas fa-file-code text-2xl text-blue-600"></i>
+                            <h4 class="font-bold mt-2">حفظ وتصدير</h4>
+                            <p class="text-sm">يمكن حفظ الحملات بتنسيقات متعددة للتحليل لاحقًا.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- التقاط الحزم -->
+                <div id="content-capture" class="tab-content hidden">
+                    <div class="bg-purple-50 border-r-4 border-purple-600 p-4 mb-6 rounded">
+                        <h3 class="font-bold text-purple-800">📥 كيف يتم التقاط الحزم؟</h3>
+                    </div>
+                    <div class="border-2 border-purple-200 rounded-xl p-5 bg-white max-w-3xl mx-auto shadow-md">
+                        <ol class="list-decimal list-inside space-y-2">
+                            <li>اختيار واجهة الشبكة (Ethernet، WiFi...).</li>
+                            <li>بدء الالتقاط (Capture Start).</li>
+                            <li>إيقاف الالتقاط بعد جمع العينات.</li>
+                            <li>تحليل الحزم باستخدام أدوات الفلترة والمتابعة.</li>
+                        </ol>
+                        <div class="packet-example mt-4">
+                            <span class="text-blue-400">Frame 1:</span> 74 bytes on wire (592 bits)<br>
+                            <span class="text-green-400">Ethernet II, Src: IntelCor_12:34:56, Dst: Cisco_78:90:ab</span><br>
+                            <span class="text-yellow-400">Internet Protocol Version 4, Src: 192.168.1.100, Dst: 8.8.8.8</span><br>
+                            <span class="text-red-400">Transmission Control Protocol, Src Port: 54321, Dst Port: 80</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- التصفية -->
+                <div id="content-filter" class="tab-content hidden">
+                    <div class="bg-yellow-50 border-r-4 border-yellow-600 p-4 mb-6 rounded">
+                        <h3 class="font-bold text-yellow-800">🧹 التصفية في Wireshark</h3>
+                    </div>
+                    <div class="border-2 border-yellow-200 rounded-xl p-5 bg-white max-w-3xl mx-auto shadow-md">
+                        <p class="font-bold mb-2">أنماط الفلترة:</p>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li><code>ip.addr == 192.168.1.1</code> – تصفية حسب عنوان IP.</li>
+                            <li><code>tcp.port == 80</code> – حركة HTTP.</li>
+                            <li><code>http.request.method == "GET"</code> – طلبات GET.</li>
+                            <li><code>frame contains "password"</code> – البحث عن كلمة password.</li>
+                        </ul>
+                        <p class="mt-4">يمكن استخدام عوامل منطقية: <code>and</code>, <code>or</code>, <code>not</code>.</p>
+                    </div>
+                </div>
+
+                <!-- استخدامات أمنية -->
+                <div id="content-security" class="tab-content hidden">
+                    <div class="bg-red-50 border-r-4 border-red-600 p-4 mb-6 rounded">
+                        <h3 class="font-bold text-red-800">🛡️ استخدامات Wireshark في الأمن السيبراني</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="border-2 border-red-200 rounded-xl p-4 bg-white">
+                            <i class="fas fa-bug text-2xl text-red-600"></i>
+                            <h4 class="font-bold mt-2">اكتشاف البرمجيات الخبيثة</h4>
+                            <p class="text-sm">تحليل اتصالات مشبوهة، تواصل مع IPs ضارة.</p>
+                        </div>
+                        <div class="border-2 border-red-200 rounded-xl p-4 bg-white">
+                            <i class="fas fa-user-secret text-2xl text-red-600"></i>
+                            <h4 class="font-bold mt-2">تحليل هجمات الشبكة</h4>
+                            <p class="text-sm">فحص هجمات DDoS، فحص المنافذ، ARP spoofing.</p>
+                        </div>
+                        <div class="border-2 border-red-200 rounded-xl p-4 bg-white">
+                            <i class="fas fa-lock-open text-2xl text-red-600"></i>
+                            <h4 class="font-bold mt-2">كشف البيانات غير المشفرة</h4>
+                            <p class="text-sm">مراقبة كلمات المرور المرسلة بنص واضح.</p>
+                        </div>
+                        <div class="border-2 border-red-200 rounded-xl p-4 bg-white">
+                            <i class="fas fa-search text-2xl text-red-600"></i>
+                            <h4 class="font-bold mt-2">تحقيقات الطب الشرعي</h4>
+                            <p class="text-sm">إعادة بناء جلسات وفحص سجلات الشبكة.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- بدائل وأدوات -->
+                <div id="content-alternatives" class="tab-content hidden">
+                    <div class="bg-gray-700 border-r-4 border-gray-500 p-4 mb-6 rounded text-white">
+                        <h3 class="font-bold">🔧 أدوات مشابهة وتكميلية</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <a href="https://www.tcpdump.org/" target="_blank" class="border-2 border-gray-300 rounded-xl p-4 bg-white hover:shadow-lg transition">
+                            <i class="fas fa-terminal text-3xl text-gray-600"></i>
+                            <h4 class="font-bold mt-2">tcpdump</h4>
+                            <p class="text-sm">أداة سطر أوامر لالتقاط الحزم، أساس Wireshark.</p>
+                        </a>
+                        <a href="https://www.ettercap-project.org/" target="_blank" class="border-2 border-gray-300 rounded-xl p-4 bg-white hover:shadow-lg transition">
+                            <i class="fas fa-project-diagram text-3xl text-gray-600"></i>
+                            <h4 class="font-bold mt-2">Ettercap</h4>
+                            <p class="text-sm">هجمات الوسيط وتحليل الشبكة.</p>
+                        </a>
+                        <a href="https://zeek.org/" target="_blank" class="border-2 border-gray-300 rounded-xl p-4 bg-white hover:shadow-lg transition">
+                            <i class="fas fa-shield-alt text-3xl text-gray-600"></i>
+                            <h4 class="font-bold mt-2">Zeek (Bro)</h4>
+                            <p class="text-sm">إطار مراقبة الشبكة الأمني.</p>
+                        </a>
+                        <a href="siem.html" class="border-2 border-gray-300 rounded-xl p-4 bg-white hover:shadow-lg transition">
+                            <i class="fas fa-chart-pie text-3xl text-gray-600"></i>
+                            <h4 class="font-bold mt-2">SIEM</h4>
+                            <p class="text-sm">إدارة الأحداث والمعلومات الأمنية.</p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- لوحة التحكم: شاشة الهاكر + التعليم + بيانات مجمعة -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- شاشة التقاط الحزم (محاكاة) -->
+            <div class="lg:col-span-1 hacker-console rounded-2xl p-5 shadow-2xl">
+                <div class="flex justify-between items-center mb-4 border-b border-green-800 pb-2">
+                    <h3 class="text-green-400 font-bold text-lg"><i class="fas fa-search ml-2"></i> التقاط مباشر</h3>
+                    <span class="text-xs bg-green-900 px-2 py-1 rounded text-green-300">live capture</span>
+                </div>
+                <div id="captureLog" class="text-xs space-y-3 h-64 overflow-y-auto pl-1">
+                    <p class="text-green-700 opacity-70 text-center mt-6">في انتظار الحزم...</p>
+                </div>
+                <div class="mt-4 pt-4 border-t border-green-800">
+                    <p class="text-green-500 text-sm font-bold">🔍 أهمية تحليل الحزم</p>
+                    <p id="hackerBenefit" class="text-green-700/80 text-xs mt-1 leading-relaxed">يساعد على فهم سلوك الشبكة واكتشاف الأنشطة غير الطبيعية.</p>
+                </div>
+            </div>
+
+            <!-- لوحة التوعية والمعلومات -->
+            <div class="lg:col-span-2 bg-white rounded-2xl p-6 shadow-xl">
+                <h3 class="text-2xl font-bold text-indigo-900 mb-4 flex items-center gap-2"><i class="fas fa-graduation-cap text-indigo-500"></i> لماذا يعتبر Wireshark أداة أساسية؟</h3>
+                <div id="eduContent" class="space-y-4 min-h-[160px] text-gray-700">
+                    <p class="text-gray-500">اختر تبويباً من الأعلى لاستعراض التفاصيل.</p>
+                </div>
+                
+                <!-- إحصائيات تفاعلية -->
+                <div class="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div class="bg-gray-100 p-3 rounded-xl text-center">
+                        <div class="text-2xl font-bold text-green-700" id="statPackets">٢٬٤٣٠</div>
+                        <div class="text-xs text-gray-600">حزمة/ثانية</div>
+                    </div>
+                    <div class="bg-gray-100 p-3 rounded-xl text-center">
+                        <div class="text-2xl font-bold text-blue-700" id="statProtocols">١٬٥٠٠</div>
+                        <div class="text-xs text-gray-600">بروتوكول</div>
+                    </div>
+                    <div class="bg-gray-100 p-3 rounded-xl text-center">
+                        <div class="text-2xl font-bold text-red-700" id="statAlertsW">١٤</div>
+                        <div class="text-xs text-gray-600">تنبيهات</div>
+                    </div>
+                    <div class="bg-gray-100 p-3 rounded-xl text-center">
+                        <div class="text-2xl font-bold text-purple-700" id="statFilters">٨٢</div>
+                        <div class="text-xs text-gray-600">فلتر نشط</div>
+                    </div>
+                </div>
+
+                <!-- بطاقات الأدوات مع الروابط المطلوبة -->
+                <div class="mt-8">
+                    <h4 class="font-bold text-lg mb-3">🔗 أدوات وتقنيات ذات صلة:</h4>
+                    <div class="flex flex-wrap gap-2">
+                        <a href="wireshark.html" class="bg-green-100 text-green-700 px-3 py-2 rounded-full text-sm hover:bg-green-200 transition"><i class="fas fa-search ml-1"></i> Wireshark</a>
+                        <a href="siem.html" class="bg-yellow-100 text-yellow-700 px-3 py-2 rounded-full text-sm hover:bg-yellow-200 transition"><i class="fas fa-chart-pie ml-1"></i> SIEM</a>
+                        <a href="edr.html" class="bg-indigo-100 text-indigo-700 px-3 py-2 rounded-full text-sm hover:bg-indigo-200 transition"><i class="fas fa-network-wired ml-1"></i> EDR</a>
+                        <a href="antivirus.html" class="bg-blue-100 text-blue-700 px-3 py-2 rounded-full text-sm hover:bg-blue-200 transition"><i class="fas fa-shield-alt ml-1"></i> Antivirus</a>
+                        <a href="mdm.html" class="bg-orange-100 text-orange-700 px-3 py-2 rounded-full text-sm hover:bg-orange-200 transition"><i class="fas fa-mobile-alt ml-1"></i> MDM</a>
+                        <a href="encryption.html" class="bg-red-100 text-red-700 px-3 py-2 rounded-full text-sm hover:bg-red-200 transition"><i class="fas fa-lock ml-1"></i> Encryption</a>
+                        <a href="gophish.html" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-full text-sm hover:bg-gray-300 transition"><i class="fas fa-fish ml-1"></i> GoPhish</a>
+                        <a href="knowbe4.html" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-full text-sm hover:bg-gray-300 transition"><i class="fas fa-graduation-cap ml-1"></i> KnowBe4</a>
+                    </div>
+                </div>
+
+                <!-- توضيح أهمية Wireshark -->
+                <div class="mt-6 p-4 bg-yellow-50 border-r-4 border-yellow-500 rounded-xl">
+                    <p class="font-bold text-yellow-800"><i class="fas fa-exclamation-triangle ml-2"></i> هل تعلم؟</p>
+                    <p class="text-sm text-yellow-900 mt-1">Wireshark يمكنه فك تشفير حركة SSL/TLS إذا تم توفير المفتاح الخاص، مما يساعد في تحليل التطبيقات الآمنة.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- أزرار التنقل بين الصفحات -->
+        <div class="flex justify-center gap-6 mt-12">
+            <a href="index.html" class="bg-gray-600 hover:bg-gray-700 text-white px-8 py-3 rounded-full transition shadow-lg"><i class="fas fa-home ml-2"></i>الرئيسية</a>
+            <a href="siem.html" class="bg-yellow-600 hover:bg-yellow-700 text-white px-8 py-3 rounded-full transition shadow-lg"><i class="fas fa-arrow-left ml-2"></i>التالي: SIEM</a>
+        </div>
+    </main>
+
+    <!-- نافذة منبثقة لمحاكاة التقاط حزمة -->
+    <div id="captureModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 hidden p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl">
+            <div class="p-5 text-white bg-green-600 flex justify-between items-center">
+                <h3 class="font-bold text-xl">محاكاة التقاط حزمة</h3>
+                <button onclick="closeCapture()" class="hover:scale-110 transition"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6">
+                <div class="bg-green-50 p-4 rounded-xl text-center mb-4">
+                    <i class="fas fa-wifi text-6xl text-green-600 mb-3"></i>
+                    <p class="text-lg font-bold" id="captureResult">جاري الالتقاط...</p>
+                    <div class="w-full bg-gray-200 rounded-full h-4 mt-3">
+                        <div id="captureProgress" class="bg-green-600 h-4 rounded-full" style="width: 0%"></div>
+                    </div>
+                </div>
+                <button onclick="closeCapture()" class="w-full py-3 bg-gray-200 rounded-xl font-bold">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // بيانات إحصائيات افتراضية
+        let stats = {
+            packets: 2430,
+            protocols: 1500,
+            alerts: 14,
+            filters: 82
+        };
+
+        function refreshStatsUI() {
+            document.getElementById('statPackets').innerText = stats.packets.toLocaleString();
+            document.getElementById('statProtocols').innerText = stats.protocols.toLocaleString();
+            document.getElementById('statAlertsW').innerText = stats.alerts.toLocaleString();
+            document.getElementById('statFilters').innerText = stats.filters.toLocaleString();
+        }
+
+        // تبديل التبويبات
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById(`content-${tabId}`).classList.remove('hidden');
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('tab-active', 'text-blue-600');
+                btn.classList.add('text-gray-500');
+            });
+            document.getElementById(`tab-${tabId}`).classList.add('tab-active');
+            document.getElementById(`tab-${tabId}`).classList.remove('text-gray-500');
+
+            updateEduContent(tabId);
+        }
+
+        function updateEduContent(tabId) {
+            const edu = document.getElementById('eduContent');
+            const hackerBenefit = document.getElementById('hackerBenefit');
+            const logDiv = document.getElementById('captureLog');
+            const time = new Date().toLocaleTimeString('ar-EG');
+
+            if (logDiv.innerHTML.includes('في انتظار')) logDiv.innerHTML = '';
+            const entry = document.createElement('div');
+            entry.className = 'p-2 border border-green-800 rounded text-green-400 text-xs mb-2';
+            entry.innerHTML = `<span class="text-gray-500">${time}</span> <span class="text-blue-400 font-bold">[حزمة]</span><br> تم تحليل ${Math.floor(Math.random()*10)+1} حزم من ${tabId}.`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+
+            const eduMap = {
+                overview: 'محلل شبكات متعدد الاستخدامات، أساسي لأي مختبر أمني.',
+                features: 'يدعم آلاف البروتوكولات، فلترة قوية، تصدير للنتائج.',
+                capture: 'يسمح بالتقاط الحزم من أي واجهة شبكة وتخزينها.',
+                filter: 'لغة فلترة مرنة لعزل الحزم محل الاهتمام.',
+                security: 'يكشف هجمات الشبكة، البرمجيات الخبيثة، ونقل البيانات غير الآمن.',
+                alternatives: 'أدوات مثل tcpdump وZeek تكمل عمله.'
+            };
+            const benefitMap = {
+                overview: 'رؤية تفصيلية لحركة الشبكة.',
+                features: 'تعدد الميزات يجعله أداة شاملة.',
+                capture: 'يمكن إعادة تحليل الحزم لاحقاً.',
+                filter: 'دقة عالية في العزل.',
+                security: 'أداة تحقيق قوية.',
+                alternatives: 'مجموعة متكاملة لمراقبة الشبكة.'
+            };
+            edu.innerHTML = `<div class="p-4 bg-blue-50 border-r-4 border-blue-600 rounded-xl"><p class="text-sm text-blue-800">${eduMap[tabId] || eduMap.overview}</p></div>`;
+            hackerBenefit.innerText = benefitMap[tabId] || benefitMap.overview;
+        }
+
+        // محاكاة التقاط حزمة
+        function simulateCapture() {
+            const modal = document.getElementById('captureModal');
+            modal.classList.remove('hidden');
+            const progress = document.getElementById('captureProgress');
+            const result = document.getElementById('captureResult');
+            let width = 0;
+            const interval = setInterval(() => {
+                width += 10;
+                progress.style.width = width + '%';
+                if (width >= 100) {
+                    clearInterval(interval);
+                    result.innerHTML = '✅ تم التقاط ٥٢ حزمة';
+                }
+            }, 300);
+        }
+
+        function closeCapture() {
+            document.getElementById('captureModal').classList.add('hidden');
+        }
+
+        // إضافة مستمع للأزرار التي تحاكي الالتقاط
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('capture-btn')) {
+                simulateCapture();
+            }
+        });
+
+        // تهيئة الصفحة
+        window.onload = function() {
+            refreshStatsUI();
+            switchTab('overview');
+        };
+    </script>
+</body>
+</html>
