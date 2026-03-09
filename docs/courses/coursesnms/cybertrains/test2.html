@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>واجب التشفير التطبيقي | Applied Cryptography</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Tajawal', sans-serif; }
+        .true-false-card { transition: all 0.2s; border-right: 4px solid #3b82f6; }
+        .option-btn { transition: all 0.2s; border: 2px solid transparent; cursor: pointer; }
+        .option-btn.selected { background: #bfdbfe; border-color: #2563eb; font-weight: 600; }
+        .show-answer { background: #fef3c7; border-right: 4px solid #f59e0b; }
+        .progress-bar { transition: width 0.3s; }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <!-- شريط العنوان -->
+    <div class="bg-indigo-900 text-white py-3 px-4 text-center text-lg font-bold">
+        <i class="fas fa-lock ml-2"></i> مقرر: التشفير التطبيقي – Applied Cryptography
+    </div>
+
+    <main class="max-w-5xl mx-auto px-4 py-8">
+
+        <!-- رأس الواجب مع السيناريو -->
+        <div class="bg-white rounded-3xl p-8 shadow-2xl mb-10 border-t-8 border-indigo-500">
+            <h1 class="text-4xl font-black text-gray-800 mb-4 flex items-center gap-3">
+                <i class="fas fa-shield-halos text-indigo-600"></i>
+                <span>📘 واجب بنمط دراسة حالة (Case Study)</span>
+            </h1>
+            <p class="text-xl text-gray-600 mb-4">تحليل دور التشفير في هجوم الفدية (Ransomware) – سيناريو شركة الخدمات المالية</p>
+
+            <!-- سيناريو الحادث -->
+            <div class="bg-red-50 p-6 rounded-2xl border-r-8 border-red-500 mt-4">
+                <h2 class="text-2xl font-bold text-red-800 mb-3 flex items-center gap-2"><i class="fas fa-exclamation-triangle"></i> 🧩 سيناريو الحادث</h2>
+                <p class="text-gray-700 leading-relaxed">
+                    تعرضت شركة للخدمات المالية لهجوم سيبراني بدأ برسالة <strong>تصيد احتيالي</strong> تحتوي على ملف Word خبيث. بعد فتح الملف تم تثبيت برنامج ضار، مما سمح للمهاجم بالدخول إلى الشبكة الداخلية. 
+                    بعد عدة ساعات استطاع المهاجم الوصول إلى <strong>خادم الملفات</strong> والحصول على بيانات حساسة. وفي اليوم التالي تم نشر <strong>برنامج Ransomware</strong> قام بتشفير ملفات الشركة بالكامل، وظهرت رسالة تطالب بدفع فدية مقابل الحصول على مفتاح فك التشفير.
+                </p>
+                <p class="mt-4 text-gray-700">🔍 بدأ فريق الأمن السيبراني في تحليل الحادث لمعرفة: كيف تم تشفير الملفات، ما نوع التشفير المستخدم، وكيف يمكن استعادة البيانات.</p>
+            </div>
+
+            <!-- إحصائيات تقدم الطالب -->
+            <div class="mt-8 flex items-center gap-4 bg-gray-100 p-4 rounded-2xl">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm font-bold text-gray-600">الأسئلة المجابة:</span>
+                    <span id="answeredCount" class="bg-indigo-600 text-white px-3 py-1 rounded-full text-sm">0/20</span>
+                </div>
+                <div class="flex-1 h-3 bg-gray-300 rounded-full">
+                    <div id="progressBar" class="h-3 bg-indigo-600 rounded-full progress-bar" style="width: 0%"></div>
+                </div>
+                <button onclick="resetAssignment()" class="bg-gray-500 text-white px-4 py-1 rounded-full text-sm hover:bg-gray-600 transition">
+                    <i class="fas fa-undo-alt ml-1"></i> إعادة
+                </button>
+            </div>
+        </div>
+
+        <!-- أولاً: صح أو خطأ (10 أسئلة) -->
+        <section class="bg-white rounded-3xl p-6 shadow-xl mb-12">
+            <h2 class="text-2xl font-bold mb-6 flex items-center gap-2"><i class="fas fa-check-circle text-green-600"></i> أولاً: صح أو خطأ (10 درجات)</h2>
+            <div id="tfContainer" class="space-y-4"></div>
+        </section>
+
+        <!-- ثانياً: اختيار من متعدد (5 أسئلة) -->
+        <section class="bg-white rounded-3xl p-6 shadow-xl mb-12">
+            <h2 class="text-2xl font-bold mb-6 flex items-center gap-2"><i class="fas fa-list-ul text-blue-600"></i> ثانياً: اختيار من متعدد (5 درجات)</h2>
+            <div id="mcqContainer" class="space-y-6"></div>
+        </section>
+
+        <!-- ثالثاً: أسئلة تحليلية (5 أسئلة) -->
+        <section class="bg-white rounded-3xl p-6 shadow-xl mb-12">
+            <h2 class="text-2xl font-bold mb-6 flex items-center gap-2"><i class="fas fa-brain text-purple-600"></i> ثالثاً: أسئلة تحليلية (5 درجات)</h2>
+            <div id="analyticalContainer" class="space-y-6"></div>
+        </section>
+
+        <!-- أزرار التحكم -->
+        <div class="flex flex-wrap gap-4 justify-center mb-12">
+            <button onclick="revealAllAnswers()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-8 py-3 rounded-full font-bold transition shadow-lg">
+                <i class="fas fa-lightbulb ml-2"></i> عرض الإجابات النموذجية
+            </button>
+            <button onclick="resetAssignment()" class="bg-gray-600 hover:bg-gray-700 text-white px-8 py-3 rounded-full font-bold transition shadow-lg">
+                <i class="fas fa-redo-alt ml-2"></i> إعادة تعيين الواجب
+            </button>
+        </div>
+
+        <!-- هدف الواجب -->
+        <div class="bg-indigo-50 rounded-3xl p-6 text-center border border-indigo-200">
+            <p class="text-lg text-indigo-800 font-bold"><i class="fas fa-graduation-cap ml-2"></i> هدف الواجب: ربط مفاهيم التشفير التطبيقي بواقع الهجمات السيبرانية مثل Ransomware، التجزئة، التواقيع الرقمية، وإدارة المفاتيح.</p>
+        </div>
+
+    </main>
+
+    <footer class="bg-slate-900 text-white py-6 text-center mt-12">
+        <p class="text-xl font-light">🔐 Applied Cryptography – تحليل تشفير هجمات الفدية</p>
+        <p class="text-sm opacity-60 mt-2">جميع الأسئلة مبنية على سيناريو حقيقي لأغراض تعليمية</p>
+    </footer>
+
+    <script>
+        // بيانات الأسئلة
+
+        // 10 أسئلة صح/خطأ
+        const tfQuestions = [
+            { q: "تستخدم هجمات الفدية التشفير لمنع الضحية من الوصول إلى بياناته.", correct: true, answerDesc: "صحيح. الـ Ransomware يستخدم التشفير لحظر وصول الضحية إلى ملفاته." },
+            { q: "التشفير المتماثل يستخدم نفس المفتاح للتشفير وفك التشفير.", correct: true, answerDesc: "صحيح. التشفير المتماثل يعتمد على مفتاح واحد (مثل AES)." },
+            { q: "التشفير غير المتماثل يعتمد على مفتاح واحد فقط.", correct: false, answerDesc: "خطأ. التشفير غير المتماثل يستخدم مفتاحين: عام وخاص." },
+            { q: "وظائف التجزئة (Hash Functions) تُستخدم للتحقق من سلامة البيانات.", correct: true, answerDesc: "صحيح. التجزئة تنتج قيمة ثابتة (hash) تكشف أي تعديل." },
+            { q: "التوقيع الرقمي يساعد في تحقيق خاصية عدم التنصل (Non-repudiation).", correct: true, answerDesc: "صحيح. التوقيع الرقمي يثبت هوية المرسل ويمنع إنكاره." },
+            { q: "توليد أرقام عشوائية ضعيفة قد يؤدي إلى كسر أنظمة التشفير.", correct: true, answerDesc: "صحيح. الأرقام العشوائية الضعيفة تجعل المفاتيح قابلة للتخمين." },
+            { q: "يمكن استخدام التشفير لحماية البيانات أثناء التخزين والنقل.", correct: true, answerDesc: "صحيح. التشفير يحمي البيانات سواء كانت ثابتة أو منقولة." },
+            { q: "خوارزميات التشفير الحديثة لا تحتاج إلى مفاتيح.", correct: false, answerDesc: "خطأ. جميع خوارزميات التشفير تعتمد على مفاتيح." },
+            { q: "رموز المصادقة (MAC) تستخدم للتحقق من سلامة الرسالة ومصدرها.", correct: true, answerDesc: "صحيح. MAC يضمن أن الرسالة لم تعدل وأن مصدرها موثوق." },
+            { q: "التشفير لا يلعب أي دور في حماية قواعد البيانات.", correct: false, answerDesc: "خطأ. التشفير أساسي لحماية قواعد البيانات من الاختراق." }
+        ];
+
+        // 5 أسئلة اختيار من متعدد
+        const mcqQuestions = [
+            { 
+                q: "في هجمات Ransomware غالبًا ما يستخدم المهاجم:",
+                options: ["التشفير لحماية الضحية", "التشفير لمنع الوصول إلى الملفات", "التشفير لتحسين الشبكة", "ضغط الملفات"],
+                correct: 1,
+                answerDesc: "الإجابة الصحيحة: التشفير لمنع الوصول إلى الملفات."
+            },
+            {
+                q: "أي من التالي يعد مثالًا على خوارزمية تشفير متماثل؟",
+                options: ["RSA", "AES", "ECC", "Diffie-Hellman"],
+                correct: 1,
+                answerDesc: "الإجابة الصحيحة: AES (متماثل). RSA, ECC, Diffie-Hellman غير متماثلة."
+            },
+            {
+                q: "أي تقنية تستخدم للتحقق من سلامة البيانات؟",
+                options: ["Hash Function", "Firewall", "Antivirus", "VPN"],
+                correct: 0,
+                answerDesc: "الإجابة الصحيحة: Hash Function (وظائف التجزئة)."
+            },
+            {
+                q: "التوقيع الرقمي يستخدم لتحقيق:",
+                options: ["سرية البيانات فقط", "سلامة البيانات وتوثيق المرسل", "زيادة سرعة الشبكة", "ضغط الملفات"],
+                correct: 1,
+                answerDesc: "الإجابة الصحيحة: سلامة البيانات وتوثيق المرسل (عدم التنصل)."
+            },
+            {
+                q: "أي من التالي يستخدم للتحقق من أن الرسالة لم يتم تعديلها؟",
+                options: ["MAC", "Antivirus", "IDS", "Router"],
+                correct: 0,
+                answerDesc: "الإجابة الصحيحة: MAC (Message Authentication Code)."
+            }
+        ];
+
+        // 5 أسئلة تحليلية مع إجابات نموذجية
+        const analyticalQuestions = [
+            {
+                q: "لماذا يستخدم المهاجمون التشفير في هجمات الفدية؟",
+                answerDesc: "يستخدم المهاجمون التشفير لمنع الضحية من الوصول إلى ملفاته، ثم يطلبون فدية مقابل مفتاح فك التشفير. غالبًا ما يستخدمون تشفيرًا متماثلًا قويًا (مثل AES) مع مفتاح يتم تشفيره بمفتاح عام للمهاجم."
+            },
+            {
+                q: "ما الفرق بين التشفير المتماثل وغير المتماثل؟",
+                answerDesc: "المتماثل: يستخدم مفتاحًا واحدًا للتشفير وفك التشفير (مثل AES)، سريع لكن يحتاج لمشاركة المفتاح. غير المتماثل: يستخدم مفتاحين (عام وخاص) مثل RSA، أبطأ لكنه يحل مشكلة تبادل المفاتيح."
+            },
+            {
+                q: "كيف يمكن استخدام وظائف التجزئة لحماية كلمات المرور في الأنظمة؟",
+                answerDesc: "يتم تخزين قيمة التجزئة (hash) لكلمة المرور بدلاً من كلمة المرور نفسها. عند تسجيل الدخول، يتم تجزئة المدخلات ومقارنتها مع التجزئة المخزنة. يضاف ملح (salt) لمنع هجمات الجداول الجاهزة (rainbow tables)."
+            },
+            {
+                q: "لو كانت الشركة تستخدم توقيعًا رقميًا للبريد الإلكتروني، هل كان يمكن تقليل خطر التصيد الاحتيالي؟ وضّح.",
+                answerDesc: "نعم، لأن التوقيع الرقمي يثبت هوية المرسل الحقيقية. لو كان البريد موقعًا رقميًا من النطاق الرسمي للشركة، كان يمكن للموظف التحقق من أن البريد حقيقي قبل فتح المرفقات."
+            },
+            {
+                q: "ما الإجراءات التشفيرية التي يمكن للشركة تطبيقها لحماية بياناتها في المستقبل؟",
+                answerDesc: "1. تشفير البيانات الحساسة في قواعد البيانات (تشفير عند التخزين). 2. استخدام TLS لحماية البيانات أثناء النقل. 3. تفعيل التوقيع الرقمي للبريد الإلكتروني. 4. تطبيق المصادقة متعددة العوامل (MFA). 5. إدارة المفاتيح بشكل آمن (HSM)."
+            }
+        ];
+
+        // تخزين إجابات المستخدم
+        let tfAnswers = new Array(tfQuestions.length).fill(null); // null أو true/false
+        let mcqAnswers = new Array(mcqQuestions.length).fill(null); // null أو index
+        let revealAnswers = false; // عرض الإجابات النموذجية
+
+        // دالة عرض جميع الأسئلة
+        function renderAll() {
+            renderTF();
+            renderMCQ();
+            renderAnalytical();
+            updateProgress();
+        }
+
+        // عرض أسئلة صح/خطأ
+        function renderTF() {
+            const container = document.getElementById('tfContainer');
+            let html = '';
+            tfQuestions.forEach((q, idx) => {
+                html += `<div class="true-false-card bg-gray-50 p-5 rounded-2xl shadow-sm">
+                    <p class="font-bold text-lg mb-3"><span class="text-indigo-600 ml-2">${idx+1}.</span> ${q.q}</p>
+                    <div class="flex gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="tf${idx}" value="true" ${tfAnswers[idx] === true ? 'checked' : ''} onchange="setTF(${idx}, true)">
+                            <span>✔ صح</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="tf${idx}" value="false" ${tfAnswers[idx] === false ? 'checked' : ''} onchange="setTF(${idx}, false)">
+                            <span>✘ خطأ</span>
+                        </label>
+                    </div>`;
+                if (revealAnswers) {
+                    html += `<div class="mt-3 p-3 show-answer rounded-xl text-sm text-gray-700">
+                        <i class="fas fa-lightbulb text-yellow-600 ml-1"></i> <span class="font-bold">الإجابة النموذجية:</span> ${q.answerDesc}
+                    </div>`;
+                }
+                html += `</div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        // تعيين إجابة صح/خطأ
+        window.setTF = function(idx, val) {
+            tfAnswers[idx] = val;
+            updateProgress();
+        };
+
+        // عرض أسئلة الاختيار من متعدد
+        function renderMCQ() {
+            const container = document.getElementById('mcqContainer');
+            let html = '';
+            mcqQuestions.forEach((q, idx) => {
+                html += `<div class="bg-gray-50 p-5 rounded-2xl shadow-sm">
+                    <p class="font-bold text-lg mb-3"><span class="text-indigo-600 ml-2">${idx+1}.</span> ${q.q}</p>`;
+                q.options.forEach((opt, optIdx) => {
+                    const selectedClass = (mcqAnswers[idx] === optIdx) ? 'selected' : '';
+                    html += `<div class="option-btn p-3 mb-2 bg-white rounded-xl flex items-center ${selectedClass}" onclick="setMCQ(${idx}, ${optIdx})">
+                        <i class="far fa-circle ml-2"></i> ${opt}
+                    </div>`;
+                });
+                if (revealAnswers) {
+                    html += `<div class="mt-3 p-3 show-answer rounded-xl text-sm text-gray-700">
+                        <i class="fas fa-lightbulb text-yellow-600 ml-1"></i> <span class="font-bold">الإجابة النموذجية:</span> ${q.answerDesc}
+                    </div>`;
+                }
+                html += `</div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        window.setMCQ = function(idx, optIdx) {
+            mcqAnswers[idx] = optIdx;
+            renderMCQ(); // إعادة رسم لتحديث التحديد
+            updateProgress();
+        };
+
+        // عرض الأسئلة التحليلية
+        function renderAnalytical() {
+            const container = document.getElementById('analyticalContainer');
+            let html = '';
+            analyticalQuestions.forEach((q, idx) => {
+                html += `<div class="bg-gray-50 p-5 rounded-2xl shadow-sm">
+                    <p class="font-bold text-lg mb-3"><span class="text-indigo-600 ml-2">${idx+1}.</span> ${q.q}</p>
+                    <textarea class="w-full p-3 border border-gray-300 rounded-xl" rows="2" placeholder="اكتب إجابتك هنا..."></textarea>`;
+                if (revealAnswers) {
+                    html += `<div class="mt-3 p-3 show-answer rounded-xl text-sm text-gray-700">
+                        <i class="fas fa-lightbulb text-yellow-600 ml-1"></i> <span class="font-bold">إجابة نموذجية:</span> ${q.answerDesc}
+                    </div>`;
+                }
+                html += `</div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        // تحديث شريط التقدم (نحسب عدد الأسئلة المجابة من صح/خطأ و MCQ فقط، التحليلية اختيارية)
+        function updateProgress() {
+            const tfCount = tfAnswers.filter(a => a !== null).length;
+            const mcqCount = mcqAnswers.filter(a => a !== null).length;
+            const total = tfCount + mcqCount;
+            const maxQuestions = tfQuestions.length + mcqQuestions.length; // 15
+            document.getElementById('answeredCount').innerText = `${total}/${maxQuestions}`;
+            const percent = (total / maxQuestions) * 100;
+            document.getElementById('progressBar').style.width = percent + '%';
+        }
+
+        // عرض جميع الإجابات النموذجية
+        window.revealAllAnswers = function() {
+            revealAnswers = true;
+            renderAll();
+        };
+
+        // إعادة تعيين الواجب
+        window.resetAssignment = function() {
+            tfAnswers = new Array(tfQuestions.length).fill(null);
+            mcqAnswers = new Array(mcqQuestions.length).fill(null);
+            revealAnswers = false;
+            renderAll();
+        };
+
+        // التحميل الأولي
+        window.onload = function() {
+            renderAll();
+        };
+    </script>
+</body>
+</html>
