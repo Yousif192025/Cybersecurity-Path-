@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار اللغة الإنجليزية الشامل | 30 سؤالاً</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * { font-family: 'Tajawal', sans-serif; }
+        .question-card { transition: all 0.2s; border-right: 4px solid #3b82f6; background: #f8fafc; }
+        .option-btn { transition: all 0.2s; border: 2px solid transparent; cursor: pointer; }
+        .option-btn.selected { background: #bfdbfe; border-color: #2563eb; font-weight: 600; }
+        .progress-bar { transition: width 0.3s; }
+        .fill-input { direction: ltr; text-align: left; }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <!-- شريط العنوان -->
+    <div class="bg-indigo-900 text-white py-3 px-4 text-center text-lg font-bold sticky top-0 z-10 shadow-lg">
+        <i class="fas fa-language ml-2"></i> اختبار اللغة الإنجليزية الشامل – 30 سؤالاً
+    </div>
+
+    <main class="max-w-4xl mx-auto px-4 py-8">
+
+        <!-- نموذج معلومات المتدرب -->
+        <div class="bg-white rounded-3xl p-6 shadow-xl mb-8 border-t-8 border-indigo-500">
+            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i class="fas fa-user-graduate text-indigo-600"></i> معلومات المتدرب</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2">الاسم الكامل</label>
+                    <input type="text" id="studentName" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 ring-indigo-300" placeholder="أدخل اسمك الثلاثي">
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2">رقم الهوية</label>
+                    <input type="text" id="studentId" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 ring-indigo-300" placeholder="أدخل رقم الهوية">
+                </div>
+            </div>
+        </div>
+
+        <!-- شريط التقدم -->
+        <div class="bg-white rounded-2xl p-4 shadow-md mb-8 flex items-center gap-4">
+            <span class="text-sm font-bold text-gray-600">الإجابات:</span>
+            <span id="answeredCount" class="bg-indigo-600 text-white px-3 py-1 rounded-full text-sm">0/30</span>
+            <div class="flex-1 h-3 bg-gray-300 rounded-full">
+                <div id="progressBar" class="h-3 bg-indigo-600 rounded-full progress-bar" style="width: 0%"></div>
+            </div>
+            <button onclick="resetTest()" class="bg-gray-500 text-white px-4 py-1 rounded-full text-sm hover:bg-gray-600 transition">
+                <i class="fas fa-undo-alt ml-1"></i> إعادة
+            </button>
+        </div>
+
+        <!-- الأسئلة -->
+        <form id="testForm" class="space-y-8">
+            <!-- Part 1: Multiple Choice (10 أسئلة) -->
+            <section class="bg-white rounded-3xl p-6 shadow-xl">
+                <h2 class="text-2xl font-bold mb-4 text-indigo-700 border-b pb-2">📝 Part 1: Multiple Choice (10 أسئلة)</h2>
+                <div id="mcqContainer" class="space-y-6"></div>
+            </section>
+
+            <!-- Part 2: Fill in the Blank (10 أسئلة) -->
+            <section class="bg-white rounded-3xl p-6 shadow-xl">
+                <h2 class="text-2xl font-bold mb-4 text-indigo-700 border-b pb-2">✏️ Part 2: Fill in the Blank (10 أسئلة)</h2>
+                <div id="fillContainer" class="space-y-6"></div>
+            </section>
+
+            <!-- Part 3: Choose the Correct Word (5 أسئلة) -->
+            <section class="bg-white rounded-3xl p-6 shadow-xl">
+                <h2 class="text-2xl font-bold mb-4 text-indigo-700 border-b pb-2">🔤 Part 3: Choose the Correct Word (5 أسئلة)</h2>
+                <div id="chooseContainer" class="space-y-6"></div>
+            </section>
+
+            <!-- Part 4: Sentence Correction (5 أسئلة) -->
+            <section class="bg-white rounded-3xl p-6 shadow-xl">
+                <h2 class="text-2xl font-bold mb-4 text-indigo-700 border-b pb-2">✅ Part 4: Sentence Correction (5 أسئلة)</h2>
+                <div id="correctionContainer" class="space-y-6"></div>
+            </section>
+        </form>
+
+        <!-- أزرار التحكم -->
+        <div class="flex flex-wrap gap-4 justify-center mt-10">
+            <button onclick="submitTest()" class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-full font-bold transition shadow-lg">
+                <i class="fas fa-check-circle ml-2"></i> عرض النتيجة
+            </button>
+            <button onclick="downloadPDF()" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full font-bold transition shadow-lg">
+                <i class="fas fa-file-pdf ml-2"></i> تحميل الإجابات (PDF)
+            </button>
+        </div>
+
+        <!-- نتيجة الاختبار -->
+        <div id="resultBox" class="mt-8 hidden bg-gradient-to-l from-green-100 to-blue-100 p-6 rounded-3xl border-r-8 border-green-500 shadow-lg">
+            <h3 class="text-2xl font-bold text-green-800 mb-2">🎉 نتيجتك</h3>
+            <p id="resultText" class="text-xl"></p>
+        </div>
+    </main>
+
+    <footer class="bg-slate-900 text-white py-4 text-center mt-12">
+        <p class="text-lg font-light">📘 اختبار تحديد مستوى اللغة الإنجليزية – 30 سؤالاً</p>
+    </footer>
+
+    <script>
+        // بيانات الأسئلة
+        const questions = [
+            // Part 1: Multiple Choice (10)
+            { part: 1, type: 'mcq', question: 'She ___ to school every day.', options: ['go', 'goes', 'going'], correct: 1 },
+            { part: 1, type: 'mcq', question: 'I ___ coffee every morning.', options: ['drink', 'drinks', 'drinking'], correct: 0 },
+            { part: 1, type: 'mcq', question: 'They ___ football on Sunday.', options: ['plays', 'play', 'playing'], correct: 1 },
+            { part: 1, type: 'mcq', question: 'He ___ a car.', options: ['have', 'has', 'having'], correct: 1 },
+            { part: 1, type: 'mcq', question: 'We ___ English now.', options: ['study', 'studies', 'studying'], correct: 2 },
+            { part: 1, type: 'mcq', question: '___ you like pizza?', options: ['Do', 'Does', 'Is'], correct: 0 },
+            { part: 1, type: 'mcq', question: 'She ___ TV every night.', options: ['watch', 'watches', 'watching'], correct: 1 },
+            { part: 1, type: 'mcq', question: 'My brother ___ in Riyadh.', options: ['live', 'lives', 'living'], correct: 1 },
+            { part: 1, type: 'mcq', question: '___ they work here?', options: ['Does', 'Do', 'Is'], correct: 1 },
+            { part: 1, type: 'mcq', question: 'I ___ a student.', options: ['am', 'is', 'are'], correct: 0 },
+
+            // Part 2: Fill in the Blank (10) – نخزن الإجابة الصحيحة كنص للمقارنة
+            { part: 2, type: 'fill', question: 'She ______ a teacher.', correct: 'is' },
+            { part: 2, type: 'fill', question: 'They ______ from Egypt.', correct: 'are' },
+            { part: 2, type: 'fill', question: 'I ______ English every day.', correct: 'study' },
+            { part: 2, type: 'fill', question: 'He ______ to work by car.', correct: 'goes' },
+            { part: 2, type: 'fill', question: 'We ______ dinner at 8 pm.', correct: 'have' },
+            { part: 2, type: 'fill', question: 'My father ______ in a hospital.', correct: 'works' },
+            { part: 2, type: 'fill', question: 'The students ______ in the classroom.', correct: 'are' },
+            { part: 2, type: 'fill', question: 'She ______ a new phone.', correct: 'has' },
+            { part: 2, type: 'fill', question: 'I ______ happy today.', correct: 'am' },
+            { part: 2, type: 'fill', question: 'They ______ football after school.', correct: 'play' },
+
+            // Part 3: Choose the Correct Word (5)
+            { part: 3, type: 'choose', question: 'This is ___ book.', options: ['my', 'me', 'I'], correct: 0 },
+            { part: 3, type: 'choose', question: 'That is ___ car.', options: ['he', 'his', 'him'], correct: 1 },
+            { part: 3, type: 'choose', question: 'She is ___ friend.', options: ['I', 'my', 'me'], correct: 1 },
+            { part: 3, type: 'choose', question: 'We live ___ Saudi Arabia.', options: ['in', 'on', 'at'], correct: 0 },
+            { part: 3, type: 'choose', question: 'The cat is ___ the table.', options: ['in', 'on', 'at'], correct: 1 },
+
+            // Part 4: Sentence Correction (5) – نعرض خيارين ونخزن الصحيح (0 أو 1)
+            { part: 4, type: 'correction', question: '', options: ['She go to school.', 'She goes to school.'], correct: 1 },
+            { part: 4, type: 'correction', question: '', options: ['They plays football.', 'They play football.'], correct: 1 },
+            { part: 4, type: 'correction', question: '', options: ['He have a car.', 'He has a car.'], correct: 1 },
+            { part: 4, type: 'correction', question: '', options: ['I am happy.', 'I is happy.'], correct: 0 },
+            { part: 4, type: 'correction', question: '', options: ['We is friends.', 'We are friends.'], correct: 1 }
+        ];
+
+        // تخزين إجابات المستخدم
+        let userAnswers = new Array(questions.length).fill(null); // mcq و choose و correction: index الخيار، fill: النص
+
+        // عرض الأسئلة
+        function renderQuestions() {
+            renderMCQ();
+            renderFill();
+            renderChoose();
+            renderCorrection();
+        }
+
+        // توليد HTML لأسئلة الاختيار من متعدد
+        function renderMCQ() {
+            const container = document.getElementById('mcqContainer');
+            let html = '';
+            questions.forEach((q, idx) => {
+                if (q.type === 'mcq') {
+                    html += `<div class="question-card p-5 rounded-2xl shadow-sm mb-4">
+                        <p class="font-bold text-lg mb-3"><span class="text-indigo-600 ml-2">${idx+1}.</span> ${q.question}</p>`;
+                    q.options.forEach((opt, optIdx) => {
+                        const selectedClass = (userAnswers[idx] === optIdx) ? 'selected' : '';
+                        html += `<div class="option-btn p-3 mb-2 bg-white rounded-xl flex items-center ${selectedClass}" onclick="setMCQ(${idx}, ${optIdx})">
+                            <i class="far fa-circle ml-2"></i> ${opt}
+                        </div>`;
+                    });
+                    html += `</div>`;
+                }
+            });
+            container.innerHTML = html;
+        }
+
+        // توليد أسئلة أكمل الفراغ
+        function renderFill() {
+            const container = document.getElementById('fillContainer');
+            let html = '';
+            questions.forEach((q, idx) => {
+                if (q.type === 'fill') {
+                    const answer = userAnswers[idx] !== null ? userAnswers[idx] : '';
+                    html += `<div class="question-card p-5 rounded-2xl shadow-sm mb-4">
+                        <p class="font-bold text-lg mb-3"><span class="text-indigo-600 ml-2">${idx+1}.</span> ${q.question}</p>
+                        <input type="text" class="fill-input w-full p-3 border border-gray-300 rounded-xl" value="${answer}" placeholder="أدخل الإجابة" onchange="setFill(${idx}, this.value)">
+                    </div>`;
+                }
+            });
+            container.innerHTML = html;
+        }
+
+        // توليد أسئلة اختر الكلمة
+        function renderChoose() {
+            const container = document.getElementById('chooseContainer');
+            let html = '';
+            questions.forEach((q, idx) => {
+                if (q.type === 'choose') {
+                    html += `<div class="question-card p-5 rounded-2xl shadow-sm mb-4">
+                        <p class="font-bold text-lg mb-3"><span class="text-indigo-600 ml-2">${idx+1}.</span> ${q.question}</p>`;
+                    q.options.forEach((opt, optIdx) => {
+                        const selectedClass = (userAnswers[idx] === optIdx) ? 'selected' : '';
+                        html += `<div class="option-btn p-3 mb-2 bg-white rounded-xl flex items-center ${selectedClass}" onclick="setMCQ(${idx}, ${optIdx})">
+                            <i class="far fa-circle ml-2"></i> ${opt}
+                        </div>`;
+                    });
+                    html += `</div>`;
+                }
+            });
+            container.innerHTML = html;
+        }
+
+        // توليد أسئلة تصحيح الجملة
+        function renderCorrection() {
+            const container = document.getElementById('correctionContainer');
+            let html = '';
+            questions.forEach((q, idx) => {
+                if (q.type === 'correction') {
+                    html += `<div class="question-card p-5 rounded-2xl shadow-sm mb-4">
+                        <p class="font-bold text-lg mb-3"><span class="text-indigo-600 ml-2">${idx+1}.</span> اختر الجملة الصحيحة:</p>`;
+                    q.options.forEach((opt, optIdx) => {
+                        const selectedClass = (userAnswers[idx] === optIdx) ? 'selected' : '';
+                        html += `<div class="option-btn p-3 mb-2 bg-white rounded-xl flex items-center ${selectedClass}" onclick="setMCQ(${idx}, ${optIdx})">
+                            <i class="far fa-circle ml-2"></i> ${opt}
+                        </div>`;
+                    });
+                    html += `</div>`;
+                }
+            });
+            container.innerHTML = html;
+        }
+
+        // دوال تعيين الإجابات
+        window.setMCQ = function(idx, optIdx) {
+            userAnswers[idx] = optIdx;
+            renderQuestions(); // إعادة رسم لتحديث التحديد
+            updateProgress();
+        };
+
+        window.setFill = function(idx, value) {
+            userAnswers[idx] = value.trim().toLowerCase();
+            updateProgress();
+        };
+
+        // تحديث شريط التقدم
+        function updateProgress() {
+            const answered = userAnswers.filter(a => a !== null && a !== '').length;
+            document.getElementById('answeredCount').innerText = `${answered}/${questions.length}`;
+            const percent = (answered / questions.length) * 100;
+            document.getElementById('progressBar').style.width = percent + '%';
+        }
+
+        // عرض النتيجة
+        function submitTest() {
+            let score = 0;
+            for (let i = 0; i < questions.length; i++) {
+                const q = questions[i];
+                const ans = userAnswers[i];
+                if (ans === null || ans === '') continue;
+                if (q.type === 'fill') {
+                    // مقارنة بسيطة (يمكن تحسينها)
+                    if (ans.toLowerCase() === q.correct.toLowerCase()) score++;
+                } else {
+                    if (ans === q.correct) score++;
+                }
+            }
+            const resultDiv = document.getElementById('resultBox');
+            resultDiv.classList.remove('hidden');
+            document.getElementById('resultText').innerText = `لقد حصلت على ${score} من ${questions.length} (${Math.round(score/questions.length*100)}%).`;
+        }
+
+        // إعادة تعيين الاختبار
+        window.resetTest = function() {
+            userAnswers = new Array(questions.length).fill(null);
+            document.getElementById('studentName').value = '';
+            document.getElementById('studentId').value = '';
+            renderQuestions();
+            updateProgress();
+            document.getElementById('resultBox').classList.add('hidden');
+        };
+
+        // تحميل PDF
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const name = document.getElementById('studentName').value || 'غير محدد';
+            const id = document.getElementById('studentId').value || 'غير محدد';
+            
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(18);
+            doc.text('نتيجة اختبار اللغة الإنجليزية', 105, 20, { align: 'center' });
+            doc.setFontSize(12);
+            doc.text(`الاسم: ${name}`, 20, 40);
+            doc.text(`رقم الهوية: ${id}`, 20, 50);
+            doc.text(`تاريخ الاختبار: ${new Date().toLocaleDateString('ar-EG')}`, 20, 60);
+            
+            let y = 80;
+            doc.setFontSize(10);
+            for (let i = 0; i < questions.length; i++) {
+                const q = questions[i];
+                const ans = userAnswers[i];
+                let answerText = '';
+                if (ans === null || ans === '') answerText = 'لم يجب';
+                else if (q.type === 'fill') answerText = ans;
+                else if (q.type === 'mcq' || q.type === 'choose' || q.type === 'correction') answerText = q.options[ans] || 'غير محدد';
+                
+                const questionText = `${i+1}. ${q.question || q.options.join(' / ')}`.substring(0, 70);
+                doc.text(questionText, 20, y);
+                doc.text(`الإجابة: ${answerText}`, 120, y);
+                y += 8;
+                if (y > 280) {
+                    doc.addPage();
+                    y = 20;
+                }
+            }
+            
+            doc.save('نتيجة_الاختبار.pdf');
+        }
+
+        // تهيئة الصفحة
+        window.onload = function() {
+            renderQuestions();
+            updateProgress();
+        };
+    </script>
+</body>
+</html>
