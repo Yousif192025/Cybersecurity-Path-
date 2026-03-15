@@ -1,17 +1,66 @@
-<h2>My Courses</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Student Dashboard</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 20px; }
+h2 { margin-top: 30px; }
+.course, .quiz, .certificate { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
+button { padding: 5px 10px; margin-top: 5px; cursor: pointer; }
+#profile { margin-bottom: 20px; }
+</style>
+</head>
+<body>
+
+<h1>Student Dashboard</h1>
+
+<div id="profile"></div>
+
+<h2>Courses</h2>
 <div id="courses-container"></div>
 
-<script type="module">
-import { supabase } from "./supabase/supabase.js"
+<h2>Progress</h2>
+<div id="progress-container"></div>
 
-async function loadDashboard() {
+<h2>Quizzes</h2>
+<div id="quizzes-container"></div>
+
+<h2>Certificates</h2>
+<div id="certificates-container"></div>
+
+<script type="module">
+import { supabase } from "../supabase/supabase.js"
+
+// Get current user
+const { data: { user } } = await supabase.auth.getUser()
+if (!user) {
+    window.location.href = "../login.html"
+}
+
+// Display profile
+const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single()
+
+document.getElementById("profile").innerHTML = `
+<h2>Welcome, ${profile.name || user.email}</h2>
+<p>Role: ${profile.role}</p>
+`
+
+// Load Courses
+async function loadCourses() {
     const { data: courses } = await supabase
         .from("courses")
         .select("*")
-
+    
     const container = document.getElementById("courses-container")
+    container.innerHTML = ""
     courses.forEach(c => {
         const div = document.createElement("div")
+        div.className = "course"
         div.innerHTML = `
             <h3>${c.title}</h3>
             <p>${c.description}</p>
@@ -21,11 +70,78 @@ async function loadDashboard() {
     })
 }
 
-async function enroll(courseId) {
-    const user = supabase.auth.getUser()
-    // هنا سنضيف تسجيل الطالب في كورس في جدول enrollments لاحقًا
-    alert("Enrolled in course: " + courseId)
+// Enroll student
+window.enroll = async function(courseId) {
+    const { error } = await supabase
+        .from("enrollments")
+        .upsert({ student_id: user.id, course_id: courseId })
+    
+    if (error) {
+        alert("Error: " + error.message)
+        return
+    }
+    alert("Enrolled successfully!")
+    loadProgress()
 }
 
-loadDashboard()
+// Load Progress
+async function loadProgress() {
+    const { data: progress } = await supabase
+        .from("enrollments")
+        .select("course_id, progress_percentage")
+        .eq("student_id", user.id)
+    
+    const container = document.getElementById("progress-container")
+    container.innerHTML = ""
+    progress.forEach(p => {
+        const div = document.createElement("div")
+        div.className = "progress"
+        div.innerHTML = `<strong>Course ID:</strong> ${p.course_id} - <strong>Progress:</strong> ${p.progress_percentage || 0}%`
+        container.appendChild(div)
+    })
+}
+
+// Load Quizzes
+async function loadQuizzes() {
+    const { data: quizzes } = await supabase
+        .from("quiz_results")
+        .select("quiz_id, score")
+        .eq("student_id", user.id)
+    
+    const container = document.getElementById("quizzes-container")
+    container.innerHTML = ""
+    quizzes.forEach(q => {
+        const div = document.createElement("div")
+        div.className = "quiz"
+        div.innerHTML = `<strong>Quiz ID:</strong> ${q.quiz_id} - <strong>Score:</strong> ${q.score || 0}`
+        container.appendChild(div)
+    })
+}
+
+// Load Certificates
+async function loadCertificates() {
+    const { data: certificates } = await supabase
+        .from("certificates")
+        .select("*")
+        .eq("student_id", user.id)
+    
+    const container = document.getElementById("certificates-container")
+    container.innerHTML = ""
+    certificates.forEach(c => {
+        const div = document.createElement("div")
+        div.className = "certificate"
+        div.innerHTML = `<strong>Course ID:</strong> ${c.course_id} - <strong>Certificate:</strong> ${c.certificate_url || "Pending"}`
+        container.appendChild(div)
+    })
+}
+
+// Load all sections
+loadCourses()
+loadProgress()
+loadQuizzes()
+loadCertificates()
+
 </script>
+
+</body>
+</html>
