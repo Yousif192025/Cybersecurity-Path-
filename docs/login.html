@@ -1,25 +1,95 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+
 <meta charset="UTF-8">
-<title>Login</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Login | CyberPath</title>
+
+<style>
+
+body{
+font-family: Arial;
+background:#0f172a;
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+margin:0;
+}
+
+.login-box{
+background:#1e293b;
+padding:40px;
+border-radius:10px;
+width:320px;
+box-shadow:0 0 15px rgba(0,0,0,0.5);
+}
+
+h2{
+text-align:center;
+margin-bottom:20px;
+}
+
+input{
+width:100%;
+padding:10px;
+margin-top:10px;
+border:none;
+border-radius:5px;
+}
+
+button{
+width:100%;
+padding:12px;
+margin-top:20px;
+background:#38bdf8;
+border:none;
+color:black;
+font-weight:bold;
+border-radius:5px;
+cursor:pointer;
+}
+
+button:hover{
+background:#0ea5e9;
+}
+
+#message{
+margin-top:15px;
+text-align:center;
+color:#f87171;
+}
+
+.loader{
+display:none;
+text-align:center;
+margin-top:10px;
+}
+
+</style>
+
 </head>
 
 <body>
 
-<h2>Login</h2>
+<div class="login-box">
+
+<h2>CyberPath Login</h2>
 
 <input id="email" placeholder="Email">
 
-<br><br>
-
 <input id="password" type="password" placeholder="Password">
-
-<br><br>
 
 <button onclick="login()">Login</button>
 
+<div class="loader" id="loader">Logging in...</div>
+
 <p id="message"></p>
+
+</div>
 
 <script type="module">
 
@@ -30,18 +100,40 @@ const supabase = createClient(
 "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"
 )
 
+
+// إذا المستخدم مسجل دخول مسبقاً
+const { data } = await supabase.auth.getSession()
+
+if(data.session){
+window.location.href="dashboard.html"
+}
+
+
 window.login = async function(){
 
 const email = document.getElementById("email").value
 const password = document.getElementById("password").value
+const message = document.getElementById("message")
+const loader = document.getElementById("loader")
+
+message.innerText=""
+
+if(!email || !password){
+message.innerText="Please enter email and password"
+return
+}
+
+loader.style.display="block"
 
 const { error } = await supabase.auth.signInWithPassword({
 email,
 password
 })
 
+loader.style.display="none"
+
 if(error){
-document.getElementById("message").innerText = error.message
+message.innerText=error.message
 return
 }
 
