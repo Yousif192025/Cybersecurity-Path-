@@ -1,52 +1,173 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Sign Up</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign Up | CyberPath</title>
+
+<style>
+body{
+    font-family: Arial;
+    background:#0f172a;
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    margin:0;
+}
+
+.login-box{
+    background:#1e293b;
+    padding:40px;
+    border-radius:10px;
+    width:320px;
+    box-shadow:0 0 15px rgba(0,0,0,0.5);
+}
+
+h2{
+    text-align:center;
+    margin-bottom:20px;
+    color: #38bdf8;
+}
+
+input{
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+    border:none;
+    border-radius:5px;
+    box-sizing: border-box;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    margin-top:20px;
+    background:#38bdf8;
+    border:none;
+    color:black;
+    font-weight:bold;
+    border-radius:5px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#0ea5e9;
+}
+
+#message{
+    margin-top:15px;
+    text-align:center;
+    color:#f87171;
+    font-size: 14px;
+}
+
+.success-msg {
+    color: #4ade80 !important;
+}
+
+.auth-links {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.auth-links a {
+    color: #94a3b8;
+    text-decoration: none;
+}
+
+.auth-links a:hover {
+    color: #38bdf8;
+}
+
+.loader {
+    display:none;
+    text-align:center;
+    margin-top:10px;
+    color: #38bdf8;
+}
+</style>
 </head>
 
 <body>
 
-<h2>Create Account</h2>
+<div class="login-box">
+    <h2>Create Account</h2>
+    
+    <input id="email" type="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+    
+    <button id="signupBtn" onclick="signup()">Sign Up</button>
+    
+    <div class="loader" id="loader">Creating account...</div>
+    <p id="message"></p>
 
-<input id="email" placeholder="Email">
-<br><br>
-
-<input id="password" type="password" placeholder="Password">
-<br><br>
-
-<button onclick="signup()">Create Account</button>
-
-<p id="message"></p>
+    <div class="auth-links">
+        <a href="login.html">Already have an account? <b>Login</b></a>
+    </div>
+</div>
 
 <script type="module">
-
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
 
 const supabase = createClient(
-"https://suvpaunulhqfoclepwoz.supabase.co",
-"sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"
+    "https://suvpaunulhqfoclepwoz.supabase.co",
+    "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"
 )
 
 window.signup = async function(){
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const message = document.getElementById("message");
+    const loader = document.getElementById("loader");
+    const btn = document.getElementById("signupBtn");
 
-const email = document.getElementById("email").value
-const password = document.getElementById("password").value
+    if(!email || !password){
+        message.innerText = "Please fill in all fields";
+        return;
+    }
 
-const { data, error } = await supabase.auth.signUp({
-email: email,
-password: password
-})
+    message.innerText = "";
+    loader.style.display = "block";
+    btn.disabled = true;
 
-if(error){
-document.getElementById("message").innerText = error.message
-return
+    // 1. إنشاء الحساب في Supabase Auth
+    const { data, error } = await supabase.auth.signUp({
+        email: email,
+        password: password
+    });
+
+    if(error){
+        message.innerText = error.message;
+        loader.style.display = "none";
+        btn.disabled = false;
+        return;
+    }
+
+    // 2. عند نجاح التسجيل، نقوم بإنشاء سجل في جدول user_profile تلقائياً
+    // ملاحظة: الـ Trigger في قاعدة البيانات هو الأفضل، لكن سنقوم بها هنا للتوضيح
+    if (data.user) {
+        const { error: profileError } = await supabase
+            .from('user_profile')
+            .insert([
+                { 
+                    user_id: data.user.id, 
+                    role: 'student' // افتراضياً أي مستخدم يسجل هو طالب
+                }
+            ]);
+            
+        if(profileError) console.error("Profile creation error:", profileError);
+    }
+
+    loader.style.display = "none";
+    message.className = "success-msg";
+    message.innerText = "Account created! Check your email for verification.";
+    
+    // توجيه اختياري بعد ثوانٍ
+    setTimeout(() => { window.location.href = "login.html" }, 3000);
 }
-
-document.getElementById("message").innerText = "Account created"
-
-}
-
 </script>
 
 </body>
