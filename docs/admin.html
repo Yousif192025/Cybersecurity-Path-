@@ -1,212 +1,588 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyberPath Admin | Videos Management</title>
-    <style>
-        body { font-family: Arial, sans-serif; background: #0f172a; color: white; margin: 0; padding: 20px; }
-        .container { max-width: 1300px; margin: auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 20px; }
-        h2 { color: #38bdf8; }
-        .section { margin-top: 30px; background: #1e293b; padding: 20px; border-radius: 10px; border: 1px solid #334155; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; margin-top: 10px; }
-        .card { background: #0f172a; padding: 15px; border-radius: 10px; border: 1px solid #334155; text-align: center; }
-        .card p { font-size: 24px; font-weight: bold; color: #38bdf8; margin: 5px 0 0 0; }
-        .table { width: 100%; margin-top: 15px; border-collapse: collapse; background: #0f172a; font-size: 14px; }
-        .table th, .table td { border: 1px solid #334155; padding: 10px; text-align: left; }
-        .table th { background: #1e293b; color: #38bdf8; }
-        input, textarea, select { width: 100%; padding: 10px; margin-top: 8px; border-radius: 5px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
-        button { padding: 10px 15px; margin-top: 10px; border: none; border-radius: 5px; background: #38bdf8; cursor: pointer; font-weight: bold; color: #0f172a; }
-        button:hover { background: #0ea5e9; }
-        .btn-red { background: #f87171; color: white; }
-        .logout { background: #f87171; color: white; }
-        .video-preview { color: #38bdf8; text-decoration: none; font-weight: bold; }
-    </style>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>CyberPath Admin Panel</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#0f172a;
+color:white;
+margin:0;
+padding:20px;
+}
+
+.container{
+max-width:1400px;
+margin:auto;
+}
+
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+border-bottom:1px solid #334155;
+padding-bottom:20px;
+}
+
+h2{color:#38bdf8;}
+
+.section{
+margin-top:35px;
+background:#1e293b;
+padding:20px;
+border-radius:10px;
+border:1px solid #334155;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+gap:20px;
+}
+
+.card{
+background:#0f172a;
+padding:15px;
+border-radius:10px;
+border:1px solid #334155;
+text-align:center;
+}
+
+.card p{
+font-size:26px;
+color:#38bdf8;
+font-weight:bold;
+margin:5px 0;
+}
+
+.table{
+width:100%;
+margin-top:15px;
+border-collapse:collapse;
+}
+
+.table th,.table td{
+border:1px solid #334155;
+padding:10px;
+}
+
+.table th{
+background:#1e293b;
+color:#38bdf8;
+}
+
+input,textarea,select{
+width:100%;
+padding:10px;
+margin-top:8px;
+border-radius:5px;
+border:1px solid #334155;
+background:#0f172a;
+color:white;
+}
+
+button{
+padding:10px 14px;
+margin-top:8px;
+border:none;
+border-radius:5px;
+background:#38bdf8;
+font-weight:bold;
+cursor:pointer;
+}
+
+.btn-red{
+background:#f87171;
+color:white;
+}
+
+.logout{
+background:#f87171;
+}
+
+.video-link{
+color:#38bdf8;
+text-decoration:none;
+font-weight:bold;
+}
+
+</style>
+
 </head>
+
 <body>
 
 <div class="container">
-    <div class="header">
-        <h2>CyberPath Admin Panel</h2>
-        <button class="logout" onclick="logout()">Logout</button>
-    </div>
 
-    <div class="section">
-        <div class="grid">
-            <div class="card"><h4>Users</h4><p id="users-count">0</p></div>
-            <div class="card"><h4>Courses</h4><p id="courses-count">0</p></div>
-            <div class="card"><h4>Total Videos</h4><p id="videos-count">0</p></div>
-        </div>
-    </div>
+<div class="header">
+<h2>CyberPath Admin Dashboard</h2>
+<button class="logout" onclick="logout()">Logout</button>
+</div>
 
-    <div class="section">
-        <h3>1. Manage Courses</h3>
-        <input id="course-title" placeholder="Course title">
-        <textarea id="course-desc" placeholder="Course Description"></textarea>
-        <button onclick="addCourse()">+ Add Course</button>
-        <table class="table">
-            <thead><tr><th>Title</th><th>Actions</th></tr></thead>
-            <tbody id="courses-table"></tbody>
-        </table>
-    </div>
+<!-- ================= STATS ================= -->
 
-    <div class="section" style="border-left: 5px solid #38bdf8;">
-        <h3>2. Upload / Link Videos</h3>
-        <select id="video-course-select">
-            <option value="">-- Select Course --</option>
-        </select>
-        <input id="video-title" placeholder="Video Title (e.g. Intro to SQL)">
-        <input id="video-url" placeholder="Video URL (YouTube or Direct Link)">
-        <button onclick="addVideo()" style="background: #22c55e; color: white;">+ Add Video to Course</button>
+<div class="section">
 
-        <table class="table">
-            <thead>
-                <tr><th>Video Title</th><th>Course</th><th>URL</th><th>Action</th></tr>
-            </thead>
-            <tbody id="videos-table"></tbody>
-        </table>
-    </div>
+<h3>Platform Statistics</h3>
 
-    <div class="section">
-        <h3>3. User Roles</h3>
-        <table class="table">
-            <thead>
-                <tr><th>User UUID</th><th>Role</th><th>Update</th><th>Action</th></tr>
-            </thead>
-            <tbody id="users-table"></tbody>
-        </table>
-    </div>
+<div class="grid">
+
+<div class="card">
+<h4>Users</h4>
+<p id="users-count">0</p>
+</div>
+
+<div class="card">
+<h4>Courses</h4>
+<p id="courses-count">0</p>
+</div>
+
+<div class="card">
+<h4>Videos</h4>
+<p id="videos-count">0</p>
+</div>
+
+<div class="card">
+<h4>Enrollments</h4>
+<p id="enroll-count">0</p>
+</div>
+
+<div class="card">
+<h4>Certificates</h4>
+<p id="cert-count">0</p>
+</div>
+
+</div>
+
+</div>
+
+<!-- ================= COURSES ================= -->
+
+<div class="section">
+
+<h3>Courses</h3>
+
+<input id="course-title" placeholder="Course title">
+<textarea id="course-desc" placeholder="Course description"></textarea>
+
+<button onclick="addCourse()">Add Course</button>
+
+<table class="table">
+
+<thead>
+<tr>
+<th>Title</th>
+<th>Action</th>
+</tr>
+</thead>
+
+<tbody id="courses-table"></tbody>
+
+</table>
+
+</div>
+
+<!-- ================= VIDEOS ================= -->
+
+<div class="section">
+
+<h3>Course Videos</h3>
+
+<select id="video-course-select"></select>
+
+<input id="video-title" placeholder="Video Title">
+<input id="video-url" placeholder="Video URL">
+
+<button onclick="addVideo()">Add Video</button>
+
+<table class="table">
+
+<thead>
+<tr>
+<th>Video</th>
+<th>Course</th>
+<th>URL</th>
+<th>Action</th>
+</tr>
+</thead>
+
+<tbody id="videos-table"></tbody>
+
+</table>
+
+</div>
+
+<!-- ================= USERS ================= -->
+
+<div class="section">
+
+<h3>Users</h3>
+
+<table class="table">
+
+<thead>
+<tr>
+<th>User</th>
+<th>Role</th>
+<th>Update</th>
+<th>Action</th>
+</tr>
+</thead>
+
+<tbody id="users-table"></tbody>
+
+</table>
+
+</div>
+
+<!-- ================= ENROLLMENTS ================= -->
+
+<div class="section">
+
+<h3>Enrollments</h3>
+
+<table class="table">
+
+<thead>
+<tr>
+<th>User</th>
+<th>Course</th>
+<th>Status</th>
+<th>Action</th>
+</tr>
+</thead>
+
+<tbody id="enroll-table"></tbody>
+
+</table>
+
+</div>
+
+<!-- ================= CERTIFICATES ================= -->
+
+<div class="section">
+
+<h3>Certificates</h3>
+
+<table class="table">
+
+<thead>
+<tr>
+<th>User</th>
+<th>Course</th>
+<th>Certificate</th>
+</tr>
+</thead>
+
+<tbody id="cert-table"></tbody>
+
+</table>
+
+</div>
+
+<!-- ================= RATINGS ================= -->
+
+<div class="section">
+
+<h3>Instructor Ratings</h3>
+
+<table class="table">
+
+<thead>
+<tr>
+<th>Instructor</th>
+<th>User</th>
+<th>Rating</th>
+</tr>
+</thead>
+
+<tbody id="ratings-table"></tbody>
+
+</table>
+
+</div>
+
 </div>
 
 <script type="module">
+
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
 
 const supabase = createClient(
-    "https://suvpaunulhqfoclepwoz.supabase.co",
-    "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"
+"https://suvpaunulhqfoclepwoz.supabase.co",
+"sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"
 )
 
-// التحقق من الجلسة والصلاحية
-const { data: { user } } = await supabase.auth.getUser()
-if (!user) window.location.href = "../login.html"
+// ====== AUTH ======
 
-const { data: profile } = await supabase.from("user_profile").select("role").eq("user_id", user.id).single()
-if (!profile || profile.role !== "admin") window.location.href = "../login.html"
+const { data:{user} } = await supabase.auth.getUser()
 
-// =====================
-// وظائف جلب البيانات
-// =====================
+if(!user) window.location.href="../login.html"
 
-async function refreshAll() {
-    loadStats(); loadCourses(); loadUsers(); loadVideos();
+const { data:profile } = await supabase
+.from("user_profile")
+.select("role")
+.eq("user_id",user.id)
+.single()
+
+if(!profile || profile.role !== "admin")
+window.location.href="../login.html"
+
+// ====== REFRESH ======
+
+function refreshAll(){
+
+loadStats()
+loadCourses()
+loadVideos()
+loadUsers()
+loadEnrollments()
+loadCertificates()
+loadRatings()
+
 }
+
+// ====== STATS ======
 
 async function loadStats(){
-    const { count: u } = await supabase.from("user_profile").select("*", { count: "exact", head: true })
-    const { count: c } = await supabase.from("courses").select("*", { count: "exact", head: true })
-    const { count: v } = await supabase.from("course_videos").select("*", { count: "exact", head: true })
 
-    document.getElementById("users-count").innerText = u || 0
-    document.getElementById("courses-count").innerText = c || 0
-    document.getElementById("videos-count").innerText = v || 0
+const {count:u} = await supabase.from("user_profile").select("*",{count:"exact",head:true})
+const {count:c} = await supabase.from("courses").select("*",{count:"exact",head:true})
+const {count:v} = await supabase.from("course_videos").select("*",{count:"exact",head:true})
+const {count:e} = await supabase.from("enrollments").select("*",{count:"exact",head:true})
+const {count:cert} = await supabase.from("certificates").select("*",{count:"exact",head:true})
+
+users-count.innerText=u||0
+courses-count.innerText=c||0
+videos-count.innerText=v||0
+enroll-count.innerText=e||0
+cert-count.innerText=cert||0
+
 }
+
+// ====== COURSES ======
 
 async function loadCourses(){
-    const { data: courses } = await supabase.from("courses").select("*")
-    const table = document.getElementById("courses-table")
-    const select = document.getElementById("video-course-select")
-    
-    table.innerHTML = courses.map(c => `
-        <tr><td><b>${c.title}</b></td><td><button class="btn-red" onclick="deleteCourse('${c.course_id}')">Delete</button></td></tr>
-    `).join('')
 
-    // تحديث القائمة المنسدلة للفيديوهات
-    select.innerHTML = '<option value="">-- Select Course --</option>' + 
-        courses.map(c => `<option value="${c.course_id}">${c.title}</option>`).join('')
+const {data:courses}=await supabase.from("courses").select("*")
+
+courses-table.innerHTML=courses.map(c=>`
+
+<tr>
+<td>${c.title}</td>
+<td>
+<button class="btn-red" onclick="deleteCourse('${c.course_id}')">Delete</button>
+</td>
+</tr>
+
+`).join("")
+
+video-course-select.innerHTML=courses.map(c=>`
+<option value="${c.course_id}">${c.title}</option>
+`).join("")
+
 }
 
-async function loadVideos(){
-    // Join مع جدول الكورسات لجلب الاسم
-    const { data: videos } = await supabase.from("course_videos").select("*, courses(title)")
-    const table = document.getElementById("videos-table")
-    table.innerHTML = videos.map(v => `
-        <tr>
-            <td>${v.video_title}</td>
-            <td>${v.courses ? v.courses.title : 'N/A'}</td>
-            <td><a href="${v.video_url}" target="_blank" class="video-preview">Watch</a></td>
-            <td><button class="btn-red" onclick="deleteVideo('${v.video_id}')">Delete</button></td>
-        </tr>
-    `).join('')
-}
+window.addCourse=async function(){
 
-async function loadUsers(){
-    const { data: users } = await supabase.from("user_profile").select("*")
-    const table = document.getElementById("users-table")
-    table.innerHTML = users.map(u => `
-        <tr>
-            <td><code>${u.user_id.substring(0,8)}</code></td>
-            <td>${u.role}</td>
-            <td>
-                <select onchange="updateRole('${u.user_id}', this.value)">
-                    <option value="">Change...</option>
-                    <option value="student">Student</option>
-                    <option value="instructor">Instructor</option>
-                    <option value="admin">Admin</option>
-                </select>
-            </td>
-            <td><button class="btn-red" onclick="deleteUser('${u.user_id}')">Delete</button></td>
-        </tr>
-    `).join('')
-}
-
-// =====================
-// العمليات (Actions)
-// =====================
-
-window.addCourse = async function(){
-    const title = document.getElementById("course-title").value
-    if(!title) return alert("Title required")
-    await supabase.from("courses").insert({ title, description: document.getElementById("course-desc").value, instructor_id: user.id })
-    refreshAll()
-}
-
-window.addVideo = async function(){
-    const courseId = document.getElementById("video-course-select").value
-    const title = document.getElementById("video-title").value
-    const url = document.getElementById("video-url").value
-
-    if(!courseId || !title || !url) return alert("Please fill all video fields")
-
-    const { error } = await supabase.from("course_videos").insert({
-        course_id: courseId,
-        video_title: title,
-        video_url: url
-    })
-
-    if(error) alert(error.message)
-    else {
-        document.getElementById("video-title").value = ""
-        document.getElementById("video-url").value = ""
-        refreshAll()
-    }
-}
-
-window.deleteVideo = async function(id){
-    if(confirm("Remove this video?")) {
-        await supabase.from("course_videos").delete().eq("video_id", id)
-        refreshAll()
-    }
-}
-
-window.updateRole = async function(uid, role) {
-    await supabase.from("user_profile").update({ role }).eq("user_id", uid)
-    refreshAll()
-}
-
-window.logout = async () => { await supabase.auth.signOut(); window.location.href = "../login.html" }
+await supabase.from("courses").insert({
+title:course-title.value,
+description:course-desc.value
+})
 
 refreshAll()
+
+}
+
+window.deleteCourse=async function(id){
+
+if(confirm("Delete course?")){
+await supabase.from("courses").delete().eq("course_id",id)
+refreshAll()
+}
+
+}
+
+// ====== VIDEOS ======
+
+async function loadVideos(){
+
+const {data:videos}=await supabase
+.from("course_videos")
+.select("*,courses(title)")
+
+videos-table.innerHTML=videos.map(v=>`
+
+<tr>
+<td>${v.video_title}</td>
+<td>${v.courses?.title||""}</td>
+<td><a href="${v.video_url}" target="_blank" class="video-link">Watch</a></td>
+<td><button class="btn-red" onclick="deleteVideo('${v.video_id}')">Delete</button></td>
+</tr>
+
+`).join("")
+
+}
+
+window.addVideo=async function(){
+
+await supabase.from("course_videos").insert({
+course_id:video-course-select.value,
+video_title:video-title.value,
+video_url:video-url.value
+})
+
+refreshAll()
+
+}
+
+window.deleteVideo=async function(id){
+
+await supabase.from("course_videos").delete().eq("video_id",id)
+
+refreshAll()
+
+}
+
+// ====== USERS ======
+
+async function loadUsers(){
+
+const {data:users}=await supabase.from("user_profile").select("*")
+
+users-table.innerHTML=users.map(u=>`
+
+<tr>
+
+<td>${u.user_id.substring(0,8)}</td>
+
+<td>${u.role}</td>
+
+<td>
+
+<select onchange="updateRole('${u.user_id}',this.value)">
+<option value="">Change</option>
+<option value="student">Student</option>
+<option value="instructor">Instructor</option>
+<option value="admin">Admin</option>
+</select>
+
+</td>
+
+<td>
+<button class="btn-red" onclick="deleteUser('${u.user_id}')">Delete</button>
+</td>
+
+</tr>
+
+`).join("")
+
+}
+
+window.updateRole=async(uid,role)=>{
+
+await supabase.from("user_profile")
+.update({role})
+.eq("user_id",uid)
+
+refreshAll()
+
+}
+
+window.deleteUser=async(id)=>{
+
+await supabase.from("user_profile")
+.delete()
+.eq("user_id",id)
+
+refreshAll()
+
+}
+
+// ====== ENROLLMENTS ======
+
+async function loadEnrollments(){
+
+const {data:e}=await supabase.from("enrollments").select("*")
+
+enroll-table.innerHTML=e.map(x=>`
+
+<tr>
+<td>${x.user_id}</td>
+<td>${x.course_id}</td>
+<td>${x.completion_status}</td>
+<td><button class="btn-red" onclick="deleteEnroll('${x.enrollment_id}')">Delete</button></td>
+</tr>
+
+`).join("")
+
+}
+
+window.deleteEnroll=async(id)=>{
+
+await supabase.from("enrollments").delete().eq("enrollment_id",id)
+
+refreshAll()
+
+}
+
+// ====== CERTIFICATES ======
+
+async function loadCertificates(){
+
+const {data:c}=await supabase.from("certificates").select("*")
+
+cert-table.innerHTML=c.map(x=>`
+
+<tr>
+<td>${x.user_id}</td>
+<td>${x.course_id}</td>
+<td><a href="${x.certificate_url}" target="_blank">View</a></td>
+</tr>
+
+`).join("")
+
+}
+
+// ====== RATINGS ======
+
+async function loadRatings(){
+
+const {data:r}=await supabase.from("instructor_ratings").select("*")
+
+ratings-table.innerHTML=r.map(x=>`
+
+<tr>
+<td>${x.instructor_id}</td>
+<td>${x.user_id}</td>
+<td>${x.rating}</td>
+</tr>
+
+`).join("")
+
+}
+
+// ====== LOGOUT ======
+
+window.logout=async()=>{
+
+await supabase.auth.signOut()
+
+window.location.href="../login.html"
+
+}
+
+// ====== INIT ======
+
+refreshAll()
+
 </script>
+
 </body>
 </html>
