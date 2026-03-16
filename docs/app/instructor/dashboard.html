@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructor Dashboard | CyberPath</title>
+    <style>
+        :root { --primary: #38bdf8; --bg: #0f172a; --card: #1e293b; --text: #e2e8f0; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; }
+        .container { max-width: 1200px; margin: auto; padding: 20px; }
+        
+        /* Header */
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 20px; }
+        .header h2 { color: var(--primary); margin: 0; }
+        .logout-btn { background: #f87171; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 10px; margin-top: 25px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
+        .tab { padding: 10px 20px; background: var(--card); border-radius: 8px 8px 0 0; cursor: pointer; transition: 0.3s; border: 1px solid transparent; }
+        .tab.active { background: var(--primary); color: #000; font-weight: bold; }
+
+        /* Content */
+        .tab-content { margin-top: 25px; display: none; }
+        .tab-content.active { display: block; }
+
+        /* Forms & Tables */
+        .section { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid #334155; margin-bottom: 20px; }
+        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; }
+        button.main-btn { background: var(--primary); color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; border-bottom: 1px solid #334155; text-align: left; font-size: 14px; }
+        th { color: var(--primary); background: #161e2d; }
+        
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 12px; background: #334155; }
+        .btn-del { color: #f87171; background: transparent; border: 1px solid #f87171; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div id="instructor-info"><h2>Instructor Panel</h2><span>Loading...</span></div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('my-courses')">📚 My Courses</div>
+        <div class="tab" onclick="switchTab('upload-video')">🎬 Upload Video</div>
+        <div class="tab" onclick="switchTab('students')">👥 My Students</div>
+    </div>
+
+    <div id="my-courses" class="tab-content active">
+        <div class="section">
+            <h3>Create New Course</h3>
+            <input type="text" id="c-title" placeholder="Course Title">
+            <textarea id="c-desc" placeholder="Course Description"></textarea>
+            <button class="main-btn" onclick="createCourse()">+ Create Course</button>
+        </div>
+        <div class="section">
+            <h3>Existing Courses</h3>
+            <table id="courses-list">
+                <thead><tr><th>Title</th><th>Students</th><th>Action</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="upload-video" class="tab-content">
+        <div class="section">
+            <h3>Add Video to Course</h3>
+            <select id="video-course-select"><option value="">Select Course</option></select>
+            <input type="text" id="v-title" placeholder="Video Title">
+            <input type="url" id="v-url" placeholder="YouTube URL">
+            <button class="main-btn" onclick="addVideo()">📹 Add Video</button>
+        </div>
+        <div class="section">
+            <h3>Managed Videos</h3>
+            <table id="videos-list">
+                <thead><tr><th>Video Title</th><th>Course</th><th>Action</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="students" class="tab-content">
+        <div class="section">
+            <h3>Registered Students in My Courses</h3>
+            <table id="students-list">
+                <thead><tr><th>Student ID</th><th>Course</th><th>Progress</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+    const supabase = createClient(
+        "https://suvpaunulhqfoclepwoz.supabase.co",
+        "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"
+    );
+
+    let user = null;
+
+    // --- Auth & Access Check ---
+    const { data: userData } = await supabase.auth.getUser();
+    if(!userData.user) window.location.href="../login.html";
+    user = userData.user;
+
+    const { data: profile } = await supabase.from("user_profile").select("role").eq("user_id", user.id).single();
+    if(profile.role !== 'instructor' && profile.role !== 'admin') {
+        alert("Access Denied!");
+        window.location.href="../login.html";
+    }
+
+    document.getElementById("instructor-info").innerHTML = `<h2>Welcome, Coach 👋</h2><span>Instructor Account</span>`;
+
+    // --- Tab Switching ---
+    window.switchTab = (tabId) => {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+        refreshData();
+    };
+
+    // --- Data Management ---
+    async function refreshData() {
+        loadMyCourses();
+        loadMyVideos();
+        loadMyStudents();
+    }
+
+    async function loadMyCourses() {
+        const { data: courses } = await supabase.from("courses").select("*").eq("instructor_id", user.id);
+        const tbody = document.querySelector("#courses-list tbody");
+        const select = document.getElementById("video-course-select");
+        
+        tbody.innerHTML = courses.map(c => `<tr><td>${c.title}</td><td>-</td><td><button class="btn-del" onclick="deleteCourse('${c.course_id}')">Delete</button></td></tr>`).join('');
+        select.innerHTML = '<option value="">Select Course</option>' + courses.map(c => `<option value="${c.course_id}">${c.title}</option>`).join('');
+    }
+
+    async function loadMyVideos() {
+        const { data: videos } = await supabase.from("course_videos").select("*, courses(title, instructor_id)").eq("courses.instructor_id", user.id);
+        // Filter out videos not belonging to this instructor (due to Supabase inner join behavior)
+        const myVideos = videos.filter(v => v.courses !== null);
+        
+        document.querySelector("#videos-list tbody").innerHTML = myVideos.map(v => `
+            <tr><td>${v.video_title}</td><td><span class="badge">${v.courses.title}</span></td><td><button class="btn-del" onclick="deleteVideo('${v.video_id}')">🗑️</button></td></tr>
+        `).join('');
+    }
+
+    async function loadMyStudents() {
+        const { data: enrolls } = await supabase.from("enrollments").select("*, courses(title, instructor_id)").eq("courses.instructor_id", user.id);
+        const myEnrolls = enrolls.filter(e => e.courses !== null);
+        
+        document.querySelector("#students-list tbody").innerHTML = myEnrolls.map(e => `
+            <tr><td><code>${e.user_id.substring(0,8)}...</code></td><td>${e.courses.title}</td><td>${e.completion_percentage || 0}%</td></tr>
+        `).join('');
+    }
+
+    // --- Actions ---
+    window.createCourse = async () => {
+        const title = document.getElementById('c-title').value;
+        if(!title) return;
+        await supabase.from("courses").insert({ title, description: document.getElementById('c-desc').value, instructor_id: user.id });
+        refreshData();
+    };
+
+    window.addVideo = async () => {
+        const course_id = document.getElementById('video-course-select').value;
+        const video_title = document.getElementById('v-title').value;
+        const video_url = document.getElementById('v-url').value;
+        if(!course_id || !video_title || !video_url) return alert("Fill all fields");
+        await supabase.from("course_videos").insert({ course_id, video_title, video_url });
+        refreshData();
+    };
+
+    window.deleteCourse = async (id) => { if(confirm("Delete Course?")) { await supabase.from("courses").delete().eq("course_id", id); refreshData(); } };
+    window.deleteVideo = async (id) => { await supabase.from("course_videos").delete().eq("video_id", id); refreshAll(); };
+
+    window.logout = async () => { await supabase.auth.signOut(); window.location.href="../login.html"; };
+
+    refreshData();
+</script>
+</body>
+</html>
