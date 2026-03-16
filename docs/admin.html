@@ -1,98 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Admin Dashboard | CyberPath</title>
-
 <style>
-
 body{
-font-family:Arial;
-background:#0f172a;
-color:white;
-margin:0;
-padding:20px;
+    font-family:Arial;
+    background:#0f172a;
+    color:white;
+    margin:0;
+    padding:20px;
 }
-
-.container{
-max-width:1200px;
-margin:auto;
-}
-
-.header{
-display:flex;
-justify-content:space-between;
-align-items:center;
-border-bottom:1px solid #334155;
-padding-bottom:20px;
-}
-
-h2{
-color:#38bdf8;
-}
-
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
-gap:20px;
-margin-top:20px;
-}
-
-.card{
-background:#1e293b;
-padding:20px;
-border-radius:10px;
-border:1px solid #334155;
-}
-
-input,textarea{
-width:100%;
-padding:10px;
-margin-top:10px;
-border-radius:5px;
-border:none;
-}
-
-button{
-width:100%;
-padding:10px;
-margin-top:10px;
-background:#38bdf8;
-border:none;
-border-radius:5px;
-font-weight:bold;
-cursor:pointer;
-}
-
-.table{
-width:100%;
-margin-top:20px;
-border-collapse:collapse;
-}
-
-.table th,.table td{
-border:1px solid #334155;
-padding:10px;
-text-align:left;
-}
-
-.logout{
-background:#f87171;
-width:auto;
-padding:8px 15px;
-}
-
+.container{max-width:1200px;margin:auto;}
+.header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #334155;padding-bottom:20px;}
+h2{color:#38bdf8;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;margin-top:20px;}
+.card{background:#1e293b;padding:20px;border-radius:10px;border:1px solid #334155;}
+input,textarea,select{width:100%;padding:10px;margin-top:10px;border-radius:5px;border:none;}
+button{width:100%;padding:10px;margin-top:10px;background:#38bdf8;border:none;border-radius:5px;font-weight:bold;cursor:pointer;}
+button:hover{background:#0ea5e9;}
+.table{width:100%;margin-top:20px;border-collapse:collapse;}
+.table th,.table td{border:1px solid #334155;padding:10px;text-align:left;}
+.logout{background:#f87171;width:auto;padding:8px 15px;}
+.success-msg{color:#4ade80;margin-top:10px;}
+.error-msg{color:#f87171;margin-top:10px;}
 </style>
-
 </head>
-
 <body>
-
 <div class="container">
-
 <div class="header">
 <h2>CyberPath Admin</h2>
 <button class="logout" onclick="logout()">Logout</button>
@@ -100,58 +36,50 @@ padding:8px 15px;
 
 <!-- Stats -->
 <div class="grid">
-
 <div class="card">
 <h3>Total Users</h3>
 <p id="users-count">Loading...</p>
 </div>
-
 <div class="card">
 <h3>Total Courses</h3>
 <p id="courses-count">Loading...</p>
 </div>
-
 <div class="card">
 <h3>Total Enrollments</h3>
 <p id="enrollments-count">Loading...</p>
 </div>
-
 </div>
 
 <!-- Add Course -->
 <div class="card" style="margin-top:30px">
-
-<h3>Add New Course</h3>
-
+<h3>Add / Edit Course</h3>
+<input id="course-id" type="hidden">
 <input id="course-title" placeholder="Course title">
-
 <textarea id="course-desc" placeholder="Course description"></textarea>
-
-<button onclick="addCourse()">Create Course</button>
-
+<button onclick="saveCourse()">Save Course</button>
+<p id="course-message"></p>
 </div>
 
 <!-- Courses List -->
 <h3 style="margin-top:40px">Courses</h3>
-
 <table class="table">
-
 <thead>
-<tr>
-<th>Title</th>
-<th>Description</th>
-<th>Action</th>
-</tr>
+<tr><th>Title</th><th>Description</th><th>Actions</th></tr>
 </thead>
-
 <tbody id="courses-table"></tbody>
-
 </table>
 
+<!-- Users List -->
+<h3 style="margin-top:40px">Users</h3>
+<table class="table">
+<thead>
+<tr><th>Email</th><th>First Name</th><th>Last Name</th><th>Role</th><th>Actions</th></tr>
+</thead>
+<tbody id="users-table"></tbody>
+</table>
 </div>
 
 <script type="module">
-
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
 
 const supabase = createClient(
@@ -159,150 +87,127 @@ const supabase = createClient(
 "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"
 )
 
+// التحقق من الجلسة
+const { data: { user } } = await supabase.auth.getUser()
+if(!user) window.location.href="login.html"
 
-// تحقق المستخدم
-
-const { data } = await supabase.auth.getUser()
-
-if(!data.user){
-
-window.location.href="login.html"
-
-}
-
-// تحميل الإحصائيات
-
-async function loadStats(){
-
-const { count:users } = await supabase
+// التحقق من دور Admin
+const { data: profile } = await supabase
 .from("user_profile")
-.select("*",{count:"exact",head:true})
+.select("role")
+.eq("user_id", user.id)
+.single()
+if(profile?.role !== 'admin'){ alert("Access denied!"); window.location.href="login.html" }
 
-const { count:courses } = await supabase
-.from("courses")
-.select("*",{count:"exact",head:true})
-
-const { count:enrollments } = await supabase
-.from("enrollments")
-.select("*",{count:"exact",head:true})
-
-document.getElementById("users-count").innerText=users
-document.getElementById("courses-count").innerText=courses
-document.getElementById("enrollments-count").innerText=enrollments
-
+// --- تحميل الإحصائيات ---
+async function loadStats(){
+  const { count:users } = await supabase.from("user_profile").select("*",{count:"exact",head:true})
+  const { count:courses } = await supabase.from("courses").select("*",{count:"exact",head:true})
+  const { count:enrollments } = await supabase.from("enrollments").select("*",{count:"exact",head:true})
+  document.getElementById("users-count").innerText=users
+  document.getElementById("courses-count").innerText=courses
+  document.getElementById("enrollments-count").innerText=enrollments
 }
 
-
-// تحميل الكورسات
-
+// --- تحميل الكورسات ---
 async function loadCourses(){
-
-const { data:courses } = await supabase
-.from("courses")
-.select("*")
-
-const table=document.getElementById("courses-table")
-
-table.innerHTML=""
-
-courses.forEach(c=>{
-
-const row=document.createElement("tr")
-
-row.innerHTML=`
-
-<td>${c.title}</td>
-
-<td>${c.description||""}</td>
-
-<td>
-
-<button onclick="deleteCourse('${c.course_id}')">Delete</button>
-
-</td>
-
-`
-
-table.appendChild(row)
-
-})
-
+  const { data:courses } = await supabase.from("courses").select("*")
+  const table=document.getElementById("courses-table")
+  table.innerHTML=""
+  courses.forEach(c=>{
+    const row=document.createElement("tr")
+    row.innerHTML=`
+      <td>${c.title}</td>
+      <td>${c.description||""}</td>
+      <td>
+        <button onclick="editCourse('${c.course_id}')">Edit</button>
+        <button onclick="deleteCourse('${c.course_id}')">Delete</button>
+      </td>
+    `
+    table.appendChild(row)
+  })
 }
 
+// --- حفظ / تعديل كورس ---
+window.saveCourse = async function(){
+  const id=document.getElementById("course-id").value
+  const title=document.getElementById("course-title").value
+  const desc=document.getElementById("course-desc").value
+  const msg=document.getElementById("course-message")
+  msg.innerText=""
 
-// إضافة كورس
+  if(!title){ msg.innerText="Enter course title"; return }
 
-window.addCourse=async function(){
-
-const title=document.getElementById("course-title").value
-const desc=document.getElementById("course-desc").value
-
-if(!title){
-
-alert("Enter course title")
-
-return
-
+  if(id){ // تعديل
+    const { error } = await supabase.from("courses").update({title,description:desc}).eq("course_id",id)
+    if(error){ msg.innerText=error.message; return }
+    msg.innerText="Course updated successfully"
+  } else { // إضافة جديد
+    const { error } = await supabase.from("courses").insert({title,description:desc})
+    if(error){ msg.innerText=error.message; return }
+    msg.innerText="Course created successfully"
+  }
+  document.getElementById("course-id").value=""
+  document.getElementById("course-title").value=""
+  document.getElementById("course-desc").value=""
+  loadCourses()
+  loadStats()
 }
 
-const { error } = await supabase
-.from("courses")
-.insert({
-title:title,
-description:desc
-})
-
-if(error){
-
-alert(error.message)
-
-return
-
+// --- تعديل كورس ---
+window.editCourse = async function(id){
+  const { data } = await supabase.from("courses").select("*").eq("course_id",id).single()
+  document.getElementById("course-id").value=data.course_id
+  document.getElementById("course-title").value=data.title
+  document.getElementById("course-desc").value=data.description
 }
 
-alert("Course created")
-
-loadCourses()
-loadStats()
-
+// --- حذف كورس ---
+window.deleteCourse = async function(id){
+  if(!confirm("Delete this course?")) return
+  await supabase.from("courses").delete().eq("course_id",id)
+  loadCourses()
+  loadStats()
 }
 
-
-// حذف كورس
-
-window.deleteCourse=async function(id){
-
-if(!confirm("Delete this course?")) return
-
-await supabase
-.from("courses")
-.delete()
-.eq("course_id",id)
-
-loadCourses()
-loadStats()
-
+// --- تحميل المستخدمين ---
+async function loadUsers(){
+  const { data: users } = await supabase.from("user_profile").select("*")
+  const table=document.getElementById("users-table")
+  table.innerHTML=""
+  users.forEach(u=>{
+    const row=document.createElement("tr")
+    row.innerHTML=`
+      <td>${u.email||''}</td>
+      <td>${u.first_name||''}</td>
+      <td>${u.last_name||''}</td>
+      <td>${u.role||''}</td>
+      <td>
+        <button onclick="changeRole('${u.user_id}')">Change Role</button>
+      </td>
+    `
+    table.appendChild(row)
+  })
 }
 
-
-// تسجيل الخروج
-
-window.logout=async function(){
-
-await supabase.auth.signOut()
-
-window.location.href="login.html"
-
+// --- تغيير دور المستخدم ---
+window.changeRole = async function(userId){
+  const role = prompt("Enter new role (student / instructor / admin):")
+  if(!role) return
+  await supabase.from("user_profile").update({role}).eq("user_id",userId)
+  loadUsers()
 }
 
+// --- تسجيل الخروج ---
+window.logout = async function(){
+  await supabase.auth.signOut()
+  window.location.href="login.html"
+}
 
 // تشغيل الصفحة
-
 loadStats()
 loadCourses()
-
+loadUsers()
 </script>
-
 </body>
-
 </html>
