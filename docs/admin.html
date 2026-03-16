@@ -6,7 +6,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>CyberPath Admin</title>
+<title>CyberPath Admin Dashboard</title>
 
 <style>
 
@@ -19,7 +19,7 @@ padding:20px;
 }
 
 .container{
-max-width:1200px;
+max-width:1300px;
 margin:auto;
 }
 
@@ -33,11 +33,14 @@ padding-bottom:20px;
 
 h2{color:#38bdf8;}
 
+.section{
+margin-top:40px;
+}
+
 .grid{
 display:grid;
 grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
 gap:20px;
-margin-top:20px;
 }
 
 .card{
@@ -45,27 +48,6 @@ background:#1e293b;
 padding:20px;
 border-radius:10px;
 border:1px solid #334155;
-}
-
-input,textarea{
-width:100%;
-padding:10px;
-margin-top:10px;
-border-radius:5px;
-border:none;
-}
-
-button{
-padding:10px;
-margin-top:10px;
-border:none;
-border-radius:5px;
-background:#38bdf8;
-cursor:pointer;
-}
-
-.logout{
-background:#f87171;
 }
 
 .table{
@@ -77,6 +59,27 @@ border-collapse:collapse;
 .table th,.table td{
 border:1px solid #334155;
 padding:10px;
+}
+
+input,textarea{
+width:100%;
+padding:8px;
+margin-top:5px;
+border-radius:5px;
+border:none;
+}
+
+button{
+padding:8px 12px;
+margin-top:5px;
+border:none;
+border-radius:5px;
+background:#38bdf8;
+cursor:pointer;
+}
+
+.logout{
+background:#f87171;
 }
 
 </style>
@@ -95,46 +98,50 @@ padding:10px;
 
 </div>
 
+
 <!-- STATS -->
+
+<div class="section">
+
+<h3>Platform Statistics</h3>
 
 <div class="grid">
 
 <div class="card">
-<h3>Total Users</h3>
+<h4>Users</h4>
 <p id="users-count">...</p>
 </div>
 
 <div class="card">
-<h3>Total Courses</h3>
+<h4>Courses</h4>
 <p id="courses-count">...</p>
 </div>
 
 <div class="card">
-<h3>Total Enrollments</h3>
-<p id="enrollments-count">...</p>
+<h4>Enrollments</h4>
+<p id="enroll-count">...</p>
 </div>
-
-</div>
-
-
-<!-- ADD COURSE -->
 
 <div class="card">
+<h4>Certificates</h4>
+<p id="cert-count">...</p>
+</div>
 
-<h3>Create Course</h3>
-
-<input id="course-title" placeholder="Course title">
-
-<textarea id="course-desc" placeholder="Course description"></textarea>
-
-<button onclick="createCourse()">Add Course</button>
+</div>
 
 </div>
 
 
-<!-- COURSES TABLE -->
+<!-- COURSES -->
+
+<div class="section">
 
 <h3>Courses</h3>
+
+<input id="course-title" placeholder="Course title">
+<textarea id="course-desc" placeholder="Description"></textarea>
+
+<button onclick="addCourse()">Add Course</button>
 
 <table class="table">
 
@@ -150,8 +157,12 @@ padding:10px;
 
 </table>
 
+</div>
 
-<!-- USERS TABLE -->
+
+<!-- USERS -->
+
+<div class="section">
 
 <h3>Users</h3>
 
@@ -169,6 +180,77 @@ padding:10px;
 
 </table>
 
+</div>
+
+
+<!-- ENROLLMENTS -->
+
+<div class="section">
+
+<h3>Enrollments</h3>
+
+<table class="table">
+
+<thead>
+<tr>
+<th>User</th>
+<th>Course</th>
+<th>Status</th>
+<th>Action</th>
+</tr>
+</thead>
+
+<tbody id="enroll-table"></tbody>
+
+</table>
+
+</div>
+
+
+<!-- CERTIFICATES -->
+
+<div class="section">
+
+<h3>Certificates</h3>
+
+<table class="table">
+
+<thead>
+<tr>
+<th>User</th>
+<th>Course</th>
+<th>Certificate</th>
+</tr>
+</thead>
+
+<tbody id="cert-table"></tbody>
+
+</table>
+
+</div>
+
+
+<!-- RATINGS -->
+
+<div class="section">
+
+<h3>Instructor Ratings</h3>
+
+<table class="table">
+
+<thead>
+<tr>
+<th>Instructor</th>
+<th>User</th>
+<th>Rating</th>
+</tr>
+</thead>
+
+<tbody id="ratings-table"></tbody>
+
+</table>
+
+</div>
 
 </div>
 
@@ -194,12 +276,12 @@ window.location.href="../login.html"
 }
 
 
-// تحقق صلاحية Admin
+// تحقق Admin
 
 const { data:profile } = await supabase
 .from("user_profile")
 .select("role")
-.eq("user_id", user.id)
+.eq("user_id",user.id)
 .single()
 
 if(profile.role !== "admin"){
@@ -211,40 +293,32 @@ window.location.href="../dashboard.html"
 }
 
 
-// --------------------
-// تحميل الإحصائيات
-// --------------------
+// =====================
+// STATS
+// =====================
 
 async function loadStats(){
 
-const { count:users } = await supabase
-.from("user_profile")
-.select("*",{count:"exact",head:true})
-
-const { count:courses } = await supabase
-.from("courses")
-.select("*",{count:"exact",head:true})
-
-const { count:enrollments } = await supabase
-.from("enrollments")
-.select("*",{count:"exact",head:true})
+const {count:users} = await supabase.from("user_profile").select("*",{count:"exact",head:true})
+const {count:courses} = await supabase.from("courses").select("*",{count:"exact",head:true})
+const {count:enroll} = await supabase.from("enrollments").select("*",{count:"exact",head:true})
+const {count:cert} = await supabase.from("certificates").select("*",{count:"exact",head:true})
 
 document.getElementById("users-count").innerText=users
 document.getElementById("courses-count").innerText=courses
-document.getElementById("enrollments-count").innerText=enrollments
+document.getElementById("enroll-count").innerText=enroll
+document.getElementById("cert-count").innerText=cert
 
 }
 
 
-// --------------------
-// تحميل الكورسات
-// --------------------
+// =====================
+// COURSES
+// =====================
 
 async function loadCourses(){
 
-const { data:courses } = await supabase
-.from("courses")
-.select("*")
+const {data:courses} = await supabase.from("courses").select("*")
 
 const table=document.getElementById("courses-table")
 
@@ -256,14 +330,12 @@ const row=document.createElement("tr")
 
 row.innerHTML=`
 
-<td contenteditable="true" onblur="updateCourse('${c.course_id}',this.innerText,'title')">${c.title}</td>
-
-<td contenteditable="true" onblur="updateCourse('${c.course_id}',this.innerText,'description')">${c.description||""}</td>
+<td>${c.title}</td>
+<td>${c.description||""}</td>
 
 <td>
 <button onclick="deleteCourse('${c.course_id}')">Delete</button>
 </td>
-
 `
 
 table.appendChild(row)
@@ -272,59 +344,21 @@ table.appendChild(row)
 
 }
 
-
-// تعديل الكورس
-
-window.updateCourse = async function(id,value,field){
-
-await supabase
-.from("courses")
-.update({[field]:value})
-.eq("course_id",id)
-
-}
-
-
-// حذف كورس
-
-window.deleteCourse = async function(id){
-
-if(!confirm("Delete course?")) return
-
-await supabase
-.from("courses")
-.delete()
-.eq("course_id",id)
-
-loadCourses()
-loadStats()
-
-}
-
-
-// إضافة كورس
-
-window.createCourse = async function(){
+window.addCourse = async function(){
 
 const title=document.getElementById("course-title").value
 const desc=document.getElementById("course-desc").value
 
-if(!title){
+await supabase.from("courses").insert({title:title,description:desc})
 
-alert("Enter course title")
-return
+loadCourses()
+loadStats()
 
 }
 
-await supabase
-.from("courses")
-.insert({
-title:title,
-description:desc
-})
+window.deleteCourse = async function(id){
 
-document.getElementById("course-title").value=""
-document.getElementById("course-desc").value=""
+await supabase.from("courses").delete().eq("course_id",id)
 
 loadCourses()
 loadStats()
@@ -332,15 +366,13 @@ loadStats()
 }
 
 
-// --------------------
-// المستخدمين
-// --------------------
+// =====================
+// USERS
+// =====================
 
 async function loadUsers(){
 
-const { data:users } = await supabase
-.from("user_profile")
-.select("*")
+const {data:users} = await supabase.from("user_profile").select("*")
 
 const table=document.getElementById("users-table")
 
@@ -353,10 +385,7 @@ const row=document.createElement("tr")
 row.innerHTML=`
 
 <td>${u.user_id}</td>
-
-<td contenteditable="true" onblur="updateRole('${u.user_id}',this.innerText)">
-${u.role}
-</td>
+<td>${u.role}</td>
 
 <td>
 <button onclick="deleteUser('${u.user_id}')">Delete</button>
@@ -370,29 +399,9 @@ table.appendChild(row)
 
 }
 
-
-// تغيير الدور
-
-window.updateRole = async function(id,role){
-
-await supabase
-.from("user_profile")
-.update({role})
-.eq("user_id",id)
-
-}
-
-
-// حذف مستخدم
-
 window.deleteUser = async function(id){
 
-if(!confirm("Delete user?")) return
-
-await supabase
-.from("user_profile")
-.delete()
-.eq("user_id",id)
+await supabase.from("user_profile").delete().eq("user_id",id)
 
 loadUsers()
 loadStats()
@@ -400,7 +409,112 @@ loadStats()
 }
 
 
-// تسجيل الخروج
+// =====================
+// ENROLLMENTS
+// =====================
+
+async function loadEnrollments(){
+
+const {data:e} = await supabase.from("enrollments").select("*")
+
+const table=document.getElementById("enroll-table")
+
+table.innerHTML=""
+
+e.forEach(x=>{
+
+const row=document.createElement("tr")
+
+row.innerHTML=`
+
+<td>${x.user_id}</td>
+<td>${x.course_id}</td>
+<td>${x.completion_status}</td>
+
+<td>
+<button onclick="deleteEnroll('${x.enrollment_id}')">Delete</button>
+</td>
+`
+
+table.appendChild(row)
+
+})
+
+}
+
+window.deleteEnroll = async function(id){
+
+await supabase.from("enrollments").delete().eq("enrollment_id",id)
+
+loadEnrollments()
+loadStats()
+
+}
+
+
+// =====================
+// CERTIFICATES
+// =====================
+
+async function loadCertificates(){
+
+const {data:c} = await supabase.from("certificates").select("*")
+
+const table=document.getElementById("cert-table")
+
+table.innerHTML=""
+
+c.forEach(x=>{
+
+const row=document.createElement("tr")
+
+row.innerHTML=`
+
+<td>${x.user_id}</td>
+<td>${x.course_id}</td>
+<td><a href="${x.certificate_url}" target="_blank">View</a></td>
+
+`
+
+table.appendChild(row)
+
+})
+
+}
+
+
+// =====================
+// RATINGS
+// =====================
+
+async function loadRatings(){
+
+const {data:r} = await supabase.from("instructor_ratings").select("*")
+
+const table=document.getElementById("ratings-table")
+
+table.innerHTML=""
+
+r.forEach(x=>{
+
+const row=document.createElement("tr")
+
+row.innerHTML=`
+
+<td>${x.instructor_id}</td>
+<td>${x.user_id}</td>
+<td>${x.rating}</td>
+
+`
+
+table.appendChild(row)
+
+})
+
+}
+
+
+// =====================
 
 window.logout = async function(){
 
@@ -416,9 +530,11 @@ window.location.href="../login.html"
 loadStats()
 loadCourses()
 loadUsers()
+loadEnrollments()
+loadCertificates()
+loadRatings()
 
 </script>
 
 </body>
-
 </html>
