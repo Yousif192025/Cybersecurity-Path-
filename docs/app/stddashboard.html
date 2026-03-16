@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard | CyberPath</title>
+    <style>
+        :root { --primary: #38bdf8; --bg: #0f172a; --card: #1e293b; --text: #e2e8f0; }
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; }
+        .container { max-width: 1200px; margin: auto; padding: 20px; }
+        
+        /* Header */
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 20px; }
+        #profile h2 { margin: 0; color: var(--primary); }
+        .logout-btn { background: #f87171; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+        .tab { padding: 12px 20px; background: var(--card); border-radius: 8px; cursor: pointer; transition: 0.3s; border: 1px solid transparent; }
+        .tab.active { background: var(--primary); color: black; font-weight: bold; }
+        .tab:hover:not(.active) { border-color: var(--primary); }
+
+        /* Content Area */
+        .tab-content { margin-top: 30px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+        
+        /* Card Styling */
+        .card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid #334155; position: relative; transition: 0.3s; }
+        .card:hover { transform: translateY(-5px); border-color: var(--primary); }
+        .card h3 { margin: 0 0 10px 0; font-size: 1.2rem; }
+        .card p { color: #94a3b8; font-size: 0.9rem; line-height: 1.5; margin-bottom: 15px; }
+        
+        button.btn-action { width: 100%; padding: 12px; background: var(--primary); border: none; color: black; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        button.btn-action:hover { opacity: 0.9; }
+        
+        /* Progress & Video List */
+        .video-list { margin-top: 15px; background: #0f172a; border-radius: 8px; padding: 10px; }
+        .video-item { display: flex; align-items: center; gap: 10px; padding: 8px; border-bottom: 1px solid #1e293b; text-decoration: none; color: var(--text); font-size: 0.85rem; }
+        .video-item:hover { color: var(--primary); }
+        .progress-bar { background: #334155; height: 8px; border-radius: 4px; margin: 10px 0; overflow: hidden; }
+        .progress-fill { background: var(--primary); height: 100%; transition: 0.5s; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div id="profile"><h2>Loading...</h2></div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" data-tab="available">🌐 Available Courses</div>
+        <div class="tab" data-tab="my-learning">📖 My Learning</div>
+        <div class="tab" data-tab="certificates">🏆 Certificates</div>
+        <div class="tab" data-tab="notifications">🔔 Alerts</div>
+    </div>
+
+    <div id="tab-content" class="tab-content"></div>
+</div>
+
+<script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+    const supabase = createClient(
+        "https://suvpaunulhqfoclepwoz.supabase.co",
+        "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"
+    );
+
+    let user = null;
+
+    // --- 1. التحقق من الهوية ---
+    const { data: userData } = await supabase.auth.getUser();
+    if(!userData.user) window.location.href="../login.html";
+    user = userData.user;
+
+    // --- 2. تحميل الملف الشخصي ---
+    async function loadProfile() {
+        const { data: profile } = await supabase.from("user_profile").select("*").eq("user_id", user.id).single();
+        document.getElementById("profile").innerHTML = `<h2>Welcome, ${profile?.first_name || 'Cyber Explorer'} 👋</h2>`;
+    }
+
+    // --- 3. نظام التبديل بين التابات ---
+    async function loadTab(tabName) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        
+        const container = document.getElementById('tab-content');
+        container.innerHTML = '<div style="text-align:center; padding:50px;">Loading Content...</div>';
+
+        if(tabName === 'available') await loadAvailableCourses(container);
+        if(tabName === 'my-learning') await loadMyLearning(container);
+        if(tabName === 'certificates') container.innerHTML = '<div class="card"><h3>No certificates earned yet. Complete a course to unlock!</h3></div>';
+        if(tabName === 'notifications') container.innerHTML = '<div class="card"><h3>You are all caught up!</h3></div>';
+    }
+
+    // --- 4. عرض الكورسات المتاحة (للتسجيل) ---
+    async function loadAvailableCourses(container) {
+        const { data: courses } = await supabase.from("courses").select("*");
+        container.innerHTML = `<div class="grid"></div>`;
+        const grid = container.querySelector('.grid');
+
+        courses.forEach(c => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <h3>${c.title}</h3>
+                <p>${c.description || 'Start your journey in this specialized track.'}</p>
+                <button class="btn-action" onclick="enroll('${c.course_id}')">Enroll Now</button>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    // --- 5. عرض الكورسات التي سجل فيها الطالب (مع الفيديوهات) ---
+    async function loadMyLearning(container) {
+        const { data: enrolls } = await supabase.from("enrollments").select(`*, courses(*)`).eq("user_id", user.id);
+        
+        if(!enrolls.length) {
+            container.innerHTML = '<div class="card"><h3>You haven\'t enrolled in any courses yet.</h3></div>';
+            return;
+        }
+
+        container.innerHTML = `<div class="grid"></div>`;
+        const grid = container.querySelector('.grid');
+
+        for (const e of enrolls) {
+            // جلب الفيديوهات المرتبطة بهذا الكورس
+            const { data: videos } = await supabase.from("course_videos").select("*").eq("course_id", e.course_id);
+            
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <h3>${e.courses.title}</h3>
+                <div class="progress-bar"><div class="progress-fill" style="width:${e.completion_percentage || 0}%"></div></div>
+                <div class="video-list">
+                    <strong>🎥 Course Lessons:</strong>
+                    ${videos.length ? videos.map(v => `
+                        <a href="${v.video_url}" target="_blank" class="video-item">
+                            ▶️ ${v.video_title}
+                        </a>
+                    `).join('') : '<p style="font-size:0.8rem; margin:5px 0;">Videos coming soon!</p>'}
+                </div>
+            `;
+            grid.appendChild(card);
+        }
+    }
+
+    // --- 6. وظيفة التسجيل ---
+    window.enroll = async (courseId) => {
+        const { error } = await supabase.from("enrollments").insert({ 
+            user_id: user.id, 
+            course_id: courseId, 
+            completion_status: 'in_progress' 
+        });
+        if(error) return alert("Already enrolled or error occurred.");
+        alert("Successfully enrolled!");
+        loadTab('my-learning');
+    };
+
+    window.logout = async () => {
+        await supabase.auth.signOut();
+        window.location.href="../login.html";
+    };
+
+    // Events
+    document.querySelectorAll('.tab').forEach(t => {
+        t.addEventListener('click', () => loadTab(t.dataset.tab));
+    });
+
+    // Start
+    loadProfile();
+    loadTab('available');
+</script>
+
+</body>
+</html>
