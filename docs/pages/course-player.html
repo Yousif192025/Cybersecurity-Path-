@@ -1,32 +1,70 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+
 <meta charset="UTF-8">
 <title>Course Player</title>
+
+<style>
+
+body{
+margin:0;
+font-family:Arial;
+background:#020617;
+color:white;
+}
+
+.container{
+display:flex;
+height:100vh;
+}
+
+.player{
+flex:3;
+padding:20px;
+}
+
+.sidebar{
+flex:1;
+border-left:1px solid #334155;
+padding:20px;
+overflow-y:auto;
+background:#0f172a;
+}
+
+.video-item{
+padding:10px;
+margin-bottom:10px;
+background:#1e293b;
+cursor:pointer;
+border-radius:6px;
+}
+
+.video-item:hover{
+background:#334155;
+}
+
+h2{
+color:#38bdf8;
+}
+
+</style>
+
 </head>
 
-<body style="background:#020617;color:white;font-family:Arial">
+<body>
 
-<h2 id="course-title"></h2>
+<h2 id="course-title" style="padding:20px"></h2>
 
-<div style="display:flex">
+<div class="container">
 
-<!-- الفيديو -->
-
-<div style="flex:3;padding:20px">
-
-<iframe id="player" width="100%" height="400"></iframe>
-
+<div class="player">
+<iframe id="player" width="100%" height="450" frameborder="0" allowfullscreen></iframe>
 </div>
 
-<!-- قائمة الفيديوهات -->
-
-<div style="flex:1;border-left:1px solid #334155;padding:20px">
-
+<div class="sidebar">
 <h3>Lessons</h3>
-
 <div id="videos"></div>
-
 </div>
 
 </div>
@@ -35,73 +73,155 @@
 
 import { supabase } from "../assets/js/core/supabase.js"
 
-// قراءة course_id من الرابط
+// ============================
+// 1. التحقق من تسجيل الدخول
+// ============================
+
+const { data:{user} } = await supabase.auth.getUser()
+
+if(!user){
+alert("Please login first")
+window.location.href="../login.html"
+throw new Error("User not logged in")
+}
+
+// ============================
+// 2. قراءة course_id
+// ============================
 
 const params = new URLSearchParams(window.location.search)
 const courseId = params.get("course_id")
 
-// تحميل الكورس
+console.log("Course ID:", courseId)
 
-const { data:course } = await supabase
+if(!courseId){
+alert("No course selected")
+window.location.href="student.html"
+throw new Error("Missing course_id")
+}
+
+// ============================
+// 3. التحقق من التسجيل بالكورس
+// ============================
+
+const { data:enroll } = await supabase
+.from("enrollments")
+.select("*")
+.eq("user_id", user.id)
+.eq("course_id", courseId)
+.maybeSingle()
+
+if(!enroll){
+alert("You must enroll first")
+window.location.href="student.html"
+throw new Error("User not enrolled")
+}
+
+// ============================
+// 4. تحميل الكورس
+// ============================
+
+const { data:course, error:courseError } = await supabase
 .from("courses")
 .select("*")
-.eq("course_id",courseId)
+.eq("course_id", courseId)
 .single()
+
+if(courseError || !course){
+document.body.innerHTML = "❌ Course not found"
+throw new Error("Course fetch failed")
+}
 
 document.getElementById("course-title").innerText = course.title
 
-// تحميل الفيديوهات
+// ============================
+// 5. تحميل الفيديوهات
+// ============================
 
 async function loadVideos(){
 
-const { data:videos } = await supabase
+const { data:videos, error } = await supabase
 .from("course_videos")
 .select("*")
-.eq("course_id",courseId)
+.eq("course_id", courseId)
 
-const list = document.getElementById("videos")
+if(error){
+alert("Error loading videos")
+console.error(error)
+return
+}
 
-list.innerHTML=""
+const container = document.getElementById("videos")
 
-videos.forEach(v=>{
+if(!videos || videos.length === 0){
+container.innerHTML = "No videos available"
+return
+}
 
-list.innerHTML+=`
-<div style="margin:10px 0;cursor:pointer"
-onclick="play('${v.video_url}')">
+container.innerHTML=""
 
+// عرض الفيديوهات
+
+videos.forEach((v,index)=>{
+
+container.innerHTML += `
+<div class="video-item" onclick="play('${v.video_url}')">
 ▶ ${v.video_title}
-
 </div>
 `
 
 })
 
-if(videos.length > 0){
+// تشغيل أول فيديو تلقائيًا
+
 play(videos[0].video_url)
-}
 
 }
 
-// تشغيل الفيديو
+// ============================
+// 6. تشغيل الفيديو
+// ============================
 
 window.play = function(url){
 
+// دعم YouTube
+
+if(url.includes("youtube.com") || url.includes("youtu.be")){
+
+let videoId = url.split("v=")[1]
+
+if(!videoId && url.includes("youtu.be")){
+videoId = url.split("/").pop()
+}
+
+document.getElementById("player").src =
+`https://www.youtube.com/embed/${videoId}`
+}
+else{
 document.getElementById("player").src = url
+}
 
 }
 
-// إنهاء الكورس (اختياري)
+// ============================
+// 7. إنهاء الكورس
+// ============================
 
 window.completeCourse = async function(){
 
 await supabase
 .from("enrollments")
-.update({completion_status:"completed"})
-.eq("course_id",courseId)
+.update({ completion_status:"completed" })
+.eq("user_id", user.id)
+.eq("course_id", courseId)
 
-alert("Course Completed!")
+alert("🎉 Course Completed!")
 
 }
+
+// ============================
+// تشغيل
+// ============================
 
 loadVideos()
 
