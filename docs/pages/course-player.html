@@ -1,231 +1,161 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-<meta charset="UTF-8">
-<title>Course Player</title>
-
-<style>
-
-body{
-margin:0;
-font-family:Arial;
-background:#020617;
-color:white;
-}
-
-.container{
-display:flex;
-height:100vh;
-}
-
-.player{
-flex:3;
-padding:20px;
-}
-
-.sidebar{
-flex:1;
-border-left:1px solid #334155;
-padding:20px;
-overflow-y:auto;
-background:#0f172a;
-}
-
-.video-item{
-padding:10px;
-margin-bottom:10px;
-background:#1e293b;
-cursor:pointer;
-border-radius:6px;
-}
-
-.video-item:hover{
-background:#334155;
-}
-
-h2{
-color:#38bdf8;
-}
-
-</style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Player | CyberPath</title>
+    <style>
+        body { margin: 0; font-family: 'Inter', Arial; background: #020617; color: white; overflow: hidden; }
+        .container { display: flex; height: calc(100vh - 80px); }
+        .player { flex: 3; padding: 20px; background: #000; display: flex; align-items: center; justify-content: center; }
+        .sidebar { flex: 1; border-left: 1px solid #334155; padding: 20px; overflow-y: auto; background: #0f172a; }
+        .video-item { padding: 15px; margin-bottom: 10px; background: #1e293b; cursor: pointer; border-radius: 8px; transition: 0.2s; border: 1px solid transparent; }
+        .video-item:hover { background: #334155; border-color: #38bdf8; }
+        .header { height: 80px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border-bottom: 1px solid #334155; }
+        h2 { color: #38bdf8; margin: 0; font-size: 1.5rem; }
+        .btn-complete { background: #22c55e; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    </style>
 </head>
 
 <body>
 
-<h2 id="course-title" style="padding:20px"></h2>
+<div class="header">
+    <h2 id="course-title">Loading Course...</h2>
+    <button class="btn-complete" onclick="completeCourse()">Mark as Completed ✅</button>
+</div>
 
 <div class="container">
+    <div class="player">
+        <iframe id="player" width="100%" height="90%" frameborder="0" allowfullscreen></iframe>
+    </div>
 
-<div class="player">
-<iframe id="player" width="100%" height="450" frameborder="0" allowfullscreen></iframe>
-</div>
-
-<div class="sidebar">
-<h3>Lessons</h3>
-<div id="videos"></div>
-</div>
-
+    <div class="sidebar">
+        <h3>Lessons List</h3>
+        <div id="videos">Loading playlist...</div>
+    </div>
 </div>
 
 <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-import { supabase } from "../assets/js/core/supabase.js"
+    const supabase = createClient(
+        "https://suvpaunulhqfoclepwoz.supabase.co",
+        "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"
+    );
 
-// ============================
-// 1. التحقق من تسجيل الدخول
-// ============================
+    // ============================
+    // 1. التحقق من الهوية والصلاحية (Role Check)
+    // ============================
+    const { data: { user } } = await supabase.auth.getUser();
 
-const { data:{user} } = await supabase.auth.getUser()
+    if (!user) {
+        alert("Please login first");
+        window.location.href = "../login.html";
+        throw new Error("Unauthorized");
+    }
 
-if(!user){
-alert("Please login first")
-window.location.href="../login.html"
-throw new Error("User not logged in")
-}
+    // جدار الحماية: التأكد أن المستخدم "طالب"
+    const { data: profile } = await supabase
+        .from("user_profile")
+        .select("role")
+        .eq("user_id", user.id)
+        .single();
 
-// ============================
-// 2. قراءة course_id
-// ============================
+    if (!profile || (profile.role !== "student" && profile.role !== "admin")) {
+        alert("Access Denied: This area is for students only.");
+        window.location.href = "../login.html";
+        throw new Error("Access Denied");
+    }
 
-const params = new URLSearchParams(window.location.search)
-const courseId = params.get("course_id")
+    // ============================
+    // 2. قراءة بيانات الكورس
+    // ============================
+    const params = new URLSearchParams(window.location.search);
+    const courseId = params.get("course_id");
 
-console.log("Course ID:", courseId)
+    if (!courseId) {
+        alert("No course selected");
+        window.location.href = "dashboard.html";
+        throw new Error("Missing course_id");
+    }
 
-if(!courseId){
-alert("No course selected")
-window.location.href="student.html"
-throw new Error("Missing course_id")
-}
+    // التحقق من أن الطالب مسجل فعلياً في هذا الكورس
+    const { data: enroll } = await supabase
+        .from("enrollments")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("course_id", courseId)
+        .maybeSingle();
 
-// ============================
-// 3. التحقق من التسجيل بالكورس
-// ============================
+    if (!enroll && profile.role !== "admin") {
+        alert("You must enroll in this course first!");
+        window.location.href = "dashboard.html";
+        throw new Error("Not Enrolled");
+    }
 
-const { data:enroll } = await supabase
-.from("enrollments")
-.select("*")
-.eq("user_id", user.id)
-.eq("course_id", courseId)
-.maybeSingle()
+    // ============================
+    // 3. تحميل البيانات (الكورس والفيديوهات)
+    // ============================
+    async function initPlayer() {
+        // تحميل عنوان الكورس
+        const { data: course } = await supabase.from("courses").select("title").eq("course_id", courseId).single();
+        if (course) document.getElementById("course-title").innerText = course.title;
 
-if(!enroll){
-alert("You must enroll first")
-window.location.href="student.html"
-throw new Error("User not enrolled")
-}
+        // تحميل الفيديوهات
+        const { data: videos, error } = await supabase
+            .from("course_videos")
+            .select("*")
+            .eq("course_id", courseId)
+            .order('video_id', { ascending: true });
 
-// ============================
-// 4. تحميل الكورس
-// ============================
+        const container = document.getElementById("videos");
+        if (error || !videos || videos.length === 0) {
+            container.innerHTML = "No videos available for this course yet.";
+            return;
+        }
 
-const { data:course, error:courseError } = await supabase
-.from("courses")
-.select("*")
-.eq("course_id", courseId)
-.single()
+        container.innerHTML = "";
+        videos.forEach((v) => {
+            const div = document.createElement('div');
+            div.className = 'video-item';
+            div.innerHTML = `▶ ${v.video_title}`;
+            div.onclick = () => playVideo(v.video_url);
+            container.appendChild(div);
+        });
 
-if(courseError || !course){
-document.body.innerHTML = "❌ Course not found"
-throw new Error("Course fetch failed")
-}
+        // تشغيل أول فيديو تلقائياً
+        playVideo(videos[0].video_url);
+    }
 
-document.getElementById("course-title").innerText = course.title
+    // ============================
+    // 4. مشغل الفيديو (YouTube Support)
+    // ============================
+    window.playVideo = function(url) {
+        let embedUrl = url;
+        if (url.includes("youtube.com") || url.includes("youtu.be")) {
+            let videoId = url.includes("v=") ? url.split("v=")[1].split("&")[0] : url.split("/").pop();
+            embedUrl = `https://www.youtube.com/embed/${videoId}`;
+        }
+        document.getElementById("player").src = embedUrl;
+    };
 
-// ============================
-// 5. تحميل الفيديوهات
-// ============================
+    // ============================
+    // 5. إنهاء الكورس
+    // ============================
+    window.completeCourse = async function() {
+        const { error } = await supabase
+            .from("enrollments")
+            .update({ completion_status: "completed", completion_percentage: 100 })
+            .eq("user_id", user.id)
+            .eq("course_id", courseId);
 
-async function loadVideos(){
+        if (!error) {
+            alert("🎉 Congratulations! Course marked as completed.");
+            window.location.href = "dashboard.html";
+        }
+    };
 
-const { data:videos, error } = await supabase
-.from("course_videos")
-.select("*")
-.eq("course_id", courseId)
-
-if(error){
-alert("Error loading videos")
-console.error(error)
-return
-}
-
-const container = document.getElementById("videos")
-
-if(!videos || videos.length === 0){
-container.innerHTML = "No videos available"
-return
-}
-
-container.innerHTML=""
-
-// عرض الفيديوهات
-
-videos.forEach((v,index)=>{
-
-container.innerHTML += `
-<div class="video-item" onclick="play('${v.video_url}')">
-▶ ${v.video_title}
-</div>
-`
-
-})
-
-// تشغيل أول فيديو تلقائيًا
-
-play(videos[0].video_url)
-
-}
-
-// ============================
-// 6. تشغيل الفيديو
-// ============================
-
-window.play = function(url){
-
-// دعم YouTube
-
-if(url.includes("youtube.com") || url.includes("youtu.be")){
-
-let videoId = url.split("v=")[1]
-
-if(!videoId && url.includes("youtu.be")){
-videoId = url.split("/").pop()
-}
-
-document.getElementById("player").src =
-`https://www.youtube.com/embed/${videoId}`
-}
-else{
-document.getElementById("player").src = url
-}
-
-}
-
-// ============================
-// 7. إنهاء الكورس
-// ============================
-
-window.completeCourse = async function(){
-
-await supabase
-.from("enrollments")
-.update({ completion_status:"completed" })
-.eq("user_id", user.id)
-.eq("course_id", courseId)
-
-alert("🎉 Course Completed!")
-
-}
-
-// ============================
-// تشغيل
-// ============================
-
-loadVideos()
-
+    initPlayer();
 </script>
-
 </body>
 </html>
