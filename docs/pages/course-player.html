@@ -1,1 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Course Player</title>
+</head>
 
+<body style="background:#020617;color:white;font-family:Arial">
+
+<h2 id="course-title"></h2>
+
+<div style="display:flex">
+
+<!-- الفيديو -->
+
+<div style="flex:3;padding:20px">
+
+<iframe id="player" width="100%" height="400"></iframe>
+
+</div>
+
+<!-- قائمة الفيديوهات -->
+
+<div style="flex:1;border-left:1px solid #334155;padding:20px">
+
+<h3>Lessons</h3>
+
+<div id="videos"></div>
+
+</div>
+
+</div>
+
+<script type="module">
+
+import { supabase } from "../../assets/js/core/supabase.js"
+
+// قراءة course_id من الرابط
+
+const params = new URLSearchParams(window.location.search)
+const courseId = params.get("course_id")
+
+// تحميل الكورس
+
+const { data:course } = await supabase
+.from("courses")
+.select("*")
+.eq("course_id",courseId)
+.single()
+
+document.getElementById("course-title").innerText = course.title
+
+// تحميل الفيديوهات
+
+async function loadVideos(){
+
+const { data:videos } = await supabase
+.from("course_videos")
+.select("*")
+.eq("course_id",courseId)
+
+const list = document.getElementById("videos")
+
+list.innerHTML=""
+
+videos.forEach(v=>{
+
+list.innerHTML+=`
+<div style="margin:10px 0;cursor:pointer"
+onclick="play('${v.video_url}')">
+
+▶ ${v.video_title}
+
+</div>
+`
+
+})
+
+if(videos.length > 0){
+play(videos[0].video_url)
+}
+
+}
+
+// تشغيل الفيديو
+
+window.play = function(url){
+
+document.getElementById("player").src = url
+
+}
+
+// إنهاء الكورس (اختياري)
+
+window.completeCourse = async function(){
+
+await supabase
+.from("enrollments")
+.update({completion_status:"completed"})
+.eq("course_id",courseId)
+
+alert("Course Completed!")
+
+}
+
+loadVideos()
+
+</script>
+
+</body>
+</html>
