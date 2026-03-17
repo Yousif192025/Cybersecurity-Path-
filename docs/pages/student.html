@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Student Dashboard</title>
+</head>
+
+<body style="background:#0f172a;color:white;font-family:Arial">
+
+<h2>🎓 My Courses</h2>
+
+<div id="courses"></div>
+
+<script type="module">
+
+import { supabase } from "../../assets/js/core/supabase.js"
+
+// 🔐 تحقق تسجيل الدخول
+
+const { data:{user} } = await supabase.auth.getUser()
+
+if(!user) window.location.href="../login.html"
+
+// تحميل الكورسات
+
+async function loadCourses(){
+
+const { data:courses } = await supabase
+.from("courses")
+.select("*")
+
+const container = document.getElementById("courses")
+
+container.innerHTML=""
+
+courses.forEach(c=>{
+
+container.innerHTML+=`
+<div style="border:1px solid #334155;padding:15px;margin:10px">
+
+<h3>${c.title}</h3>
+
+<button onclick="enroll('${c.course_id}')">
+Enroll
+</button>
+
+<button onclick="openCourse('${c.course_id}')">
+Open Course
+</button>
+
+</div>
+`
+
+})
+
+}
+
+// تسجيل بالكورس
+
+window.enroll = async function(courseId){
+
+await supabase.from("enrollments").insert({
+user_id:user.id,
+course_id:courseId,
+completion_status:"in_progress"
+})
+
+alert("Enrolled!")
+
+}
+
+// فتح الكورس
+
+window.openCourse = function(courseId){
+
+window.location.href=`course-player.html?course_id=${courseId}`
+
+}
+
+loadCourses()
+
+</script>
+
+</body>
+</html>
