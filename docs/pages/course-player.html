@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Course Player | CyberPath</title>
     <style>
-        body { margin: 0; font-family: 'Inter', Arial; background: #020617; color: white; overflow: hidden; }
+        body { margin: 0; font-family: 'Inter', Arial, sans-serif; background: #020617; color: white; overflow: hidden; }
         .container { display: flex; height: calc(100vh - 80px); }
         .player { flex: 3; padding: 20px; background: #000; display: flex; align-items: center; justify-content: center; }
         .sidebar { flex: 1; border-left: 1px solid #334155; padding: 20px; overflow-y: auto; background: #0f172a; }
@@ -13,7 +13,9 @@
         .video-item:hover { background: #334155; border-color: #38bdf8; }
         .header { height: 80px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border-bottom: 1px solid #334155; }
         h2 { color: #38bdf8; margin: 0; font-size: 1.5rem; }
-        .btn-complete { background: #22c55e; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-complete { background: #22c55e; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-complete:hover { background: #16a34a; }
+        iframe { border-radius: 12px; box-shadow: 0 0 20px rgba(56, 189, 248, 0.1); }
     </style>
 </head>
 
@@ -49,37 +51,43 @@
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-        alert("Please login first");
+        console.error("No active session found.");
         window.location.href = "../login.html";
         throw new Error("Unauthorized");
     }
 
-    // جدار الحماية: التأكد أن المستخدم "طالب"
-    const { data: profile } = await supabase
+    // جلب البروفايل وفحص الرتبة
+    const { data: profile, error: profileError } = await supabase
         .from("user_profile")
         .select("role")
         .eq("user_id", user.id)
         .single();
 
-    if (!profile || (profile.role !== "student" && profile.role !== "admin")) {
-        alert("Access Denied: This area is for students only.");
+    // معالجة الرتبة بحساسية أقل (toLowerCase)
+    const rawRole = profile?.role || "";
+    const userRole = rawRole.toLowerCase().trim();
+
+    console.log("Logged in user role:", userRole);
+
+    if (profileError || !profile || (userRole !== "student" && userRole !== "admin")) {
+        alert("Access Denied: Your registered role is [" + (rawRole || "None") + "]. Only Students can access the player.");
         window.location.href = "../login.html";
         throw new Error("Access Denied");
     }
 
     // ============================
-    // 2. قراءة بيانات الكورس
+    // 2. قراءة بيانات الكورس من الرابط
     // ============================
     const params = new URLSearchParams(window.location.search);
     const courseId = params.get("course_id");
 
     if (!courseId) {
-        alert("No course selected");
-        window.location.href = "dashboard.html";
+        alert("Please select a course first.");
+        window.location.href = "../dashboards/student.html";
         throw new Error("Missing course_id");
     }
 
-    // التحقق من أن الطالب مسجل فعلياً في هذا الكورس
+    // التحقق من التسجيل (إلا إذا كان أدمن)
     const { data: enroll } = await supabase
         .from("enrollments")
         .select("*")
@@ -87,75 +95,89 @@
         .eq("course_id", courseId)
         .maybeSingle();
 
-    if (!enroll && profile.role !== "admin") {
-        alert("You must enroll in this course first!");
-        window.location.href = "dashboard.html";
-        throw new Error("Not Enrolled");
+    if (!enroll && userRole !== "admin") {
+        alert("You must enroll in this course to view the content!");
+        window.location.href = "../dashboards/student.html";
+        throw new Error("User not enrolled");
     }
 
     // ============================
-    // 3. تحميل البيانات (الكورس والفيديوهات)
+    // 3. تحميل البيانات وتشغيل المشغل
     // ============================
     async function initPlayer() {
-        // تحميل عنوان الكورس
+        // جلب تفاصيل الكورس
         const { data: course } = await supabase.from("courses").select("title").eq("course_id", courseId).single();
         if (course) document.getElementById("course-title").innerText = course.title;
 
-        // تحميل الفيديوهات
+        // جلب الفيديوهات
         const { data: videos, error } = await supabase
             .from("course_videos")
             .select("*")
             .eq("course_id", courseId)
             .order('video_id', { ascending: true });
 
-        const container = document.getElementById("videos");
+        const videoContainer = document.getElementById("videos");
+        
         if (error || !videos || videos.length === 0) {
-            container.innerHTML = "No videos available for this course yet.";
+            videoContainer.innerHTML = "<p style='color:#94a3b8'>No videos uploaded for this course yet.</p>";
             return;
         }
 
-        container.innerHTML = "";
+        videoContainer.innerHTML = "";
         videos.forEach((v) => {
             const div = document.createElement('div');
             div.className = 'video-item';
             div.innerHTML = `▶ ${v.video_title}`;
             div.onclick = () => playVideo(v.video_url);
-            container.appendChild(div);
+            videoContainer.appendChild(div);
         });
 
-        // تشغيل أول فيديو تلقائياً
+        // تشغيل الفيديو الأول تلقائياً
         playVideo(videos[0].video_url);
     }
 
     // ============================
-    // 4. مشغل الفيديو (YouTube Support)
+    // 4. وظيفة تشغيل الفيديو (YouTube & Others)
     // ============================
     window.playVideo = function(url) {
-        let embedUrl = url;
+        let finalUrl = url;
+        // تحويل روابط يوتيوب العادية لروابط Embed لتعمل داخل iframe
         if (url.includes("youtube.com") || url.includes("youtu.be")) {
-            let videoId = url.includes("v=") ? url.split("v=")[1].split("&")[0] : url.split("/").pop();
-            embedUrl = `https://www.youtube.com/embed/${videoId}`;
+            let videoId = "";
+            if (url.includes("v=")) {
+                videoId = url.split("v=")[1].split("&")[0];
+            } else {
+                videoId = url.split("/").pop();
+            }
+            finalUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
         }
-        document.getElementById("player").src = embedUrl;
+        document.getElementById("player").src = finalUrl;
     };
 
     // ============================
-    // 5. إنهاء الكورس
+    // 5. إنهاء الكورس وتحديث النسبة
     // ============================
     window.completeCourse = async function() {
         const { error } = await supabase
             .from("enrollments")
-            .update({ completion_status: "completed", completion_percentage: 100 })
+            .update({ 
+                completion_status: "completed", 
+                completion_percentage: 100 
+            })
             .eq("user_id", user.id)
             .eq("course_id", courseId);
 
         if (!error) {
-            alert("🎉 Congratulations! Course marked as completed.");
-            window.location.href = "dashboard.html";
+            alert("🎉 Awesome work! Course marked as completed.");
+            window.location.href = "../dashboards/student.html";
+        } else {
+            alert("Error updating status: " + error.message);
         }
     };
 
+    // تشغيل المحرك
     initPlayer();
+
 </script>
 </body>
 </html>
