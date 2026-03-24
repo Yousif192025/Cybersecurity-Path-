@@ -1,217 +1,119 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>My Profile</title>
+<script>
+  // ✅ منع تكرار تعريف supabase
+  let supabaseClient;
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-
-  <style>
-    body {
-      font-family: Arial;
-      background: #0f172a;
-      color: white;
-      margin: 0;
-    }
-
-    .container {
-      max-width: 900px;
-      margin: auto;
-      padding: 20px;
-    }
-
-    h2 {
-      margin-bottom: 20px;
-    }
-
-    .card {
-      background: #1e293b;
-      padding: 20px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-    }
-
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      border-radius: 6px;
-      border: none;
-    }
-
-    button {
-      margin-top: 15px;
-      padding: 10px;
-      background: #22c55e;
-      border: none;
-      color: white;
-      cursor: pointer;
-      border-radius: 6px;
-    }
-
-    .progress-bar {
-      background: #334155;
-      height: 10px;
-      border-radius: 5px;
-      margin-top: 5px;
-    }
-
-    .progress {
-      background: #22c55e;
-      height: 100%;
-      border-radius: 5px;
-    }
-
-    .course {
-      margin-bottom: 15px;
-    }
-
-    .top {
-      display: flex;
-      gap: 20px;
-      align-items: center;
-    }
-
-    .avatar {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      background: #334155;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 30px;
-    }
-
-    a {
-      color: #38bdf8;
-      text-decoration: none;
-    }
-
-  </style>
-</head>
-
-<body>
-  <div class="container">
-
-    <h2>👤 My Profile</h2>
-
-    <!-- Profile Info -->
-    <div class="card">
-      <div class="top">
-        <div class="avatar" id="avatar">👤</div>
-        <div>
-          <p id="email"></p>
-        </div>
-      </div>
-
-      <input type="text" id="name" placeholder="Full Name" />
-
-      <button id="saveBtn">Save Changes</button>
-    </div>
-
-    <!-- Courses Progress -->
-    <div class="card">
-      <h3>📚 My Courses</h3>
-      <div id="courses"></div>
-    </div>
-
-  </div>
-
-  <script>
-    const supabase = window.supabase.createClient(
+  if (!window.supabaseClient) {
+    supabaseClient = window.supabase.createClient(
       "https://suvpaunulhqfoclepwoz.supabase.co",
       "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"
     );
 
-    let user;
+    window.supabaseClient = supabaseClient;
+  } else {
+    supabaseClient = window.supabaseClient;
+  }
 
-    async function init() {
-      const res = await supabase.auth.getUser();
-      user = res.data.user;
+  const supabase = supabaseClient;
 
-      if (!user) {
-        window.location.href = "/docs/login.html";
-        return;
-      }
+  let user;
 
-      document.getElementById("email").innerText = user.email;
+  async function init() {
+    const res = await supabase.auth.getUser();
+    user = res.data.user;
 
-      loadProfile();
-      loadCourses();
+    console.log("USER:", user);
+
+    if (!user) {
+      window.location.href = "/docs/login.html";
+      return;
     }
 
-    async function loadProfile() {
-      const { data } = await supabase
-        .from("users_profile")
-        .select("*")
-        .eq("id", user.id)
-        .single();
+    document.getElementById("email").innerText = user.email;
 
-      if (data) {
-        document.getElementById("name").value = data.full_name || "";
-      }
+    await loadProfile();
+    await loadCourses();
+  }
+
+  async function loadProfile() {
+    const { data, error } = await supabase
+      .from("users_profile")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+
+    console.log("PROFILE:", data, error);
+
+    if (data) {
+      document.getElementById("name").value = data.full_name || "";
     }
+  }
 
-    document.getElementById("saveBtn").onclick = async () => {
-      const full_name = document.getElementById("name").value;
+  document.getElementById("saveBtn").onclick = async () => {
+    const full_name = document.getElementById("name").value;
 
-      await supabase
-        .from("users_profile")
-        .update({ full_name })
-        .eq("id", user.id);
+    const { error } = await supabase
+      .from("users_profile")
+      .update({ full_name })
+      .eq("id", user.id);
 
+    if (!error) {
       alert("Saved ✅");
-    };
+    }
+  };
 
-    async function loadCourses() {
-      const { data: enrollments } = await supabase
-        .from("enrollments")
-        .select("course_id, courses(title)")
-        .eq("user_id", user.id);
+  async function loadCourses() {
+    const { data: enrollments, error } = await supabase
+      .from("enrollments")
+      .select("course_id, courses(title)")
+      .eq("user_id", user.id);
 
-      const container = document.getElementById("courses");
-      container.innerHTML = "";
+    console.log("COURSES:", enrollments, error);
 
-      for (let e of enrollments) {
-        const progress = await getProgress(e.course_id);
+    const container = document.getElementById("courses");
+    container.innerHTML = "";
 
-        const div = document.createElement("div");
-        div.className = "course";
-
-        div.innerHTML = `
-          <h4>${e.courses.title}</h4>
-
-          <div class="progress-bar">
-            <div class="progress" style="width:${progress}%"></div>
-          </div>
-
-          <p>${progress}%</p>
-
-          <a href="/docs/pages/course-player.html?course_id=${e.course_id}">
-            Continue Learning →
-          </a>
-        `;
-
-        container.appendChild(div);
-      }
+    if (!enrollments || enrollments.length === 0) {
+      container.innerHTML = "<p>No courses yet</p>";
+      return;
     }
 
-    async function getProgress(courseId) {
-      const { data } = await supabase
-        .from("video_progress")
-        .select("is_completed")
-        .eq("user_id", user.id)
-        .eq("course_id", courseId);
+    for (let e of enrollments) {
+      const progress = await getProgress(e.course_id);
 
-      if (!data || data.length === 0) return 0;
+      const div = document.createElement("div");
+      div.className = "course";
 
-      const completed = data.filter(v => v.is_completed).length;
+      div.innerHTML = `
+        <h4>${e.courses?.title || "Course"}</h4>
 
-      return Math.round((completed / data.length) * 100);
+        <div class="progress-bar">
+          <div class="progress" style="width:${progress}%"></div>
+        </div>
+
+        <p>${progress}%</p>
+
+        <a href="/docs/pages/course-player.html?course_id=${e.course_id}">
+          Continue Learning →
+        </a>
+      `;
+
+      container.appendChild(div);
     }
+  }
 
-    init();
-  </script>
-</body>
-</html>
+  async function getProgress(courseId) {
+    const { data } = await supabase
+      .from("video_progress")
+      .select("is_completed")
+      .eq("user_id", user.id)
+      .eq("course_id", courseId);
+
+    if (!data || data.length === 0) return 0;
+
+    const completed = data.filter(v => v.is_completed).length;
+
+    return Math.round((completed / data.length) * 100);
+  }
+
+  init();
+</script>
