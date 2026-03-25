@@ -70,7 +70,7 @@
             <h3>Add Lesson to Course</h3>
             <select class="course-select"><option value="">Select Course</option></select>
             <input type="text" id="l-title" placeholder="Lesson Title">
-            <input type="url" id="l-content" placeholder="Video Link (e.g. https://your-video.mp4)">
+            <input type="url" id="l-content" placeholder="Video Link (e.g. YouTube URL)">
             <input type="number" id="l-order" placeholder="Order (1, 2, 3...)">
             <button class="main-btn" onclick="addLesson()">📹 Add Lesson</button>
         </div>
@@ -158,15 +158,25 @@
     };
 
     async function refreshData() {
-        // جلب كورسات هذا المدرب فقط
-        const { data: courses } = await supabase.from("courses").select("*").eq("instructor_id", user.id);
+        // التحسين: جلب الكورسات الخاصة بك أو التي لا تملك مدرباً حالياً (لأغراض التجربة)
+        const { data: courses, error } = await supabase
+            .from("courses")
+            .select("*")
+            .or(`instructor_id.eq.${user.id},instructor_id.is.null`);
+
+        if (error) {
+            console.error("Course fetch error:", error);
+            return;
+        }
+
+        const safeCourses = courses || [];
         
-        updateCoursesTable(courses);
-        updateCourseSelects(courses);
-        loadLessons(courses);
-        loadAssignments(courses);
-        loadQuizzes(courses);
-        loadStudents(courses);
+        updateCoursesTable(safeCourses);
+        updateCourseSelects(safeCourses);
+        loadLessons(safeCourses);
+        loadAssignments(safeCourses);
+        loadQuizzes(safeCourses);
+        loadStudents(safeCourses);
     }
 
     function updateCourseSelects(courses) {
@@ -180,7 +190,6 @@
         `).join('');
     }
 
-    // --- الدروس (Lessons) ---
     window.addLesson = async () => {
         const course_id = document.querySelector("#upload-video .course-select").value;
         const title = document.getElementById('l-title').value;
@@ -188,70 +197,69 @@
         const lesson_order = document.getElementById('l-order').value;
 
         if(!course_id || !title || !content) return alert("Fill all fields");
-        
         await supabase.from("lessons").insert({ course_id, title, content, lesson_order });
         alert("Lesson Added!");
         refreshData();
     };
 
     async function loadLessons(courses) {
+        if (courses.length === 0) return;
         const ids = courses.map(c => c.course_id);
         const { data: lessons } = await supabase.from("lessons").select("*, courses(title)").in("course_id", ids);
-        document.querySelector("#lessons-list tbody").innerHTML = lessons.map(l => `
-            <tr><td>${l.title}</td><td><span class="badge">${l.courses.title}</span></td><td><button class="btn-del" onclick="deleteLesson('${l.lesson_id}')">🗑️</button></td></tr>
+        document.querySelector("#lessons-list tbody").innerHTML = (lessons || []).map(l => `
+            <tr><td>${l.title}</td><td><span class="badge">${l.courses?.title || 'Unknown'}</span></td><td><button class="btn-del" onclick="deleteLesson('${l.lesson_id}')">🗑️</button></td></tr>
         `).join('');
     }
 
-    // --- الواجبات (Assignments) ---
     window.createAssignment = async () => {
         const course_id = document.querySelector("#assignments .course-select").value;
         const title = document.getElementById('a-title').value;
         const description = document.getElementById('a-desc').value;
         const due_date = document.getElementById('a-due-date').value;
-
+        if(!course_id || !title) return alert("Course and Title are required");
         await supabase.from("assignments").insert({ course_id, title, description, due_date });
         alert("Assignment Posted!");
         refreshData();
     };
 
     async function loadAssignments(courses) {
+        if (courses.length === 0) return;
         const ids = courses.map(c => c.course_id);
         const { data: assigns } = await supabase.from("assignments").select("*, courses(title)").in("course_id", ids);
         document.querySelector("#assignments-list tbody").innerHTML = (assigns || []).map(a => `
-            <tr><td>${a.title}</td><td>${a.courses.title}</td><td><button class="btn-del" onclick="deleteAssignment('${a.assignment_id}')">🗑️</button></td></tr>
+            <tr><td>${a.title}</td><td>${a.courses?.title || 'Unknown'}</td><td><button class="btn-del" onclick="deleteAssignment('${a.assignment_id}')">🗑️</button></td></tr>
         `).join('');
     }
 
-    // --- الكويزات (Quizzes) ---
     window.createQuiz = async () => {
         const course_id = document.querySelector("#quizzes .course-select").value;
         const title = document.getElementById('q-title').value;
         const description = document.getElementById('q-desc').value;
-
+        if(!course_id || !title) return alert("Course and Title are required");
         await supabase.from("quizzes").insert({ course_id, title, description });
-        alert("Quiz Created! Now you can add questions via SQL or Admin Panel.");
+        alert("Quiz Created!");
         refreshData();
     };
 
     async function loadQuizzes(courses) {
+        if (courses.length === 0) return;
         const ids = courses.map(c => c.course_id);
         const { data: quizzes } = await supabase.from("quizzes").select("*, courses(title)").in("course_id", ids);
         document.querySelector("#quizzes-list tbody").innerHTML = (quizzes || []).map(q => `
-            <tr><td>${q.title}</td><td>${q.courses.title}</td><td><button class="btn-del" onclick="deleteQuiz('${q.quiz_id}')">🗑️</button></td></tr>
+            <tr><td>${q.title}</td><td>${q.courses?.title || 'Unknown'}</td><td><button class="btn-del" onclick="deleteQuiz('${q.quiz_id}')">🗑️</button></td></tr>
         `).join('');
     }
 
-    // --- الطلاب (Students) ---
     async function loadStudents(courses) {
+        if (courses.length === 0) return;
         const ids = courses.map(c => c.course_id);
         const { data: enrolls } = await supabase.from("enrollments").select("*, courses(title)").in("course_id", ids);
         document.querySelector("#students-list tbody").innerHTML = (enrolls || []).map(e => `
-            <tr><td><code>${e.user_id.substring(0,8)}...</code></td><td>${e.courses.title}</td><td><span class="badge">${e.completion_status}</span></td></tr>
+            <tr><td><code>${e.user_id.substring(0,8)}...</code></td><td>${e.courses?.title || 'Unknown'}</td><td><span class="badge">${e.completion_status}</span></td></tr>
         `).join('');
     }
 
-    // --- الحذف ---
-    window.deleteCourse = async (id) => { if(confirm("Delete?")) { await supabase.from("courses").delete().eq("course_id", id); refreshData(); } };
+    window.deleteCourse = async (id) => { if(confirm("Delete Course?")) { await supabase.from("courses").delete().eq("course_id", id); refreshData(); } };
     window.deleteLesson = async (id) => { await supabase.from("lessons").delete().eq("lesson_id", id); refreshData(); };
     window.deleteAssignment = async (id) => { await supabase.from("assignments").delete().eq("assignment_id", id); refreshData(); };
     window.deleteQuiz = async (id) => { await supabase.from("quizzes").delete().eq("quiz_id", id); refreshData(); };
@@ -259,8 +267,11 @@
     window.createCourse = async () => {
         const title = document.getElementById('c-title').value;
         const description = document.getElementById('c-desc').value;
+        if(!title) return alert("Title is required");
         await supabase.from("courses").insert({ title, description, instructor_id: user.id });
         refreshData();
+        document.getElementById('c-title').value = '';
+        document.getElementById('c-desc').value = '';
     };
 
     window.logout = async () => { await supabase.auth.signOut(); window.location.href="../login.html"; };
