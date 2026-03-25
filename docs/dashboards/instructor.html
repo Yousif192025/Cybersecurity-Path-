@@ -9,21 +9,17 @@
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; }
         .container { max-width: 1200px; margin: auto; padding: 20px; }
         
-        /* Header */
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 20px; }
         .header h2 { color: var(--primary); margin: 0; }
         .logout-btn { background: #f87171; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
 
-        /* Tabs */
-        .tabs { display: flex; gap: 10px; margin-top: 25px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
-        .tab { padding: 10px 20px; background: var(--card); border-radius: 8px 8px 0 0; cursor: pointer; transition: 0.3s; border: 1px solid transparent; color: #94a3b8; }
+        .tabs { display: flex; gap: 10px; margin-top: 25px; border-bottom: 1px solid #334155; padding-bottom: 10px; overflow-x: auto; }
+        .tab { padding: 10px 20px; background: var(--card); border-radius: 8px 8px 0 0; cursor: pointer; transition: 0.3s; color: #94a3b8; white-space: nowrap; }
         .tab.active { background: var(--primary); color: #000; font-weight: bold; }
 
-        /* Content */
         .tab-content { margin-top: 25px; display: none; }
         .tab-content.active { display: block; }
 
-        /* Forms & Tables */
         .section { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid #334155; margin-bottom: 20px; }
         input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
         button.main-btn { background: var(--primary); color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
@@ -31,7 +27,6 @@
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { padding: 12px; border-bottom: 1px solid #334155; text-align: left; font-size: 14px; }
         th { color: var(--primary); background: #161e2d; }
-        
         .badge { padding: 4px 8px; border-radius: 6px; font-size: 12px; background: #334155; color: var(--primary); }
         .btn-del { color: #f87171; background: transparent; border: 1px solid #f87171; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
     </style>
@@ -40,17 +35,19 @@
 
 <div class="container">
     <div class="header">
-        <div id="instructor-info"><h2>Instructor Panel</h2><span>Loading...</span></div>
+        <div id="instructor-info"><h2>Instructor Panel</h2><span>Loading profile...</span></div>
         <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
 
     <div class="tabs">
         <div class="tab active" onclick="switchTab('my-courses', event)">📚 My Courses</div>
-        <div class="tab" onclick="switchTab('upload-video', event)">🎬 Upload Video</div>
+        <div class="tab" onclick="switchTab('upload-video', event)">🎬 Lessons (Videos)</div>
         <div class="tab" onclick="switchTab('assignments', event)">📝 Assignments</div>
-        <div class="tab" onclick="switchTab('students', event)">👥 My Students</div>
+        <div class="tab" onclick="switchTab('quizzes', event)">❓ Quizzes</div>
+        <div class="tab" onclick="switchTab('students', event)">👥 Students</div>
     </div>
 
+    <!-- 1. MY COURSES -->
     <div id="my-courses" class="tab-content active">
         <div class="section">
             <h3>Create New Course</h3>
@@ -61,53 +58,72 @@
         <div class="section">
             <h3>Existing Courses</h3>
             <table id="courses-list">
-                <thead><tr><th>Title</th><th>Action</th></tr></thead>
+                <thead><tr><th>Title</th><th>Created At</th><th>Action</th></tr></thead>
                 <tbody></tbody>
             </table>
         </div>
     </div>
 
+    <!-- 2. LESSONS (VIDEOS) -->
     <div id="upload-video" class="tab-content">
         <div class="section">
-            <h3>Add Video to Course</h3>
-            <select id="video-course-select"><option value="">Select Course</option></select>
-            <input type="text" id="v-title" placeholder="Video Title">
-            <input type="url" id="v-url" placeholder="YouTube URL">
-            <button class="main-btn" onclick="addVideo()">📹 Add Video</button>
+            <h3>Add Lesson to Course</h3>
+            <select class="course-select"><option value="">Select Course</option></select>
+            <input type="text" id="l-title" placeholder="Lesson Title">
+            <input type="url" id="l-content" placeholder="Video Link (e.g. https://your-video.mp4)">
+            <input type="number" id="l-order" placeholder="Order (1, 2, 3...)">
+            <button class="main-btn" onclick="addLesson()">📹 Add Lesson</button>
         </div>
         <div class="section">
-            <h3>Managed Videos</h3>
-            <table id="videos-list">
-                <thead><tr><th>Video Title</th><th>Course</th><th>Action</th></tr></thead>
+            <h3>Course Lessons</h3>
+            <table id="lessons-list">
+                <thead><tr><th>Lesson Title</th><th>Course</th><th>Action</th></tr></thead>
                 <tbody></tbody>
             </table>
         </div>
     </div>
 
+    <!-- 3. ASSIGNMENTS -->
     <div id="assignments" class="tab-content">
         <div class="section">
             <h3>Post New Assignment</h3>
-            <select id="assign-course-select"><option value="">Select Course</option></select>
-            <input type="text" id="a-title" placeholder="Assignment Title (e.g. Lab 1: SQL Injection)">
-            <textarea id="a-desc" placeholder="Instructions for students..."></textarea>
-            <label style="font-size: 12px; color: #94a3b8;">Due Date:</label>
+            <select class="course-select"><option value="">Select Course</option></select>
+            <input type="text" id="a-title" placeholder="Assignment Title">
+            <textarea id="a-desc" placeholder="Instructions..."></textarea>
             <input type="date" id="a-due-date">
             <button class="main-btn" onclick="createAssignment()">🚀 Post Assignment</button>
         </div>
         <div class="section">
-            <h3>Active Assignments</h3>
             <table id="assignments-list">
-                <thead><tr><th>Assignment</th><th>Course</th><th>Due Date</th><th>Action</th></tr></thead>
+                <thead><tr><th>Assignment</th><th>Course</th><th>Action</th></tr></thead>
                 <tbody></tbody>
             </table>
         </div>
     </div>
 
+    <!-- 4. QUIZZES -->
+    <div id="quizzes" class="tab-content">
+        <div class="section">
+            <h3>Create Quiz</h3>
+            <select class="course-select"><option value="">Select Course</option></select>
+            <input type="text" id="q-title" placeholder="Quiz Title">
+            <textarea id="q-desc" placeholder="Quiz Description"></textarea>
+            <button class="main-btn" onclick="createQuiz()">🧠 Create Quiz</button>
+        </div>
+        <div class="section">
+            <table id="quizzes-list">
+                <thead><tr><th>Quiz Title</th><th>Course</th><th>Action</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 5. STUDENTS -->
     <div id="students" class="tab-content">
         <div class="section">
-            <h3>Registered Students in My Courses</h3>
+            <h3>Enrolled Students</h3>
             <table id="students-list">
-                <thead><tr><th>Student ID</th><th>Course</th><th>Progress</th></tr></thead>
+                <thead><tr><th>Student ID</th><th>Course</th><th>Status</th></tr></thead>
                 <tbody></tbody>
             </table>
         </div>
@@ -124,115 +140,132 @@
 
     let user = null;
 
-    // --- التحقق من الهوية ---
-    const { data: userData } = await supabase.auth.getUser();
-    if(!userData.user) window.location.href="../login.html";
-    user = userData.user;
+    async function init() {
+        const { data: userData } = await supabase.auth.getUser();
+        if(!userData.user) { window.location.href="../login.html"; return; }
+        user = userData.user;
 
-    const { data: profile } = await supabase.from("user_profile").select("role").eq("user_id", user.id).single();
-    if(!profile || (profile.role !== 'instructor' && profile.role !== 'admin')) {
-        alert("Access Denied!");
-        window.location.href="../login.html";
+        document.getElementById("instructor-info").innerHTML = `<h2>Coach Panel</h2><span>ID: ${user.id.substring(0,8)}</span>`;
+        
+        refreshData();
     }
 
-    document.getElementById("instructor-info").innerHTML = `<h2>Welcome, Coach 👋</h2><span>Instructor ID: ${user.id.substring(0,8)}</span>`;
-
-    // --- التبديل بين التبويبات ---
     window.switchTab = (tabId, event) => {
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
         event.currentTarget.classList.add('active');
-        refreshData();
     };
 
-    // --- جلب البيانات وتحديث الجداول ---
     async function refreshData() {
+        // جلب كورسات هذا المدرب فقط
         const { data: courses } = await supabase.from("courses").select("*").eq("instructor_id", user.id);
         
         updateCoursesTable(courses);
-        updateSelects(courses);
-        loadMyVideos(courses);
-        loadMyAssignments(courses);
-        loadMyStudents(courses);
+        updateCourseSelects(courses);
+        loadLessons(courses);
+        loadAssignments(courses);
+        loadQuizzes(courses);
+        loadStudents(courses);
     }
 
-    function updateSelects(courses) {
-        const options = '<option value="">Select Course</option>' + courses.map(c => `<option value="${c.course_id}">${c.title}</option>`).join('');
-        document.getElementById("video-course-select").innerHTML = options;
-        document.getElementById("assign-course-select").innerHTML = options;
+    function updateCourseSelects(courses) {
+        const html = '<option value="">Select Course</option>' + courses.map(c => `<option value="${c.course_id}">${c.title}</option>`).join('');
+        document.querySelectorAll(".course-select").forEach(s => s.innerHTML = html);
     }
 
     function updateCoursesTable(courses) {
         document.querySelector("#courses-list tbody").innerHTML = courses.map(c => `
-            <tr><td>${c.title}</td><td><button class="btn-del" onclick="deleteCourse('${c.course_id}')">Delete</button></td></tr>
+            <tr><td>${c.title}</td><td>${new Date(c.created_at).toLocaleDateString()}</td><td><button class="btn-del" onclick="deleteCourse('${c.course_id}')">Delete</button></td></tr>
         `).join('');
     }
 
-    async function loadMyVideos() {
-        const { data: videos } = await supabase.from("course_videos").select("*, courses!inner(title, instructor_id)").eq("courses.instructor_id", user.id);
-        document.querySelector("#videos-list tbody").innerHTML = videos.map(v => `
-            <tr><td>${v.video_title}</td><td><span class="badge">${v.courses.title}</span></td><td><button class="btn-del" onclick="deleteVideo('${v.video_id}')">🗑️</button></td></tr>
-        `).join('');
-    }
+    // --- الدروس (Lessons) ---
+    window.addLesson = async () => {
+        const course_id = document.querySelector("#upload-video .course-select").value;
+        const title = document.getElementById('l-title').value;
+        const content = document.getElementById('l-content').value;
+        const lesson_order = document.getElementById('l-order').value;
 
-    async function loadMyAssignments() {
-        const { data: assigns } = await supabase.from("assignments").select("*, courses!inner(title, instructor_id)").eq("courses.instructor_id", user.id);
-        document.querySelector("#assignments-list tbody").innerHTML = assigns.map(a => `
-            <tr>
-                <td>${a.title}</td>
-                <td><span class="badge">${a.courses.title}</span></td>
-                <td>${new Date(a.due_date).toLocaleDateString()}</td>
-                <td><button class="btn-del" onclick="deleteAssignment('${a.id}')">🗑️</button></td>
-            </tr>
-        `).join('');
-    }
-
-    async function loadMyStudents() {
-        const { data: enrolls } = await supabase.from("enrollments").select("*, courses!inner(title, instructor_id)").eq("courses.instructor_id", user.id);
-        document.querySelector("#students-list tbody").innerHTML = enrolls.map(e => `
-            <tr><td><code>${e.user_id.substring(0,8)}...</code></td><td>${e.courses.title}</td><td>${e.completion_percentage || 0}%</td></tr>
-        `).join('');
-    }
-
-    // --- العمليات (Actions) ---
-    window.createCourse = async () => {
-        const title = document.getElementById('c-title').value;
-        if(!title) return alert("Enter Title");
-        await supabase.from("courses").insert({ title, description: document.getElementById('c-desc').value, instructor_id: user.id });
+        if(!course_id || !title || !content) return alert("Fill all fields");
+        
+        await supabase.from("lessons").insert({ course_id, title, content, lesson_order });
+        alert("Lesson Added!");
         refreshData();
     };
 
-    window.addVideo = async () => {
-        const course_id = document.getElementById('video-course-select').value;
-        const video_title = document.getElementById('v-title').value;
-        const video_url = document.getElementById('v-url').value;
-        if(!course_id || !video_title || !video_url) return alert("Fill all fields");
-        await supabase.from("course_videos").insert({ course_id, video_title, video_url });
-        refreshData();
-    };
+    async function loadLessons(courses) {
+        const ids = courses.map(c => c.course_id);
+        const { data: lessons } = await supabase.from("lessons").select("*, courses(title)").in("course_id", ids);
+        document.querySelector("#lessons-list tbody").innerHTML = lessons.map(l => `
+            <tr><td>${l.title}</td><td><span class="badge">${l.courses.title}</span></td><td><button class="btn-del" onclick="deleteLesson('${l.lesson_id}')">🗑️</button></td></tr>
+        `).join('');
+    }
 
+    // --- الواجبات (Assignments) ---
     window.createAssignment = async () => {
-        const course_id = document.getElementById('assign-course-select').value;
+        const course_id = document.querySelector("#assignments .course-select").value;
         const title = document.getElementById('a-title').value;
         const description = document.getElementById('a-desc').value;
         const due_date = document.getElementById('a-due-date').value;
 
-        if(!course_id || !title || !due_date) return alert("Fill required fields");
-
-        const { error } = await supabase.from("assignments").insert({ course_id, title, description, due_date });
-        if(error) alert(error.message);
-        else { alert("Assignment Posted!"); refreshData(); }
+        await supabase.from("assignments").insert({ course_id, title, description, due_date });
+        alert("Assignment Posted!");
+        refreshData();
     };
 
-    window.deleteCourse = async (id) => { if(confirm("Delete Course?")) { await supabase.from("courses").delete().eq("course_id", id); refreshData(); } };
-    window.deleteVideo = async (id) => { await supabase.from("course_videos").delete().eq("video_id", id); refreshData(); };
-    window.deleteAssignment = async (id) => { await supabase.from("assignments").delete().eq("id", id); refreshData(); };
+    async function loadAssignments(courses) {
+        const ids = courses.map(c => c.course_id);
+        const { data: assigns } = await supabase.from("assignments").select("*, courses(title)").in("course_id", ids);
+        document.querySelector("#assignments-list tbody").innerHTML = (assigns || []).map(a => `
+            <tr><td>${a.title}</td><td>${a.courses.title}</td><td><button class="btn-del" onclick="deleteAssignment('${a.assignment_id}')">🗑️</button></td></tr>
+        `).join('');
+    }
+
+    // --- الكويزات (Quizzes) ---
+    window.createQuiz = async () => {
+        const course_id = document.querySelector("#quizzes .course-select").value;
+        const title = document.getElementById('q-title').value;
+        const description = document.getElementById('q-desc').value;
+
+        await supabase.from("quizzes").insert({ course_id, title, description });
+        alert("Quiz Created! Now you can add questions via SQL or Admin Panel.");
+        refreshData();
+    };
+
+    async function loadQuizzes(courses) {
+        const ids = courses.map(c => c.course_id);
+        const { data: quizzes } = await supabase.from("quizzes").select("*, courses(title)").in("course_id", ids);
+        document.querySelector("#quizzes-list tbody").innerHTML = (quizzes || []).map(q => `
+            <tr><td>${q.title}</td><td>${q.courses.title}</td><td><button class="btn-del" onclick="deleteQuiz('${q.quiz_id}')">🗑️</button></td></tr>
+        `).join('');
+    }
+
+    // --- الطلاب (Students) ---
+    async function loadStudents(courses) {
+        const ids = courses.map(c => c.course_id);
+        const { data: enrolls } = await supabase.from("enrollments").select("*, courses(title)").in("course_id", ids);
+        document.querySelector("#students-list tbody").innerHTML = (enrolls || []).map(e => `
+            <tr><td><code>${e.user_id.substring(0,8)}...</code></td><td>${e.courses.title}</td><td><span class="badge">${e.completion_status}</span></td></tr>
+        `).join('');
+    }
+
+    // --- الحذف ---
+    window.deleteCourse = async (id) => { if(confirm("Delete?")) { await supabase.from("courses").delete().eq("course_id", id); refreshData(); } };
+    window.deleteLesson = async (id) => { await supabase.from("lessons").delete().eq("lesson_id", id); refreshData(); };
+    window.deleteAssignment = async (id) => { await supabase.from("assignments").delete().eq("assignment_id", id); refreshData(); };
+    window.deleteQuiz = async (id) => { await supabase.from("quizzes").delete().eq("quiz_id", id); refreshData(); };
+
+    window.createCourse = async () => {
+        const title = document.getElementById('c-title').value;
+        const description = document.getElementById('c-desc').value;
+        await supabase.from("courses").insert({ title, description, instructor_id: user.id });
+        refreshData();
+    };
 
     window.logout = async () => { await supabase.auth.signOut(); window.location.href="../login.html"; };
 
-    // القيد التشغيلي الأول
-    refreshData();
+    init();
 </script>
 </body>
 </html>
