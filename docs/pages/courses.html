@@ -1,1 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Courses | CyberPath</title>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #0f172a;
+      color: white;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: #1e293b;
+      padding: 15px;
+      border-radius: 10px;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 10px;
+      background: #38bdf8;
+      border: none;
+      color: black;
+      cursor: pointer;
+      border-radius: 6px;
+      width: 100%;
+    }
+
+    a {
+      display: block;
+      margin-top: 10px;
+      color: #38bdf8;
+      text-decoration: none;
+      text-align: center;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+  <h2>📚 Explore Courses</h2>
+  <div id="courses" class="grid"></div>
+</div>
+
+<script>
+  const { createClient } = supabase;
+
+  const db = createClient(
+    "https://suvpaunulhqfoclepwoz.supabase.co",
+    "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"
+  );
+
+  let user = null;
+
+  async function init() {
+    const { data: { user: u } } = await db.auth.getUser();
+
+    if (!u) {
+      window.location.href = "../login.html";
+      return;
+    }
+
+    user = u;
+
+    loadCourses();
+  }
+
+  async function loadCourses() {
+    const { data: courses } = await db.from("courses").select("*");
+
+    const container = document.getElementById("courses");
+    container.innerHTML = "";
+
+    for (let c of courses) {
+      const enrolled = await isEnrolled(c.course_id);
+
+      const div = document.createElement("div");
+      div.className = "card";
+
+      div.innerHTML = `
+        <h3>${c.title}</h3>
+        <p>${c.description || ""}</p>
+
+        ${
+          enrolled
+            ? `<a href="course-player.html?course_id=${c.course_id}">Go to Course →</a>`
+            : `<button onclick="enroll('${c.course_id}')">Enroll</button>`
+        }
+      `;
+
+      container.appendChild(div);
+    }
+  }
+
+  async function isEnrolled(courseId) {
+    const { data } = await db
+      .from("enrollments")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("course_id", courseId);
+
+    return data.length > 0;
+  }
+
+  async function enroll(courseId) {
+    await db.from("enrollments").insert({
+      user_id: user.id,
+      course_id: courseId,
+      completion_percentage: 0
+    });
+
+    alert("Enrolled Successfully ✅");
+    loadCourses();
+  }
+
+  init();
+</script>
+
+</body>
+</html>
