@@ -1,205 +1,183 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Course Player</title>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<style>
-body {
-  margin:0;
-  font-family: Arial;
-  background:#0f172a;
-  color:white;
-}
-
-.container {
-  display:flex;
-  height:100vh;
-}
-
-.sidebar {
-  width:300px;
-  background:#1e293b;
-  padding:20px;
-  overflow-y:auto;
-}
-
-.lesson {
-  padding:10px;
-  margin-bottom:10px;
-  cursor:pointer;
-  background:#334155;
-  border-radius:6px;
-}
-
-.lesson.active {
-  background:#38bdf8;
-  color:black;
-}
-
-.main {
-  flex:1;
-  padding:20px;
-}
-
-video {
-  width:100%;
-  border-radius:10px;
-}
-
-.controls {
-  margin-top:10px;
-  display:flex;
-  gap:10px;
-}
-
-button {
-  padding:10px;
-  background:#38bdf8;
-  border:none;
-  cursor:pointer;
-  border-radius:6px;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Player | CyberPath</title>
+    <style>
+        body { margin: 0; font-family: 'Inter', Arial, sans-serif; background: #020617; color: white; overflow: hidden; }
+        .container { display: flex; height: calc(100vh - 80px); }
+        .player { flex: 3; padding: 20px; background: #000; display: flex; align-items: center; justify-content: center; }
+        .sidebar { flex: 1; border-left: 1px solid #334155; padding: 20px; overflow-y: auto; background: #0f172a; }
+        .video-item { padding: 15px; margin-bottom: 10px; background: #1e293b; cursor: pointer; border-radius: 8px; transition: 0.2s; border: 1px solid transparent; }
+        .video-item:hover { background: #334155; border-color: #38bdf8; }
+        .header { height: 80px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border-bottom: 1px solid #334155; }
+        h2 { color: #38bdf8; margin: 0; font-size: 1.5rem; }
+        .btn-complete { background: #22c55e; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-complete:hover { background: #16a34a; }
+        iframe { border-radius: 12px; box-shadow: 0 0 20px rgba(56, 189, 248, 0.1); }
+    </style>
 </head>
 
 <body>
 
-<div class="container">
-
-  <div class="sidebar" id="lessonsList"></div>
-
-  <div class="main">
-    <h2 id="title">Loading...</h2>
-    <video id="video" controls></video>
-
-    <div class="controls">
-      <button onclick="prevLesson()">⬅ Prev</button>
-      <button onclick="nextLesson()">Next ➡</button>
-    </div>
-  </div>
-
+<div class="header">
+    <h2 id="course-title">Loading Course...</h2>
+    <button class="btn-complete" onclick="completeCourse()">Mark as Completed ✅</button>
 </div>
 
-<script>
-const supabase = window.supabase.createClient(
-  "https://suvpaunulhqfoclepwoz.supabase.co",
-  "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"
-);
+<div class="container">
+    <div class="player">
+        <iframe id="player" width="100%" height="90%" frameborder="0" allowfullscreen></iframe>
+    </div>
 
-let user, courseId, lessons = [], currentIndex = 0;
+    <div class="sidebar">
+        <h3>Lessons List</h3>
+        <div id="videos">Loading playlist...</div>
+    </div>
+</div>
 
-// 📌 قراءة course_id
-const params = new URLSearchParams(window.location.search);
-courseId = params.get("course_id");
+<script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-// 🚀 INIT
-async function init() {
-  const { data } = await supabase.auth.getUser();
-  user = data.user;
+    const supabase = createClient(
+        "https://suvpaunulhqfoclepwoz.supabase.co",
+        "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"
+    );
 
-  if (!user) {
-    window.location.href = "../login.html";
-    return;
-  }
+    // ============================
+    // 1. التحقق من الهوية والصلاحية (Role Check)
+    // ============================
+    const { data: { user } } = await supabase.auth.getUser();
 
-  await loadLessons();
-  await loadLastProgress();
-}
-
-// 📚 تحميل الدروس
-async function loadLessons() {
-  const { data } = await supabase
-    .from("lessons")
-    .select("*")
-    .eq("course_id", courseId)
-    .order("lesson_order", { ascending: true });
-
-  lessons = data;
-
-  const container = document.getElementById("lessonsList");
-  container.innerHTML = "";
-
-  lessons.forEach((l, index) => {
-    const div = document.createElement("div");
-    div.className = "lesson";
-    div.innerText = l.title;
-
-    div.onclick = () => playLesson(index);
-
-    container.appendChild(div);
-  });
-}
-
-// 🔥 تحميل آخر تقدم
-async function loadLastProgress() {
-  const { data } = await supabase
-    .from("learning_progress")
-    .select("*")
-    .eq("user_id", user.id)
-    .eq("course_id", courseId)
-    .order("last_accessed", { ascending: false })
-    .limit(1);
-
-  if (data && data.length > 0) {
-    const lastLessonId = data[0].lesson_id;
-    const index = lessons.findIndex(l => l.lesson_id === lastLessonId);
-
-    if (index !== -1) {
-      playLesson(index);
-      return;
+    if (!user) {
+        console.error("No active session found.");
+        window.location.href = "../login.html";
+        throw new Error("Unauthorized");
     }
-  }
 
-  playLesson(0);
-}
+    // جلب البروفايل وفحص الرتبة
+    const { data: profile, error: profileError } = await supabase
+        .from("user_profile")
+        .select("role")
+        .eq("user_id", user.id)
+        .single();
 
-// ▶ تشغيل درس
-function playLesson(index) {
-  currentIndex = index;
+    // معالجة الرتبة بحساسية أقل (toLowerCase)
+    const rawRole = profile?.role || "";
+    const userRole = rawRole.toLowerCase().trim();
 
-  const lesson = lessons[index];
+    console.log("Logged in user role:", userRole);
 
-  document.getElementById("title").innerText = lesson.title;
+    if (profileError || !profile || (userRole !== "student" && userRole !== "admin")) {
+        alert("Access Denied: Your registered role is [" + (rawRole || "None") + "]. Only Students can access the player.");
+        window.location.href = "../login.html";
+        throw new Error("Access Denied");
+    }
 
-  // 👇 هنا ضع رابط الفيديو داخل content
-  document.getElementById("video").src = lesson.content;
+    // ============================
+    // 2. قراءة بيانات الكورس من الرابط
+    // ============================
+    const params = new URLSearchParams(window.location.search);
+    const courseId = params.get("course_id");
 
-  // تحديث active
-  document.querySelectorAll(".lesson").forEach(el => el.classList.remove("active"));
-  document.querySelectorAll(".lesson")[index].classList.add("active");
+    if (!courseId) {
+        alert("Please select a course first.");
+        window.location.href = "../dashboards/student.html";
+        throw new Error("Missing course_id");
+    }
 
-  saveProgress(lesson.lesson_id);
-}
+    // التحقق من التسجيل (إلا إذا كان أدمن)
+    const { data: enroll } = await supabase
+        .from("enrollments")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("course_id", courseId)
+        .maybeSingle();
 
-// 💾 حفظ التقدم
-async function saveProgress(lessonId) {
-  await supabase.from("learning_progress").upsert({
-    user_id: user.id,
-    course_id: courseId,
-    lesson_id: lessonId,
-    last_accessed: new Date()
-  });
-}
+    if (!enroll && userRole !== "admin") {
+        alert("You must enroll in this course to view the content!");
+        window.location.href = "../dashboards/student.html";
+        throw new Error("User not enrolled");
+    }
 
-// ⏭ التالي
-function nextLesson() {
-  if (currentIndex < lessons.length - 1) {
-    playLesson(currentIndex + 1);
-  }
-}
+    // ============================
+    // 3. تحميل البيانات وتشغيل المشغل
+    // ============================
+    async function initPlayer() {
+        // جلب تفاصيل الكورس
+        const { data: course } = await supabase.from("courses").select("title").eq("course_id", courseId).single();
+        if (course) document.getElementById("course-title").innerText = course.title;
 
-// ⏮ السابق
-function prevLesson() {
-  if (currentIndex > 0) {
-    playLesson(currentIndex - 1);
-  }
-}
+        // جلب الفيديوهات
+        const { data: videos, error } = await supabase
+            .from("course_videos")
+            .select("*")
+            .eq("course_id", courseId)
+            .order('video_id', { ascending: true });
 
-init();
+        const videoContainer = document.getElementById("videos");
+        
+        if (error || !videos || videos.length === 0) {
+            videoContainer.innerHTML = "<p style='color:#94a3b8'>No videos uploaded for this course yet.</p>";
+            return;
+        }
+
+        videoContainer.innerHTML = "";
+        videos.forEach((v) => {
+            const div = document.createElement('div');
+            div.className = 'video-item';
+            div.innerHTML = `▶ ${v.video_title}`;
+            div.onclick = () => playVideo(v.video_url);
+            videoContainer.appendChild(div);
+        });
+
+        // تشغيل الفيديو الأول تلقائياً
+        playVideo(videos[0].video_url);
+    }
+
+    // ============================
+    // 4. وظيفة تشغيل الفيديو (YouTube & Others)
+    // ============================
+    window.playVideo = function(url) {
+        let finalUrl = url;
+        // تحويل روابط يوتيوب العادية لروابط Embed لتعمل داخل iframe
+        if (url.includes("youtube.com") || url.includes("youtu.be")) {
+            let videoId = "";
+            if (url.includes("v=")) {
+                videoId = url.split("v=")[1].split("&")[0];
+            } else {
+                videoId = url.split("/").pop();
+            }
+            finalUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+        }
+        document.getElementById("player").src = finalUrl;
+    };
+
+    // ============================
+    // 5. إنهاء الكورس وتحديث النسبة
+    // ============================
+    window.completeCourse = async function() {
+        const { error } = await supabase
+            .from("enrollments")
+            .update({ 
+                completion_status: "completed", 
+                completion_percentage: 100 
+            })
+            .eq("user_id", user.id)
+            .eq("course_id", courseId);
+
+        if (!error) {
+            alert("🎉 Awesome work! Course marked as completed.");
+            window.location.href = "../dashboards/student.html";
+        } else {
+            alert("Error updating status: " + error.message);
+        }
+    };
+
+    // تشغيل المحرك
+    initPlayer();
+
 </script>
-
 </body>
 </html>
