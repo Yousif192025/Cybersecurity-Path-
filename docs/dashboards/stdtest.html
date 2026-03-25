@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Dashboard | CyberPath</title>
+
+<style>
+body { font-family: 'Inter', Arial, sans-serif; background: #0f172a; color: white; margin: 0; padding: 0; }
+.container { max-width: 1200px; margin: auto; padding: 20px; }
+.header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 20px; }
+#profile h2 { margin: 0; color: #38bdf8; }
+.logout-btn { background: #f87171; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+
+.tabs { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+.tab { padding: 10px 15px; background:#1e293b; border-radius:5px; cursor:pointer; border: 1px solid transparent; }
+.tab.active { background:#38bdf8; color:black; font-weight: bold; }
+
+.tab-content { margin-top:20px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:20px; }
+
+.card { background:#1e293b; padding:20px; border-radius:10px; border:1px solid #334155; }
+.card h3 { margin:0 0 10px 0; }
+.card p { font-size:0.9rem; color:#94a3b8; }
+
+button { width:100%; padding:10px; margin-top:10px; background:#38bdf8; border:none; color:black; font-weight:bold; border-radius:5px; cursor:pointer; }
+button.secondary { background: #22c55e; color: white; }
+
+.progress-bar { background:#334155; height:10px; border-radius:5px; margin-top:10px; }
+.progress-fill { background:#38bdf8; height:100%; }
+
+.status { font-size:0.8rem; color:#38bdf8; font-weight:bold; margin-top:5px; }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <div class="header">
+    <div id="profile">Loading profile...</div>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="courses">📚 Available Courses</div>
+    <div class="tab" data-tab="progress">📊 My Progress</div>
+    <div class="tab" data-tab="assignments">📝 Assignments</div>
+    <div class="tab" data-tab="quizzes">❓ Quizzes</div>
+    <div class="tab" data-tab="certificates">🏆 Certificates</div>
+    <div class="tab" data-tab="notifications">🔔 Alerts</div>
+  </div>
+
+  <div class="tab-content" id="tab-content"></div>
+</div>
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+const supabase = createClient(
+  "https://suvpaunulhqfoclepwoz.supabase.co",
+  "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"
+);
+
+let user = null;
+
+// تحقق من المستخدم
+const { data: userData } = await supabase.auth.getUser();
+if(!userData.user) {
+  window.location.href="../login.html";
+} else {
+  user = userData.user;
+}
+
+// تحميل البروفايل
+async function loadProfile() {
+  const { data: profile } = await supabase
+    .from("user_profile")
+    .select("*")
+    .eq("user_id", user.id)
+    .single();
+
+  document.getElementById("profile").innerHTML = `
+    <h2>Welcome, ${profile?.first_name || user.email.split('@')[0]} 👋</h2>
+    <span class="status">Role: Student</span>
+  `;
+}
+
+// التنقل بين التبويبات
+async function loadTab(tab) {
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+
+  const container = document.getElementById('tab-content');
+  container.innerHTML = '<p style="text-align:center">Loading...</p>';
+
+  switch(tab) {
+    case 'courses': await loadCourses(container); break;
+    case 'progress': await loadProgress(container); break;
+    case 'assignments': container.innerHTML = '<div class="card"><h3>No assignments yet.</h3></div>'; break;
+    case 'quizzes': container.innerHTML = '<div class="card"><h3>No quizzes yet.</h3></div>'; break;
+    case 'certificates': container.innerHTML = '<div class="card"><h3>No certificates yet.</h3></div>'; break;
+    case 'notifications': container.innerHTML = '<div class="card"><h3>No notifications.</h3></div>'; break;
+  }
+}
+
+// عرض الكورسات
+async function loadCourses(container){
+  const { data: allCourses } = await supabase.from("courses").select("*");
+  const { data: myEnrolls } = await supabase.from("enrollments").select("course_id").eq("user_id", user.id);
+
+  const enrolledIds = myEnrolls.map(e => e.course_id);
+
+  container.innerHTML = '<div class="grid"></div>';
+  const grid = container.querySelector('.grid');
+
+  allCourses.forEach(c => {
+    const isEnrolled = enrolledIds.includes(c.course_id);
+
+    const div = document.createElement('div');
+    div.className='card';
+    div.innerHTML = `
+      <h3>${c.title}</h3>
+      <p>${c.description || ''}</p>
+
+      ${
+        isEnrolled
+        ? `<button class="secondary" onclick="goToPlayer('${c.course_id}')">▶ Continue Learning</button>`
+        : `<button onclick="enroll('${c.course_id}')">Enroll</button>`
+      }
+    `;
+
+    grid.appendChild(div);
+  });
+}
+
+// التسجيل
+window.enroll = async function(courseId){
+  await supabase.from("enrollments").insert({
+    user_id: user.id,
+    course_id: courseId,
+    completion_status: 'in_progress'
+  });
+
+  alert("Enrolled ✅");
+  await loadTab('progress');
+  window.scrollTo(0,0);
+}
+
+// 🔥 التقدم الحقيقي
+async function loadProgress(container){
+  const { data: enrollments } = await supabase
+    .from("enrollments")
+    .select(`courses(title, course_id)`)
+    .eq("user_id", user.id);
+
+  if(!enrollments.length) {
+    container.innerHTML = '<div class="card"><h3>No courses yet.</h3></div>';
+    return;
+  }
+
+  container.innerHTML = '<div class="grid"></div>';
+  const grid = container.querySelector('.grid');
+
+  for (let e of enrollments) {
+    const progress = await getCourseProgress(e.courses.course_id);
+
+    const div = document.createElement('div');
+    div.className='card';
+    div.innerHTML = `
+      <h3>${e.courses.title}</h3>
+
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:${progress}%"></div>
+      </div>
+
+      <div class="status">Progress: ${progress}%</div>
+
+      <button onclick="goToPlayer('${e.courses.course_id}')">
+        ▶ Resume Lessons
+      </button>
+    `;
+
+    grid.appendChild(div);
+  }
+}
+
+// 🔥 حساب التقدم من الدروس
+async function getCourseProgress(courseId) {
+
+  const { count: totalLessons } = await supabase
+    .from("lessons")
+    .select("*", { count: "exact", head: true })
+    .eq("course_id", courseId);
+
+  const { data: progressRows } = await supabase
+    .from("learning_progress")
+    .select("lesson_id")
+    .eq("user_id", user.id)
+    .eq("course_id", courseId);
+
+  const completed = progressRows?.length || 0;
+
+  if (!totalLessons || totalLessons === 0) return 0;
+
+  return Math.round((completed / totalLessons) * 100);
+}
+
+// الانتقال للمشغل
+window.goToPlayer = function(courseId) {
+  window.location.href = `../pages/course-player.html?course_id=${courseId}`;
+}
+
+// تسجيل الخروج
+window.logout = async () => {
+  await supabase.auth.signOut();
+  window.location.href = "../login.html";
+}
+
+// events
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => loadTab(tab.dataset.tab));
+});
+
+// init
+await loadProfile();
+await loadTab('courses');
+
+</script>
+
+</body>
+</html>
