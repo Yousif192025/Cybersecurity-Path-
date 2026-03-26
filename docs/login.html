@@ -54,6 +54,26 @@
 
         button:hover { background: #0ea5e9; transform: translateY(-2px); }
 
+        /* تنسيق زر جوجل */
+        .google-btn {
+            background: white;
+            color: #444;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .google-btn:hover { background: #e2e8f0; }
+
+        .divider {
+            margin: 20px 0;
+            text-align: center;
+            border-bottom: 1px solid #334155;
+            line-height: 0.1em;
+        }
+        .divider span { background: #1e293b; padding: 0 10px; color: #64748b; font-size: 12px; }
+
         .auth-links { margin-top: 20px; text-align: center; font-size: 14px; }
         .auth-links a { color: #94a3b8; text-decoration: none; display: block; margin-top: 10px; }
         .auth-links a:hover { color: #38bdf8; }
@@ -75,6 +95,14 @@
     <input id="password" type="password" placeholder="Password">
     
     <button onclick="login()">Sign In</button>
+
+    <div class="divider"><span>OR</span></div>
+
+    <!-- زر الدخول عبر جوجل -->
+    <button class="google-btn" onclick="loginWithGoogle()">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" alt="Google Logo">
+        Sign in with Google
+    </button>
     
     <div class="loader" id="loader">🔄 Authenticating...</div>
     <p id="message"></p>
@@ -105,12 +133,10 @@ async function redirectUserByRole(user) {
         .single();
 
     if (error || !profile) {
-        // في حال لم يوجد بروفايل، نفترض أنه متدرب جديد
         window.location.href = "./dashboards/student.html";
         return;
     }
 
-    // التحقق من المسارات المطلوبة
     if (profile.role === "admin") {
         window.location.href = "./dashboards/admin.html";
     } else if (profile.role === "instructor") {
@@ -120,14 +146,12 @@ async function redirectUserByRole(user) {
     }
 }
 
-// --- وظيفة تسجيل الدخول ---
+// --- تسجيل الدخول بالبريد ---
 window.login = async function() {
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
     
     message.innerText = "";
-    message.className = "";
-
     if (!email || !password) {
         message.innerText = "Please enter both email and password";
         message.className = "error-msg";
@@ -143,19 +167,33 @@ window.login = async function() {
         message.className = "error-msg";
         return;
     }
-
-    // استدعاء دالة التوجيه
     await redirectUserByRole(data.user);
 }
 
-// --- وظيفة إنشاء حساب ---
+// --- تسجيل الدخول بجوجل ---
+window.loginWithGoogle = async function() {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+            // سيتم توجيه المستخدم لصفحة التأكد من الدور بعد نجاح الدخول
+            redirectTo: window.location.origin + '/index.html' 
+        }
+    });
+
+    if (error) {
+        message.innerText = error.message;
+        message.className = "error-msg";
+    }
+}
+
+// --- إنشاء حساب ---
 window.createAccount = async function() {
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
 
     message.innerText = "";
     if (!email || !password) {
-        message.innerText = "Email and password are required for registration";
+        message.innerText = "Email and password are required";
         message.className = "error-msg";
         return;
     }
@@ -169,11 +207,11 @@ window.createAccount = async function() {
         message.className = "error-msg";
     } else {
         message.className = "success-msg";
-        message.innerText = "Registration successful! Please check your email.";
+        message.innerText = "Account created! Check your email if confirmation is enabled.";
     }
 }
 
-// --- استعادة كلمة المرور ---
+// --- استعادة كلمة المرور (مع رابط التوجيه) ---
 window.forgotPassword = async function() {
     const email = document.getElementById("email").value;
     if (!email) {
@@ -183,7 +221,10 @@ window.forgotPassword = async function() {
     }
 
     loader.style.display = "block";
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        // تأكد أن هذا الملف موجود في مشروعك
+        redirectTo: window.location.origin + '/update-password.html', 
+    });
     loader.style.display = "none";
 
     if (error) {
@@ -198,4 +239,3 @@ window.forgotPassword = async function() {
 
 </body>
 </html>
-
