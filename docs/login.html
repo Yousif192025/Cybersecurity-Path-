@@ -54,7 +54,6 @@
 
         button:hover { background: #0ea5e9; transform: translateY(-2px); }
 
-        /* تنسيق زر جوجل */
         .google-btn {
             background: white;
             color: #444;
@@ -98,7 +97,6 @@
 
     <div class="divider"><span>OR</span></div>
 
-    <!-- زر الدخول عبر جوجل -->
     <button class="google-btn" onclick="loginWithGoogle()">
         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" alt="Google Logo">
         Sign in with Google
@@ -124,14 +122,25 @@ const supabase = createClient(
 const message = document.getElementById("message")
 const loader = document.getElementById("loader")
 
+// --- مراقب حالة تسجيل الدخول (خاص بجوجل) ---
+// هذا الجزء حاسم لاستقبال بيانات جوجل فور عودة المستخدم للموقع
+supabase.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+        console.log("Session captured from OAuth:", session.user);
+        await redirectUserByRole(session.user);
+    }
+});
+
 // دالة التوجيه الذكي حسب الدور
 async function redirectUserByRole(user) {
+    loader.style.display = "block";
     const { data: profile, error } = await supabase
         .from("user_profile")
         .select("role")
         .eq("user_id", user.id)
         .single();
 
+    // إذا لم يكن لديه بروفايل أو حدث خطأ، نوجهه كطالب افتراضياً
     if (error || !profile) {
         window.location.href = "./dashboards/student.html";
         return;
@@ -172,15 +181,23 @@ window.login = async function() {
 
 // --- تسجيل الدخول بجوجل ---
 window.loginWithGoogle = async function() {
+    message.innerText = "";
+    loader.style.display = "block";
+    
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-            // سيتم توجيه المستخدم لصفحة التأكد من الدور بعد نجاح الدخول
-            redirectTo: window.location.origin + '/index.html' 
+            // التوجيه لنفس الصفحة الحالية لمعالجة الدخول
+            redirectTo: window.location.origin + window.location.pathname,
+            queryParams: {
+                access_type: 'offline',
+                prompt: 'select_account', // للسماح للمستخدم باختيار حساب مختلف دائماً
+            }
         }
     });
 
     if (error) {
+        loader.style.display = "none";
         message.innerText = error.message;
         message.className = "error-msg";
     }
@@ -211,7 +228,7 @@ window.createAccount = async function() {
     }
 }
 
-// --- استعادة كلمة المرور (مع رابط التوجيه) ---
+// --- استعادة كلمة المرور ---
 window.forgotPassword = async function() {
     const email = document.getElementById("email").value;
     if (!email) {
@@ -222,7 +239,6 @@ window.forgotPassword = async function() {
 
     loader.style.display = "block";
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        // تأكد أن هذا الملف موجود في مشروعك
         redirectTo: window.location.origin + '/update-password.html', 
     });
     loader.style.display = "none";
