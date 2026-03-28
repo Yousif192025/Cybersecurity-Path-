@@ -1,59 +1,78 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
 
-// إعدادات الاتصال بـ Supabase
+// 1. إعدادات الاتصال بـ Supabase
 const supabaseUrl = "https://suvpaunulhqfoclepwoz.supabase.co";
 const supabaseKey = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 /**
- * دالة التحقق من الصلاحيات والتحكم في واجهة المستخدم
+ * الدالة الرئيسية للتحكم في الوصول
  */
 async function handleAccessControl() {
+    // تحديد المسار الحالي للتأكد هل نحن في صفحة دخول أم صفحة محمية
+    const path = window.location.pathname;
+    const isAuthPage = path.includes('login.html') || path.includes('signup.html') || path === '/';
+    const isDashboardPage = path.includes('/dashboards/');
+
+    // جلب بيانات المستخدم الحالي
     const { data: { user }, error } = await supabase.auth.getUser();
 
-    // --- أولاً: حالة المستخدم (ضيف - Guest) ---
+    // --- الحالة الأولى: المستخدم "ضيف" (غير مسجل دخول) ---
     if (!user || error) {
-        console.log("الوضعية الحالية: ضيف (Guest)");
+        console.log("الوضعية: ضيف (Guest)");
         applyGuestUI();
-        protectPrivatePages(); // منع الضيف من دخول لوحات التحكم
+        
+        // إذا حاول الضيف دخول صفحات الدشبورد، يتم طرده فوراً
+        if (isDashboardPage) {
+            alert("عذراً، هذه المنطقة للأعضاء فقط. يرجى تسجيل الدخول.");
+            window.location.href = "/index.html"; 
+        }
         return;
     }
 
-    // --- ثانياً: حالة المستخدم (مسجل - Member) ---
-    console.log("الوضعية الحالية: مستخدم مسجل -", user.email);
-    
-    // جلب دور المستخدم من قاعدة البيانات
-    const { data: profile } = await supabase
+    // --- الحالة الثانية: المستخدم "مسجل" (Member) ---
+    console.log("الوضعية: مستخدم مسجل -", user.email);
+
+    // جلب دور المستخدم من قاعدة البيانات (user_profile)
+    const { data: profile, error: profileError } = await supabase
         .from("user_profile")
         .select("role")
         .eq("user_id", user.id)
         .single();
 
-    const role = profile ? profile.role : 'student'; // افتراضياً طالب إذا لم يوجد بروفايل
+    // تحديد الدور (إذا لم يوجد بروفايل، نعتبره طالب افتراضياً)
+    const role = (profile && profile.role) ? profile.role : 'student';
+
+    // 1. تحديث شكل الواجهة (إخفاء أزرار الدخول وإظهار أزرار التحكم)
     applyMemberUI(role);
-    verifyPageAccess(role); // التأكد أن الأدمن في صفحة الأدمن وهكذا
+
+    // 2. إذا كان المستخدم في صفحة الدخول (login) وهو مسجل بالفعل، نوجهه لمكانه الصحيح
+    if (isAuthPage) {
+        redirectByRole(role);
+        return;
+    }
+
+    // 3. حماية المسارات المتقاطعة (منع طالب من دخول صفحة أدمن مثلاً)
+    verifyInternalAccess(role, path);
 }
 
 /**
- * وظائف التحكم في واجهة المستخدم للضيف
+ * تحديث الواجهة لتناسب الضيف
  */
 function applyGuestUI() {
-    // إخفاء أزرار لوحات التحكم وإظهار أزرار الدخول
     document.querySelectorAll('.member-only').forEach(el => el.style.display = 'none');
     document.querySelectorAll('.guest-only').forEach(el => el.style.display = 'block');
-    
-    // إضافة وسم للجسم للتحكم عبر CSS إذا أردت
     document.body.classList.add('is-guest');
 }
 
 /**
- * وظائف التحكم في واجهة المستخدم للأعضاء (حسب الدور)
+ * تحديث الواجهة لتناسب العضو حسب دوره
  */
 function applyMemberUI(role) {
     document.querySelectorAll('.guest-only').forEach(el => el.style.display = 'none');
     document.querySelectorAll('.member-only').forEach(el => el.style.display = 'block');
 
-    // إظهار المحتوى المخصص لكل دور فقط
+    // إظهار العناصر الخاصة بكل دور (مثل أزرار معينة للأدمن فقط)
     document.querySelectorAll('.role-specific').forEach(el => {
         if (el.classList.contains(`role-${role}`)) {
             el.style.display = 'block';
@@ -64,33 +83,38 @@ function applyMemberUI(role) {
 }
 
 /**
- * حماية الصفحات من دخول الضيوف عبر الرابط المباشر
+ * التوجيه التلقائي بناءً على الدور
  */
-function protectPrivatePages() {
-    const path = window.location.pathname;
-    if (path.includes('/dashboards/')) {
-        alert("عذراً، يجب تسجيل الدخول للوصول لهذه الصفحة");
-        window.location.href = "/index.html"; // إعادة الضيف للصفحة الرئيسية
+function redirectByRole(role) {
+    if (role === 'admin') {
+        window.location.href = "/dashboards/admin.html";
+    } else if (role === 'instructor') {
+        window.location.href = "/dashboards/instructor.html";
+    } else {
+        window.location.href = "/dashboards/student.html";
     }
 }
 
 /**
- * التأكد من أن المستخدم المصرح له في المكان الصحيح
+ * منع المستخدمين من دخول صفحات لا تخص أدوارهم
  */
-function verifyPageAccess(role) {
-    const path = window.location.pathname;
-    // إذا حاول طالب دخول صفحة الأدمن
+function verifyInternalAccess(role, path) {
     if (path.includes('admin.html') && role !== 'admin') {
         window.location.href = "/dashboards/student.html";
     }
-    // إذا حاول مدرب دخول صفحة الأدمن
-    if (path.includes('admin.html') && role === 'instructor') {
-         window.location.href = "/dashboards/instructor.html";
+    if (path.includes('instructor.html') && (role !== 'instructor' && role !== 'admin')) {
+        window.location.href = "/dashboards/student.html";
     }
+}
+
+/**
+ * دالة تسجيل الخروج (يمكنك ربطها بأي زر)
+ */
+window.logout = async function() {
+    const { error } = await supabase.auth.signOut();
+    if (error) alert(error.message);
+    window.location.href = "/index.html";
 }
 
 // تشغيل الحارس فور تحميل الصفحة
 document.addEventListener('DOMContentLoaded', handleAccessControl);
-
-// تصدير نسخة supabase لاستخدامها في ملفات أخرى إذا لزم الأمر
-export { supabase };
