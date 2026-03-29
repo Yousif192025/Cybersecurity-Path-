@@ -91,3 +91,36 @@ window.logout = async function() {
 }
 
 document.addEventListener('DOMContentLoaded', handleAccessControl);
+
+
+
+
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    const ctaBtn = document.getElementById('main-cta-btn');
+    
+    // جلب بيانات المستخدم من التخزين المحلي
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+    if (ctaBtn) {
+        ctaBtn.addEventListener('click', (e) => {
+            e.preventDefault(); // منع الانتقال العشوائي
+
+            if (currentUser) {
+                // حالة 1: المستخدم مسجل دخول فعلاً
+                // نوجهه مباشرة إلى المسارات التعليمية
+                window.location.href = './pathways/index.html';
+            } else {
+                // حالة 2: المستخدم ضيف (غير مسجل)
+                // نوجهه لصفحة التسجيل أولاً لإنشاء حساب
+                window.location.href = './academy/enrollment.html';
+            }
+        });
+    }
+
+    // (اختياري) تغيير نص الزر إذا كان مسجلاً ليكون أكثر احترافية
+    if (currentUser && ctaBtn) {
+        ctaBtn.textContent = 'تابع رحلتك التعليمية';
+    }
+});
