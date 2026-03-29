@@ -1211,18 +1211,20 @@
         const SUPABASE_KEY = 'sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b';
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // 2. دالة للتحقق من حالة المستخدم وتحديث الواجهة
+ 
+// 2. تحديث الدالة لتستخدم supabaseClient
 async function checkUserAuth() {
-    const { data: { user } } = await supabase.auth.getUser();
+    // استخدمنا supabaseClient هنا أيضاً
+    const { data: { user } } = await supabaseClient.auth.getUser();
     const loginBtn = document.getElementById('main-cta-btn');
     const dashboardLinks = document.querySelectorAll('[data-text="student-dashboard-nav"]');
 
     if (user) {
-        // جلب الدور (Role) من جدولك الخاص user_profile
-        const { data: profile, error } = await supabase
+        // جلب الدور من جدول user_profile
+        const { data: profile } = await supabaseClient
             .from('user_profile')
             .select('role')
-            .eq('user_id', user.id) // نستخدم user_id كما في هيكل جدولك
+            .eq('user_id', user.id)
             .single();
 
         const userRole = profile?.role || 'student';
@@ -1230,14 +1232,12 @@ async function checkUserAuth() {
         if (loginBtn) {
             loginBtn.textContent = langManager.currentLang === 'ar' ? 'توجه للوحة التحكم' : 'Go to Dashboard';
             loginBtn.onclick = () => {
-                // توجيه ذكي بناءً على الـ Role الموجود في الـ Enum
                 if (userRole === 'admin') window.location.href = './admin/dashboard.html';
                 else if (userRole === 'coach') window.location.href = './coach/dashboard.html';
                 else window.location.href = './academy/student-dashboard.html';
             };
         }
 
-        // تحديث روابط المنيو
         dashboardLinks.forEach(link => {
             if (userRole === 'admin') link.href = './admin/dashboard.html';
             else if (userRole === 'coach') link.href = './coach/dashboard.html';
@@ -1249,6 +1249,11 @@ async function checkUserAuth() {
         }
     }
 }
+
+// مراقبة حالة تسجيل الدخول باستخدام الاسم الجديد
+supabaseClient.auth.onAuthStateChange((event, session) => {
+    checkUserAuth();
+});
 
         // 3. تعديل زر "ابدأ التعلم مجاناً" ليقوم بالفحص
         document.addEventListener('DOMContentLoaded', () => {
