@@ -730,10 +730,11 @@
         <nav>
             <a href="./index.html" data-text="home-nav"><i data-lucide="house"></i>الرئيسية</a>
             <a href="./about.html" data-text="about-nav"><i data-lucide="info"></i>عن المنصة</a>
-            <a href="./pathways/index.html" data-text="learning-paths-nav"><i data-lucide="book-open"></i>المسارات التعليمية</a>
-            <a href="./courses/coursesnms/train/indexlist.html" data-text="courses-nav"><i data-lucide="graduation-cap"></i>الدورات الاحترافية</a>
+            <!-- تم إضافة class="protected-link" للمسارات والدورات ولوحة الطالب -->
+            <a href="./pathways/index.html" class="protected-link" data-text="learning-paths-nav"><i data-lucide="book-open"></i>المسارات التعليمية</a>
+            <a href="./courses/coursesnms/train/indexlist.html" class="protected-link" data-text="courses-nav"><i data-lucide="graduation-cap"></i>الدورات الاحترافية</a>
             <a href="./academy/enrollment.html" data-text="enrollment-nav"><i data-lucide="user-plus"></i>التسجيل</a>
-            <a href="./dashboards/student.html" data-text="student-dashboard-nav"><i data-lucide="layout-dashboard"></i>لوحة الطالب</a>
+            <a href="./dashboards/student.html" class="protected-link" data-text="student-dashboard-nav"><i data-lucide="layout-dashboard"></i>لوحة الطالب</a>
             <a href="./typing-test" data-text="typing-test"><i data-lucide="keyboard"></i>اختبار الكتابة</a>
             <a href="./podcast" data-text="cybersecurity-audio-btn"><i data-lucide="mic"></i>صوت الأمن</a>
         </nav>
@@ -744,10 +745,11 @@
     <nav class="mobile-nav" id="mobileNav">
         <a href="./index.html" data-text="home-nav"><i data-lucide="house"></i>الرئيسية</a>
         <a href="./about.html" data-text="about-nav"><i data-lucide="info"></i>عن المنصة</a>
-        <a href="./pathways/index.html" data-text="learning-paths-nav"><i data-lucide="book-open"></i>المسارات التعليمية</a>
-        <a href="./courses/coursesnms/train/indexlist.html" data-text="courses-nav"><i data-lucide="graduation-cap"></i>الدورات الاحترافية</a>
+        <!-- تم إضافة class="protected-link" في الموبايل أيضاً -->
+        <a href="./pathways/index.html" class="protected-link" data-text="learning-paths-nav"><i data-lucide="book-open"></i>المسارات التعليمية</a>
+        <a href="./courses/coursesnms/train/indexlist.html" class="protected-link" data-text="courses-nav"><i data-lucide="graduation-cap"></i>الدورات الاحترافية</a>
         <a href="./academy/enrollment.html" data-text="enrollment-nav"><i data-lucide="user-plus"></i>التسجيل</a>
-        <a href="./dashboards/student.html" data-text="student-dashboard-nav"><i data-lucide="layout-dashboard"></i>لوحة الطالب</a>
+        <a href="./dashboards/student.html" class="protected-link" data-text="student-dashboard-nav"><i data-lucide="layout-dashboard"></i>لوحة الطالب</a>
         <a href="./resources/platforms.html" data-text="free-platforms-link"><i data-lucide="monitor"></i>منصات مجانية</a>
         <a href="./contact_form.html" data-text="contact-us-nav"><i data-lucide="mail"></i>تواصل معنا</a>
     </nav>
@@ -1135,7 +1137,6 @@
                 });
                 document.getElementById('langToggle').textContent = lang === 'ar' ? 'EN' : 'AR';
                 localStorage.setItem('cyberPathLang', lang);
-                // تحديث الأيقونات بعد تغيير اللغة (لأن Lucide لا يتأثر بالنص)
                 lucide.createIcons();
             }
         };
@@ -1200,78 +1201,80 @@
             initScrollButtons();
         });
     </script>
-    <script type="module" src="./assets/js/gatekeeper.js"></script>
 
-    <!-- إضافة مكتبة Supabase -->
+    <!-- مكتبة Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-        // 1. إعدادات Supabase (استبدل القيم ببيانات مشروعك الخاصة)
+        // إعدادات Supabase
         const SUPABASE_URL = 'https://suvpaunulhqfoclepwoz.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
- 
-// 2. تحديث الدالة لتستخدم supabaseClient
-async function checkUserAuth() {
-    // استخدمنا supabaseClient هنا أيضاً
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    const loginBtn = document.getElementById('main-cta-btn');
-    const dashboardLinks = document.querySelectorAll('[data-text="student-dashboard-nav"]');
+        // التحقق من المستخدم وتحديث زر CTA
+        async function checkUserAuth() {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            const loginBtn = document.getElementById('main-cta-btn');
+            const dashboardLinks = document.querySelectorAll('[data-text="student-dashboard-nav"]');
 
-    if (user) {
-        // جلب الدور من جدول user_profile
-        const { data: profile } = await supabaseClient
-            .from('user_profile')
-            .select('role')
-            .eq('user_id', user.id)
-            .single();
+            if (user) {
+                const { data: profile } = await supabaseClient
+                    .from('user_profile')
+                    .select('role')
+                    .eq('user_id', user.id)
+                    .single();
+                const userRole = profile?.role || 'student';
 
-        const userRole = profile?.role || 'student';
+                if (loginBtn) {
+                    loginBtn.textContent = langManager.currentLang === 'ar' ? 'توجه للوحة التحكم' : 'Go to Dashboard';
+                    loginBtn.onclick = () => {
+                        if (userRole === 'admin') window.location.href = './admin/dashboard.html';
+                        else if (userRole === 'coach') window.location.href = './coach/dashboard.html';
+                        else window.location.href = './academy/student-dashboard.html';
+                    };
+                }
 
-        if (loginBtn) {
-            loginBtn.textContent = langManager.currentLang === 'ar' ? 'توجه للوحة التحكم' : 'Go to Dashboard';
-            loginBtn.onclick = () => {
-                if (userRole === 'admin') window.location.href = './admin/dashboard.html';
-                else if (userRole === 'coach') window.location.href = './coach/dashboard.html';
-                else window.location.href = './academy/student-dashboard.html';
-            };
+                dashboardLinks.forEach(link => {
+                    if (userRole === 'admin') link.href = './admin/dashboard.html';
+                    else if (userRole === 'coach') link.href = './coach/dashboard.html';
+                });
+            } else {
+                if (loginBtn) {
+                    loginBtn.onclick = () => window.location.href = './academy/enrollment.html';
+                }
+            }
         }
 
-        dashboardLinks.forEach(link => {
-            if (userRole === 'admin') link.href = './admin/dashboard.html';
-            else if (userRole === 'coach') link.href = './coach/dashboard.html';
-        });
+        // دالة حماية الروابط (المسارات التعليمية، الدورات، لوحة الطالب)
+        async function setupProtectedLinks() {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            const protectedLinks = document.querySelectorAll('.protected-link');
 
-    } else {
-        if (loginBtn) {
-            loginBtn.onclick = () => window.location.href = './academy/enrollment.html';
+            protectedLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    if (!user) {
+                        e.preventDefault();
+                        const msg = langManager.currentLang === 'ar' 
+                            ? 'عذراً، يجب تسجيل الدخول للوصول إلى هذا القسم' 
+                            : 'Sorry, you must log in to access this section';
+                        alert(msg);
+                        window.location.href = './academy/enrollment.html';
+                    }
+                });
+            });
         }
-    }
-}
 
-// مراقبة حالة تسجيل الدخول باستخدام الاسم الجديد
-supabaseClient.auth.onAuthStateChange((event, session) => {
-    checkUserAuth();
-});
-
-        // 3. تعديل زر "ابدأ التعلم مجاناً" ليقوم بالفحص
+        // استدعاء الدوال عند تحميل الصفحة
         document.addEventListener('DOMContentLoaded', () => {
-            // تشغيل الوظائف الأساسية التي برمجتها أنت
-            langManager.init();
-            initMobileMenu();
-            initReveal();
-            initScrollButtons();
-            
-            // تشغيل نظام التحقق من المستخدم
             checkUserAuth();
+            setupProtectedLinks();
         });
 
-        // مراقبة التغييرات في حالة تسجيل الدخول (Login/Logout)
-        supabase.auth.onAuthStateChange((event, session) => {
+        // مراقبة تغيير حالة تسجيل الدخول
+        supabaseClient.auth.onAuthStateChange(() => {
             checkUserAuth();
+            setupProtectedLinks(); // تحديث الروابط بعد تغير الحالة
         });
     </script>
-
 </body>
 </html>
