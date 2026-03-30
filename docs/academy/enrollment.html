@@ -10,9 +10,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/main.css" />
     <link rel="stylesheet" href="../assets/css/responsive.css" />
-    <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        /* ===== جميع الأنماط الأصلية ===== */
         :root {
             --primary-blue: #1a73e8;
             --accent-blue: #0d47a1;
@@ -145,8 +145,6 @@
             order: 2;
             transform: scale(1.3);
             cursor: pointer;
-            -webkit-appearance: none;
-            -moz-appearance: none;
             appearance: none;
             width: 22px;
             height: 22px;
@@ -405,7 +403,7 @@
             text-align: center;
         }
         .google-login-btn {
-            display: inline-flex;
+            display: flex;
             align-items: center;
             justify-content: center;
             gap: 12px;
@@ -477,6 +475,12 @@
             color: white;
             font-size: 1.1em;
             margin-top: 10px;
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
         }
         .auth-links {
             text-align: center;
@@ -516,7 +520,7 @@
             text-decoration: underline;
         }
         .hidden {
-            display: none;
+            display: none !important;
         }
 
         @keyframes fadeIn {
@@ -540,35 +544,28 @@
                 margin: 20px 10px;
                 border-radius: 15px;
             }
-            
             .enrollment-container h2 {
                 font-size: 2em;
             }
-            
             .form-submit-btn {
                 font-size: 1.2em;
                 padding: 15px;
             }
-            
             .checkbox-group {
                 flex-direction: column;
                 align-items: flex-end;
             }
-            
             .checkbox-group input[type="checkbox"] {
                 margin-bottom: 10px;
                 margin-right: 0;
             }
-            
             .form-message {
                 padding: 20px;
                 font-size: 1.2em;
             }
-
             .benefits-list {
                 grid-template-columns: 1fr;
             }
-
             .benefits-section {
                 padding: 20px 15px;
             }
@@ -617,7 +614,9 @@
                     <i class="fab fa-google"></i> تسجيل الدخول باستخدام Google
                 </button>
                 <div class="divider"><span>أو</span></div>
-                <div class="auth-form">
+                
+                <!-- نموذج إنشاء حساب -->
+                <div id="signupFormDiv" class="auth-form">
                     <h3>إنشاء حساب جديد</h3>
                     <div class="form-group">
                         <input type="email" id="signupEmail" placeholder="البريد الإلكتروني" dir="ltr">
@@ -630,7 +629,9 @@
                         لديك حساب بالفعل؟ <a href="#" id="showLoginLink">تسجيل الدخول</a>
                     </div>
                 </div>
-                <div class="auth-form hidden" id="loginForm">
+                
+                <!-- نموذج تسجيل الدخول (مخفي افتراضيًا) -->
+                <div id="loginFormDiv" class="auth-form hidden">
                     <h3>تسجيل الدخول</h3>
                     <div class="form-group">
                         <input type="email" id="loginEmail" placeholder="البريد الإلكتروني" dir="ltr">
@@ -645,8 +646,8 @@
                 </div>
                 <div id="authMessage" class="form-message" style="display: none;"></div>
             </div>
-
-            <!-- قسم معلومات المستخدم المسجل ونموذج التسجيل (يظهر بعد تسجيل الدخول) -->
+            
+            <!-- قسم التسجيل في الدورة (يظهر فقط للمستخدم المسجل) -->
             <div id="enrollmentSection" class="hidden">
                 <div class="user-info">
                     <p>مرحباً <span id="userEmail"></span> 
@@ -764,12 +765,12 @@
 
     <script src="../assets/js/main.js"></script>
     <script>
-        // Supabase Configuration
+        // Supabase Client
         const SUPABASE_URL = 'https://suvpaunulhqfoclepwoz.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // DOM Elements
+        // عناصر DOM
         const authSection = document.getElementById('authSection');
         const enrollmentSection = document.getElementById('enrollmentSection');
         const userEmailSpan = document.getElementById('userEmail');
@@ -781,10 +782,10 @@
         const logoutBtn = document.getElementById('logoutBtn');
         const showLoginLink = document.getElementById('showLoginLink');
         const showSignupLink = document.getElementById('showSignupLink');
-        const loginForm = document.getElementById('loginForm');
-        const signupForm = document.querySelector('.auth-form:not(.hidden)'); // أول نموذج
+        const signupFormDiv = document.getElementById('signupFormDiv');
+        const loginFormDiv = document.getElementById('loginFormDiv');
 
-        // Helper: عرض رسالة في قسم المصادقة
+        // عرض رسالة في قسم المصادقة
         function showAuthMessage(msg, type = 'error') {
             authMessageDiv.innerHTML = msg;
             authMessageDiv.className = `form-message ${type}`;
@@ -799,86 +800,60 @@
             try {
                 const { data, error } = await supabaseClient.auth.signInWithOAuth({
                     provider: 'google',
-                    options: { redirectTo: window.location.href } // العودة إلى نفس الصفحة
+                    options: { redirectTo: window.location.href }
                 });
-                if (error) {
-                    console.error(error);
-                    showAuthMessage('فشل تسجيل الدخول: ' + error.message);
-                }
-            } catch (err) {
-                console.error(err);
-                showAuthMessage('حدث خطأ غير متوقع');
-            }
+                if (error) showAuthMessage('فشل تسجيل الدخول: ' + error.message);
+            } catch (err) { showAuthMessage('حدث خطأ غير متوقع'); }
         }
 
         // إنشاء حساب جديد
         async function signupWithEmail() {
             const email = document.getElementById('signupEmail').value.trim();
             const password = document.getElementById('signupPassword').value;
-            if (!email || !password) {
-                showAuthMessage('يرجى إدخال البريد الإلكتروني وكلمة المرور');
-                return;
-            }
-            if (password.length < 6) {
-                showAuthMessage('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
-                return;
-            }
+            if (!email || !password) { showAuthMessage('يرجى إدخال البريد الإلكتروني وكلمة المرور'); return; }
+            if (password.length < 6) { showAuthMessage('كلمة المرور يجب أن تكون 6 أحرف على الأقل'); return; }
 
             try {
-                const { data, error } = await supabaseClient.auth.signUp({
-                    email, password
-                });
+                const { data, error } = await supabaseClient.auth.signUp({ email, password });
                 if (error) throw error;
                 if (data.user) {
-                    // إنشاء سطر في user_profile إذا لم يكن موجودًا (يمكن عمل trigger ولكن نضمنه)
+                    // إنشاء سطر في user_profile
                     const { error: profileError } = await supabaseClient
                         .from('user_profile')
                         .insert([{ user_id: data.user.id, role: 'student' }]);
-                    if (profileError && profileError.code !== '23505') // تجاهل التكرار
-                        console.error('Profile creation error:', profileError);
+                    if (profileError && profileError.code !== '23505') console.error('Profile creation error:', profileError);
                     
                     showAuthMessage('تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني.', 'success');
-                    // بعد ثوانٍ نقوم بتسجيل الدخول تلقائيًا (أو نطلب منه تسجيل الدخول)
+                    // بعد ثوانٍ نقوم بتسجيل الدخول تلقائيًا
                     setTimeout(() => {
-                        // محاولة تسجيل الدخول تلقائيًا
                         document.getElementById('loginEmail').value = email;
                         document.getElementById('loginPassword').value = password;
                         loginWithEmail();
                     }, 2000);
                 }
-            } catch (err) {
-                showAuthMessage(err.message);
-            }
+            } catch (err) { showAuthMessage(err.message); }
         }
 
         // تسجيل الدخول بالبريد وكلمة المرور
         async function loginWithEmail() {
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
-            if (!email || !password) {
-                showAuthMessage('يرجى إدخال البريد الإلكتروني وكلمة المرور');
-                return;
-            }
+            if (!email || !password) { showAuthMessage('يرجى إدخال البريد الإلكتروني وكلمة المرور'); return; }
             try {
-                const { data, error } = await supabaseClient.auth.signInWithPassword({
-                    email, password
-                });
+                const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
                 if (error) throw error;
-                // نجاح - سنقوم بتحديث الواجهة
+                // نجاح - تحديث الواجهة
                 checkUser();
-            } catch (err) {
-                showAuthMessage(err.message);
-            }
+            } catch (err) { showAuthMessage(err.message); }
         }
 
         // تسجيل الخروج
         async function logout() {
-            const { error } = await supabaseClient.auth.signOut();
-            if (error) console.error(error);
+            await supabaseClient.auth.signOut();
             checkUser();
         }
 
-        // التحقق من حالة المستخدم وإظهار الأقسام المناسبة
+        // التحقق من حالة المستخدم وإظهار القسم المناسب
         async function checkUser() {
             const { data: { user }, error } = await supabaseClient.auth.getUser();
             if (user) {
@@ -891,23 +866,26 @@
                 // غير مسجل
                 authSection.classList.remove('hidden');
                 enrollmentSection.classList.add('hidden');
-                // إعادة تعيين نموذج المصادقة إلى الحالة الافتراضية (إظهار نموذج التسجيل)
-                document.querySelector('.auth-form:not(.hidden)')?.classList.add('hidden');
-                signupForm.classList.remove('hidden');
-                loginForm.classList.add('hidden');
-                // مسح أي رسائل
+                // إعادة تعيين نماذج المصادقة إلى الحالة الافتراضية (إظهار نموذج التسجيل)
+                signupFormDiv.classList.remove('hidden');
+                loginFormDiv.classList.add('hidden');
+                // مسح المدخلات
+                document.getElementById('signupEmail').value = '';
+                document.getElementById('signupPassword').value = '';
+                document.getElementById('loginEmail').value = '';
+                document.getElementById('loginPassword').value = '';
                 authMessageDiv.style.display = 'none';
             }
         }
 
         // تبديل بين نموذج التسجيل وتسجيل الدخول
         function showSignupForm() {
-            signupForm.classList.remove('hidden');
-            loginForm.classList.add('hidden');
+            signupFormDiv.classList.remove('hidden');
+            loginFormDiv.classList.add('hidden');
         }
         function showLoginForm() {
-            signupForm.classList.add('hidden');
-            loginForm.classList.remove('hidden');
+            signupFormDiv.classList.add('hidden');
+            loginFormDiv.classList.remove('hidden');
         }
 
         // ربط الأحداث
@@ -921,18 +899,14 @@
         // عند تحميل الصفحة، تحقق من حالة المستخدم
         document.addEventListener('DOMContentLoaded', () => {
             checkUser();
-            // إعدادات نموذج التسليم (Formspree) وتأثيراتها كما هي
+
+            // باقي الكود الخاص بنموذج Formspree والترجمات (كما هو في الأصل)
             const enrollmentForm = document.getElementById('enrollmentForm');
             const formMessage = document.getElementById('formMessage');
             const agreeTermsCheckbox = document.getElementById('agreeTerms');
             const submitButton = enrollmentForm.querySelector('button[type="submit"]');
             const mainTitle = document.querySelector('.enrollment-container h2');
 
-            // ... (كل الكود الأصلي لمعالجة نموذج Formspree والترجمات)
-            // سنقوم بنسخه كما هو من الملف الأصلي لضمان عدم فقدان أي وظيفة
-            // (للتوفير، سأضيفه مختصرًا هنا مع الحفاظ على الوظائف الأساسية)
-
-            // تأثيرات الحقول
             document.querySelectorAll('.form-group input, .form-group select, .form-group textarea').forEach(input => {
                 input.addEventListener('focus', function() {
                     this.parentElement.classList.add('focused');
@@ -968,11 +942,7 @@
                 const form = event.target;
                 const formData = new FormData(form);
                 try {
-                    const response = await fetch(form.action, {
-                        method: form.method,
-                        body: formData,
-                        headers: { 'Accept': 'application/json' }
-                    });
+                    const response = await fetch(form.action, { method: form.method, body: formData, headers: { 'Accept': 'application/json' } });
                     const result = await response.json();
                     if (response.ok) {
                         submissionSuccessful = true;
@@ -994,11 +964,7 @@
                             if (secondsLeft <= 0) clearInterval(countdownInterval);
                         }, 1000);
                         const goBackBtn = document.getElementById('goBackBtn');
-                        if (goBackBtn) goBackBtn.addEventListener('click', () => {
-                            clearTimeout(redirectTimeout);
-                            clearInterval(countdownInterval);
-                            window.location.href = "../index.html";
-                        });
+                        if (goBackBtn) goBackBtn.addEventListener('click', () => { clearTimeout(redirectTimeout); clearInterval(countdownInterval); window.location.href = "../index.html"; });
                         redirectTimeout = setTimeout(() => window.location.href = "../index.html", 5000);
                     } else {
                         const errorMessage = result.errors ? result.errors.map(err => err.message).join(', ') : (result.message || 'يرجى المحاولة مرة أخرى.');
@@ -1008,7 +974,6 @@
                         mainTitle.textContent = (langManager && langManager.translations[langManager.currentLang]['enrollment-form-title']) || 'سجل الآن وابدأ رحلتك!';
                     }
                 } catch (error) {
-                    console.error(error);
                     displayMessage('⚠️ حدث خطأ في الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت والمحاولة لاحقًا.', 'error');
                     enrollmentForm.style.display = 'block';
                     mainTitle.style.opacity = '1';
