@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الانضمام إلى CyberPath | التسجيل</title>
+    <!-- أضف نفس تنسيقات CSS الخاصة بك هنا أو استدعي ملف خارجي -->
+    <style>
+        /* التنسيقات الأساسية لتناسب شكل الموقع */
+        body { font-family: 'Cairo', sans-serif; background: #0f172a; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .auth-container { background: #1e293b; padding: 40px; border-radius: 15px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center; }
+        h2 { color: #38bdf8; margin-bottom: 25px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #334155; border-radius: 8px; background: #0f172a; color: white; box-sizing: border-box; }
+        .main-btn { width: 100%; padding: 14px; margin-top: 15px; background: #38bdf8; border: none; color: #000; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        .main-btn:hover { background: #0ea5e9; transform: translateY(-2px); }
+        .google-btn { width: 100%; padding: 12px; margin-top: 15px; background: #fff; border: none; color: #000; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 500; }
+        .divider { margin: 25px 0; border-top: 1px solid #334155; position: relative; }
+        .divider span { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #1e293b; padding: 0 15px; color: #64748b; font-size: 14px; }
+        #message { margin-top: 15px; font-size: 14px; min-height: 20px; }
+        .error { color: #f87171; }
+        .success { color: #4ade80; }
+        .loader { display: none; margin: 10px auto; border: 3px solid #f3f3f3; border-top: 3px solid #38bdf8; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="auth-container">
+    <h2>إنشاء حساب جديد</h2>
+    
+    <!-- خيار جوجل -->
+    <button class="google-btn" id="googleLoginBtn">
+        <img src="https://authjs.dev/img/providers/google.svg" width="20" alt="Google">
+        التسجيل بواسطة جوجل
+    </button>
+
+    <div class="divider"><span>أو عبر البريد الإلكتروني</span></div>
+
+    <!-- نموذج التسجيل اليدوي -->
+    <div id="signupForm">
+        <input id="email" type="email" placeholder="البريد الإلكتروني">
+        <input id="password" type="password" placeholder="كلمة المرور (6 أحرف على الأقل)">
+        
+        <button class="main-btn" id="signupBtn">إنشاء الحساب</button>
+        <div class="loader" id="loader"></div>
+        <p id="message"></p>
+    </div>
+
+    <div style="margin-top: 20px; font-size: 14px;">
+        <a href="login.html" style="color: #94a3b8; text-decoration: none;">لديك حساب بالفعل؟ <b style="color: #38bdf8;">تسجيل الدخول</b></a>
+    </div>
+</div>
+
+<script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
+
+    // 1. إعداد العميل
+    const SUPABASE_URL = "https://suvpaunulhqfoclepwoz.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"; 
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const emailInput = document.getElementById("email");
+    const passInput = document.getElementById("password");
+    const message = document.getElementById("message");
+    const loader = document.getElementById("loader");
+    const signupBtn = document.getElementById("signupBtn");
+    const googleBtn = document.getElementById("googleLoginBtn");
+
+    // --- وظيفة التسجيل بالجيميل ---
+    googleBtn.onclick = async () => {
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: window.location.origin + '/indexpro.html'
+            }
+        });
+        if(error) alert(error.message);
+    };
+
+    // --- وظيفة التسجيل بالبريد ---
+    signupBtn.onclick = async () => {
+        const email = emailInput.value.trim();
+        const password = passInput.value.trim();
+
+        if(!email || !password) {
+            showMessage("يرجى ملء جميع الحقول", "error");
+            return;
+        }
+
+        loading(true);
+
+        const { data, error } = await supabase.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                // التوجيه التلقائي بعد تأكيد الإيميل
+                emailRedirectTo: window.location.origin + '/indexpro.html'
+            }
+        });
+
+        loading(false);
+
+        if(error) {
+            showMessage(error.message, "error");
+        } else {
+            // ملاحظة: بما أن لديك Trigger، لا داعي لعمل Insert يدوياً هنا.
+            showMessage("تم التسجيل! يرجى مراجعة بريدك الإلكتروني لتفعيل الحساب.", "success");
+            // تنظيف الحقول
+            emailInput.value = "";
+            passInput.value = "";
+        }
+    };
+
+    function showMessage(msg, type) {
+        message.innerText = msg;
+        message.className = type;
+    }
+
+    function loading(isLoading) {
+        loader.style.display = isLoading ? "block" : "none";
+        signupBtn.disabled = isLoading;
+        message.innerText = "";
+    }
+</script>
+
+</body>
+</html>
