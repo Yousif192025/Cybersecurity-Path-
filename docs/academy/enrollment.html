@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/main.css" />
     <link rel="stylesheet" href="../assets/css/responsive.css" />
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --primary-blue: #1a73e8;
@@ -397,6 +399,57 @@
             box-shadow: 0 5px 15px rgba(26, 115, 232, 0.3);
         }
 
+        /* زر جوجل */
+        .google-login-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            padding: 14px 20px;
+            background: #fff;
+            color: #444;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .google-login-btn i {
+            font-size: 1.4em;
+            color: #4285f4;
+        }
+        .google-login-btn:hover {
+            background: #f8f8f8;
+            border-color: #ccc;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .divider {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+            color: #aaa;
+        }
+        .divider::before, .divider::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            width: 45%;
+            height: 1px;
+            background: #e0e0e0;
+        }
+        .divider::before { left: 0; }
+        .divider::after { right: 0; }
+        .divider span {
+            background: #fff;
+            padding: 0 15px;
+            font-size: 0.9em;
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -488,6 +541,12 @@
     <main class="container">
         <div class="enrollment-container">
             <h2 data-text="enrollment-form-title">سجل الآن وابدأ رحلتك!</h2>
+            
+            <!-- إضافة زر تسجيل الدخول عبر جوجل (Supabase) -->
+            <button id="googleLoginBtn" class="google-login-btn">
+                <i class="fab fa-google"></i> تسجيل الدخول باستخدام Google
+            </button>
+            <div class="divider"><span>أو</span></div>
             
             <div class="benefits-section">
                 <h3><i class="fas fa-graduation-cap"></i> لماذا تختار منصتنا؟</h3>
@@ -597,6 +656,39 @@
     </footer>
 
     <script src="../assets/js/main.js"></script>
+    <script>
+        // Supabase Configuration (تمت إضافته)
+        const SUPABASE_URL = 'https://suvpaunulhqfoclepwoz.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // دالة تسجيل الدخول باستخدام جوجل (تم إصلاح الخطأ)
+        async function loginWithGoogle() {
+            try {
+                const { data, error } = await supabaseClient.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        redirectTo: window.location.origin + '/indexpro.html'
+                    }
+                });
+                if (error) {
+                    console.error("Error logging in:", error.message);
+                    alert("حدث خطأ أثناء تسجيل الدخول: " + error.message);
+                }
+            } catch (err) {
+                console.error("Unexpected error:", err);
+                alert("خطأ غير متوقع، يرجى المحاولة لاحقاً.");
+            }
+        }
+
+        // ربط الزر بعد تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', () => {
+            const googleBtn = document.getElementById('googleLoginBtn');
+            if (googleBtn) {
+                googleBtn.addEventListener('click', loginWithGoogle);
+            }
+        });
+    </script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const enrollmentForm = document.getElementById('enrollmentForm');
