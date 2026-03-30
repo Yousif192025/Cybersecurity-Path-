@@ -798,7 +798,7 @@
         // تسجيل الدخول عبر Google
         async function loginWithGoogle() {
             try {
-                const { data, error } = await supabaseClient.auth.signInWithOAuth({
+                const { error } = await supabaseClient.auth.signInWithOAuth({
                     provider: 'google',
                     options: { redirectTo: window.location.href }
                 });
@@ -840,7 +840,7 @@
             const password = document.getElementById('loginPassword').value;
             if (!email || !password) { showAuthMessage('يرجى إدخال البريد الإلكتروني وكلمة المرور'); return; }
             try {
-                const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
                 if (error) throw error;
                 // نجاح - تحديث الواجهة
                 checkUser();
@@ -900,13 +900,14 @@
         document.addEventListener('DOMContentLoaded', () => {
             checkUser();
 
-            // باقي الكود الخاص بنموذج Formspree والترجمات (كما هو في الأصل)
+            // باقي الكود الخاص بنموذج Formspree والترجمات
             const enrollmentForm = document.getElementById('enrollmentForm');
             const formMessage = document.getElementById('formMessage');
             const agreeTermsCheckbox = document.getElementById('agreeTerms');
             const submitButton = enrollmentForm.querySelector('button[type="submit"]');
             const mainTitle = document.querySelector('.enrollment-container h2');
 
+            // تأثيرات الحقول
             document.querySelectorAll('.form-group input, .form-group select, .form-group textarea').forEach(input => {
                 input.addEventListener('focus', function() {
                     this.parentElement.classList.add('focused');
@@ -927,11 +928,20 @@
 
             async function handleSubmit(event) {
                 event.preventDefault();
+
+                // ✅ التحقق من وجود مستخدم نشط قبل الإرسال (طبقة أمان إضافية)
+                const { data: { user } } = await supabaseClient.auth.getUser();
+                if (!user) {
+                    displayMessage('يرجى تسجيل الدخول أولاً لإتمام التسجيل في الدورة.', 'error');
+                    return;
+                }
+
                 if (!agreeTermsCheckbox.checked) {
                     displayMessage('الرجاء الموافقة على الشروط والأحكام وسياسة الخصوصية للمتابعة.', 'error');
                     agreeTermsCheckbox.focus();
                     return;
                 }
+
                 clearTimeout(redirectTimeout);
                 clearInterval(countdownInterval);
                 submitButton.disabled = true;
@@ -939,6 +949,7 @@
                 submitButton.classList.add('loading');
                 displayMessage('جاري إرسال طلبك، يرجى الانتظار...', 'info');
                 mainTitle.style.opacity = '0.5';
+
                 const form = event.target;
                 const formData = new FormData(form);
                 try {
