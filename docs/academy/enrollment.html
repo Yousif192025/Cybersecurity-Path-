@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="../assets/css/responsive.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* ===== جميع الأنماط الأصلية ===== */
+        /* ===== جميع الأنماط الأصلية مع إضافات بسيطة ===== */
         :root {
             --primary-blue: #1a73e8;
             --accent-blue: #0d47a1;
@@ -467,7 +467,7 @@
         .auth-form .form-group {
             margin-bottom: 20px;
         }
-        .auth-form input {
+        .auth-form input, .auth-form select {
             background: white;
         }
         .auth-form button {
@@ -530,12 +530,6 @@
 
         @keyframes spin {
             to { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
         }
 
         @media (max-width: 768px) {
@@ -615,7 +609,7 @@
                 </button>
                 <div class="divider"><span>أو</span></div>
                 
-                <!-- نموذج إنشاء حساب -->
+                <!-- نموذج إنشاء حساب (مع إضافة خيارات المسار ونوع الطالب) -->
                 <div id="signupFormDiv" class="auth-form">
                     <h3>إنشاء حساب جديد</h3>
                     <div class="form-group">
@@ -623,6 +617,22 @@
                     </div>
                     <div class="form-group">
                         <input type="password" id="signupPassword" placeholder="كلمة المرور" dir="ltr">
+                    </div>
+                    <!-- إضافة اختيار المسار التعليمي ونوع الطالب في نموذج التسجيل -->
+                    <div class="form-group">
+                        <label>اختيار المسار التعليمي</label>
+                        <select id="signupUserTrack" class="input-field">
+                            <option value="general">اختر المسار الاهتمامي</option>
+                            <option value="cs">دبلوم علوم الحاسب (أكاديمي)</option>
+                            <option value="cybersecurity">دبلوم الأمن السيبراني (أكاديمي)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>نوع الطالب</label>
+                        <select id="signupStudentType" class="input-field">
+                            <option value="skill_dev">تطوير مهارات (مرن)</option>
+                            <option value="academic">طالب منتظم (محتوى المؤسسة)</option>
+                        </select>
                     </div>
                     <button id="signupBtn">إنشاء حساب</button>
                     <div class="auth-links">
@@ -691,6 +701,24 @@
                         <label for="phone" data-text="phone-label">رقم الهاتف:</label>
                         <input type="tel" id="phone" name="phone" placeholder="مثال: 05xxxxxxx" required>
                     </div>
+                    
+                    <!-- اختيار المسار التعليمي (تم دمجه داخل النموذج الرئيسي) -->
+                    <div class="form-group">
+                        <label>اختيار المسار التعليمي</label>
+                        <select id="userTrack" class="input-field">
+                            <option value="general">اختر المسار الاهتمامي</option>
+                            <option value="cs">دبلوم علوم الحاسب (أكاديمي)</option>
+                            <option value="cybersecurity">دبلوم الأمن السيبراني (أكاديمي)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>نوع الطالب</label>
+                        <select id="studentType" class="input-field">
+                            <option value="skill_dev">تطوير مهارات (مرن)</option>
+                            <option value="academic">طالب منتظم (محتوى المؤسسة)</option>
+                        </select>
+                    </div>
+                    
                     <div class="form-group">
                         <label for="course" data-text="course-selection-label">اختر الدورة / المسار:</label>
                         <select id="course" name="course" required>
@@ -785,7 +813,10 @@
         const signupFormDiv = document.getElementById('signupFormDiv');
         const loginFormDiv = document.getElementById('loginFormDiv');
 
-        // عرض رسالة في قسم المصادقة
+        // عناصر المسار ونوع الطالب داخل نموذج التسجيل الرئيسي (بعد تسجيل الدخول)
+        const userTrackSelect = document.getElementById('userTrack');
+        const studentTypeSelect = document.getElementById('studentType');
+
         function showAuthMessage(msg, type = 'error') {
             authMessageDiv.innerHTML = msg;
             authMessageDiv.className = `form-message ${type}`;
@@ -793,6 +824,33 @@
             setTimeout(() => {
                 if (authMessageDiv.style.display === 'block') authMessageDiv.style.display = 'none';
             }, 5000);
+        }
+
+        // تحديث البروفايل بالمسار ونوع الطالب للمستخدم الحالي
+        async function updateUserProfile(userId, track, studentType) {
+            if (!userId) return false;
+            try {
+                const { error } = await supabaseClient
+                    .from('user_profile')
+                    .update({ track: track, student_type: studentType })
+                    .eq('user_id', userId);
+                if (error) console.error("Error updating profile:", error);
+                return !error;
+            } catch (err) { return false; }
+        }
+
+        // جلب بيانات البروفايل الحالية وملء الخيارات
+        async function loadProfileIntoForm(userId) {
+            if (!userId) return;
+            const { data, error } = await supabaseClient
+                .from('user_profile')
+                .select('track, student_type')
+                .eq('user_id', userId)
+                .maybeSingle();
+            if (!error && data) {
+                if (data.track && userTrackSelect) userTrackSelect.value = data.track;
+                if (data.student_type && studentTypeSelect) studentTypeSelect.value = data.student_type;
+            }
         }
 
         // تسجيل الدخول عبر Google
@@ -806,10 +864,13 @@
             } catch (err) { showAuthMessage('حدث خطأ غير متوقع'); }
         }
 
-        // إنشاء حساب جديد
+        // إنشاء حساب جديد مع حفظ المسار ونوع الطالب
         async function signupWithEmail() {
             const email = document.getElementById('signupEmail').value.trim();
             const password = document.getElementById('signupPassword').value;
+            const track = document.getElementById('signupUserTrack').value;
+            const studentType = document.getElementById('signupStudentType').value;
+            
             if (!email || !password) { showAuthMessage('يرجى إدخال البريد الإلكتروني وكلمة المرور'); return; }
             if (password.length < 6) { showAuthMessage('كلمة المرور يجب أن تكون 6 أحرف على الأقل'); return; }
 
@@ -817,10 +878,10 @@
                 const { data, error } = await supabaseClient.auth.signUp({ email, password });
                 if (error) throw error;
                 if (data.user) {
-                    // إنشاء سطر في user_profile
+                    // إنشاء سطر في user_profile مع حفظ المسار ونوع الطالب فوراً
                     const { error: profileError } = await supabaseClient
                         .from('user_profile')
-                        .insert([{ user_id: data.user.id, role: 'student' }]);
+                        .insert([{ user_id: data.user.id, role: 'student', track: track, student_type: studentType }]);
                     if (profileError && profileError.code !== '23505') console.error('Profile creation error:', profileError);
                     
                     showAuthMessage('تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني.', 'success');
@@ -842,7 +903,6 @@
             try {
                 const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
                 if (error) throw error;
-                // نجاح - تحديث الواجهة
                 checkUser();
             } catch (err) { showAuthMessage(err.message); }
         }
@@ -857,19 +917,17 @@
         async function checkUser() {
             const { data: { user }, error } = await supabaseClient.auth.getUser();
             if (user) {
-                // مستخدم مسجل
                 authSection.classList.add('hidden');
                 enrollmentSection.classList.remove('hidden');
                 userEmailSpan.textContent = user.email;
                 if (emailInput) emailInput.value = user.email;
+                // تحميل بيانات المسار ونوع الطالب الحالية لملء الحقول
+                await loadProfileIntoForm(user.id);
             } else {
-                // غير مسجل
                 authSection.classList.remove('hidden');
                 enrollmentSection.classList.add('hidden');
-                // إعادة تعيين نماذج المصادقة إلى الحالة الافتراضية (إظهار نموذج التسجيل)
                 signupFormDiv.classList.remove('hidden');
                 loginFormDiv.classList.add('hidden');
-                // مسح المدخلات
                 document.getElementById('signupEmail').value = '';
                 document.getElementById('signupPassword').value = '';
                 document.getElementById('loginEmail').value = '';
@@ -878,7 +936,6 @@
             }
         }
 
-        // تبديل بين نموذج التسجيل وتسجيل الدخول
         function showSignupForm() {
             signupFormDiv.classList.remove('hidden');
             loginFormDiv.classList.add('hidden');
@@ -896,18 +953,15 @@
         showLoginLink.addEventListener('click', (e) => { e.preventDefault(); showLoginForm(); });
         showSignupLink.addEventListener('click', (e) => { e.preventDefault(); showSignupForm(); });
 
-        // عند تحميل الصفحة، تحقق من حالة المستخدم
         document.addEventListener('DOMContentLoaded', () => {
             checkUser();
 
-            // باقي الكود الخاص بنموذج Formspree والترجمات
             const enrollmentForm = document.getElementById('enrollmentForm');
             const formMessage = document.getElementById('formMessage');
             const agreeTermsCheckbox = document.getElementById('agreeTerms');
             const submitButton = enrollmentForm.querySelector('button[type="submit"]');
             const mainTitle = document.querySelector('.enrollment-container h2');
 
-            // تأثيرات الحقول
             document.querySelectorAll('.form-group input, .form-group select, .form-group textarea').forEach(input => {
                 input.addEventListener('focus', function() {
                     this.parentElement.classList.add('focused');
@@ -929,7 +983,6 @@
             async function handleSubmit(event) {
                 event.preventDefault();
 
-                // ✅ التحقق من وجود مستخدم نشط قبل الإرسال (طبقة أمان إضافية)
                 const { data: { user } } = await supabaseClient.auth.getUser();
                 if (!user) {
                     displayMessage('يرجى تسجيل الدخول أولاً لإتمام التسجيل في الدورة.', 'error');
@@ -941,6 +994,11 @@
                     agreeTermsCheckbox.focus();
                     return;
                 }
+
+                // تحديث المسار ونوع الطالب في قاعدة البيانات قبل إرسال النموذج (حسب الاختيار الحالي)
+                const currentTrack = userTrackSelect ? userTrackSelect.value : 'general';
+                const currentStudentType = studentTypeSelect ? studentTypeSelect.value : 'skill_dev';
+                await updateUserProfile(user.id, currentTrack, currentStudentType);
 
                 clearTimeout(redirectTimeout);
                 clearInterval(countdownInterval);
