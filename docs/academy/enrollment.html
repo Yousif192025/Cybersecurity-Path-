@@ -10,9 +10,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/main.css" />
     <link rel="stylesheet" href="../assets/css/responsive.css" />
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* ===== جميع الأنماط الأصلية مع تحسينات ===== */
+        /* ===== جميع الأنماط الأصلية ===== */
         :root {
             --primary-blue: #1a73e8;
             --accent-blue: #0d47a1;
@@ -523,7 +522,7 @@
             display: none !important;
         }
 
-        /* تحسينات إضافية */
+        /* تحسينات */
         .input-field {
             background-color: var(--light-grey);
             transition: all 0.2s ease;
@@ -627,7 +626,6 @@
                     <div class="form-group">
                         <input type="password" id="signupPassword" placeholder="كلمة المرور" dir="ltr">
                     </div>
-                    <!-- إضافة اختيار المسار التعليمي ونوع الطالب في نموذج التسجيل -->
                     <div class="form-group">
                         <label>اختيار المسار التعليمي</label>
                         <select id="signupUserTrack" class="input-field">
@@ -697,7 +695,6 @@
                 </div>
                 
                 <form id="enrollmentForm">
-                    <!-- حقل البريد الإلكتروني للقراءة فقط -->
                     <div class="form-group">
                         <label for="email" data-text="email-label">البريد الإلكتروني:</label>
                         <input type="email" id="email" name="email" required readonly placeholder="example@email.com">
@@ -799,13 +796,60 @@
         </div>
     </footer>
 
+    <!-- ترتيب السكربتات الصحيح: jQuery أولاً، ثم main.js، ثم السكربت الخاص بالصفحة -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="../assets/js/main.js"></script>
-    <script>
-        // Supabase Client
-        const SUPABASE_URL = 'https://suvpaunulhqfoclepwoz.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    <script type="module">
+        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
 
+        // إعداد السوبابيس (استخدام createClient ووضعه في window)
+        const supabaseClient = createClient(
+            "https://suvpaunulhqfoclepwoz.supabase.co",
+            "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"
+        );
+        window.supabaseClient = supabaseClient;
+
+        // دالة التحقق من حالة المستخدم عند تحميل الصفحة وإخفاء حقول البروفايل للمستخدم المسجل
+        async function initAuth() {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            const profileFields = document.getElementById('profile-setup-fields');
+            const authSection = document.getElementById('authSection');
+            const enrollmentSection = document.getElementById('enrollmentSection');
+            const userEmailSpan = document.getElementById('userEmail');
+            const emailInput = document.getElementById('email');
+            const signupEmail = document.getElementById('signupEmail');
+
+            if (user) {
+                // مستخدم مسجل: إخفاء حقول التأسيس
+                if (profileFields) profileFields.style.display = 'none';
+                if (authSection) authSection.classList.add('hidden');
+                if (enrollmentSection) enrollmentSection.classList.remove('hidden');
+                if (userEmailSpan) userEmailSpan.textContent = user.email;
+                if (emailInput) emailInput.value = user.email;
+                if (signupEmail) {
+                    signupEmail.value = user.email;
+                    signupEmail.readOnly = true;
+                }
+                console.log("User is logged in:", user.email);
+            } else {
+                // مستخدم ضيف: إظهار حقول التأسيس
+                if (profileFields) profileFields.style.display = 'block';
+                if (authSection) authSection.classList.remove('hidden');
+                if (enrollmentSection) enrollmentSection.classList.add('hidden');
+                if (signupEmail) signupEmail.readOnly = false;
+                console.log("No user logged in.");
+            }
+        }
+
+        // استدعاء الدالة بعد تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', initAuth);
+    </script>
+    
+    <!-- كود JavaScript الخاص بالصفحة (يعتمد على window.supabaseClient) -->
+    <script>
+        // استخدام supabaseClient الموجود في window
+        const supabase = window.supabaseClient;
+        
         // عناصر DOM
         const authSection = document.getElementById('authSection');
         const enrollmentSection = document.getElementById('enrollmentSection');
@@ -820,10 +864,7 @@
         const showSignupLink = document.getElementById('showSignupLink');
         const signupFormDiv = document.getElementById('signupFormDiv');
         const loginFormDiv = document.getElementById('loginFormDiv');
-        
-        // حقل إعداد الملف الشخصي (للمستخدم الجديد)
         const profileSetupFields = document.getElementById('profile-setup-fields');
-        // عناصر المسار ونوع الطالب داخل نموذج التسجيل الرئيسي
         const userTrackSelect = document.getElementById('userTrack');
         const studentTypeSelect = document.getElementById('studentType');
         const fullNameInput = document.getElementById('fullName');
@@ -838,11 +879,10 @@
             }, 5000);
         }
 
-        // تحديث البروفايل بالمسار ونوع الطالب والاسم ورقم الهاتف للمستخدم الجديد
         async function updateUserProfile(userId, data) {
             if (!userId) return false;
             try {
-                const { error } = await supabaseClient
+                const { error } = await supabase
                     .from('user_profile')
                     .update(data)
                     .eq('user_id', userId);
@@ -851,10 +891,9 @@
             } catch (err) { return false; }
         }
 
-        // جلب بيانات البروفايل الحالية لملء الحقول (للمستخدم المسجل)
         async function loadProfileIntoForm(userId) {
             if (!userId) return;
-            const { data, error } = await supabaseClient
+            const { data, error } = await supabase
                 .from('user_profile')
                 .select('full_name, phone, track, student_type')
                 .eq('user_id', userId)
@@ -867,10 +906,9 @@
             }
         }
 
-        // تسجيل الدخول عبر Google
         async function loginWithGoogle() {
             try {
-                const { error } = await supabaseClient.auth.signInWithOAuth({
+                const { error } = await supabase.auth.signInWithOAuth({
                     provider: 'google',
                     options: { redirectTo: window.location.href }
                 });
@@ -878,7 +916,6 @@
             } catch (err) { showAuthMessage('حدث خطأ غير متوقع'); }
         }
 
-        // إنشاء حساب جديد مع إرسال المسار ونوع الطالب في options.data
         async function signupWithEmail() {
             const email = document.getElementById('signupEmail').value.trim();
             const password = document.getElementById('signupPassword').value;
@@ -889,14 +926,11 @@
             if (password.length < 6) { showAuthMessage('كلمة المرور يجب أن تكون 6 أحرف على الأقل'); return; }
 
             try {
-                const { data, error } = await supabaseClient.auth.signUp({
+                const { data, error } = await supabase.auth.signUp({
                     email: email,
                     password: password,
                     options: {
-                        data: {
-                            track: track,
-                            student_type: studentType
-                        },
+                        data: { track: track, student_type: studentType },
                         emailRedirectTo: window.location.origin + '/indexpro.html'
                     }
                 });
@@ -911,74 +945,51 @@
             } catch (err) { showAuthMessage(err.message); }
         }
 
-        // تسجيل الدخول بالبريد وكلمة المرور
         async function loginWithEmail() {
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
             if (!email || !password) { showAuthMessage('يرجى إدخال البريد الإلكتروني وكلمة المرور'); return; }
             try {
-                const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                const { error } = await supabase.auth.signInWithPassword({ email, password });
                 if (error) throw error;
-                checkUser();
+                // إعادة تحميل الصفحة أو تحديث الواجهة
+                location.reload();
             } catch (err) { showAuthMessage(err.message); }
         }
 
-        // تسجيل الخروج
         async function logout() {
-            await supabaseClient.auth.signOut();
-            checkUser();
+            await supabase.auth.signOut();
+            location.reload();
         }
 
-        // التحكم في عرض حقول إعداد الملف الشخصي بناءً على حالة المستخدم
         function toggleProfileFields(isLoggedIn) {
             if (profileSetupFields) {
-                if (isLoggedIn) {
-                    // مستخدم مسجل: إخفاء الحقول المزعجة
-                    profileSetupFields.style.display = 'none';
-                    // إزالة خاصية required من الحقول المخفية لتجنب منع الإرسال
-                    if (fullNameInput) fullNameInput.required = false;
-                    if (phoneInput) phoneInput.required = false;
-                    if (userTrackSelect) userTrackSelect.required = false;
-                    if (studentTypeSelect) studentTypeSelect.required = false;
-                } else {
-                    // مستخدم جديد: إظهار الحقول لتأسيس البروفايل
-                    profileSetupFields.style.display = 'block';
-                    if (fullNameInput) fullNameInput.required = true;
-                    if (phoneInput) phoneInput.required = true;
-                    if (userTrackSelect) userTrackSelect.required = true;
-                    if (studentTypeSelect) studentTypeSelect.required = true;
-                }
+                profileSetupFields.style.display = isLoggedIn ? 'none' : 'block';
+                if (fullNameInput) fullNameInput.required = !isLoggedIn;
+                if (phoneInput) phoneInput.required = !isLoggedIn;
+                if (userTrackSelect) userTrackSelect.required = !isLoggedIn;
+                if (studentTypeSelect) studentTypeSelect.required = !isLoggedIn;
             }
         }
 
-        // التحقق من حالة المستخدم وإظهار القسم المناسب
         async function checkUser() {
-            const { data: { user }, error } = await supabaseClient.auth.getUser();
+            const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                // مستخدم مسجل
                 authSection.classList.add('hidden');
                 enrollmentSection.classList.remove('hidden');
                 userEmailSpan.textContent = user.email;
                 if (emailInput) emailInput.value = user.email;
-                // تحميل بيانات البروفايل الحالية
                 await loadProfileIntoForm(user.id);
-                // إخفاء حقول التأسيس
                 toggleProfileFields(true);
             } else {
-                // غير مسجل
                 authSection.classList.remove('hidden');
                 enrollmentSection.classList.add('hidden');
                 toggleProfileFields(false);
                 signupFormDiv.classList.remove('hidden');
                 loginFormDiv.classList.add('hidden');
-                document.getElementById('signupEmail').value = '';
-                document.getElementById('signupPassword').value = '';
-                document.getElementById('loginEmail').value = '';
-                document.getElementById('loginPassword').value = '';
-                authMessageDiv.style.display = 'none';
-                // إعادة تعيين الحقول
                 if (fullNameInput) fullNameInput.value = '';
                 if (phoneInput) phoneInput.value = '';
+                authMessageDiv.style.display = 'none';
             }
         }
 
@@ -991,7 +1002,6 @@
             loginFormDiv.classList.remove('hidden');
         }
 
-        // ربط الأحداث
         googleBtn.addEventListener('click', loginWithGoogle);
         signupBtn.addEventListener('click', signupWithEmail);
         loginBtn.addEventListener('click', loginWithEmail);
@@ -999,137 +1009,90 @@
         showLoginLink.addEventListener('click', (e) => { e.preventDefault(); showLoginForm(); });
         showSignupLink.addEventListener('click', (e) => { e.preventDefault(); showSignupForm(); });
 
-        // دالة التسجيل في المسار (إرسال مباشر إلى جدول enrollments)
         async function submitEnrollment(event) {
             event.preventDefault();
-
-            // 1. جلب المستخدم الحالي
-            const { data: { user } } = await supabaseClient.auth.getUser();
+            const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
                 displayMessage('يجب تسجيل الدخول أولاً لإتمام التسجيل في الدورة.', 'error');
-                setTimeout(() => {
-                    window.location.href = "../academy/enrollment.html";
-                }, 1500);
+                setTimeout(() => location.href = "../academy/enrollment.html", 1500);
                 return;
             }
 
-            // 2. جلب معرف المسار (الدورة)
-            const courseSelect = document.getElementById('selectedCourse');
-            const courseId = courseSelect.value;
-
+            const courseId = document.getElementById('selectedCourse').value;
             if (!courseId) {
                 displayMessage('يرجى اختيار المسار/الدورة قبل التسجيل.', 'error');
-                courseSelect.focus();
                 return;
             }
 
-            // 3. التحقق من الموافقة على الشروط
-            const agreeTermsCheckbox = document.getElementById('agreeTerms');
-            if (!agreeTermsCheckbox.checked) {
-                displayMessage('الرجاء الموافقة على الشروط والأحكام وسياسة الخصوصية للمتابعة.', 'error');
-                agreeTermsCheckbox.focus();
+            const agreeTerms = document.getElementById('agreeTerms');
+            if (!agreeTerms.checked) {
+                displayMessage('الرجاء الموافقة على الشروط والأحكام وسياسة الخصوصية.', 'error');
+                agreeTerms.focus();
                 return;
             }
 
-            // 4. إظهار مؤشر التحميل
-            const submitButton = document.querySelector('#enrollmentForm button[type="submit"]');
-            const originalText = submitButton.innerHTML;
-            submitButton.disabled = true;
-            submitButton.innerHTML = '<i class="fas fa-spinner"></i> جاري التسجيل...';
-            submitButton.classList.add('loading');
+            const submitBtn = document.querySelector('#enrollmentForm button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner"></i> جاري التسجيل...';
+            submitBtn.classList.add('loading');
 
             try {
-                // للمستخدمين الجدد (الذين لم يكملوا بياناتهم بعد) نحدث البروفايل
-                const { data: profileData, error: profileFetchError } = await supabaseClient
+                // تحديث بيانات البروفايل للمستخدم الجديد
+                const { data: profileData } = await supabase
                     .from('user_profile')
                     .select('full_name, phone, track, student_type')
                     .eq('user_id', user.id)
                     .maybeSingle();
                 
-                // إذا كانت البيانات غير مكتملة (مستخدم جديد لم يسبق له إدخال البيانات)
-                const needsProfileUpdate = !profileData || !profileData.full_name || !profileData.phone || !profileData.track;
-                
-                if (needsProfileUpdate && profileSetupFields && profileSetupFields.style.display !== 'none') {
-                    // المستخدم جديد ويجب تحديث بياناته
+                const needsProfile = !profileData || !profileData.full_name || !profileData.phone;
+                if (needsProfile && profileSetupFields && profileSetupFields.style.display !== 'none') {
                     const fullName = fullNameInput ? fullNameInput.value.trim() : '';
                     const phone = phoneInput ? phoneInput.value.trim() : '';
                     const track = userTrackSelect ? userTrackSelect.value : 'general';
                     const studentType = studentTypeSelect ? studentTypeSelect.value : 'skill_dev';
-                    
                     if (!fullName || !phone) {
                         displayMessage('يرجى إدخال الاسم الكامل ورقم الهاتف.', 'error');
-                        submitButton.disabled = false;
-                        submitButton.innerHTML = originalText;
-                        submitButton.classList.remove('loading');
                         return;
                     }
-                    
-                    await updateUserProfile(user.id, {
-                        full_name: fullName,
-                        phone: phone,
-                        track: track,
-                        student_type: studentType
-                    });
+                    await updateUserProfile(user.id, { full_name: fullName, phone: phone, track: track, student_type: studentType });
                 }
-                
-                // 5. الإدراج في جدول enrollments
-                const { error } = await supabaseClient
+
+                const { error } = await supabase
                     .from('enrollments')
-                    .insert([
-                        { 
-                            user_id: user.id, 
-                            course_id: courseId,
-                            completion_status: 'not_started'
-                        }
-                    ]);
+                    .insert([{ user_id: user.id, course_id: courseId, completion_status: 'not_started' }]);
 
                 if (error) {
-                    if (error.code === '23505') {
-                        displayMessage('أنت مسجل بالفعل في هذا المسار!', 'error');
-                    } else {
-                        console.error("Error:", error.message);
-                        displayMessage('حدث خطأ أثناء التسجيل. يرجى المحاولة لاحقاً.', 'error');
-                    }
+                    if (error.code === '23505') displayMessage('أنت مسجل بالفعل في هذا المسار!', 'error');
+                    else { console.error(error); displayMessage('حدث خطأ أثناء التسجيل. يرجى المحاولة لاحقاً.', 'error'); }
                 } else {
                     displayMessage('🎉 تم تسجيلك في المسار بنجاح! سيتم توجيهك إلى لوحة الطالب.', 'success');
-                    setTimeout(() => {
-                        window.location.href = "../dashboards/student.html";
-                    }, 2000);
+                    setTimeout(() => location.href = "../dashboards/student.html", 2000);
                 }
             } catch (err) {
                 console.error(err);
                 displayMessage('حدث خطأ غير متوقع. حاول مرة أخرى.', 'error');
             } finally {
-                submitButton.disabled = false;
-                submitButton.innerHTML = originalText;
-                submitButton.classList.remove('loading');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+                submitBtn.classList.remove('loading');
             }
         }
 
-        // دالة عرض الرسائل داخل النموذج
         function displayMessage(message, type) {
-            const formMessage = document.getElementById('formMessage');
-            formMessage.innerHTML = message;
-            formMessage.className = `form-message ${type}`;
-            formMessage.style.display = 'block';
-            if (type !== 'success') {
-                setTimeout(() => {
-                    if (formMessage.style.display === 'block') formMessage.style.display = 'none';
-                }, 5000);
-            }
+            const msgDiv = document.getElementById('formMessage');
+            msgDiv.innerHTML = message;
+            msgDiv.className = `form-message ${type}`;
+            msgDiv.style.display = 'block';
+            if (type !== 'success') setTimeout(() => msgDiv.style.display = 'none', 5000);
         }
 
-        // ربط دالة الإرسال بالنموذج
         const enrollmentForm = document.getElementById('enrollmentForm');
-        if (enrollmentForm) {
-            enrollmentForm.addEventListener('submit', submitEnrollment);
-        }
+        if (enrollmentForm) enrollmentForm.addEventListener('submit', submitEnrollment);
 
-        // تأثيرات بسيطة عند تحميل الصفحة
         document.addEventListener('DOMContentLoaded', () => {
             checkUser();
-
-            // تأثيرات التركيز على الحقول
+            // تأثيرات إضافية
             document.querySelectorAll('.form-group input, .form-group select, .form-group textarea').forEach(input => {
                 input.addEventListener('focus', function() {
                     this.parentElement.classList.add('focused');
@@ -1140,47 +1103,6 @@
                     if(this.parentElement.querySelector('label')) this.parentElement.querySelector('label').style.color = 'var(--primary-dark)';
                 });
             });
-
-            // الترجمات
-            if (typeof langManager !== 'undefined' && langManager.translations) {
-                Object.assign(langManager.translations.ar, {
-                    'enrollment-page-title': 'التسجيل في الدورات',
-                    'enrollment-form-title': 'سجل الآن وابدأ رحلتك!',
-                    'full-name-label': 'الاسم الكامل:',
-                    'email-label': 'البريد الإلكتروني:',
-                    'phone-label': 'رقم الهاتف:',
-                    'course-selection-label': 'اختر الدورة / المسار:',
-                    'select-option': '-- اختر دورة --',
-                    'message-label': 'رسالة إضافية (اختياري):',
-                    'agree-terms-label': 'أوافق على الشروط والأحكام و سياسة الخصوصية',
-                    'submit-enrollment': 'تأكيد التسجيل في الدورة',
-                    'course-info-sec-fundamentals': 'أساسيات أمن المعلومات',
-                    'course-network-security': 'أمن الشبكات',
-                    'course-web-security': 'أمن تطبيقات الويب',
-                    'course-digital-forensics': 'التحليل الجنائي الرقمي',
-                    'course-pentesting-beginner': 'اختبار اختراق للمبتدئين',
-                    'course-advanced-threat-detection': 'الكشف المتقدم عن التهديدات'
-                });
-                Object.assign(langManager.translations.en, {
-                    'enrollment-page-title': 'Course Enrollment',
-                    'enrollment-form-title': 'Enroll Now and Start Your Journey!',
-                    'full-name-label': 'Full Name:',
-                    'email-label': 'Email:',
-                    'phone-label': 'Phone Number:',
-                    'course-selection-label': 'Select Course / Path:',
-                    'select-option': '-- Select a course --',
-                    'message-label': 'Additional Message (optional):',
-                    'agree-terms-label': 'I agree to the Terms & Conditions and Privacy Policy',
-                    'submit-enrollment': 'Confirm Course Enrollment',
-                    'course-info-sec-fundamentals': 'Information Security Fundamentals',
-                    'course-network-security': 'Network Security',
-                    'course-web-security': 'Web Application Security',
-                    'course-digital-forensics': 'Digital Forensics',
-                    'course-pentesting-beginner': 'Penetration Testing for Beginners',
-                    'course-advanced-threat-detection': 'Advanced Threat Detection'
-                });
-                if (typeof langManager.applyTranslations === 'function') langManager.applyTranslations();
-            }
         });
     </script>
 </body>
