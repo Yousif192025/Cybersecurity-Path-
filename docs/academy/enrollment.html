@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="../assets/css/responsive.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* ===== جميع الأنماط الأصلية مع إضافات بسيطة ===== */
+        /* ===== جميع الأنماط الأصلية مع تحسينات بسيطة ===== */
         :root {
             --primary-blue: #1a73e8;
             --accent-blue: #0d47a1;
@@ -523,6 +523,18 @@
             display: none !important;
         }
 
+        /* تحسينات إضافية للتصميم */
+        .input-field {
+            background-color: var(--light-grey);
+            transition: all 0.2s ease;
+        }
+        .input-field:focus {
+            transform: translateY(-2px);
+        }
+        .form-group .input-field:focus + label {
+            color: var(--primary-blue);
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -826,7 +838,7 @@
             }, 5000);
         }
 
-        // تحديث البروفايل بالمسار ونوع الطالب للمستخدم الحالي
+        // تحديث البروفايل بالمسار ونوع الطالب للمستخدم الحالي (عند التسجيل في الدورة)
         async function updateUserProfile(userId, track, studentType) {
             if (!userId) return false;
             try {
@@ -864,7 +876,7 @@
             } catch (err) { showAuthMessage('حدث خطأ غير متوقع'); }
         }
 
-        // إنشاء حساب جديد مع حفظ المسار ونوع الطالب
+        // إنشاء حساب جديد مع إرسال المسار ونوع الطالب في options.data
         async function signupWithEmail() {
             const email = document.getElementById('signupEmail').value.trim();
             const password = document.getElementById('signupPassword').value;
@@ -875,21 +887,27 @@
             if (password.length < 6) { showAuthMessage('كلمة المرور يجب أن تكون 6 أحرف على الأقل'); return; }
 
             try {
-                const { data, error } = await supabaseClient.auth.signUp({ email, password });
+                // إرسال البيانات عبر options.data كما هو مطلوب لقراءة الـ Trigger
+                const { data, error } = await supabaseClient.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: {
+                            track: track,
+                            student_type: studentType
+                        },
+                        emailRedirectTo: window.location.origin + '/indexpro.html'
+                    }
+                });
                 if (error) throw error;
                 if (data.user) {
-                    // إنشاء سطر في user_profile مع حفظ المسار ونوع الطالب فوراً
-                    const { error: profileError } = await supabaseClient
-                        .from('user_profile')
-                        .insert([{ user_id: data.user.id, role: 'student', track: track, student_type: studentType }]);
-                    if (profileError && profileError.code !== '23505') console.error('Profile creation error:', profileError);
-                    
-                    showAuthMessage('تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني.', 'success');
-                    // بعد ثوانٍ نقوم بتسجيل الدخول تلقائيًا
+                    showAuthMessage('تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني لتأكيد الحساب.', 'success');
+                    // لا نقوم بتسجيل الدخول تلقائياً هنا لأن البريد يحتاج تأكيد
+                    // يمكن إعادة تعيين النموذج أو الانتظار حتى تأكيد البريد
                     setTimeout(() => {
+                        // عرض نموذج تسجيل الدخول بعد ثوانٍ لتوجيه المستخدم لتسجيل الدخول بعد التأكيد
+                        showLoginForm();
                         document.getElementById('loginEmail').value = email;
-                        document.getElementById('loginPassword').value = password;
-                        loginWithEmail();
                     }, 2000);
                 }
             } catch (err) { showAuthMessage(err.message); }
