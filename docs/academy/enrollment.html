@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="../assets/css/responsive.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* ===== جميع الأنماط الأصلية مع تحسينات بسيطة ===== */
+        /* ===== جميع الأنماط الأصلية مع تحسينات إضافية ===== */
         :root {
             --primary-blue: #1a73e8;
             --accent-blue: #0d47a1;
@@ -523,7 +523,7 @@
             display: none !important;
         }
 
-        /* تحسينات إضافية للتصميم */
+        /* تحسينات إضافية */
         .input-field {
             background-color: var(--light-grey);
             transition: all 0.2s ease;
@@ -533,6 +533,9 @@
         }
         .form-group .input-field:focus + label {
             color: var(--primary-blue);
+        }
+        .animated {
+            animation: fadeIn 0.5s ease-out;
         }
 
         @keyframes fadeIn {
@@ -699,8 +702,8 @@
                     </div>
                 </div>
                 
-                <form id="enrollmentForm" action="https://formspree.io/f/xyzpdkjb" method="POST">
-                    <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off">
+                <form id="enrollmentForm">
+                    <!-- إزالة action و method للاعتماد على JavaScript -->
                     <div class="form-group">
                         <label for="fullName" data-text="full-name-label">الاسم الكامل:</label>
                         <input type="text" id="fullName" name="fullName" required placeholder="أدخل اسمك الكامل">
@@ -838,7 +841,7 @@
             }, 5000);
         }
 
-        // تحديث البروفايل بالمسار ونوع الطالب للمستخدم الحالي (عند التسجيل في الدورة)
+        // تحديث البروفايل بالمسار ونوع الطالب للمستخدم الحالي
         async function updateUserProfile(userId, track, studentType) {
             if (!userId) return false;
             try {
@@ -887,7 +890,6 @@
             if (password.length < 6) { showAuthMessage('كلمة المرور يجب أن تكون 6 أحرف على الأقل'); return; }
 
             try {
-                // إرسال البيانات عبر options.data كما هو مطلوب لقراءة الـ Trigger
                 const { data, error } = await supabaseClient.auth.signUp({
                     email: email,
                     password: password,
@@ -902,10 +904,7 @@
                 if (error) throw error;
                 if (data.user) {
                     showAuthMessage('تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني لتأكيد الحساب.', 'success');
-                    // لا نقوم بتسجيل الدخول تلقائياً هنا لأن البريد يحتاج تأكيد
-                    // يمكن إعادة تعيين النموذج أو الانتظار حتى تأكيد البريد
                     setTimeout(() => {
-                        // عرض نموذج تسجيل الدخول بعد ثوانٍ لتوجيه المستخدم لتسجيل الدخول بعد التأكيد
                         showLoginForm();
                         document.getElementById('loginEmail').value = email;
                     }, 2000);
@@ -939,7 +938,6 @@
                 enrollmentSection.classList.remove('hidden');
                 userEmailSpan.textContent = user.email;
                 if (emailInput) emailInput.value = user.email;
-                // تحميل بيانات المسار ونوع الطالب الحالية لملء الحقول
                 await loadProfileIntoForm(user.id);
             } else {
                 authSection.classList.remove('hidden');
@@ -971,15 +969,110 @@
         showLoginLink.addEventListener('click', (e) => { e.preventDefault(); showLoginForm(); });
         showSignupLink.addEventListener('click', (e) => { e.preventDefault(); showSignupForm(); });
 
+        // دالة التسجيل في المسار (إرسال مباشر إلى جدول enrollments)
+        async function submitEnrollment(event) {
+            event.preventDefault();
+
+            // 1. جلب المستخدم الحالي
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) {
+                displayMessage('يجب تسجيل الدخول أولاً لإتمام التسجيل في الدورة.', 'error');
+                setTimeout(() => {
+                    window.location.href = "../academy/enrollment.html";
+                }, 1500);
+                return;
+            }
+
+            // 2. جلب معرف المسار (الدورة)
+            const courseSelect = document.getElementById('course');
+            const courseId = courseSelect.value;
+
+            if (!courseId) {
+                displayMessage('يرجى اختيار المسار/الدورة قبل التسجيل.', 'error');
+                courseSelect.focus();
+                return;
+            }
+
+            // 3. التحقق من الموافقة على الشروط
+            const agreeTermsCheckbox = document.getElementById('agreeTerms');
+            if (!agreeTermsCheckbox.checked) {
+                displayMessage('الرجاء الموافقة على الشروط والأحكام وسياسة الخصوصية للمتابعة.', 'error');
+                agreeTermsCheckbox.focus();
+                return;
+            }
+
+            // 4. تحديث بيانات المسار ونوع الطالب في البروفايل
+            const currentTrack = userTrackSelect ? userTrackSelect.value : 'general';
+            const currentStudentType = studentTypeSelect ? studentTypeSelect.value : 'skill_dev';
+            await updateUserProfile(user.id, currentTrack, currentStudentType);
+
+            // 5. إظهار مؤشر التحميل
+            const submitButton = document.querySelector('#enrollmentForm button[type="submit"]');
+            const originalText = submitButton.innerHTML;
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fas fa-spinner"></i> جاري التسجيل...';
+            submitButton.classList.add('loading');
+
+            // 6. الإدراج في جدول enrollments
+            try {
+                const { data, error } = await supabaseClient
+                    .from('enrollments')
+                    .insert([
+                        { 
+                            user_id: user.id, 
+                            course_id: courseId,
+                            completion_status: 'not_started' // الحالة الافتراضية
+                        }
+                    ]);
+
+                if (error) {
+                    if (error.code === '23505') { // انتهاك المفتاح الفريد (مكرر)
+                        displayMessage('أنت مسجل بالفعل في هذا المسار!', 'error');
+                    } else {
+                        console.error("Error:", error.message);
+                        displayMessage('حدث خطأ أثناء التسجيل. يرجى المحاولة لاحقاً.', 'error');
+                    }
+                } else {
+                    displayMessage('🎉 تم تسجيلك في المسار بنجاح! سيتم توجيهك إلى لوحة الطالب.', 'success');
+                    setTimeout(() => {
+                        window.location.href = "../dashboards/student.html";
+                    }, 2000);
+                }
+            } catch (err) {
+                console.error(err);
+                displayMessage('حدث خطأ غير متوقع. حاول مرة أخرى.', 'error');
+            } finally {
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalText;
+                submitButton.classList.remove('loading');
+            }
+        }
+
+        // دالة عرض الرسائل داخل النموذج
+        function displayMessage(message, type) {
+            const formMessage = document.getElementById('formMessage');
+            formMessage.innerHTML = message;
+            formMessage.className = `form-message ${type}`;
+            formMessage.style.display = 'block';
+            // إخفاء الرسالة بعد 5 ثوانٍ إذا لم تكن نجاحًا
+            if (type !== 'success') {
+                setTimeout(() => {
+                    if (formMessage.style.display === 'block') formMessage.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // ربط دالة الإرسال بالنموذج
+        const enrollmentForm = document.getElementById('enrollmentForm');
+        if (enrollmentForm) {
+            enrollmentForm.addEventListener('submit', submitEnrollment);
+        }
+
+        // تأثيرات بسيطة عند تحميل الصفحة
         document.addEventListener('DOMContentLoaded', () => {
             checkUser();
 
-            const enrollmentForm = document.getElementById('enrollmentForm');
-            const formMessage = document.getElementById('formMessage');
-            const agreeTermsCheckbox = document.getElementById('agreeTerms');
-            const submitButton = enrollmentForm.querySelector('button[type="submit"]');
-            const mainTitle = document.querySelector('.enrollment-container h2');
-
+            // تأثيرات التركيز على الحقول
             document.querySelectorAll('.form-group input, .form-group select, .form-group textarea').forEach(input => {
                 input.addEventListener('focus', function() {
                     this.parentElement.classList.add('focused');
@@ -989,104 +1082,13 @@
                     this.parentElement.classList.remove('focused');
                     if(this.parentElement.querySelector('label')) this.parentElement.querySelector('label').style.color = 'var(--primary-dark)';
                 });
-                input.addEventListener('input', function() {
-                    if (this.checkValidity()) this.style.borderColor = '#2e7d32';
-                    else this.style.borderColor = this.value ? '#c62828' : '#e0e6e9';
-                });
             });
-
-            let redirectTimeout, countdownInterval;
-            let submissionSuccessful = false;
-
-            async function handleSubmit(event) {
-                event.preventDefault();
-
-                const { data: { user } } = await supabaseClient.auth.getUser();
-                if (!user) {
-                    displayMessage('يرجى تسجيل الدخول أولاً لإتمام التسجيل في الدورة.', 'error');
-                    return;
-                }
-
-                if (!agreeTermsCheckbox.checked) {
-                    displayMessage('الرجاء الموافقة على الشروط والأحكام وسياسة الخصوصية للمتابعة.', 'error');
-                    agreeTermsCheckbox.focus();
-                    return;
-                }
-
-                // تحديث المسار ونوع الطالب في قاعدة البيانات قبل إرسال النموذج (حسب الاختيار الحالي)
-                const currentTrack = userTrackSelect ? userTrackSelect.value : 'general';
-                const currentStudentType = studentTypeSelect ? studentTypeSelect.value : 'skill_dev';
-                await updateUserProfile(user.id, currentTrack, currentStudentType);
-
-                clearTimeout(redirectTimeout);
-                clearInterval(countdownInterval);
-                submitButton.disabled = true;
-                submitButton.innerHTML = '<i class="fas fa-spinner"></i> جاري الإرسال...';
-                submitButton.classList.add('loading');
-                displayMessage('جاري إرسال طلبك، يرجى الانتظار...', 'info');
-                mainTitle.style.opacity = '0.5';
-
-                const form = event.target;
-                const formData = new FormData(form);
-                try {
-                    const response = await fetch(form.action, { method: form.method, body: formData, headers: { 'Accept': 'application/json' } });
-                    const result = await response.json();
-                    if (response.ok) {
-                        submissionSuccessful = true;
-                        let secondsLeft = 5;
-                        const successMessageHtml = `
-                            <p>✅ تم تسجيلكم بنجاح! سوف يتم التواصل معكم قريباً.</p>
-                            <p>سيتم تحويلك إلى الصفحة الرئيسية تلقائياً خلال <span class="countdown">${secondsLeft}</span> ثوانٍ.</p>
-                            <button id="goBackBtn">العودة إلى الصفحة الرئيسية الآن</button>
-                        `;
-                        displayMessage(successMessageHtml, 'success');
-                        mainTitle.textContent = (langManager && langManager.translations[langManager.currentLang]['enrollment-success-title']) || 'تم التسجيل بنجاح!';
-                        mainTitle.style.opacity = '1';
-                        enrollmentForm.style.display = 'none';
-                        enrollmentForm.reset();
-                        countdownInterval = setInterval(() => {
-                            secondsLeft--;
-                            const countdownElement = formMessage.querySelector('.countdown');
-                            if (countdownElement) countdownElement.textContent = secondsLeft;
-                            if (secondsLeft <= 0) clearInterval(countdownInterval);
-                        }, 1000);
-                        const goBackBtn = document.getElementById('goBackBtn');
-                        if (goBackBtn) goBackBtn.addEventListener('click', () => { clearTimeout(redirectTimeout); clearInterval(countdownInterval); window.location.href = "../index.html"; });
-                        redirectTimeout = setTimeout(() => window.location.href = "../index.html", 5000);
-                    } else {
-                        const errorMessage = result.errors ? result.errors.map(err => err.message).join(', ') : (result.message || 'يرجى المحاولة مرة أخرى.');
-                        displayMessage(`❌ حدث خطأ أثناء التسجيل: ${errorMessage}`, 'error');
-                        enrollmentForm.style.display = 'block';
-                        mainTitle.style.opacity = '1';
-                        mainTitle.textContent = (langManager && langManager.translations[langManager.currentLang]['enrollment-form-title']) || 'سجل الآن وابدأ رحلتك!';
-                    }
-                } catch (error) {
-                    displayMessage('⚠️ حدث خطأ في الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت والمحاولة لاحقًا.', 'error');
-                    enrollmentForm.style.display = 'block';
-                    mainTitle.style.opacity = '1';
-                    mainTitle.textContent = (langManager && langManager.translations[langManager.currentLang]['enrollment-form-title']) || 'سجل الآن وابدأ رحلتك!';
-                } finally {
-                    if (!submissionSuccessful) {
-                        submitButton.disabled = false;
-                        submitButton.innerHTML = `<i class="fas fa-paper-plane"></i> <span data-text="submit-enrollment">أكمل التسجيل</span>`;
-                        submitButton.classList.remove('loading');
-                        if (typeof langManager !== 'undefined') langManager.applyTranslations();
-                    }
-                }
-            }
-            function displayMessage(message, type) {
-                formMessage.innerHTML = message;
-                formMessage.className = `form-message ${type}`;
-                formMessage.style.display = 'block';
-            }
-            enrollmentForm.addEventListener('submit', handleSubmit);
 
             // الترجمات
             if (typeof langManager !== 'undefined' && langManager.translations) {
                 Object.assign(langManager.translations.ar, {
                     'enrollment-page-title': 'التسجيل في الدورات',
                     'enrollment-form-title': 'سجل الآن وابدأ رحلتك!',
-                    'enrollment-success-title': 'تم التسجيل بنجاح!',
                     'full-name-label': 'الاسم الكامل:',
                     'email-label': 'البريد الإلكتروني:',
                     'phone-label': 'رقم الهاتف:',
@@ -1105,7 +1107,6 @@
                 Object.assign(langManager.translations.en, {
                     'enrollment-page-title': 'Course Enrollment',
                     'enrollment-form-title': 'Enroll Now and Start Your Journey!',
-                    'enrollment-success-title': 'Enrollment Successful!',
                     'full-name-label': 'Full Name:',
                     'email-label': 'Email:',
                     'phone-label': 'Phone Number:',
