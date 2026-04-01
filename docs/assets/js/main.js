@@ -26,18 +26,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // السطر 27: استبدال $(document).ready بـ Vanilla JS
 document.addEventListener('DOMContentLoaded', () => {
-    // استبدال jQuery بـ querySelector للوصول للعناصر
-    const scrollMenu = document.querySelector('#mainNavLinks');
-    const scrollLeftBtn = document.querySelector('.scroll-btn-left');
-    const scrollRightBtn = document.querySelector('.scroll-btn-right');
-    const navigationWrapper = document.querySelector('.navigation-wrapper');
-
-    // فحص أمان: للتأكد من أن العناصر موجودة في الصفحة قبل تنفيذ أي كود عليها
-    if (scrollMenu) {
-        // هنا يمكنك وضع منطق التمرير الخاص بك باستخدام Vanilla JS
-        console.log("Scroll menu initialized safely.");
-    }
+    langManager.init();
 });
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="main.js"></script>
 
     // وظيفة للتحقق مما إذا كانت هناك حاجة لأزرار التمرير
     function checkScrollButtons() {
