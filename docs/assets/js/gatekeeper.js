@@ -118,9 +118,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+    
 
     // (اختياري) تغيير نص الزر إذا كان مسجلاً ليكون أكثر احترافية
     if (currentUser && ctaBtn) {
         ctaBtn.textContent = 'تابع رحلتك التعليمية';
     }
 });
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="main.js"></script>
