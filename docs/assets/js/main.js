@@ -25,11 +25,11 @@ document.addEventListener('DOMContentLoaded', () => {
 // تأكد من تشغيل هذا الكود بعد تحميل DOM بالكامل
 
 // السطر 27: استبدال $(document).ready بـ Vanilla JS
-document.addEventListener('DOMContentLoaded', () => {
-    langManager.init();
-});
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="main.js"></script>
+   $(document).ready(function() {
+    const scrollMenu = $('#mainNavLinks');
+    const scrollLeftBtn = $('.scroll-btn-left');
+    const scrollRightBtn = $('.scroll-btn-right');
+    const navigationWrapper = $('.navigation-wrapper');
 
     // وظيفة للتحقق مما إذا كانت هناك حاجة لأزرار التمرير
     function checkScrollButtons() {
