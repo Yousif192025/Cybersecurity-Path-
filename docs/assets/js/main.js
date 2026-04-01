@@ -436,3 +436,5 @@ const langManager = {
 document.addEventListener('DOMContentLoaded', () => {
     langManager.init();
 });
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="main.js"></script>
