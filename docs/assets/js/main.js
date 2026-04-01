@@ -136,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         coursesGrid.appendChild(courseCard);
     });
-
+});
 // في ملف main.js (أو ملف الترجمة الخاص بك)
 const translations = {
     'ar': {
