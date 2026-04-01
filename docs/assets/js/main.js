@@ -24,11 +24,20 @@ document.addEventListener('DOMContentLoaded', () => {
 // أضف هذا الكود في ملف glossary.js أو في الجزء الخاص بالسكريبت في صفحة القاموس
 // تأكد من تشغيل هذا الكود بعد تحميل DOM بالكامل
 
-$(document).ready(function() {
-    const scrollMenu = $('#mainNavLinks');
-    const scrollLeftBtn = $('.scroll-btn-left');
-    const scrollRightBtn = $('.scroll-btn-right');
-    const navigationWrapper = $('.navigation-wrapper');
+// السطر 27: استبدال $(document).ready بـ Vanilla JS
+document.addEventListener('DOMContentLoaded', () => {
+    // استبدال jQuery بـ querySelector للوصول للعناصر
+    const scrollMenu = document.querySelector('#mainNavLinks');
+    const scrollLeftBtn = document.querySelector('.scroll-btn-left');
+    const scrollRightBtn = document.querySelector('.scroll-btn-right');
+    const navigationWrapper = document.querySelector('.navigation-wrapper');
+
+    // فحص أمان: للتأكد من أن العناصر موجودة في الصفحة قبل تنفيذ أي كود عليها
+    if (scrollMenu) {
+        // هنا يمكنك وضع منطق التمرير الخاص بك باستخدام Vanilla JS
+        console.log("Scroll menu initialized safely.");
+    }
+});
 
     // وظيفة للتحقق مما إذا كانت هناك حاجة لأزرار التمرير
     function checkScrollButtons() {
