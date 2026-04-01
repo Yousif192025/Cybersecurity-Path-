@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="../assets/css/responsive.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* ===== جميع الأنماط الأصلية مع تحسينات إضافية ===== */
+        /* ===== جميع الأنماط الأصلية مع تحسينات ===== */
         :root {
             --primary-blue: #1a73e8;
             --accent-blue: #0d47a1;
@@ -531,12 +531,6 @@
         .input-field:focus {
             transform: translateY(-2px);
         }
-        .form-group .input-field:focus + label {
-            color: var(--primary-blue);
-        }
-        .animated {
-            animation: fadeIn 0.5s ease-out;
-        }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
@@ -703,59 +697,58 @@
                 </div>
                 
                 <form id="enrollmentForm">
-                    <!-- إزالة action و method للاعتماد على JavaScript -->
-                    <div class="form-group">
-                        <label for="fullName" data-text="full-name-label">الاسم الكامل:</label>
-                        <input type="text" id="fullName" name="fullName" required placeholder="أدخل اسمك الكامل">
-                    </div>
+                    <!-- حقل البريد الإلكتروني للقراءة فقط -->
                     <div class="form-group">
                         <label for="email" data-text="email-label">البريد الإلكتروني:</label>
                         <input type="email" id="email" name="email" required readonly placeholder="example@email.com">
                     </div>
-                    <div class="form-group">
-                        <label for="phone" data-text="phone-label">رقم الهاتف:</label>
-                        <input type="tel" id="phone" name="phone" placeholder="مثال: 05xxxxxxx" required>
+                    
+                    <!-- الحقول التي تظهر للمستخدم الجديد فقط (تأسيس البروفايل) -->
+                    <div id="profile-setup-fields">
+                        <div class="form-group">
+                            <label for="fullName" data-text="full-name-label">الاسم الكامل:</label>
+                            <input type="text" id="fullName" name="fullName" placeholder="أدخل اسمك الكامل">
+                        </div>
+                        <div class="form-group">
+                            <label for="phone" data-text="phone-label">رقم الهاتف:</label>
+                            <input type="tel" id="phone" name="phone" placeholder="مثال: 05xxxxxxx">
+                        </div>
+                        <div class="form-group">
+                            <label>اختيار المسار التعليمي</label>
+                            <select id="userTrack" class="input-field">
+                                <option value="general">اختر المسار الاهتمامي</option>
+                                <option value="cs">دبلوم علوم الحاسب (أكاديمي)</option>
+                                <option value="cybersecurity">دبلوم الأمن السيبراني (أكاديمي)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>نوع الطالب</label>
+                            <select id="studentType" class="input-field">
+                                <option value="skill_dev">تطوير مهارات (مرن)</option>
+                                <option value="academic">طالب منتظم (محتوى المؤسسة)</option>
+                            </select>
+                        </div>
                     </div>
                     
-                    <!-- اختيار المسار التعليمي (تم دمجه داخل النموذج الرئيسي) -->
                     <div class="form-group">
-                        <label>اختيار المسار التعليمي</label>
-                        <select id="userTrack" class="input-field">
-                            <option value="general">اختر المسار الاهتمامي</option>
-                            <option value="cs">دبلوم علوم الحاسب (أكاديمي)</option>
-                            <option value="cybersecurity">دبلوم الأمن السيبراني (أكاديمي)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>نوع الطالب</label>
-                        <select id="studentType" class="input-field">
-                            <option value="skill_dev">تطوير مهارات (مرن)</option>
-                            <option value="academic">طالب منتظم (محتوى المؤسسة)</option>
+                        <label for="selectedCourse" data-text="course-selection-label">اختر الدورة / المسار:</label>
+                        <select id="selectedCourse" name="selectedCourse" required class="input-field">
+                            <option value="">-- اختر دورة --</option>
+                            <option value="b22083dc-fdd4-4643-b13c-e1f66c4663b8">Cybersecurity Fundamentals</option>
+                            <option value="8e6ebael-2dc2-426d-a8dc-f922fff2c237">Ethical Hacking Basics</option>
+                            <option value="30fc7fe4-d4b5-4d27-8c94-5aac6f1609f4">Network Security</option>
+                            <option value="a4d411f1-13a4-4687-87b7-af6e811613c8">Web Application Security</option>
+                            <option value="85b4d61b-5838-4959-b68e-7cd30ff0dc69">Digital Forensics</option>
+                            <option value="469079d4-99cf-4652-8b25-af01423e1dce">Apply Encryption</option>
                         </select>
                     </div>
                     
-                    <div class="form-group">
-                        <label for="course" data-text="course-selection-label">اختر الدورة / المسار:</label>
-                        <select id="course" name="course" required>
-                            <option value="" data-text="select-option">-- اختر دورة --</option>
-                            <option value="info-sec-fundamentals" data-text="course-info-sec-fundamentals">أساسيات أمن المعلومات</option>
-                            <option value="network-security" data-text="course-network-security">أمن الشبكات</option>
-                            <option value="web-security" data-text="course-web-security">أمن تطبيقات الويب</option>
-                            <option value="digital-forensics" data-text="course-digital-forensics">التحليل الجنائي الرقمي</option>
-                            <option value="pentesting-beginner" data-text="course-pentesting-beginner">اختبار اختراق للمبتدئين</option>
-                            <option value="advanced-threat-detection" data-text="course-advanced-threat-detection">الكشف المتقدم عن التهديدات</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="message" data-text="message-label">رسالة إضافية (اختياري):</label>
-                        <textarea id="message" name="message" rows="4" placeholder="أخبرنا عن أهدافك أو أي استفسارات إضافية..."></textarea>
-                    </div>
                     <div class="checkbox-group">
                         <input type="checkbox" id="agreeTerms" name="agreeTerms" required>
                         <label for="agreeTerms" data-text="agree-terms-label">أوافق على <a href="../terms.html">الشروط والأحكام</a> و <a href="../privacy.html">سياسة الخصوصية</a></label>
                     </div>
                     <button type="submit" class="form-submit-btn" data-text="submit-enrollment">
-                        <i class="fas fa-paper-plane"></i> أكمل التسجيل
+                        <i class="fas fa-paper-plane"></i> تأكيد التسجيل في الدورة
                     </button>
                     <div id="formMessage" class="form-message"></div>
                 </form>
@@ -827,10 +820,14 @@
         const showSignupLink = document.getElementById('showSignupLink');
         const signupFormDiv = document.getElementById('signupFormDiv');
         const loginFormDiv = document.getElementById('loginFormDiv');
-
-        // عناصر المسار ونوع الطالب داخل نموذج التسجيل الرئيسي (بعد تسجيل الدخول)
+        
+        // حقل إعداد الملف الشخصي (للمستخدم الجديد)
+        const profileSetupFields = document.getElementById('profile-setup-fields');
+        // عناصر المسار ونوع الطالب داخل نموذج التسجيل الرئيسي
         const userTrackSelect = document.getElementById('userTrack');
         const studentTypeSelect = document.getElementById('studentType');
+        const fullNameInput = document.getElementById('fullName');
+        const phoneInput = document.getElementById('phone');
 
         function showAuthMessage(msg, type = 'error') {
             authMessageDiv.innerHTML = msg;
@@ -841,30 +838,32 @@
             }, 5000);
         }
 
-        // تحديث البروفايل بالمسار ونوع الطالب للمستخدم الحالي
-        async function updateUserProfile(userId, track, studentType) {
+        // تحديث البروفايل بالمسار ونوع الطالب والاسم ورقم الهاتف للمستخدم الجديد
+        async function updateUserProfile(userId, data) {
             if (!userId) return false;
             try {
                 const { error } = await supabaseClient
                     .from('user_profile')
-                    .update({ track: track, student_type: studentType })
+                    .update(data)
                     .eq('user_id', userId);
                 if (error) console.error("Error updating profile:", error);
                 return !error;
             } catch (err) { return false; }
         }
 
-        // جلب بيانات البروفايل الحالية وملء الخيارات
+        // جلب بيانات البروفايل الحالية لملء الحقول (للمستخدم المسجل)
         async function loadProfileIntoForm(userId) {
             if (!userId) return;
             const { data, error } = await supabaseClient
                 .from('user_profile')
-                .select('track, student_type')
+                .select('full_name, phone, track, student_type')
                 .eq('user_id', userId)
                 .maybeSingle();
             if (!error && data) {
-                if (data.track && userTrackSelect) userTrackSelect.value = data.track;
-                if (data.student_type && studentTypeSelect) studentTypeSelect.value = data.student_type;
+                if (fullNameInput && data.full_name) fullNameInput.value = data.full_name;
+                if (phoneInput && data.phone) phoneInput.value = data.phone;
+                if (userTrackSelect && data.track) userTrackSelect.value = data.track;
+                if (studentTypeSelect && data.student_type) studentTypeSelect.value = data.student_type;
             }
         }
 
@@ -930,18 +929,46 @@
             checkUser();
         }
 
+        // التحكم في عرض حقول إعداد الملف الشخصي بناءً على حالة المستخدم
+        function toggleProfileFields(isLoggedIn) {
+            if (profileSetupFields) {
+                if (isLoggedIn) {
+                    // مستخدم مسجل: إخفاء الحقول المزعجة
+                    profileSetupFields.style.display = 'none';
+                    // إزالة خاصية required من الحقول المخفية لتجنب منع الإرسال
+                    if (fullNameInput) fullNameInput.required = false;
+                    if (phoneInput) phoneInput.required = false;
+                    if (userTrackSelect) userTrackSelect.required = false;
+                    if (studentTypeSelect) studentTypeSelect.required = false;
+                } else {
+                    // مستخدم جديد: إظهار الحقول لتأسيس البروفايل
+                    profileSetupFields.style.display = 'block';
+                    if (fullNameInput) fullNameInput.required = true;
+                    if (phoneInput) phoneInput.required = true;
+                    if (userTrackSelect) userTrackSelect.required = true;
+                    if (studentTypeSelect) studentTypeSelect.required = true;
+                }
+            }
+        }
+
         // التحقق من حالة المستخدم وإظهار القسم المناسب
         async function checkUser() {
             const { data: { user }, error } = await supabaseClient.auth.getUser();
             if (user) {
+                // مستخدم مسجل
                 authSection.classList.add('hidden');
                 enrollmentSection.classList.remove('hidden');
                 userEmailSpan.textContent = user.email;
                 if (emailInput) emailInput.value = user.email;
+                // تحميل بيانات البروفايل الحالية
                 await loadProfileIntoForm(user.id);
+                // إخفاء حقول التأسيس
+                toggleProfileFields(true);
             } else {
+                // غير مسجل
                 authSection.classList.remove('hidden');
                 enrollmentSection.classList.add('hidden');
+                toggleProfileFields(false);
                 signupFormDiv.classList.remove('hidden');
                 loginFormDiv.classList.add('hidden');
                 document.getElementById('signupEmail').value = '';
@@ -949,6 +976,9 @@
                 document.getElementById('loginEmail').value = '';
                 document.getElementById('loginPassword').value = '';
                 authMessageDiv.style.display = 'none';
+                // إعادة تعيين الحقول
+                if (fullNameInput) fullNameInput.value = '';
+                if (phoneInput) phoneInput.value = '';
             }
         }
 
@@ -984,7 +1014,7 @@
             }
 
             // 2. جلب معرف المسار (الدورة)
-            const courseSelect = document.getElementById('course');
+            const courseSelect = document.getElementById('selectedCourse');
             const courseId = courseSelect.value;
 
             if (!courseId) {
@@ -1001,32 +1031,60 @@
                 return;
             }
 
-            // 4. تحديث بيانات المسار ونوع الطالب في البروفايل
-            const currentTrack = userTrackSelect ? userTrackSelect.value : 'general';
-            const currentStudentType = studentTypeSelect ? studentTypeSelect.value : 'skill_dev';
-            await updateUserProfile(user.id, currentTrack, currentStudentType);
-
-            // 5. إظهار مؤشر التحميل
+            // 4. إظهار مؤشر التحميل
             const submitButton = document.querySelector('#enrollmentForm button[type="submit"]');
             const originalText = submitButton.innerHTML;
             submitButton.disabled = true;
             submitButton.innerHTML = '<i class="fas fa-spinner"></i> جاري التسجيل...';
             submitButton.classList.add('loading');
 
-            // 6. الإدراج في جدول enrollments
             try {
-                const { data, error } = await supabaseClient
+                // للمستخدمين الجدد (الذين لم يكملوا بياناتهم بعد) نحدث البروفايل
+                const { data: profileData, error: profileFetchError } = await supabaseClient
+                    .from('user_profile')
+                    .select('full_name, phone, track, student_type')
+                    .eq('user_id', user.id)
+                    .maybeSingle();
+                
+                // إذا كانت البيانات غير مكتملة (مستخدم جديد لم يسبق له إدخال البيانات)
+                const needsProfileUpdate = !profileData || !profileData.full_name || !profileData.phone || !profileData.track;
+                
+                if (needsProfileUpdate && profileSetupFields && profileSetupFields.style.display !== 'none') {
+                    // المستخدم جديد ويجب تحديث بياناته
+                    const fullName = fullNameInput ? fullNameInput.value.trim() : '';
+                    const phone = phoneInput ? phoneInput.value.trim() : '';
+                    const track = userTrackSelect ? userTrackSelect.value : 'general';
+                    const studentType = studentTypeSelect ? studentTypeSelect.value : 'skill_dev';
+                    
+                    if (!fullName || !phone) {
+                        displayMessage('يرجى إدخال الاسم الكامل ورقم الهاتف.', 'error');
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = originalText;
+                        submitButton.classList.remove('loading');
+                        return;
+                    }
+                    
+                    await updateUserProfile(user.id, {
+                        full_name: fullName,
+                        phone: phone,
+                        track: track,
+                        student_type: studentType
+                    });
+                }
+                
+                // 5. الإدراج في جدول enrollments
+                const { error } = await supabaseClient
                     .from('enrollments')
                     .insert([
                         { 
                             user_id: user.id, 
                             course_id: courseId,
-                            completion_status: 'not_started' // الحالة الافتراضية
+                            completion_status: 'not_started'
                         }
                     ]);
 
                 if (error) {
-                    if (error.code === '23505') { // انتهاك المفتاح الفريد (مكرر)
+                    if (error.code === '23505') {
                         displayMessage('أنت مسجل بالفعل في هذا المسار!', 'error');
                     } else {
                         console.error("Error:", error.message);
@@ -1054,7 +1112,6 @@
             formMessage.innerHTML = message;
             formMessage.className = `form-message ${type}`;
             formMessage.style.display = 'block';
-            // إخفاء الرسالة بعد 5 ثوانٍ إذا لم تكن نجاحًا
             if (type !== 'success') {
                 setTimeout(() => {
                     if (formMessage.style.display === 'block') formMessage.style.display = 'none';
@@ -1096,7 +1153,7 @@
                     'select-option': '-- اختر دورة --',
                     'message-label': 'رسالة إضافية (اختياري):',
                     'agree-terms-label': 'أوافق على الشروط والأحكام و سياسة الخصوصية',
-                    'submit-enrollment': 'أكمل التسجيل',
+                    'submit-enrollment': 'تأكيد التسجيل في الدورة',
                     'course-info-sec-fundamentals': 'أساسيات أمن المعلومات',
                     'course-network-security': 'أمن الشبكات',
                     'course-web-security': 'أمن تطبيقات الويب',
@@ -1114,7 +1171,7 @@
                     'select-option': '-- Select a course --',
                     'message-label': 'Additional Message (optional):',
                     'agree-terms-label': 'I agree to the Terms & Conditions and Privacy Policy',
-                    'submit-enrollment': 'Complete Enrollment',
+                    'submit-enrollment': 'Confirm Course Enrollment',
                     'course-info-sec-fundamentals': 'Information Security Fundamentals',
                     'course-network-security': 'Network Security',
                     'course-web-security': 'Web Application Security',
@@ -1122,7 +1179,7 @@
                     'course-pentesting-beginner': 'Penetration Testing for Beginners',
                     'course-advanced-threat-detection': 'Advanced Threat Detection'
                 });
-                langManager.applyTranslations();
+                if (typeof langManager.applyTranslations === 'function') langManager.applyTranslations();
             }
         });
     </script>
