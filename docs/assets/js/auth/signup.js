@@ -1,6 +1,9 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
-const supabase = createClient("URL_الخاص_بك", "KEY_الخاص_بك");
-
+// بيانات مشروعك الحقيقية لربط Supabase
+const supabase = createClient(
+    "https://suvpaunulhqfoclepwoz.supabase.co", 
+    "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"
+);
 window.createAccount = async function() {
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
