@@ -1,5 +1,16 @@
+// import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
+const supabaseUrl = "https://suvpaunulhqfoclepwoz.supabase.co";
+const supabaseKey = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
+
+// الحل الذكي: التحقق مما إذا كان Supabase موجوداً مسبقاً في الذاكرة
+if (!window.supabase) {
+    window.supabase = createClient(supabaseUrl, supabaseKey);
+}
+const supabase = window.supabase;
+
+// بقية الكود الخاص بـ login...
 // بيانات مشروعك الحقيقية لربط Supabase
 const supabase = createClient(
     "https://suvpaunulhqfoclepwoz.supabase.co", 
