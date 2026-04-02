@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إنشاء حساب | منصة الأمن السيبراني</title>
+    <title>إنشاء حساب | منصة مسار الأمن السيبراني</title>
     <style>
         * {
             margin: 0;
@@ -210,7 +210,7 @@
     </div>
 </div>
 
-<!-- jQuery (لضمان عدم ظهور خطأ $ في main.js إذا تم استدعاؤه لاحقاً) -->
+<!-- jQuery لضمان توافق main.js إذا تم تحميله -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script type="module">
@@ -221,7 +221,7 @@
         "https://suvpaunulhqfoclepwoz.supabase.co",
         "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"
     )
-    window.supabaseClient = supabase; // للاستخدام العام إذا لزم الأمر
+    window.supabaseClient = supabase; // للاستخدام العام
 
     // عناصر DOM
     const emailInput = document.getElementById("email");
@@ -231,13 +231,11 @@
     const loaderDiv = document.getElementById("loader");
     const messageP = document.getElementById("message");
 
-    // دالة عرض الرسائل
     function showMessage(msg, type = "error") {
         messageP.innerText = msg;
         messageP.className = type === "success" ? "success-msg" : "error-msg";
     }
 
-    // دالة التسجيل والربط الذكي
     window.signup = async function() {
         const email = emailInput.value.trim();
         const password = passwordInput.value;
@@ -257,14 +255,13 @@
             return;
         }
 
-        // تعطيل الزر وإظهار المحمل
         signupBtn.disabled = true;
         loaderDiv.style.display = "block";
         messageP.innerText = "";
         messageP.className = "";
 
         try {
-            // 1. إنشاء الحساب في Supabase Auth
+            // 1. إنشاء الحساب في Supabase Auth (البريد الإلكتروني فقط)
             const { data: authData, error: authError } = await supabase.auth.signUp({
                 email: email,
                 password: password,
@@ -273,77 +270,64 @@
                 }
             });
 
-            if (authError) {
-                throw new Error(authError.message);
-            }
-
+            if (authError) throw new Error(authError.message);
             const newUserId = authData.user.id;
 
-            // 2. البحث في جدول user_profile عن سجل بنفس رقم الهوية ولم يربط بعد (user_id == null أو غير موجود)
-            //    هذا السجل يفترض أنه تم رفعه مسبقاً من ملف الـ 397 طالباً
+            // 2. البحث عن ملف شخصي مرفوع مسبقاً بنفس رقم الهوية (البيانات الأكاديمية الـ 397)
             const { data: existingProfile, error: fetchError } = await supabase
                 .from('user_profile')
                 .select('*')
                 .eq('national_id', nationalId)
-                .maybeSingle();  // قد يكون موجوداً أو لا
+                .maybeSingle();
 
             if (fetchError && fetchError.code !== 'PGRST116') {
-                console.warn("خطأ في البحث عن الملف:", fetchError);
-                // نستمر في المحاولة
+                console.warn("خطأ في البحث:", fetchError);
             }
 
             let welcomeName = "";
 
             if (existingProfile) {
-                // حالة (أ): الطالب موجود في قائمة الـ 397 (بيانات أكاديمية مرفوعة)
-                // نقوم بتحديث هذا السجل بربط user_id به
-                const updateData = {
-                    user_id: newUserId,
-                    email: email,      // تحديث البريد في جدول الملف الشخصي
-                    role: existingProfile.role || 'student'
-                };
-                // إذا كان السجل قديم وليس له user_id، نضيفه
+                // ✅ حالة الربط: الطالب موجود في البيانات المرفوعة
+                // نربط user_id بهذا السجل (لا نرسل email لأنه غير موجود في الجدول)
                 const { error: updateError } = await supabase
                     .from('user_profile')
-                    .update(updateData)
+                    .update({ user_id: newUserId })
                     .eq('national_id', nationalId);
 
                 if (updateError) {
-                    console.error("فشل ربط الحساب:", updateError);
+                    console.error("فشل الربط:", updateError);
                     throw new Error("حدث خطأ أثناء ربط حسابك بالبيانات الأكاديمية. يرجى التواصل مع الدعم.");
                 }
 
                 welcomeName = existingProfile.full_name || existingProfile.name || "الطالب";
-                showMessage(`🎉 مرحباً ${welcomeName}! تم التعرف عليك بنجاح وربط حسابك ببياناتك الأكاديمية. سيتم توجيهك لتسجيل الدخول.`, "success");
+                showMessage(`🎉 مرحباً ${welcomeName}! تم التعرف عليك بنجاح وربط حسابك ببياناتك الأكاديمية.`, "success");
             } else {
-                // حالة (ب): رقم الهوية غير موجود في قاعدة البيانات المرفوعة
-                // نقوم بإنشاء ملف شخصي جديد للمستخدم كـ "زائر" أو "طالب جديد"
+                // ❌ حالة الضيف: إنشاء ملف شخصي جديد بدون عمود email
                 const { error: insertError } = await supabase
                     .from('user_profile')
                     .insert([{
                         user_id: newUserId,
                         national_id: nationalId,
-                        email: email,
                         role: 'guest',
-                        status: 'طالب جديد',
-                        full_name: '',
-                        phone: '',
+                        status: 'نشط',
+                        full_name: 'مستخدم جديد',
                         track: 'general',
                         student_type: 'skill_dev'
+                        // لا يوجد عمود email هنا - تم حذفه
                     }]);
 
                 if (insertError) {
-                    console.error("فشل إنشاء ملف الزائر:", insertError);
+                    console.error("فشل إنشاء ملف الضيف:", insertError);
                     throw new Error("تم إنشاء الحساب ولكن حدث خطأ في إعداد ملفك الشخصي. يمكنك إكمال البيانات لاحقاً.");
                 }
 
                 showMessage("✅ تم إنشاء حسابك كضيف. يمكنك تسجيل الدخول وإكمال بياناتك الشخصية لاحقاً.", "success");
             }
 
-            // 3. تسجيل خروج المستخدم تلقائياً (لأنه قد يكون مسجل دخول)
+            // تسجيل الخروج لتجنب البقاء مسجلاً دخولاً
             await supabase.auth.signOut();
 
-            // 4. توجيه المستخدم إلى صفحة تسجيل الدخول بعد 2.5 ثانية
+            // التوجيه إلى صفحة تسجيل الدخول بعد 2.5 ثانية
             setTimeout(() => {
                 window.location.href = "login.html";
             }, 2500);
@@ -356,15 +340,13 @@
         }
     };
 
-    // ربط الحدث بالزر
     signupBtn.addEventListener("click", (e) => {
         e.preventDefault();
         window.signup();
     });
 
     // دعم الضغط على Enter
-    const inputs = [emailInput, passwordInput, nationalIdInput];
-    inputs.forEach(inp => {
+    [emailInput, passwordInput, nationalIdInput].forEach(inp => {
         inp.addEventListener("keypress", (e) => {
             if (e.key === "Enter") {
                 e.preventDefault();
@@ -373,13 +355,12 @@
         });
     });
 
-    // تحقق فوري من صحة رقم الهوية (اختياري)
+    // تحقق فوري من رقم الهوية (أرقام فقط وحد أقصى 10)
     nationalIdInput.addEventListener("input", function(e) {
         this.value = this.value.replace(/[^0-9]/g, '').slice(0,10);
     });
 </script>
 
 <!-- يمكن إضافة main.js إذا كان موجوداً ولا يعتمد على jQuery بشكل إلزامي -->
-<!-- <script src="../assets/js/main.js"></script> -->
 </body>
 </html>
