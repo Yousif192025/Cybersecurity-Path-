@@ -1,202 +1,10 @@
-// Inside your <script> tags in student-dashboard.html
-document.addEventListener('DOMContentLoaded', () => {
-    // Apply translations first
-    const savedLang = localStorage.getItem('lang') || 'ar';
-    if (typeof applyTranslations === 'function') {
-        applyTranslations(savedLang);
-    }
-
-    // --- Simulate fetching student data ---
-    // In a real application, this would be an API call after user authentication
-    const studentData = {
-        name: 'محمد', // Example: Retrieved from user session/profile
-        stats: {
-            registeredCourses: 4,
-            completedCertificates: 2,
-            completionRate: '88%'
-        },
-        enrolledCourses: [
-            { id: 1, titleKey: 'course-info-sec-fundamentals', progress: 80, link: '/Cybersecurity-Path-/courses/info-sec-fundamentals.html' },
-            { id: 2, titleKey: 'course-network-security', progress: 50, link: '/Cybersecurity-Path-/courses/network-security.html' },
-            { id: 3, titleKey: 'course-pentesting-beginner', progress: 100, link: '/Cybersecurity-Path-/courses/pentesting-beginner.html', certificate: true }
-        ]
-    };
-// أضف هذا الكود في ملف glossary.js أو في الجزء الخاص بالسكريبت في صفحة القاموس
-// تأكد من تشغيل هذا الكود بعد تحميل DOM بالكامل
-
-// السطر 27: استبدال $(document).ready بـ Vanilla JS
-    $(document).ready(function() {
-    const scrollMenu = $('#mainNavLinks');
-    const scrollLeftBtn = $('.scroll-btn-left');
-    const scrollRightBtn = $('.scroll-btn-right');
-    const navigationWrapper = $('.navigation-wrapper');
-
-    // وظيفة للتحقق مما إذا كانت هناك حاجة لأزرار التمرير
-    function checkScrollButtons() {
-        if (scrollMenu[0].scrollWidth > scrollMenu[0].clientWidth) {
-            navigationWrapper.find('.scroll-btn').addClass('active');
-        } else {
-            navigationWrapper.find('.scroll-btn').removeClass('active');
-        }
-
-        // إخفاء/إظهار زر التمرير لليسار
-        if (scrollMenu[0].scrollLeft === 0) {
-            scrollLeftBtn.removeClass('active');
-        } else {
-            scrollLeftBtn.addClass('active');
-        }
-
-        // إخفاء/إظهار زر التمرير لليمين
-        if (scrollMenu[0].scrollLeft + scrollMenu[0].clientWidth >= scrollMenu[0].scrollWidth - 5) { // -5 بكسل للتسامح
-            scrollRightBtn.removeClass('active');
-        } else {
-            scrollRightBtn.addClass('active');
-        }
-    }
-
-    // وظيفة التمرير
-    function scrollHorizontally(direction) {
-        const scrollAmount = 200; // مقدار التمرير بالبكسل
-        if (direction === 'left') {
-            scrollMenu.animate({ scrollLeft: scrollMenu.scrollLeft() - scrollAmount }, 300);
-        } else {
-            scrollMenu.animate({ scrollLeft: scrollMenu.scrollLeft() + scrollAmount }, 300);
-        }
-    }
-
-    // إضافة مستمعي الأحداث لأزرار التمرير
-    scrollLeftBtn.on('click', function() {
-        scrollHorizontally('left');
-    });
-
-    scrollRightBtn.on('click', function() {
-        scrollHorizontally('right');
-    });
-
-    // إضافة مستمع حدث للتمرير اليدوي (بواسطة المستخدم)
-    scrollMenu.on('scroll', checkScrollButtons);
-
-    // إضافة مستمع حدث لتغيير حجم النافذة (مهم للاستجابة)
-    $(window).on('resize', function() {
-        checkScrollButtons();
-    });
-
-    // تحقق عند التحميل الأولي وبعد أي تحديثات على DOM
-    checkScrollButtons();
-
-    // 🚨 ملاحظة مهمة: إذا كنت تستخدم Bootstrap's Navbar Toggler،
-    // فإن القائمة قد تكون مخفية في البداية. يجب إعادة فحص الأزرار
-    // بمجرد أن تصبح القائمة مرئية أو بعد انتهاء تأثير الانهيار.
-    // يمكن تحقيق ذلك باستخدام أحداث Bootstrap 'shown.bs.collapse'
-    $('#navbarNav').on('shown.bs.collapse', function () {
-        // عند فتح قائمة النافبار المنهارة، لا نحتاج لأزرار التمرير
-        navigationWrapper.find('.scroll-btn').removeClass('active');
-    }).on('hidden.bs.collapse', function () {
-        // عند إغلاقها، أعد فحص الحاجة لأزرار التمرير
-        checkScrollButtons();
-    });
-
-});
-    // Update Student Name
-    document.getElementById('studentName').textContent = studentData.name;
-
-    // Update Stats
-    document.getElementById('coursesRegistered').textContent = studentData.stats.registeredCourses;
-    document.getElementById('certificatesCompleted').textContent = studentData.stats.completedCertificates;
-    document.getElementById('completionRate').textContent = studentData.stats.completionRate + '%';
-
-    // Populate Courses Dynamically
-    const coursesGrid = document.getElementById('coursesGrid');
-    coursesGrid.innerHTML = ''; // Clear static content if any
-
-    studentData.enrolledCourses.forEach(course => {
-        const courseCard = document.createElement('div');
-        courseCard.className = 'course-card';
-
-        // Get translated course title and button text
-        const currentTranslations = translations[savedLang];
-        const courseTitle = currentTranslations[course.titleKey] || course.titleKey; // Fallback to key if no translation
-        const buttonTextKey = course.certificate ? 'view-certificate' : 'continue-course';
-        const buttonText = currentTranslations[buttonTextKey] || buttonTextKey;
-        const progressLabel = currentTranslations['progress-label'] || 'Progress';
-
-
-        courseCard.innerHTML = `
-            <h4>${courseTitle}</h4>
-            <p>${progressLabel}: <span class="progress-value">${course.progress}%</span></p>
-            <a href="${course.link}">${buttonText}</a>
-        `;
-        coursesGrid.appendChild(courseCard);
-    });
-});
-// في ملف main.js (أو ملف الترجمة الخاص بك)
-const translations = {
-    'ar': {
-        // ... مفاتيحك الموجودة ...
-        'cyber-guide': 'الدليل السيبراني',
-        'cyber-guide-desc': 'تعرّف على أهم الخطوات الأساسية للدخول في مجال الأمن السيبراني.',
-        'learning-paths': 'المسارات التعليمية',
-        'pathways-desc': 'اختر مسارك التعليمي حسب مستواك وأهدافك.',
-        'glossary-title': 'قاموس المصطلحات', // تم تعديل الاسم ليكون أكثر تحديداً إذا كان هناك "glossary-desc"
-        'glossary-desc': 'مرجع شامل لمصطلحات الأمن السيبراني مترجمة ومشروحة.',
-        'training-games': 'الألعاب التدريبية',
-        'games-desc': 'تعلم من خلال الألعاب التفاعلية والتحديات الأمنية.',
-        'digital-skills-tests': 'اختبارات المهارات الرقمية',
-        'tests-desc': 'اختبر معلوماتك وحسّن مهاراتك عبر اختبارات متدرجة.',
-        'student-dashboard': 'لوحة تحكم الطالب',
-        'student-dashboard-desc': 'تابع تقدمك، وادخل إلى دوراتك وشهاداتك.', // وصف جديد خاص بلوحة تحكم الطالب
-        'free-platforms-link': 'منصات مجانية',
-        'free-platforms-desc': 'منصات مفتوحة للبرمجة وتطبيقات الأمن السيبراني.', // وصف خاص بالمنصات المجانية
-        // ... مفاتيح أخرى ...
-    },
-    'en': {
-        // ... الترجمات الإنجليزية المقابلة ...
-    }
-};
-document.addEventListener("DOMContentLoaded", function () {
-    // أكورديون خارجي
-    const headers = document.querySelectorAll(".accordion-header");
-    headers.forEach(header => {
-        header.addEventListener("click", function () {
-            const body = this.nextElementSibling;
-            body.classList.toggle("open");
-            this.classList.toggle("active");
-        });
-    });
-
-    // أكورديون داخلي للأرباع
-    const quarters = document.querySelectorAll('.quarter h4');
-    quarters.forEach(quarter => {
-        quarter.addEventListener('click', function () {
-            const ul = this.nextElementSibling;
-            ul.classList.toggle('open');
-            this.classList.toggle('active'); // لإضافة/إزالة علامة الزائد/الناقص
-        });
-    });
-});
-
-// هذه الوظائف يمكن أن تبقى هنا أو تُنقل إلى ملف JavaScript مخصص إذا تم استخدامها في العديد من الصفحات
-function viewFile(url) {
-    window.open(url, '_blank');
-}
-
-function printFile(url) {
-    const printWindow = window.open(url, '_blank');
-    printWindow.onload = function () {
-        printWindow.focus();
-        printWindow.print();
-    };
-}
-
-
 // Cybersecurity-Path/assets/js/main.js
 
-// نظام اللغات
+// 1. نظام اللغات (المصدر الوحيد للحقيقة في الترجمة)
 const langManager = {
     currentLang: 'ar',
     translations: {
         ar: {
-            // ترجمات عامة للموقع (من index, about, contact, etc.)
             'platform-name': 'منصة الأمن السيبراني',
             'home-nav': 'الرئيسية',
             'about-nav': 'عن المنصة',
@@ -222,7 +30,7 @@ const langManager = {
             'location-footer': 'محافظة القريات-الجوف-المملكة العربية السعودية',
             'copyright-footer': '© 2025 Yousif E.Hashim جميع الحقوق محفوظة',
 
-            // ترجمات لوحة تحكم الطالب (student-dashboard.html)
+            // ترجمات لوحة تحكم الطالب
             'student-dashboard-title': 'لوحة تحكم الطالب',
             'welcome-heading': 'مرحبًا، ',
             'welcome-message': 'هذه هي لوحة التحكم الخاصة بك. يمكنك متابعة تقدمك والوصول إلى الدورات والشهادات هنا.',
@@ -234,7 +42,7 @@ const langManager = {
             'continue-course': 'متابعة الدورة',
             'view-certificate': 'عرض الشهادة',
 
-            // ترجمات صفحة التسجيل (enrollment.html)
+            // ترجمات صفحة التسجيل
             'enrollment-page-title': 'التسجيل في الدورات',
             'enrollment-form-title': 'سجل الآن وابدأ رحلتك!',
             'full-name-label': 'الاسم الكامل:',
@@ -246,7 +54,7 @@ const langManager = {
             'agree-terms-label': 'أوافق على الشروط والأحكام و سياسة الخصوصية',
             'submit-enrollment': 'أكمل التسجيل',
 
-            // ترجمات الدورات (مشتركة بين dashboard و enrollment)
+            // ترجمات الدورات
             'course-info-sec-fundamentals': 'أساسيات أمن المعلومات',
             'course-network-security': 'أمن الشبكات',
             'course-pentesting-beginner': 'اختبار اختراق للمبتدئين',
@@ -254,16 +62,23 @@ const langManager = {
             'course-digital-forensics': 'التحليل الجنائي الرقمي',
             'course-advanced-threat-detection': 'الكشف المتقدم عن التهديدات',
 
-            // ترجمات التقويم (calendar.html)
+            // ترجمات القاموس والدليل
+            'cyber-guide': 'الدليل السيبراني',
+            'cyber-guide-desc': 'تعرّف على أهم الخطوات الأساسية للدخول في مجال الأمن السيبراني.',
+            'learning-paths': 'المسارات التعليمية',
+            'pathways-desc': 'اختر مسارك التعليمي حسب مستواك وأهدافك.',
+            'glossary-title': 'قاموس المصطلحات',
+            'glossary-desc': 'مرجع شامل لمصطلحات الأمن السيبراني مترجمة ومشروحة.',
+            'training-games': 'الألعاب التدريبية',
+            'games-desc': 'تعلم من خلال الألعاب التفاعلية والتحديات الأمنية.',
+            'digital-skills-tests': 'اختبارات المهارات الرقمية',
+            'tests-desc': 'اختبر معلوماتك وحسّن مهاراتك عبر اختبارات متدرجة.',
+            'free-platforms-desc': 'منصات مفتوحة للبرمجة وتطبيقات الأمن السيبراني.',
+            
+            // ترجمات التقويم
             'calendar-page-title': 'تقويم الدورات والفعاليات',
             'calendar-heading': 'تقويم الدورات والفعاليات',
-            'sun': 'الأحد',
-            'mon': 'الإثنين',
-            'tue': 'الثلاثاء',
-            'wed': 'الأربعاء',
-            'thu': 'الخميس',
-            'fri': 'الجمعة',
-            'sat': 'السبت',
+            'sun': 'الأحد', 'mon': 'الإثنين', 'tue': 'الثلاثاء', 'wed': 'الأربعاء', 'thu': 'الخميس', 'fri': 'الجمعة', 'sat': 'السبت',
             'event-date-label': 'التاريخ:',
             'event-time-label': 'الوقت:',
             'event-description-label': 'الوصف:',
@@ -271,7 +86,6 @@ const langManager = {
             'event-link-label': 'الرابط:'
         },
         en: {
-            // English translations
             'platform-name': 'Cybersecurity Platform',
             'home-nav': 'Home',
             'about-nav': 'About Us',
@@ -299,7 +113,7 @@ const langManager = {
 
             'student-dashboard-title': 'Student Dashboard',
             'welcome-heading': 'Welcome, ',
-            'welcome-message': 'This is your dashboard. You can track your progress and access courses and certificates here.',
+            'welcome-message': 'This is your dashboard. You can track your progress here.',
             'courses-registered': 'Courses Registered',
             'certificates-completed': 'Certificates Completed',
             'completion-rate': 'Completion Rate',
@@ -309,37 +123,28 @@ const langManager = {
             'view-certificate': 'View Certificate',
 
             'enrollment-page-title': 'Course Enrollment',
-            'enrollment-form-title': 'Enroll Now and Start Your Journey!',
+            'enrollment-form-title': 'Enroll Now!',
             'full-name-label': 'Full Name:',
             'email-label': 'Email:',
             'phone-label': 'Phone Number:',
-            'course-selection-label': 'Select Course / Path:',
+            'course-selection-label': 'Select Course:',
             'select-option': '-- Select a course --',
-            'message-label': 'Additional Message (optional):',
-            'agree-terms-label': 'I agree to the Terms & Conditions and Privacy Policy',
+            'message-label': 'Message (optional):',
+            'agree-terms-label': 'I agree to Terms & Privacy Policy',
             'submit-enrollment': 'Complete Enrollment',
 
-            'course-info-sec-fundamentals': 'Information Security Fundamentals',
+            'course-info-sec-fundamentals': 'InfoSec Fundamentals',
             'course-network-security': 'Network Security',
-            'course-pentesting-beginner': 'Penetration Testing for Beginners',
-            'course-web-security': 'Web Application Security',
+            'course-pentesting-beginner': 'Ethical Hacking Intro',
+            'course-web-security': 'Web App Security',
             'course-digital-forensics': 'Digital Forensics',
             'course-advanced-threat-detection': 'Advanced Threat Detection',
 
-            'calendar-page-title': 'Courses & Events Calendar',
+            'calendar-page-title': 'Events Calendar',
             'calendar-heading': 'Courses & Events Calendar',
-            'sun': 'Sun',
-            'mon': 'Mon',
-            'tue': 'Tue',
-            'wed': 'Wed',
-            'thu': 'Thu',
-            'fri': 'Fri',
-            'sat': 'Sat',
-            'event-date-label': 'Date:',
-            'event-time-label': 'Time:',
-            'event-description-label': 'Description:',
-            'event-type-label': 'Type:',
-            'event-link-label': 'Link:'
+            'sun': 'Sun', 'mon': 'Mon', 'tue': 'Tue', 'wed': 'Wed', 'thu': 'Thu', 'fri': 'Fri', 'sat': 'Sat',
+            'event-date-label': 'Date:', 'event-time-label': 'Time:', 'event-description-label': 'Description:',
+            'event-type-label': 'Type:', 'event-link-label': 'Link:'
         }
     },
 
@@ -360,6 +165,9 @@ const langManager = {
         this.applyTranslations();
         this.updateLangToggle();
         localStorage.setItem('cyberPathLang', lang);
+        
+        // إعادة تهيئة العناصر الديناميكية عند تغيير اللغة (مثل لوحة تحكم الطالب)
+        if (typeof renderStudentDashboard === 'function') renderStudentDashboard();
     },
 
     applyTranslations() {
@@ -367,8 +175,6 @@ const langManager = {
             const key = el.getAttribute('data-text');
             if (this.translations[this.currentLang][key]) {
                 el.textContent = this.translations[this.currentLang][key];
-            } else {
-                console.warn(`Missing translation key: ${key} for language: ${this.currentLang}`);
             }
         });
     },
@@ -385,13 +191,9 @@ const langManager = {
         const menuToggle = document.getElementById('menu-toggle');
         const mobileNav = document.getElementById('mobile-nav');
         if (menuToggle && mobileNav) {
-            menuToggle.addEventListener('click', () => {
-                mobileNav.classList.toggle('active');
-            });
+            menuToggle.addEventListener('click', () => mobileNav.classList.toggle('active'));
             mobileNav.querySelectorAll('a').forEach(link => {
-                link.addEventListener('click', () => {
-                    mobileNav.classList.remove('active');
-                });
+                link.addEventListener('click', () => mobileNav.classList.remove('active'));
             });
         }
 
@@ -404,37 +206,134 @@ const langManager = {
             });
         }
 
-        // Scroll to Top/Bottom Buttons
+        // Scroll Buttons Logic (Vanilla JS)
+        this.setupScrollLogic();
+        
+        // Scroll To Top/Bottom
+        this.setupWindowScrolls();
+    },
+
+    setupScrollLogic() {
+        const scrollMenu = document.getElementById('mainNavLinks');
+        const scrollLeftBtn = document.querySelector('.scroll-btn-left');
+        const scrollRightBtn = document.querySelector('.scroll-btn-right');
+        const navigationWrapper = document.querySelector('.navigation-wrapper');
+
+        if (!scrollMenu || !scrollLeftBtn || !scrollRightBtn) return;
+
+        const checkScrollButtons = () => {
+            const isScrollable = scrollMenu.scrollWidth > scrollMenu.clientWidth;
+            if (isScrollable) {
+                navigationWrapper.querySelectorAll('.scroll-btn').forEach(btn => btn.classList.add('active'));
+            } else {
+                navigationWrapper.querySelectorAll('.scroll-btn').forEach(btn => btn.classList.remove('active'));
+            }
+
+            scrollLeftBtn.classList.toggle('active', scrollMenu.scrollLeft !== 0);
+            const isAtEnd = scrollMenu.scrollLeft + scrollMenu.clientWidth >= scrollMenu.scrollWidth - 5;
+            scrollRightBtn.classList.toggle('active', !isAtEnd);
+        };
+
+        const scrollHorizontally = (direction) => {
+            const amount = direction === 'left' ? -200 : 200;
+            scrollMenu.scrollBy({ left: amount, behavior: 'smooth' });
+        };
+
+        scrollLeftBtn.addEventListener('click', () => scrollHorizontally('left'));
+        scrollRightBtn.addEventListener('click', () => scrollHorizontally('right'));
+        scrollMenu.addEventListener('scroll', checkScrollButtons);
+        window.addEventListener('resize', checkScrollButtons);
+        checkScrollButtons();
+    },
+
+    setupWindowScrolls() {
         const scrollToTopBtn = document.getElementById('scrollToTopBtn');
         const scrollToBottomBtn = document.getElementById('scrollToBottomBtn');
         if (scrollToTopBtn && scrollToBottomBtn) {
             window.addEventListener('scroll', () => {
-                if (window.scrollY > 300) {
-                    scrollToTopBtn.style.display = 'block';
-                    scrollToBottomBtn.style.display = 'block';
-                } else {
-                    scrollToTopBtn.style.display = 'none';
-                    scrollToBottomBtn.style.display = 'none';
-                }
-                if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 50) {
-                    scrollToBottomBtn.style.display = 'none';
-                } else if (window.scrollY > 300) {
-                    scrollToBottomBtn.style.display = 'block';
-                }
+                const scrolled = window.scrollY > 300;
+                scrollToTopBtn.style.display = scrolled ? 'block' : 'none';
+                scrollToBottomBtn.style.display = (scrolled && (window.innerHeight + window.scrollY) < document.body.offsetHeight - 50) ? 'block' : 'none';
             });
-
-            scrollToTopBtn.addEventListener('click', () => {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            });
-            scrollToBottomBtn.addEventListener('click', () => {
-                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-            });
+            scrollToTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+            scrollToBottomBtn.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
         }
     }
 };
 
-// Initialize the language manager when the DOM is fully loaded
+// 2. محاكاة بيانات لوحة تحكم الطالب (Student Dashboard Logic)
+function renderStudentDashboard() {
+    const studentNameEl = document.getElementById('studentName');
+    if (!studentNameEl) return; // تأكد أننا في صفحة الـ Dashboard
+
+    const studentData = {
+        name: 'محمد',
+        stats: { registeredCourses: 4, completedCertificates: 2, completionRate: '88' },
+        enrolledCourses: [
+            { id: 1, titleKey: 'course-info-sec-fundamentals', progress: 80, link: '/Cybersecurity-Path-/courses/info-sec-fundamentals.html' },
+            { id: 2, titleKey: 'course-network-security', progress: 50, link: '/Cybersecurity-Path-/courses/network-security.html' },
+            { id: 3, titleKey: 'course-pentesting-beginner', progress: 100, link: '/Cybersecurity-Path-/courses/pentesting-beginner.html', certificate: true }
+        ]
+    };
+
+    // تحديث النصوص الأساسية
+    studentNameEl.textContent = studentData.name;
+    document.getElementById('coursesRegistered').textContent = studentData.stats.registeredCourses;
+    document.getElementById('certificatesCompleted').textContent = studentData.stats.completedCertificates;
+    document.getElementById('completionRate').textContent = studentData.stats.completionRate + '%';
+
+    // تعبئة الدورات
+    const coursesGrid = document.getElementById('coursesGrid');
+    if (coursesGrid) {
+        coursesGrid.innerHTML = '';
+        const currentLang = langManager.currentLang;
+        const trans = langManager.translations[currentLang];
+
+        studentData.enrolledCourses.forEach(course => {
+            const courseTitle = trans[course.titleKey] || course.titleKey;
+            const btnKey = course.certificate ? 'view-certificate' : 'continue-course';
+            const btnText = trans[btnKey] || btnKey;
+            const progressLabel = trans['progress-label'] || 'Progress';
+
+            const card = document.createElement('div');
+            card.className = 'course-card';
+            card.innerHTML = `
+                <h4>${courseTitle}</h4>
+                <p>${progressLabel}: <span class="progress-value">${course.progress}%</span></p>
+                <a href="${course.link}">${btnText}</a>
+            `;
+            coursesGrid.appendChild(card);
+        });
+    }
+}
+
+// 3. أكورديون القاموس والوظائف العامة
+function setupAccordion() {
+    document.querySelectorAll(".accordion-header").forEach(header => {
+        header.addEventListener("click", function() {
+            this.nextElementSibling.classList.toggle("open");
+            this.classList.toggle("active");
+        });
+    });
+
+    document.querySelectorAll('.quarter h4').forEach(quarter => {
+        quarter.addEventListener('click', function() {
+            this.nextElementSibling.classList.toggle('open');
+            this.classList.toggle('active');
+        });
+    });
+}
+
+// وظائف فتح الطباعة والعرض
+function viewFile(url) { window.open(url, '_blank'); }
+function printFile(url) {
+    const win = window.open(url, '_blank');
+    win.onload = () => { win.focus(); win.print(); };
+}
+
+// تشغيل الكل عند تحميل الصفحة
 document.addEventListener('DOMContentLoaded', () => {
     langManager.init();
+    renderStudentDashboard();
+    setupAccordion();
 });
-
