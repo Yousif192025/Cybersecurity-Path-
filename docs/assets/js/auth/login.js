@@ -3,14 +3,13 @@ import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 const supabaseUrl = "https://suvpaunulhqfoclepwoz.supabase.co";
 const supabaseKey = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
 
-// 1. التحقق من وجود نسخة مسبقة لتجنب تحذير Multiple Instances
-if (!window.supabase) {
-    window.supabase = createClient(supabaseUrl, supabaseKey);
+// استراتيجية النسخة الواحدة الصارمة
+if (!globalThis.supabaseInstance) {
+    globalThis.supabaseInstance = createClient(supabaseUrl, supabaseKey);
 }
+const supabase = globalThis.supabaseInstance;
 
-// 2. استخدام النسخة الموحدة (window.supabase)
-const supabase = window.supabase;
-
+// تأكد من حذف أي سطر "const supabase =" آخر في هذا الملف
 // --- دالة تسجيل الدخول العادي ---
 window.login = async function() {
     const email = document.getElementById("email").value;
