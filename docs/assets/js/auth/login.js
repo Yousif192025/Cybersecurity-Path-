@@ -1,7 +1,10 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
 
-const supabase = createClient("YOUR_SUPABASE_URL", "YOUR_SUPABASE_ANON_KEY");
-
+// بيانات مشروعك الحقيقية لربط Supabase
+const supabase = createClient(
+    "https://suvpaunulhqfoclepwoz.supabase.co", 
+    "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"
+);
 // ربط الدالة بالنافذة لتكون مرئية للـ HTML
 window.login = async function() {
     const email = document.getElementById("email").value;
