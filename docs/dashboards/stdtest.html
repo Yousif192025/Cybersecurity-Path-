@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة الطالب | منصة الأمن السيبراني</title>
     <style>
+        * { box-sizing: border-box; }
         body { font-family: 'Tajawal', 'Inter', Arial, sans-serif; background: #0f172a; color: white; margin: 0; padding: 0; }
         .container { max-width: 1200px; margin: auto; padding: 20px; }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 20px; flex-wrap: wrap; gap: 10px; }
@@ -19,44 +20,42 @@
         .tab.active { background:#38bdf8; color:black; font-weight: bold; }
         .tab-content { margin-top:20px; min-height: 400px; }
         .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:20px; }
-        .card { background:#1e293b; padding:20px; border-radius:10px; border:1px solid #334155; position: relative; }
+        .card { background:#1e293b; padding:20px; border-radius:10px; border:1px solid #334155; }
         .card h3 { margin:0 0 10px 0; color: #38bdf8; }
-        .card p { font-size:0.9rem; color:#94a3b8; line-height: 1.5; }
-        input[type="text"] { width: 100%; padding: 10px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 5px; margin-top: 10px; box-sizing: border-box; }
-        button { width:100%; padding:10px; margin-top:10px; background:#38bdf8; border:none; color:black; font-weight:bold; border-radius:5px; cursor:pointer; transition: 0.2s; }
-        button:hover { opacity: 0.8; }
+        .card p { font-size:0.9rem; color:#94a3b8; }
+        button { width:100%; padding:10px; margin-top:10px; background:#38bdf8; border:none; color:black; font-weight:bold; border-radius:5px; cursor:pointer; }
         button.secondary { background: #22c55e; color: white; }
         .progress-bar { background:#334155; height:10px; border-radius:5px; margin-top:10px; overflow: hidden; }
-        .progress-fill { background:#38bdf8; height:100%; transition: 0.5s; }
-        .status { font-size:0.8rem; color:#38bdf8; font-weight:bold; margin-top:5px; }
-        .quiz-question { background: #1e293b; padding: 20px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #334155; }
-        .quiz-option { display: block; padding: 10px; background: #0f172a; margin-top: 5px; border-radius: 5px; cursor: pointer; border: 1px solid transparent; }
-        .quiz-option:hover { border-color: #38bdf8; }
+        .progress-fill { background:#38bdf8; height:100%; }
+        .status { font-size:0.8rem; color:#38bdf8; margin-top:5px; }
+        .quiz-question { background: #1e293b; padding: 20px; border-radius: 10px; margin-bottom: 15px; }
+        .quiz-option { display: block; padding: 8px; background: #0f172a; margin-top: 5px; border-radius: 5px; cursor: pointer; }
         input[type="radio"] { margin-left: 10px; }
-        .error-message { background: #f87171; color: #0f172a; padding: 10px; border-radius: 8px; text-align: center; margin-top: 20px; }
+        .error-message, .debug-info { background: #f87171; color: #0f172a; padding: 10px; border-radius: 8px; margin: 10px 0; text-align: center; }
+        .debug-info { background: #38bdf8; color: #0f172a; }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
         <div class="profile-card">
-            <h3><span data-i18n="welcome">مرحباً،</span> <span id="student-name">جاري التحميل...</span></h3>
-            <p><span data-i18n="national_id">رقم الهوية:</span> <span id="student-id">-</span></p>
-            <p><span data-i18n="track">المسار التدريبي:</span> <span id="student-track">-</span></p>
-            <p><span data-i18n="status">حالة الحساب:</span> <span id="student-status">-</span></p>
+            <h3><span id="welcomeLabel">مرحباً،</span> <span id="student-name">جاري التحميل...</span></h3>
+            <p><span id="nationalIdLabel">رقم الهوية:</span> <span id="student-id">-</span></p>
+            <p><span id="trackLabel">المسار التدريبي:</span> <span id="student-track">-</span></p>
+            <p><span id="statusLabel">حالة الحساب:</span> <span id="student-status">-</span></p>
         </div>
         <div>
             <button class="lang-btn" id="langToggle">🇬🇧 English</button>
-            <button class="logout-btn" id="logoutBtn" data-i18n="logout">تسجيل خروج</button>
+            <button class="logout-btn" id="logoutBtn">تسجيل خروج</button>
         </div>
     </div>
     <div class="tabs" id="tabsContainer">
-        <div class="tab active" data-tab="courses" data-i18n="courses_tab">📚 الدورات المتاحة</div>
-        <div class="tab" data-tab="progress" data-i18n="progress_tab">📊 تقدمي</div>
-        <div class="tab" data-tab="assignments" data-i18n="assignments_tab">📝 الواجبات</div>
-        <div class="tab" data-tab="quizzes" data-i18n="quizzes_tab">❓ الاختبارات</div>
-        <div class="tab" data-tab="certificates" data-i18n="certificates_tab">🏆 الشهادات</div>
-        <div class="tab" data-tab="notifications" data-i18n="notifications_tab">🔔 التنبيهات</div>
+        <div class="tab active" data-tab="courses">📚 الدورات المتاحة</div>
+        <div class="tab" data-tab="progress">📊 تقدمي</div>
+        <div class="tab" data-tab="assignments">📝 الواجبات</div>
+        <div class="tab" data-tab="quizzes">❓ الاختبارات</div>
+        <div class="tab" data-tab="certificates">🏆 الشهادات</div>
+        <div class="tab" data-tab="notifications">🔔 التنبيهات</div>
     </div>
     <div class="tab-content" id="tab-content">
         <p style="text-align:center">جاري تحميل البيانات...</p>
@@ -64,15 +63,12 @@
 </div>
 
 <script type="module">
-// تهيئة Supabase مع التحقق من عدم إعادة التعريف
-if (!window.supabaseClient) {
-    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
-    window.supabaseClient = createClient(
-        "https://suvpaunulhqfoclepwoz.supabase.co",
-        "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"
-    );
-}
-const supabase = window.supabaseClient;
+// 1. تهيئة Supabase
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+const supabase = createClient(
+    "https://suvpaunulhqfoclepwoz.supabase.co",
+    "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"
+);
 
 let currentUser = null;
 let currentLang = 'ar';
@@ -80,29 +76,30 @@ let currentLang = 'ar';
 // الترجمات
 const translations = {
     ar: {
-        welcome: "مرحباً،", loading: "جاري التحميل...", national_id: "رقم الهوية:", track: "المسار التدريبي:",
-        status: "حالة الحساب:", logout: "تسجيل خروج", courses_tab: "📚 الدورات المتاحة", progress_tab: "📊 تقدمي",
-        assignments_tab: "📝 الواجبات", quizzes_tab: "❓ الاختبارات", certificates_tab: "🏆 الشهادات",
-        notifications_tab: "🔔 التنبيهات", no_certificates: "لا توجد شهادات حتى الآن.", no_notifications: "لا توجد تنبيهات جديدة.",
+        welcome: "مرحباً،", national_id: "رقم الهوية:", track: "المسار التدريبي:", status: "حالة الحساب:",
+        logout: "تسجيل خروج", courses: "📚 الدورات المتاحة", progress: "📊 تقدمي", assignments: "📝 الواجبات",
+        quizzes: "❓ الاختبارات", certificates: "🏆 الشهادات", notifications: "🔔 التنبيهات",
+        no_certificates: "لا توجد شهادات حتى الآن.", no_notifications: "لا توجد تنبيهات جديدة.",
         not_enrolled: "أنت غير مسجل في أي دورة.", continue_learning: "▶ متابعة التعلم", enroll: "تسجيل في الدورة",
-        resume_lessons: "▶ استئناف الدروس", due: "الموعد النهائي:", submitted: "تم التسليم ✅", grade_pending: "الدرجة: قيد الانتظار",
-        submit_work: "تسليم الواجب", paste_link: "الصق رابط (Google Drive/GitHub)", start_quiz: "بدء الاختبار الآن",
-        final_score: "النتيجة النهائية:", quiz_attempt: "محاولة الاختبار", finish_quiz: "إنهاء وإرسال الاختبار",
-        quiz_completed: "تم إكمال الاختبار! نتيجتك:", enrolled_success: "تم التسجيل بنجاح! ✅",
-        assignment_submitted: "تم تسليم الواجب! ✅", enter_url: "الرجاء إدخال رابط التسليم.", error_occurred: "حدث خطأ، حاول مرة أخرى.",
-        guest: "ضيف", active: "نشط", general: "عام", computer_science: "علوم الحاسب", cybersecurity: "الأمن السيبراني"
+        resume_lessons: "▶ استئناف الدروس", due: "الموعد النهائي:", submitted: "تم التسليم ✅",
+        grade_pending: "الدرجة: قيد الانتظار", submit_work: "تسليم الواجب", paste_link: "الصق رابط التسليم",
+        start_quiz: "بدء الاختبار", final_score: "النتيجة النهائية:", quiz_attempt: "محاولة الاختبار",
+        finish_quiz: "إنهاء وإرسال", quiz_completed: "تم إكمال الاختبار! نتيجتك:", enrolled_success: "تم التسجيل بنجاح! ✅",
+        assignment_submitted: "تم تسليم الواجب! ✅", enter_url: "الرجاء إدخال رابط التسليم.",
+        error_occurred: "حدث خطأ، حاول مرة أخرى.", guest: "ضيف", active: "نشط", general: "عام",
+        computer_science: "علوم الحاسب", cybersecurity: "الأمن السيبراني"
     },
     en: {
-        welcome: "Welcome,", loading: "Loading...", national_id: "National ID:", track: "Learning Track:",
-        status: "Account Status:", logout: "Logout", courses_tab: "📚 Available Courses", progress_tab: "📊 My Progress",
-        assignments_tab: "📝 Assignments", quizzes_tab: "❓ Quizzes", certificates_tab: "🏆 Certificates",
-        notifications_tab: "🔔 Alerts", no_certificates: "No certificates yet.", no_notifications: "No new notifications.",
+        welcome: "Welcome,", national_id: "National ID:", track: "Learning Track:", status: "Account Status:",
+        logout: "Logout", courses: "📚 Available Courses", progress: "📊 My Progress", assignments: "📝 Assignments",
+        quizzes: "❓ Quizzes", certificates: "🏆 Certificates", notifications: "🔔 Alerts",
+        no_certificates: "No certificates yet.", no_notifications: "No new notifications.",
         not_enrolled: "You are not enrolled in any courses.", continue_learning: "▶ Continue Learning", enroll: "Enroll",
         resume_lessons: "▶ Resume Lessons", due: "Due:", submitted: "Submitted ✅", grade_pending: "Grade: Pending",
-        submit_work: "Submit Work", paste_link: "Paste link (Google Drive/GitHub)", start_quiz: "Start Quiz Now",
-        final_score: "Final Score:", quiz_attempt: "Quiz Attempt", finish_quiz: "Finish & Submit Quiz",
+        submit_work: "Submit Work", paste_link: "Paste submission link", start_quiz: "Start Quiz",
+        final_score: "Final Score:", quiz_attempt: "Quiz Attempt", finish_quiz: "Finish & Submit",
         quiz_completed: "Quiz Completed! Your Score:", enrolled_success: "Enrolled Successfully! ✅",
-        assignment_submitted: "Assignment Submitted! ✅", enter_url: "Please enter a URL for your submission.",
+        assignment_submitted: "Assignment Submitted! ✅", enter_url: "Please enter a submission URL.",
         error_occurred: "An error occurred, please try again.", guest: "Guest", active: "Active", general: "General",
         computer_science: "Computer Science", cybersecurity: "Cybersecurity"
     }
@@ -111,20 +108,24 @@ const translations = {
 function t(key) { return translations[currentLang][key] || key; }
 
 function applyTranslations() {
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (key) el.innerText = t(key);
-    });
+    document.getElementById('welcomeLabel').innerText = t('welcome');
+    document.getElementById('nationalIdLabel').innerText = t('national_id');
+    document.getElementById('trackLabel').innerText = t('track');
+    document.getElementById('statusLabel').innerText = t('status');
+    document.getElementById('logoutBtn').innerText = t('logout');
+    const tabs = document.querySelectorAll('.tab');
+    const tabKeys = ['courses', 'progress', 'assignments', 'quizzes', 'certificates', 'notifications'];
+    tabs.forEach((tab, idx) => { if (tabKeys[idx]) tab.innerText = t(tabKeys[idx]); });
     const langBtn = document.getElementById('langToggle');
-    if (langBtn) langBtn.innerText = currentLang === 'ar' ? '🇬🇧 English' : '🇸🇦 العربية';
+    langBtn.innerText = currentLang === 'ar' ? '🇬🇧 English' : '🇸🇦 العربية';
 }
 
-// التحقق من المصادقة
+// التحقق من تسجيل الدخول
 async function checkAuth() {
     const { data: { user }, error } = await supabase.auth.getUser();
     if (error || !user) {
         const container = document.getElementById('tab-content');
-        container.innerHTML = `<div class="error-message">⚠️ لم يتم تسجيل الدخول. سيتم تحويلك إلى صفحة تسجيل الدخول...</div>`;
+        container.innerHTML = `<div class="error-message">⚠️ لم يتم تسجيل الدخول. جاري التحويل إلى صفحة تسجيل الدخول...</div>`;
         setTimeout(() => { window.location.href = "../login.html"; }, 2000);
         return null;
     }
@@ -138,14 +139,11 @@ async function loadStudentProfile(userId) {
         .select("full_name, national_id, track, student_type, status, role")
         .eq("user_id", userId)
         .maybeSingle();
-
     if (error) console.error("خطأ في تحميل الملف الشخصي:", error);
-
     const nameSpan = document.getElementById("student-name");
     const idSpan = document.getElementById("student-id");
     const trackSpan = document.getElementById("student-track");
     const statusSpan = document.getElementById("student-status");
-
     if (profile) {
         nameSpan.innerText = profile.full_name || (currentUser?.email?.split('@')[0]) || (currentLang === 'ar' ? 'طالب' : 'Student');
         idSpan.innerText = profile.national_id || "-";
@@ -164,50 +162,63 @@ async function loadStudentProfile(userId) {
     }
 }
 
-// دوال التبويبات (سيتم تعريفها لاحقاً مع ربطها بالنافذة)
+// دوال التبويبات
 async function loadCourses(container) {
     const { data: allCourses } = await supabase.from("courses").select("*");
     const { data: myEnrolls } = await supabase.from("enrollments").select("course_id").eq("user_id", currentUser.id);
     const enrolledIds = myEnrolls?.map(e => e.course_id) || [];
     container.innerHTML = '<div class="grid"></div>';
     const grid = container.querySelector('.grid');
-    allCourses?.forEach(c => {
+    if (!allCourses || allCourses.length === 0) {
+        grid.innerHTML = '<div class="card"><h3>لا توجد دورات متاحة حالياً</h3></div>';
+        return;
+    }
+    allCourses.forEach(c => {
         const isEnrolled = enrolledIds.includes(c.course_id);
         const div = document.createElement('div');
         div.className = 'card';
         div.innerHTML = `
             <h3>${c.title}</h3>
             <p>${c.description || (currentLang === 'ar' ? 'لا يوجد وصف' : 'No description')}</p>
-            ${isEnrolled ? `<button class="secondary" onclick="window.goToPlayer('${c.course_id}')">${t('continue_learning')}</button>` : `<button onclick="window.enroll('${c.course_id}')">${t('enroll')}</button>`}
+            ${isEnrolled ? `<button class="secondary" data-course="${c.course_id}">${t('continue_learning')}</button>` : `<button data-course="${c.course_id}">${t('enroll')}</button>`}
         `;
+        const btn = div.querySelector('button');
+        btn.addEventListener('click', async () => {
+            if (isEnrolled) window.location.href = `../pages/course-player.html?course_id=${c.course_id}`;
+            else {
+                const { error } = await supabase.from("enrollments").insert({ user_id: currentUser.id, course_id: c.course_id, completion_status: 'in_progress' });
+                alert(error ? t('error_occurred') : t('enrolled_success'));
+                if (!error) loadTab('progress');
+            }
+        });
         grid.appendChild(div);
     });
 }
 
 async function loadProgress(container) {
     const { data: enrollments } = await supabase.from("enrollments").select(`courses(title, course_id)`).eq("user_id", currentUser.id);
-    if (!enrollments?.length) { container.innerHTML = `<div class="card"><h3>${t('not_enrolled')}</h3></div>`; return; }
+    if (!enrollments?.length) {
+        container.innerHTML = `<div class="card"><h3>${t('not_enrolled')}</h3></div>`;
+        return;
+    }
     container.innerHTML = '<div class="grid"></div>';
     const grid = container.querySelector('.grid');
     for (let e of enrollments) {
-        const progress = await getCourseProgress(e.courses.course_id);
+        const { count: totalLessons } = await supabase.from("lessons").select("*", { count: "exact", head: true }).eq("course_id", e.courses.course_id);
+        const { data: progressRows } = await supabase.from("learning_progress").select("lesson_id").eq("user_id", currentUser.id).eq("course_id", e.courses.course_id);
+        const completed = progressRows?.length || 0;
+        const percent = totalLessons ? Math.round((completed / totalLessons) * 100) : 0;
         const div = document.createElement('div');
         div.className = 'card';
         div.innerHTML = `
             <h3>${e.courses.title}</h3>
-            <div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
-            <div class="status">${currentLang === 'ar' ? 'التقدم' : 'Progress'}: ${progress}%</div>
-            <button onclick="window.goToPlayer('${e.courses.course_id}')">${t('resume_lessons')}</button>
+            <div class="progress-bar"><div class="progress-fill" style="width:${percent}%"></div></div>
+            <div class="status">${currentLang === 'ar' ? 'التقدم' : 'Progress'}: ${percent}%</div>
+            <button data-course="${e.courses.course_id}">${t('resume_lessons')}</button>
         `;
+        div.querySelector('button').addEventListener('click', () => window.location.href = `../pages/course-player.html?course_id=${e.courses.course_id}`);
         grid.appendChild(div);
     }
-}
-
-async function getCourseProgress(courseId) {
-    const { count: totalLessons } = await supabase.from("lessons").select("*", { count: "exact", head: true }).eq("course_id", courseId);
-    const { data: progressRows } = await supabase.from("learning_progress").select("lesson_id").eq("user_id", currentUser.id).eq("course_id", courseId);
-    const completed = progressRows?.length || 0;
-    return totalLessons ? Math.round((completed / totalLessons) * 100) : 0;
 }
 
 async function loadAssignments(container) {
@@ -215,7 +226,8 @@ async function loadAssignments(container) {
     const { data: submissions } = await supabase.from("assignment_submissions").select("*").eq("user_id", currentUser.id);
     container.innerHTML = '<div class="grid"></div>';
     const grid = container.querySelector('.grid');
-    assignments?.forEach(a => {
+    if (!assignments?.length) { grid.innerHTML = '<div class="card"><h3>لا توجد واجبات</h3></div>'; return; }
+    assignments.forEach(a => {
         const submitted = submissions?.find(s => s.assignment_id === a.assignment_id);
         const div = document.createElement('div');
         div.className = 'card';
@@ -224,26 +236,29 @@ async function loadAssignments(container) {
             <h3>${a.title}</h3>
             <p>${a.description || ''}</p>
             <p style="font-size:0.8rem; color:#f87171">${t('due')} ${a.due_date ? new Date(a.due_date).toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US') : (currentLang === 'ar' ? 'لا يوجد موعد' : 'No deadline')}</p>
-            ${submitted ? `<div class="status" style="color:#22c55e">${t('submitted')} (${t('grade_pending')})</div>` : `<input type="text" placeholder="${t('paste_link')}" id="file-${a.assignment_id}"><button onclick="window.submitAssignment('${a.assignment_id}')">${t('submit_work')}</button>`}
+            ${submitted ? `<div class="status" style="color:#22c55e">${t('submitted')} (${t('grade_pending')})</div>` : `<input type="text" placeholder="${t('paste_link')}" id="assign-${a.assignment_id}"><button data-id="${a.assignment_id}">${t('submit_work')}</button>`}
         `;
+        if (!submitted) {
+            const btn = div.querySelector('button');
+            btn.addEventListener('click', async () => {
+                const url = document.getElementById(`assign-${a.assignment_id}`).value;
+                if (!url) return alert(t('enter_url'));
+                const { error } = await supabase.from("assignment_submissions").insert({ assignment_id: a.assignment_id, user_id: currentUser.id, file_url: url });
+                alert(error ? t('error_occurred') : t('assignment_submitted'));
+                if (!error) loadTab('assignments');
+            });
+        }
         grid.appendChild(div);
     });
 }
-
-window.submitAssignment = async function(assignmentId) {
-    const fileUrl = document.getElementById(`file-${assignmentId}`).value;
-    if (!fileUrl) return alert(t('enter_url'));
-    const { error } = await supabase.from("assignment_submissions").insert({ assignment_id: assignmentId, user_id: currentUser.id, file_url: fileUrl });
-    if (error) alert(error.message);
-    else { alert(t('assignment_submitted')); loadTab('assignments'); }
-};
 
 async function loadQuizzes(container) {
     const { data: quizzes } = await supabase.from("quizzes").select("*, courses(title)");
     const { data: submissions } = await supabase.from("quiz_submissions").select("*").eq("user_id", currentUser.id);
     container.innerHTML = '<div class="grid"></div>';
     const grid = container.querySelector('.grid');
-    quizzes?.forEach(q => {
+    if (!quizzes?.length) { grid.innerHTML = '<div class="card"><h3>لا توجد اختبارات</h3></div>'; return; }
+    quizzes.forEach(q => {
         const submitted = submissions?.find(s => s.quiz_id === q.quiz_id);
         const div = document.createElement('div');
         div.className = 'card';
@@ -251,64 +266,54 @@ async function loadQuizzes(container) {
             <span class="status">${q.courses?.title || (currentLang === 'ar' ? 'المساق' : 'Course')}</span>
             <h3>${q.title}</h3>
             <p>${q.description || ''}</p>
-            ${submitted ? `<div class="status" style="color:#22c55e">${t('final_score')} ${submitted.score}</div>` : `<button onclick="window.startQuiz('${q.quiz_id}')">${t('start_quiz')}</button>`}
+            ${submitted ? `<div class="status" style="color:#22c55e">${t('final_score')} ${submitted.score}</div>` : `<button data-id="${q.quiz_id}">${t('start_quiz')}</button>`}
         `;
+        if (!submitted) {
+            const btn = div.querySelector('button');
+            btn.addEventListener('click', () => startQuiz(q.quiz_id));
+        }
         grid.appendChild(div);
     });
 }
 
-window.startQuiz = async function(quizId) {
-    const container = document.getElementById("tab-content");
+async function startQuiz(quizId) {
+    const container = document.getElementById('tab-content');
     container.innerHTML = `<p>${t('loading')}</p>`;
     const { data: questions } = await supabase.from("quiz_questions").select("*").eq("quiz_id", quizId);
+    if (!questions?.length) { container.innerHTML = '<div class="card"><h3>لا توجد أسئلة</h3></div>'; return; }
     container.innerHTML = `<h2 style="color:#38bdf8">${t('quiz_attempt')}</h2>`;
     for (let q of questions) {
         const { data: answers } = await supabase.from("quiz_answers").select("*").eq("question_id", q.question_id);
-        const div = document.createElement("div");
-        div.className = "quiz-question";
-        div.innerHTML = `<p><strong>${q.question_text}</strong></p>${answers.map(a => `<label class="quiz-option"><input type="radio" name="${q.question_id}" value="${a.answer_id}"> ${a.answer_text}</label>`).join("")}`;
+        const div = document.createElement('div');
+        div.className = 'quiz-question';
+        div.innerHTML = `<p><strong>${q.question_text}</strong></p>` + answers.map(a => `<label class="quiz-option"><input type="radio" name="q${q.question_id}" value="${a.answer_id}"> ${a.answer_text}</label>`).join('');
         container.appendChild(div);
     }
-    const submitBtn = document.createElement("button");
+    const submitBtn = document.createElement('button');
     submitBtn.innerText = t('finish_quiz');
-    submitBtn.onclick = () => submitQuiz(quizId, questions);
+    submitBtn.onclick = async () => {
+        let score = 0;
+        for (let q of questions) {
+            const selected = document.querySelector(`input[name="q${q.question_id}"]:checked`);
+            if (!selected) continue;
+            const { data } = await supabase.from("quiz_answers").select("is_correct").eq("answer_id", selected.value).single();
+            if (data?.is_correct) score++;
+        }
+        await supabase.from("quiz_submissions").insert({ quiz_id: quizId, user_id: currentUser.id, score: score });
+        alert(`${t('quiz_completed')} ${score}`);
+        loadTab('quizzes');
+    };
     container.appendChild(submitBtn);
-};
-
-async function submitQuiz(quizId, questions) {
-    let score = 0;
-    for (let q of questions) {
-        const selected = document.querySelector(`input[name="${q.question_id}"]:checked`);
-        if (!selected) continue;
-        const { data } = await supabase.from("quiz_answers").select("is_correct").eq("answer_id", selected.value).single();
-        if (data?.is_correct) score++;
-    }
-    await supabase.from("quiz_submissions").insert({ quiz_id: quizId, user_id: currentUser.id, score: score });
-    alert(`${t('quiz_completed')} ${score}`);
-    loadTab('quizzes');
 }
 
-window.enroll = async function(courseId) {
-    const { error } = await supabase.from("enrollments").insert({ user_id: currentUser.id, course_id: courseId, completion_status: 'in_progress' });
-    if (error) alert(t('error_occurred'));
-    else { alert(t('enrolled_success')); loadTab('progress'); }
-};
-
-window.goToPlayer = (courseId) => window.location.href = `../pages/course-player.html?course_id=${courseId}`;
-
-async function logout() {
-    await supabase.auth.signOut();
-    window.location.href = "../login.html";
-}
-
-// دالة تحميل التبويب الرئيسية
+// دالة تحميل التبويب
 async function loadTab(tab) {
     document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
     const activeTab = document.querySelector(`.tab[data-tab="${tab}"]`);
     if (activeTab) activeTab.classList.add('active');
     const container = document.getElementById('tab-content');
     container.innerHTML = `<p style="text-align:center">${t('loading')}</p>`;
-    if (!currentUser) { container.innerHTML = '<div class="error-message">يرجى تسجيل الدخول أولاً.</div>'; return; }
+    if (!currentUser) { container.innerHTML = '<div class="error-message">يرجى تسجيل الدخول</div>'; return; }
     switch(tab) {
         case 'courses': await loadCourses(container); break;
         case 'progress': await loadProgress(container); break;
@@ -324,9 +329,15 @@ async function loadTab(tab) {
 async function toggleLanguage() {
     currentLang = currentLang === 'ar' ? 'en' : 'ar';
     applyTranslations();
-    await loadStudentProfile(currentUser.id);
+    if (currentUser) await loadStudentProfile(currentUser.id);
     const activeTab = document.querySelector('.tab.active');
     if (activeTab) await loadTab(activeTab.dataset.tab);
+}
+
+// تسجيل الخروج
+async function logout() {
+    await supabase.auth.signOut();
+    window.location.href = "../login.html";
 }
 
 // تهيئة الصفحة
@@ -337,7 +348,6 @@ async function init() {
     await loadStudentProfile(user.id);
     applyTranslations();
     await loadTab('courses');
-    // ربط الأحداث بعد تحميل DOM
     document.getElementById('logoutBtn').addEventListener('click', logout);
     document.getElementById('langToggle').addEventListener('click', toggleLanguage);
     document.querySelectorAll('.tab').forEach(tab => {
@@ -345,8 +355,7 @@ async function init() {
     });
 }
 
-// بدء التشغيل عند تحميل الصفحة
-document.addEventListener('DOMContentLoaded', init);
+init();
 </script>
 </body>
 </html>
