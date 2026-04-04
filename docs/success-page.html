@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تم التحقق بنجاح - CyberPath</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .success-card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; max-width: 500px; width: 90%; border-top: 5px solid #28a745; }
+        .icon-check { font-size: 50px; color: #28a745; margin-bottom: 20px; }
+        h2 { color: #333; margin-bottom: 10px; }
+        .student-info { background: #f8f9fa; padding: 20px; border-radius: 12px; margin: 20px 0; text-align: right; border-right: 4px solid #007bff; }
+        .info-label { color: #666; font-size: 14px; display: block; }
+        .info-value { color: #222; font-weight: bold; font-size: 18px; }
+        .footer-msg { font-size: 14px; color: #777; margin-top: 25px; line-height: 1.6; }
+        .btn-home { display: inline-block; margin-top: 20px; padding: 10px 25px; background: #007bff; color: white; text-decoration: none; border-radius: 6px; transition: 0.3s; }
+        .btn-home:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+
+<div class="success-card">
+    <div class="icon-check">✓</div>
+    <h2>تم تفعيل اتصالك بنجاح!</h2>
+    <p>شكراً لك، لقد تم التحقق من هويتك الرقمية في نظام CyberPath.</p>
+
+    <div class="student-info" id="loader">جاري جلب بياناتك...</div>
+    
+    <div id="profile-data" style="display: none;">
+        <div class="student-info">
+            <span class="info-label">الاسم الكامل:</span>
+            <span class="info-value" id="disp-name">-</span>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
+            <span class="info-label">المسار التدريبي:</span>
+            <span class="info-value" id="disp-track">-</span>
+        </div>
+    </div>
+
+    <div class="footer-msg">
+        <strong>ملاحظة:</strong> هذه لوحة عرض مؤقتة. سيتم إرسال تعليمات الدخول إلى لوحة التحكم التفاعلية والدروس التدريبية عبر بريدك الرسمي قريباً.
+    </div>
+
+    <a href="#" onclick="handleLogout()" class="btn-home">تسجيل الخروج آمن</a>
+</div>
+
+<script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+    const supabaseUrl = "https://suvpaunulhqfoclepwoz.supabase.co";
+    const supabaseKey = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    async function loadData() {
+        // الحصول على المستخدم الحالي
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+            window.location.href = "temp-login.html";
+            return;
+        }
+
+        // استخراج رقم الهوية من الإيميل (لأننا ربطناهما معاً)
+        const nationalId = user.email.split('@')[0];
+
+        // جلب البيانات من الجدول بناءً على رقم الهوية
+        const { data: profile, error } = await supabase
+            .from('user_profile')
+            .select('full_name, track')
+            .eq('national_id', nationalId)
+            .single();
+
+        if (profile) {
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('profile-data').style.display = 'block';
+            document.getElementById('disp-name').innerText = profile.full_name;
+            document.getElementById('disp-track').innerText = profile.track || "مسار عام";
+        }
+    }
+
+    window.handleLogout = async function() {
+        await supabase.auth.signOut();
+        window.location.href = "temp-login.html";
+    }
+
+    loadData();
+</script>
+
+</body>
+</html>
