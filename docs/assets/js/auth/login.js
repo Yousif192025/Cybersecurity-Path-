@@ -63,7 +63,7 @@ window.loginWithGoogle = async function() {
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: { 
-                redirectTo: window.location.origin + '/index.html' 
+                redirectTo: window.location.origin + '/landing.html' 
             }
         });
 
