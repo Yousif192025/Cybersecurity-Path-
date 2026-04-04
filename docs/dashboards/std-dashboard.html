@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم الطالب - CyberPath</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> <style>
+        :root { --primary: #007bff; --secondary: #6c757d; --success: #28a745; --dark: #343a40; }
+        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; margin: 0; }
+        .dashboard-container { max-width: 1000px; margin: 30px auto; padding: 20px; }
+        .header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .card { background: white; border-radius: 12px; padding: 25px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .track-card { border-top: 5px solid var(--primary); text-align: center; }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-block; transition: 0.3s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-outline { border: 1px solid var(--primary); color: var(--primary); }
+        .form-group { margin-bottom: 15px; text-align: right; }
+        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        .badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; background: #e7f3ff; color: var(--primary); }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+    <div class="header-section">
+        <div>
+            <h2>مرحباً، <span id="user-name">...</span> 👋</h2>
+            <p id="user-email" style="color: #666; font-size: 14px;"></p>
+        </div>
+        <button onclick="handleLogout()" class="btn btn-outline">تسجيل الخروج</button>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h3>📝 تحديث بياناتي</h3>
+            <div class="form-group">
+                <label>الاسم الكامل (كما يظهر في الشهادة):</label>
+                <input type="text" id="edit-name">
+            </div>
+            <div class="form-group">
+                <label>رقم الهاتف / التواصل:</label>
+                <input type="text" id="edit-phone" placeholder="اختياري">
+            </div>
+            <button onclick="updateProfile()" class="btn btn-primary" id="save-btn">حفظ التغييرات</button>
+        </div>
+
+        <div class="card track-card">
+            <h3>🚀 مساري التعليمي</h3>
+            <p>مسارك الحالي: <span class="badge" id="user-track">جاري التحميل...</span></p>
+            <div id="track-link-container" style="margin-top: 20px;">
+                </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>🔗 روابط سريعة</h3>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a href="https://cyberpath.vercel.app/self-tests/quiz-bank.html" class="btn btn-outline">🏦 بنك الاختبارات</a>
+            <a href="/docs/pathways/roadmap-builder.html" class="btn btn-outline">🗺️ بناء مسار تدريبي</a>
+            <a href="/docs/pathways/training-path.html" class="btn btn-outline">👨‍🏫 التدريب الميداني</a>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+    const supabaseUrl = "https://suvpaunulhqfoclepwoz.supabase.co";
+    const supabaseKey = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    let currentUserId = null;
+
+    async function initDashboard() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { window.location.href = "temp-login.html"; return; }
+        
+        currentUserId = user.id;
+        document.getElementById('user-email').innerText = user.email;
+
+        // جلب بيانات الطالب من الجدول
+        const { data: profile, error } = await supabase
+            .from('user_profile')
+            .select('*')
+            .eq('user_id', currentUserId)
+            .single();
+
+        if (profile) {
+            document.getElementById('user-name').innerText = profile.full_name;
+            document.getElementById('edit-name').value = profile.full_name;
+            document.getElementById('edit-phone').value = profile.phone || "";
+            document.getElementById('user-track').innerText = profile.track || "غير محدد";
+            
+            generateTrackLink(profile.track);
+        }
+    }
+
+    // وظيفة توجيه الطالب حسب مساره
+    function generateTrackLink(track) {
+        const container = document.getElementById('track-link-container');
+        let link = "/docs/pathways/index.html"; // الافتراضي
+        let btnText = "استعرض المسارات";
+
+        const trackLower = (track || "").toLowerCase();
+
+        if (trackLower.includes("دبلوم") || trackLower.includes("tvtc")) {
+            link = "/docs/pathways/tvtc-cs-diploma.html";
+            btnText = "دخول مسار الدبلوم";
+        } else if (trackLower.includes("أمن") || trackLower.includes("security")) {
+            link = "/docs/pathways/tvtc-cs-security.html";
+            btnText = "دخول مسار الأمن السيبراني";
+        } else if (trackLower.includes("مبتدئ") || trackLower.includes("beginner")) {
+            link = "/docs/pathways/beginner.html";
+            btnText = "ابدأ كـمبتدئ";
+        } else if (trackLower.includes("احترافي") || trackLower.includes("professional")) {
+            link = "/docs/pathways/professional.html";
+            btnText = "المسار الاحترافي";
+        }
+
+        container.innerHTML = `<a href="${link}" class="btn btn-primary" style="width:100%">🔓 ${btnText}</a>`;
+    }
+
+    // وظيفة تحديث البيانات
+    window.updateProfile = async function() {
+        const newName = document.getElementById('edit-name').value;
+        const newPhone = document.getElementById('edit-phone').value;
+        const btn = document.getElementById('save-btn');
+
+        btn.innerText = "جاري الحفظ...";
+        const { error } = await supabase
+            .from('user_profile')
+            .update({ full_name: newName, phone: newPhone })
+            .eq('user_id', currentUserId);
+
+        if (error) {
+            Swal.fire('خطأ', error.message, 'error');
+        } else {
+            Swal.fire('تم التحديث!', 'تم حفظ بياناتك بنجاح', 'success');
+            document.getElementById('user-name').innerText = newName;
+        }
+        btn.innerText = "حفظ التغييرات";
+    }
+
+    window.handleLogout = async function() {
+        await supabase.auth.signOut();
+        window.location.href = "temp-login.html";
+    }
+
+    initDashboard();
+</script>
+</body>
+</html>
