@@ -31,8 +31,7 @@
         .quiz-question { background: #1e293b; padding: 20px; border-radius: 10px; margin-bottom: 15px; }
         .quiz-option { display: block; padding: 8px; background: #0f172a; margin-top: 5px; border-radius: 5px; cursor: pointer; }
         input[type="radio"] { margin-left: 10px; }
-        .error-message, .debug-info { background: #f87171; color: #0f172a; padding: 10px; border-radius: 8px; margin: 10px 0; text-align: center; }
-        .debug-info { background: #38bdf8; color: #0f172a; }
+        .error-message { background: #f87171; color: #0f172a; padding: 10px; border-radius: 8px; margin: 10px 0; text-align: center; }
     </style>
 </head>
 <body>
@@ -63,7 +62,7 @@
 </div>
 
 <script type="module">
-// 1. تهيئة Supabase
+// تهيئة Supabase
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 const supabase = createClient(
     "https://suvpaunulhqfoclepwoz.supabase.co",
@@ -87,7 +86,7 @@ const translations = {
         finish_quiz: "إنهاء وإرسال", quiz_completed: "تم إكمال الاختبار! نتيجتك:", enrolled_success: "تم التسجيل بنجاح! ✅",
         assignment_submitted: "تم تسليم الواجب! ✅", enter_url: "الرجاء إدخال رابط التسليم.",
         error_occurred: "حدث خطأ، حاول مرة أخرى.", guest: "ضيف", active: "نشط", general: "عام",
-        computer_science: "علوم الحاسب", cybersecurity: "الأمن السيبراني"
+        computer_science: "علوم الحاسب", cybersecurity: "الأمن السيبراني", loading: "جاري التحميل..."
     },
     en: {
         welcome: "Welcome,", national_id: "National ID:", track: "Learning Track:", status: "Account Status:",
@@ -101,11 +100,13 @@ const translations = {
         quiz_completed: "Quiz Completed! Your Score:", enrolled_success: "Enrolled Successfully! ✅",
         assignment_submitted: "Assignment Submitted! ✅", enter_url: "Please enter a submission URL.",
         error_occurred: "An error occurred, please try again.", guest: "Guest", active: "Active", general: "General",
-        computer_science: "Computer Science", cybersecurity: "Cybersecurity"
+        computer_science: "Computer Science", cybersecurity: "Cybersecurity", loading: "Loading..."
     }
 };
 
-function t(key) { return translations[currentLang][key] || key; }
+function t(key) {
+    return translations[currentLang][key] || key;
+}
 
 function applyTranslations() {
     document.getElementById('welcomeLabel').innerText = t('welcome');
@@ -115,7 +116,9 @@ function applyTranslations() {
     document.getElementById('logoutBtn').innerText = t('logout');
     const tabs = document.querySelectorAll('.tab');
     const tabKeys = ['courses', 'progress', 'assignments', 'quizzes', 'certificates', 'notifications'];
-    tabs.forEach((tab, idx) => { if (tabKeys[idx]) tab.innerText = t(tabKeys[idx]); });
+    tabs.forEach((tab, idx) => {
+        if (tabKeys[idx]) tab.innerText = t(tabKeys[idx]);
+    });
     const langBtn = document.getElementById('langToggle');
     langBtn.innerText = currentLang === 'ar' ? '🇬🇧 English' : '🇸🇦 العربية';
 }
@@ -125,14 +128,14 @@ async function checkAuth() {
     const { data: { user }, error } = await supabase.auth.getUser();
     if (error || !user) {
         const container = document.getElementById('tab-content');
-        container.innerHTML = `<div class="error-message">⚠️ لم يتم تسجيل الدخول. جاري التحويل إلى صفحة تسجيل الدخول...</div>`;
+        container.innerHTML = `<div class="error-message">⚠️ لم يتم تسجيل الدخول. جاري التحويل...</div>`;
         setTimeout(() => { window.location.href = "../login.html"; }, 2000);
         return null;
     }
     return user;
 }
 
-// تحميل بيانات الطالب من user_profile
+// تحميل بيانات الطالب
 async function loadStudentProfile(userId) {
     const { data: profile, error } = await supabase
         .from("user_profile")
@@ -184,8 +187,9 @@ async function loadCourses(container) {
         `;
         const btn = div.querySelector('button');
         btn.addEventListener('click', async () => {
-            if (isEnrolled) window.location.href = `../pages/course-player.html?course_id=${c.course_id}`;
-            else {
+            if (isEnrolled) {
+                window.location.href = `../pages/course-player.html?course_id=${c.course_id}`;
+            } else {
                 const { error } = await supabase.from("enrollments").insert({ user_id: currentUser.id, course_id: c.course_id, completion_status: 'in_progress' });
                 alert(error ? t('error_occurred') : t('enrolled_success'));
                 if (!error) loadTab('progress');
@@ -216,7 +220,9 @@ async function loadProgress(container) {
             <div class="status">${currentLang === 'ar' ? 'التقدم' : 'Progress'}: ${percent}%</div>
             <button data-course="${e.courses.course_id}">${t('resume_lessons')}</button>
         `;
-        div.querySelector('button').addEventListener('click', () => window.location.href = `../pages/course-player.html?course_id=${e.courses.course_id}`);
+        div.querySelector('button').addEventListener('click', () => {
+            window.location.href = `../pages/course-player.html?course_id=${e.courses.course_id}`;
+        });
         grid.appendChild(div);
     }
 }
@@ -226,7 +232,10 @@ async function loadAssignments(container) {
     const { data: submissions } = await supabase.from("assignment_submissions").select("*").eq("user_id", currentUser.id);
     container.innerHTML = '<div class="grid"></div>';
     const grid = container.querySelector('.grid');
-    if (!assignments?.length) { grid.innerHTML = '<div class="card"><h3>لا توجد واجبات</h3></div>'; return; }
+    if (!assignments?.length) {
+        grid.innerHTML = '<div class="card"><h3>لا توجد واجبات</h3></div>';
+        return;
+    }
     assignments.forEach(a => {
         const submitted = submissions?.find(s => s.assignment_id === a.assignment_id);
         const div = document.createElement('div');
@@ -257,7 +266,10 @@ async function loadQuizzes(container) {
     const { data: submissions } = await supabase.from("quiz_submissions").select("*").eq("user_id", currentUser.id);
     container.innerHTML = '<div class="grid"></div>';
     const grid = container.querySelector('.grid');
-    if (!quizzes?.length) { grid.innerHTML = '<div class="card"><h3>لا توجد اختبارات</h3></div>'; return; }
+    if (!quizzes?.length) {
+        grid.innerHTML = '<div class="card"><h3>لا توجد اختبارات</h3></div>';
+        return;
+    }
     quizzes.forEach(q => {
         const submitted = submissions?.find(s => s.quiz_id === q.quiz_id);
         const div = document.createElement('div');
@@ -280,7 +292,10 @@ async function startQuiz(quizId) {
     const container = document.getElementById('tab-content');
     container.innerHTML = `<p>${t('loading')}</p>`;
     const { data: questions } = await supabase.from("quiz_questions").select("*").eq("quiz_id", quizId);
-    if (!questions?.length) { container.innerHTML = '<div class="card"><h3>لا توجد أسئلة</h3></div>'; return; }
+    if (!questions?.length) {
+        container.innerHTML = '<div class="card"><h3>لا توجد أسئلة</h3></div>';
+        return;
+    }
     container.innerHTML = `<h2 style="color:#38bdf8">${t('quiz_attempt')}</h2>`;
     for (let q of questions) {
         const { data: answers } = await supabase.from("quiz_answers").select("*").eq("question_id", q.question_id);
@@ -306,14 +321,17 @@ async function startQuiz(quizId) {
     container.appendChild(submitBtn);
 }
 
-// دالة تحميل التبويب
+// دالة تحميل التبويب الرئيسية
 async function loadTab(tab) {
     document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
     const activeTab = document.querySelector(`.tab[data-tab="${tab}"]`);
     if (activeTab) activeTab.classList.add('active');
     const container = document.getElementById('tab-content');
     container.innerHTML = `<p style="text-align:center">${t('loading')}</p>`;
-    if (!currentUser) { container.innerHTML = '<div class="error-message">يرجى تسجيل الدخول</div>'; return; }
+    if (!currentUser) {
+        container.innerHTML = '<div class="error-message">يرجى تسجيل الدخول</div>';
+        return;
+    }
     switch(tab) {
         case 'courses': await loadCourses(container); break;
         case 'progress': await loadProgress(container); break;
