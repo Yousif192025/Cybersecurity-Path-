@@ -36,7 +36,7 @@
             line-height: 1.6;
         }
 
-        /* Header (من الملف الأول) */
+        /* Header */
         header {
             background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-blue) 100%);
             color: var(--white);
@@ -106,7 +106,7 @@
             font-weight: 500;
         }
 
-        /* Dashboard Container (محتوى لوحة الطالب) */
+        /* Dashboard Container */
         .dashboard-container {
             max-width: 1200px;
             margin: 40px auto;
@@ -286,7 +286,7 @@
             text-align: center;
         }
 
-        /* Footer (من الملف الأول) */
+        /* Footer */
         footer {
             background-color: var(--primary-dark);
             color: var(--white);
@@ -472,7 +472,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-    // -------------------- Supabase Configuration --------------------
+    // ==================== الإعدادات الأساسية ====================
     const supabaseUrl = "https://suvpaunulhqfoclepwoz.supabase.co";
     const supabaseKey = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -480,7 +480,7 @@
     let currentUserId = null;
     let currentLanguage = 'ar';
 
-    // -------------------- Translation --------------------
+    // ==================== الترجمة ====================
     const translations = {
         ar: {
             brand: "منصة الأمن السيبراني",
@@ -503,7 +503,7 @@
             continue: "متابعة التعلم",
             viewCert: "عرض الشهادة",
             noCourses: "لم تسجل في أي دورات بعد. تصفح الدورات وسجل الآن!",
-            errorLoading: "حدث خطأ في تحميل الدورات"
+            errorLoading: "حدث خطأ في تحميل البيانات"
         },
         en: {
             brand: "Cybersecurity Platform",
@@ -525,8 +525,8 @@
             loadingCourses: "Loading courses...",
             continue: "Continue Learning",
             viewCert: "View Certificate",
-            noCourses: "You are not enrolled in any courses yet. Browse and enroll!",
-            errorLoading: "Error loading courses. Please try again."
+            noCourses: "You are not enrolled in any courses yet.",
+            errorLoading: "Error loading data"
         }
     };
 
@@ -548,41 +548,62 @@
         document.getElementById('phone-label').innerText = t.phoneLabel;
         document.getElementById('save-btn').innerText = t.saveBtn;
         document.getElementById('my-courses-heading').innerHTML = `<i class="fas fa-book-open"></i> ${t.myCourses}`;
+        
         const loadingDiv = document.getElementById('loadingCourses');
         if (loadingDiv && loadingDiv.style.display !== 'none') {
             loadingDiv.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${t.loadingCourses}`;
         }
-        // تحديث النصوص داخل الدورات إذا كانت معروضة
-        refreshCoursesText();
     }
 
-    // -------------------- Core Functions --------------------
+    // ==================== الوظائف الأساسية ====================
     async function init() {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) { window.location.href = "temp-login.html"; return; }
+        const { data: { session }, error: authError } = await supabase.auth.getSession();
+        
+        if (authError || !session) { 
+            window.location.href = "temp-login.html"; 
+            return; 
+        }
+
         currentUserId = session.user.id;
         document.getElementById('student-email').innerText = session.user.email;
 
-        // جلب أو إنشاء بروفايل
-        let { data: profile } = await supabase
+        // البحث عن البروفايل (أولاً بـ user_id ثم بالإيميل)
+        let { data: profile, error: profileError } = await supabase
             .from('user_profile')
             .select('*')
             .eq('user_id', currentUserId)
             .maybeSingle();
 
         if (!profile) {
-            const { data: newProfile } = await supabase
+            // محاولة جلب بالإيميل في حال كان مسجلاً مسبقاً بدون ID
+            const { data: oldProfile } = await supabase
                 .from('user_profile')
-                .insert([{ user_id: currentUserId, email: session.user.email, full_name: session.user.email.split('@')[0], track: 'مسار عام' }])
-                .select()
-                .single();
-            profile = newProfile;
+                .select('*')
+                .eq('email', session.user.email)
+                .maybeSingle();
+            
+            if (oldProfile) {
+                await supabase.from('user_profile').update({ user_id: currentUserId }).eq('email', session.user.email);
+                profile = oldProfile;
+            } else {
+                // إنشاء بروفايل جديد
+                const { data: newProfile } = await supabase
+                    .from('user_profile')
+                    .insert([{ 
+                        user_id: currentUserId, 
+                        email: session.user.email, 
+                        full_name: session.user.email.split('@')[0], 
+                        track: 'مسار عام' 
+                    }])
+                    .select().single();
+                profile = newProfile;
+            }
         }
 
         if (profile) {
             renderProfile(profile);
-            await fetchStats(currentUserId);
-            await loadUserCourses(currentUserId);
+            fetchStats(currentUserId);
+            loadUserCourses(currentUserId);
         }
     }
 
@@ -591,6 +612,7 @@
             .from('user_courses')
             .select('progress, completed')
             .eq('user_id', userId);
+
         const total = userCourses?.length || 0;
         const completed = userCourses?.filter(c => c.completed === true).length || 0;
         let avg = 0;
@@ -598,20 +620,25 @@
             const sum = userCourses.reduce((acc, c) => acc + (c.progress || 0), 0);
             avg = Math.round(sum / total);
         }
+
         document.getElementById('courses-count').innerText = total;
         document.getElementById('certificates-count').innerText = completed;
         document.getElementById('success-rate').innerText = avg + "%";
     }
 
     async function loadUserCourses(userId) {
-        const loadingDiv = document.getElementById('loadingCourses');
         const gridDiv = document.getElementById('coursesGrid');
+        const loadingDiv = document.getElementById('loadingCourses');
         const t = translations[currentLanguage];
+
         try {
-            const { data: userCourses } = await supabase
+            // استعلام JOIN آمن باستخدام courses!inner
+            const { data: userCourses, error } = await supabase
                 .from('user_courses')
-                .select(`progress, completed, courses ( id, title, description, slug )`)
+                .select(`progress, completed, courses!inner(id, title, description, slug)`)
                 .eq('user_id', userId);
+
+            if (error) throw error;
 
             loadingDiv.style.display = 'none';
             gridDiv.style.display = 'grid';
@@ -622,37 +649,30 @@
                 return;
             }
 
-            for (const uc of userCourses) {
+            userCourses.forEach(uc => {
                 const course = uc.courses;
-                if (!course) continue;
                 const progress = uc.progress || 0;
-                const completed = uc.completed;
-                const buttonText = completed ? t.viewCert : t.continue;
-                const link = completed ? `../certificates/certificate.html?course=${course.slug}` : `../courses/course-content.html?course=${course.slug}`;
+                const isDone = uc.completed;
+                
                 const card = document.createElement('div');
                 card.className = 'course-card';
                 card.innerHTML = `
                     <h4>${course.title}</h4>
-                    <p>${course.description || (currentLanguage === 'ar' ? 'لا يوجد وصف' : 'No description')}</p>
-                    <p>${currentLanguage === 'ar' ? 'التقدم:' : 'Progress:'} <span class="progress-value">${progress}%</span></p>
-                    <a href="${link}" class="course-btn">${buttonText}</a>
+                    <p>${course.description || (currentLanguage === 'ar' ? 'وصف الدورة متاح داخل المحتوى' : 'Description inside content')}</p>
+                    <div style="margin: 10px 0;">
+                        <small>${currentLanguage === 'ar' ? 'التقدم:' : 'Progress:'}</small>
+                        <span class="progress-value">${progress}%</span>
+                    </div>
+                    <a href="${isDone ? `../certificates/certificate.html?course=${course.slug}` : `../courses/course-content.html?course=${course.slug}`}" 
+                       class="course-btn" style="background: ${isDone ? '#38a169' : '#2b6cb0'}">
+                        ${isDone ? t.viewCert : t.continue}
+                    </a>
                 `;
                 gridDiv.appendChild(card);
-            }
+            });
         } catch (err) {
+            console.error("Course Load Error:", err);
             loadingDiv.innerHTML = `<p class="error-message">${t.errorLoading}</p>`;
-        }
-    }
-
-    function refreshCoursesText() {
-        // تحديث النصوص داخل الدورات المعروضة
-        const gridDiv = document.getElementById('coursesGrid');
-        if (gridDiv.style.display === 'grid') {
-            const t = translations[currentLanguage];
-            const btns = gridDiv.querySelectorAll('.course-btn');
-            const progressLabels = gridDiv.querySelectorAll('.course-card p');
-            // بسيط: إعادة تحميل الدورات للحصول على النصوص المترجمة بالكامل
-            if (currentUserId) loadUserCourses(currentUserId);
         }
     }
 
@@ -665,60 +685,69 @@
         const track = (data.track || "").toLowerCase();
         const btnContainer = document.getElementById('dynamic-btn-place');
         const desc = document.getElementById('track-desc');
-        const t = translations[currentLanguage];
         
         let targetLink = "https://cyberpath.vercel.app/docs/pathways/index.html";
-        let btnText = t.quickLinks === "روابط سريعة" ? "استعراض المنهج" : "View Curriculum";
+        let btnText = currentLanguage === 'ar' ? "استعراض المنهج" : "View Curriculum";
 
-        if (track.includes("دبلوم") && track.includes("حاسب")) {
+        if (track.includes("دبلوم") && (track.includes("حاسب") || track.includes("computer"))) {
             targetLink = "https://cyberpath.vercel.app/docs/pathways/tvtc-cs-diploma.html";
-            btnText = currentLanguage === 'ar' ? "🔓 مسار دبلوم علوم الحاسب" : "🔓 CS Diploma";
-            desc.innerText = currentLanguage === 'ar' ? "أهلاً بك في مسار تقنية المعلومات - دبلوم علوم الحاسب." : "Welcome to IT track - CS Diploma.";
+            btnText = currentLanguage === 'ar' ? "🔓 مسار دبلوم علوم الحاسب" : "🔓 CS Diploma Path";
+            desc.innerText = currentLanguage === 'ar' ? "أهلاً بك في مسار تقنية المعلومات - دبلوم علوم الحاسب." : "Welcome to the Computer Science Diploma track.";
         } else if (track.includes("أمن") || track.includes("security")) {
             targetLink = "https://cyberpath.vercel.app/docs/pathways/tvtc-cs-security.html";
-            btnText = currentLanguage === 'ar' ? "🔓 مسار دبلوم الأمن السيبراني" : "🔓 Cybersecurity Diploma";
-            desc.innerText = currentLanguage === 'ar' ? "أهلاً بك في المسار التخصصي للأمن السيبراني." : "Welcome to the cybersecurity track.";
+            btnText = currentLanguage === 'ar' ? "🔓 مسار دبلوم الأمن السيبراني" : "🔓 Cybersecurity Path";
+            desc.innerText = currentLanguage === 'ar' ? "أهلاً بك في المسار التخصصي للأمن السيبراني." : "Welcome to the Cybersecurity Specialist track.";
         } else {
-            desc.innerText = currentLanguage === 'ar' ? "يمكنك استعراض جميع المسارات واختيار المناسب لك." : "Browse all tracks and choose yours.";
+            desc.innerText = currentLanguage === 'ar' ? "يمكنك استعراض المسارات المتاحة والبدء في التعلم." : "Explore available tracks and start learning.";
         }
+        
         btnContainer.innerHTML = `<a href="${targetLink}" class="btn btn-primary">${btnText}</a>`;
     }
 
+    // تحديث الملف الشخصي
     window.updateProfile = async function() {
         const newName = document.getElementById('edit-full-name').value;
         const newPhone = document.getElementById('edit-phone').value;
+        const btn = document.getElementById('save-btn');
+
         if (!newName) {
             Swal.fire(currentLanguage === 'ar' ? 'تنبيه' : 'Warning', 
                       currentLanguage === 'ar' ? 'يرجى إدخال الاسم' : 'Please enter your name', 'warning');
             return;
         }
-        const btn = document.getElementById('save-btn');
+
+        btn.disabled = true;
         btn.innerText = currentLanguage === 'ar' ? "جاري الحفظ..." : "Saving...";
+
         const { error } = await supabase
             .from('user_profile')
             .update({ full_name: newName, phone: newPhone })
             .eq('user_id', currentUserId);
+
         if (!error) {
             Swal.fire({ icon: 'success', title: currentLanguage === 'ar' ? 'تم التحديث' : 'Updated', text: currentLanguage === 'ar' ? 'تم حفظ بياناتك بنجاح' : 'Profile updated', confirmButtonColor: '#2b6cb0' });
             document.getElementById('student-name').innerText = newName;
         } else {
             Swal.fire(currentLanguage === 'ar' ? 'خطأ' : 'Error', error.message, 'error');
         }
-        btn.innerText = currentLanguage === 'ar' ? "حفظ التغييرات" : "Save Changes";
+        btn.disabled = false;
+        btn.innerText = translations[currentLanguage].saveBtn;
     };
 
+    // تسجيل الخروج
     window.handleLogout = async () => {
         await supabase.auth.signOut();
         window.location.href = "temp-login.html";
     };
     document.getElementById('logoutBtn').addEventListener('click', handleLogout);
 
-    // Language toggle
+    // تبديل اللغة
     document.getElementById('langToggle').addEventListener('click', () => {
         currentLanguage = currentLanguage === 'ar' ? 'en' : 'ar';
-        updatePageLanguage();
         document.getElementById('langToggle').innerText = currentLanguage === 'ar' ? '🇬🇧 English' : '🇸🇦 العربية';
-        // إعادة تحميل بيانات المسار والدورات لتحديث النصوص
+        document.dir = currentLanguage === 'ar' ? 'rtl' : 'ltr';
+        updatePageLanguage();
+        // إعادة تحميل البيانات لتحديث النصوص الديناميكية
         if (currentUserId) {
             supabase.from('user_profile').select('*').eq('user_id', currentUserId).single()
                 .then(({ data }) => { if(data) renderProfile(data); });
@@ -733,6 +762,7 @@
         menuToggle.addEventListener('click', () => mainNav.classList.toggle('active'));
     }
 
+    // بدء التشغيل
     init();
 </script>
 </body>
