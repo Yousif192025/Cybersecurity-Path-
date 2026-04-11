@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="لوحة تحكم الطالب في منصة الأمن السيبراني. تابع تقدمك في الدورات التدريبية والشهادات." />
     <title>لوحة تحكم الطالب - منصة الأمن السيبراني</title>
-    <link rel="icon" href="../assets/images/logos/favicon.ico" type="image/x-icon">
+    <!-- تم تعطيل favicon مؤقتاً لتجنب خطأ 404 -->
+    <!-- <link rel="icon" href="../assets/images/logos/favicon.ico" type="image/x-icon"> -->
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -104,6 +105,12 @@
             border-radius: 5px;
             cursor: pointer;
             font-weight: 500;
+        }
+
+        .menu-toggle {
+            display: none;
+            font-size: 1.5rem;
+            cursor: pointer;
         }
 
         /* Dashboard Container */
@@ -369,7 +376,6 @@
 </header>
 
 <main class="dashboard-container">
-    <!-- بطاقة الترحيب -->
     <div class="welcome-card">
         <div class="avatar-box">
             <i class="fas fa-user-shield"></i>
@@ -385,7 +391,6 @@
         </div>
     </div>
 
-    <!-- إحصائيات -->
     <div class="stats-grid">
         <div class="stat-box">
             <h3 id="courses-count">0</h3>
@@ -401,7 +406,6 @@
         </div>
     </div>
 
-    <!-- محتوى ثنائي الأعمدة: المسار + تحديث البيانات -->
     <div class="content-grid">
         <div class="card">
             <h3 id="track-title"><i class="fas fa-graduation-cap"></i> مسارك التعليمي المخصص</h3>
@@ -431,7 +435,6 @@
         </div>
     </div>
 
-    <!-- قائمة الدورات المسجلة -->
     <div class="courses-section">
         <h2 id="my-courses-heading"><i class="fas fa-book-open"></i> دوراتي المسجلة</h2>
         <div id="loadingCourses" class="loading">
@@ -472,7 +475,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-    // ==================== الإعدادات الأساسية ====================
+    // ==================== تعريف Supabase مرة واحدة فقط ====================
     const supabaseUrl = "https://suvpaunulhqfoclepwoz.supabase.co";
     const supabaseKey = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -567,7 +570,6 @@
         currentUserId = session.user.id;
         document.getElementById('student-email').innerText = session.user.email;
 
-        // البحث عن البروفايل (أولاً بـ user_id ثم بالإيميل)
         let { data: profile, error: profileError } = await supabase
             .from('user_profile')
             .select('*')
@@ -575,7 +577,6 @@
             .maybeSingle();
 
         if (!profile) {
-            // محاولة جلب بالإيميل في حال كان مسجلاً مسبقاً بدون ID
             const { data: oldProfile } = await supabase
                 .from('user_profile')
                 .select('*')
@@ -586,7 +587,6 @@
                 await supabase.from('user_profile').update({ user_id: currentUserId }).eq('email', session.user.email);
                 profile = oldProfile;
             } else {
-                // إنشاء بروفايل جديد
                 const { data: newProfile } = await supabase
                     .from('user_profile')
                     .insert([{ 
@@ -632,7 +632,6 @@
         const t = translations[currentLanguage];
 
         try {
-            // استعلام JOIN آمن باستخدام courses!inner
             const { data: userCourses, error } = await supabase
                 .from('user_courses')
                 .select(`progress, completed, courses!inner(id, title, description, slug)`)
@@ -704,7 +703,6 @@
         btnContainer.innerHTML = `<a href="${targetLink}" class="btn btn-primary">${btnText}</a>`;
     }
 
-    // تحديث الملف الشخصي
     window.updateProfile = async function() {
         const newName = document.getElementById('edit-full-name').value;
         const newPhone = document.getElementById('edit-phone').value;
@@ -734,20 +732,19 @@
         btn.innerText = translations[currentLanguage].saveBtn;
     };
 
-    // تسجيل الخروج
     window.handleLogout = async () => {
         await supabase.auth.signOut();
         window.location.href = "temp-login.html";
     };
+
+    // ==================== Event Listeners ====================
     document.getElementById('logoutBtn').addEventListener('click', handleLogout);
 
-    // تبديل اللغة
     document.getElementById('langToggle').addEventListener('click', () => {
         currentLanguage = currentLanguage === 'ar' ? 'en' : 'ar';
         document.getElementById('langToggle').innerText = currentLanguage === 'ar' ? '🇬🇧 English' : '🇸🇦 العربية';
         document.dir = currentLanguage === 'ar' ? 'rtl' : 'ltr';
         updatePageLanguage();
-        // إعادة تحميل البيانات لتحديث النصوص الديناميكية
         if (currentUserId) {
             supabase.from('user_profile').select('*').eq('user_id', currentUserId).single()
                 .then(({ data }) => { if(data) renderProfile(data); });
@@ -755,7 +752,6 @@
         }
     });
 
-    // القائمة المتنقلة
     const menuToggle = document.getElementById('menu-toggle');
     const mainNav = document.getElementById('main-nav');
     if (menuToggle) {
