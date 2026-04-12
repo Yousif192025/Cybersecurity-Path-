@@ -2,38 +2,34 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة المتدربين | العرض الكامل</title>
+    <title>إدارة المتدربين | الحل النهائي للجلب الكامل</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #1e40af; --accent: #3b82f6; --bg: #f1f5f9; --text: #1e293b; }
+        :root { --primary: #1e40af; --accent: #3b82f6; --bg: #f1f5f9; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
-        body { background-color: var(--bg); color: var(--text); padding: 20px; }
+        body { background-color: var(--bg); padding: 20px; }
         .admin-container { max-width: 1450px; margin: 0 auto; }
         .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .filter-card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
-        .filter-item label { display: block; margin-bottom: 5px; font-weight: 700; font-size: 0.85rem; color: #64748b; }
-        .filter-item select, .filter-item input { width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; transition: 0.3s; }
-        .filter-item select:focus, .filter-item input:focus { border-color: var(--accent); }
-        .stat-badge { background: var(--primary); color: white; padding: 5px 15px; border-radius: 50px; font-size: 0.9rem; }
+        .filter-item label { display: block; margin-bottom: 5px; font-weight: 700; color: #64748b; font-size: 0.85rem; }
+        .filter-item select, .filter-item input { width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; }
+        .stat-badge { background: var(--primary); color: white; padding: 5px 15px; border-radius: 50px; }
         .table-container { background: white; border-radius: 15px; overflow-x: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         table { width: 100%; border-collapse: collapse; min-width: 1000px; text-align: right; }
-        th { background: #f8fafc; padding: 15px; color: #64748b; border-bottom: 2px solid #edf2f7; font-size: 0.9rem; }
+        th { background: #f8fafc; padding: 15px; color: #64748b; border-bottom: 2px solid #edf2f7; }
         td { padding: 12px 15px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
         tr:hover { background-color: #f8fafc; }
-        .status-pill { padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
-        .status-active { background: #dcfce7; color: #166534; }
-        .status-other { background: #f1f5f9; color: #475569; }
+        .loading-overlay { text-align: center; padding: 20px; color: var(--primary); font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="admin-container">
     <div class="page-header">
-        <h2><i class="fas fa-users-viewfinder"></i> إدارة المتدربين (عرض الكل)</h2>
-        <div>إجمالي السجلات المكتشفة: <span id="count-result" class="stat-badge">0</span></div>
+        <h2><i class="fas fa-database"></i> السجلات المكتملة</h2>
+        <div>إجمالي السجلات: <span id="count-result" class="stat-badge">جاري الجلب...</span></div>
     </div>
 
     <div class="filter-card">
@@ -42,27 +38,24 @@
             <div class="filter-item"><label>المجموعة</label><select id="filter-group"><option value="">الكل</option></select></div>
             <div class="filter-item"><label>نوع الدراسة</label><select id="filter-mode"><option value="">الكل</option></select></div>
             <div class="filter-item"><label>حالة المتدرب</label><select id="filter-status"><option value="">الكل</option></select></div>
-            <div class="filter-item"><label>بحث (اسم/هوية)</label><input type="text" id="search-box" placeholder="اكتب للبحث..."></div>
+            <div class="filter-item"><label>بحث سريع</label><input type="text" id="search-box" placeholder="اسم أو هوية..."></div>
         </div>
     </div>
 
     <div class="table-container">
+        <div id="loader" class="loading-overlay" style="display:none;">جاري تجميع كافة السجلات من القاعدة...</div>
         <table>
             <thead>
                 <tr>
                     <th>الاسم الكامل</th>
                     <th>رقم الهوية</th>
-                    <th>رقم المتدرب</th>
                     <th>التخصص</th>
                     <th>المجموعة</th>
                     <th>الدراسة</th>
                     <th>الحالة</th>
-                    <th>الفصل</th>
                 </tr>
             </thead>
-            <tbody id="students-body">
-                <tr><td colspan="8" style="text-align:center; padding:40px;">جاري تحميل 427 سجل...</td></tr>
-            </tbody>
+            <tbody id="students-body"></tbody>
         </table>
     </div>
 </div>
@@ -74,43 +67,71 @@
     const supabaseKey = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // بناء الفلاتر من كل البيانات المتاحة
-    async function initFilters() {
-        const { data } = await supabase.from('user_profile').select('track, group_name, study_mode, status').range(0, 999);
-        if (!data) return;
+    let allData = []; // مخزن لكل السجلات (427)
 
+    // دالة تجلب البيانات على دفعات لتخطي قيود الـ API
+    async function fetchAllStudents() {
+        document.getElementById('loader').style.display = 'block';
+        allData = [];
+        let page = 0;
+        const pageSize = 200; // جلب 200 في كل مرة
+        let keepFetching = true;
+
+        while (keepFetching) {
+            const { data, error } = await supabase
+                .from('user_profile')
+                .select('*')
+                .range(page * pageSize, (page + 1) * pageSize - 1)
+                .order('full_name', { ascending: true });
+
+            if (error || !data || data.length === 0) {
+                keepFetching = false;
+            } else {
+                allData = [...allData, ...data];
+                page++;
+                // إذا كان العدد المجلووب أقل من حجم الصفحة، يعني وصلنا للنهاية
+                if (data.length < pageSize) keepFetching = false;
+            }
+        }
+        
+        document.getElementById('loader').style.display = 'none';
+        initFilters();
+        applyFilters();
+    }
+
+    // بناء الفلاتر من المخزن الكامل
+    function initFilters() {
         const populate = (id, key) => {
-            const items = [...new Set(data.map(i => i[key]).filter(Boolean))].sort();
-            const el = document.getElementById(id);
-            el.innerHTML = '<option value="">الكل</option>' + items.map(v => `<option value="${v}">${v}</option>`).join('');
+            const items = [...new Set(allData.map(i => i[key]).filter(Boolean))].sort();
+            document.getElementById(id).innerHTML = '<option value="">الكل</option>' + 
+                items.map(v => `<option value="${v}">${v}</option>`).join('');
         };
-
         populate('filter-track', 'track');
         populate('filter-group', 'group_name');
         populate('filter-mode', 'study_mode');
         populate('filter-status', 'status');
     }
 
-    async function loadStudents() {
+    // تصفية البيانات محلياً (أسرع وأدق)
+    function applyFilters() {
         const track = document.getElementById('filter-track').value;
         const group = document.getElementById('filter-group').value;
         const mode = document.getElementById('filter-mode').value;
         const status = document.getElementById('filter-status').value;
-        const search = document.getElementById('search-box').value;
+        const search = document.getElementById('search-box').value.toLowerCase();
 
-        // التعديل الجوهري: إضافة range لضمان جلب كافة الـ 427 سجلاً
-        let query = supabase.from('user_profile').select('*').range(0, 999);
+        const filtered = allData.filter(s => {
+            return (!track || s.track === track) &&
+                   (!group || s.group_name === group) &&
+                   (!mode || s.study_mode === mode) &&
+                   (!status || s.status === status) &&
+                   (!search || (s.full_name?.toLowerCase().includes(search) || s.national_id?.includes(search)));
+        });
 
-        if (track) query = query.eq('track', track);
-        if (group) query = query.eq('group_name', group);
-        if (mode) query = query.eq('study_mode', mode);
-        if (status) query = query.eq('status', status);
-        if (search) query = query.or(`full_name.ilike.%${search}%,national_id.ilike.%${search}%`);
+        renderTable(filtered);
+    }
 
-        const { data, error } = await query.order('full_name', { ascending: true });
-
-        if (error) { console.error(error); return; }
-
+    function renderTable(data) {
         const container = document.getElementById('students-body');
         document.getElementById('count-result').innerText = data.length;
         
@@ -118,27 +139,22 @@
             <tr>
                 <td><b>${s.full_name}</b></td>
                 <td>${s.national_id || '-'}</td>
-                <td><code>${s.student_number || '-'}</code></td>
                 <td>${s.track || '-'}</td>
                 <td>${s.group_name || '-'}</td>
                 <td>${s.study_mode || '-'}</td>
-                <td><span class="status-pill ${s.status?.includes('منتظم') ? 'status-active' : 'status-other'}">${s.status || '-'}</span></td>
-                <td>${s.semester || '-'}</td>
+                <td>${s.status || '-'}</td>
             </tr>
         `).join('');
     }
 
-    async function start() {
-        await initFilters();
-        await loadStudents();
-        
-        ['filter-track', 'filter-group', 'filter-mode', 'filter-status'].forEach(id => {
-            document.getElementById(id).addEventListener('change', loadStudents);
-        });
-        document.getElementById('search-box').addEventListener('input', loadStudents);
-    }
+    // ربط الأحداث
+    ['filter-track', 'filter-group', 'filter-mode', 'filter-status'].forEach(id => {
+        document.getElementById(id).addEventListener('change', applyFilters);
+    });
+    document.getElementById('search-box').addEventListener('input', applyFilters);
 
-    start();
+    // ابدأ الجلب
+    fetchAllStudents();
 </script>
 </body>
 </html>
