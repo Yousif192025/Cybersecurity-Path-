@@ -2,83 +2,147 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>إدارة المتدربين | الفلاتر المتقدمة</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة المتدربين | نظام الفلاتر الديناميكي</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        :root { --primary: #1e40af; --bg: #f8fafc; }
-        * { box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
-        body { background: var(--bg); padding: 20px; }
+        :root {
+            --primary: #1e40af;
+            --accent: #3b82f6;
+            --bg: #f1f5f9;
+            --text: #1e293b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding: 20px; }
+
+        .admin-container { max-width: 1400px; margin: 0 auto; }
         
-        .admin-container { max-width: 1300px; margin: 0 auto; }
-        .filter-card { background: white; padding: 25px; border-radius: 15px; shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        /* الهيدر */
+        .page-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 30px; 
+            background: white; 
+            padding: 20px; 
+            border-radius: 15px; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        /* قسم الفلاتر */
+        .filter-card { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 15px; 
+            margin-bottom: 25px; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
         
-        .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
-        .filter-item label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 0.9rem; color: #475569; }
-        .filter-item select, .filter-item input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; }
+        .filter-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 20px; 
+        }
 
-        .stats-bar { display: flex; gap: 20px; margin-bottom: 20px; font-weight: bold; }
-        .stat-tag { background: #dbeafe; color: var(--primary); padding: 5px 15px; border-radius: 20px; }
+        .filter-item label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: 700; 
+            font-size: 0.9rem; 
+            color: #64748b; 
+        }
 
-        .table-container { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        table { width: 100%; border-collapse: collapse; text-align: right; }
-        th { background: #f1f5f9; padding: 15px; color: #475569; }
-        td { padding: 15px; border-bottom: 1px solid #f1f5f9; font-size: 0.95rem; }
-        tr:hover { background: #f8fafc; }
+        .filter-item select, .filter-item input { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 10px; 
+            outline: none; 
+            font-size: 1rem;
+            transition: 0.3s;
+        }
 
-        .status-badge { padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
+        .filter-item select:focus, .filter-item input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* الإحصائيات */
+        .stats-bar { margin-bottom: 15px; font-weight: bold; }
+        .stat-badge { background: var(--primary); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.9rem; }
+
+        /* الجدول */
+        .table-container { 
+            background: white; 
+            border-radius: 15px; 
+            overflow-x: auto; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        table { width: 100%; border-collapse: collapse; min-width: 900px; text-align: right; }
+        th { background: #f8fafc; padding: 18px; color: #64748b; font-weight: 700; border-bottom: 2px solid #edf2f7; }
+        td { padding: 16px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        tr:hover { background-color: #f8fafc; }
+
+        .status-pill { 
+            padding: 5px 12px; 
+            border-radius: 8px; 
+            font-size: 0.85rem; 
+            font-weight: bold; 
+        }
         .status-active { background: #dcfce7; color: #166534; }
-        .status-withdrawn { background: #fee2e2; color: #991b1b; }
+        .status-other { background: #f1f5f9; color: #475569; }
+
+        @media (max-width: 768px) {
+            .page-header { flex-direction: column; gap: 15px; text-align: center; }
+        }
     </style>
 </head>
 <body>
 
 <div class="admin-container">
-    <h2><i class="fas fa-users-gear"></i> لوحة التحكم في المتدربين</h2>
-    
+    <div class="page-header">
+        <h2><i class="fas fa-user-shield"></i> إدارة شؤون المتدربين</h2>
+        <div class="stats-bar">
+            إجمالي المتدربين في القائمة الحالية: <span id="count-result" class="stat-badge">0</span>
+        </div>
+    </div>
+
     <div class="filter-card">
         <div class="filter-grid">
             <div class="filter-item">
-                <label>التخصص</label>
-                <select id="filter-track" onchange="fetchStudents()">
-                    <option value="">الكل</option>
-                    <option value="Cybersecurity">أمن سيبراني</option>
-                    <option value="Computer Science">حاسب آلي</option>
+                <label>تصفية حسب التخصص</label>
+                <select id="filter-track">
+                    <option value="">جاري التحميل...</option>
                 </select>
             </div>
             <div class="filter-item">
                 <label>المجموعة</label>
-                <select id="filter-group" onchange="fetchStudents()">
-                    <option value="">الكل</option>
-                    <option value="Group -10">مجموعة 10</option>
+                <select id="filter-group">
+                    <option value="">جاري التحميل...</option>
                 </select>
             </div>
             <div class="filter-item">
                 <label>نوع الدراسة</label>
-                <select id="filter-mode" onchange="fetchStudents()">
-                    <option value="">الكل</option>
-                    <option value="حضوري">حضوري</option>
-                    <option value="عن بعد">عن بعد</option>
+                <select id="filter-mode">
+                    <option value="">جاري التحميل...</option>
                 </select>
             </div>
             <div class="filter-item">
                 <label>حالة المتدرب</label>
-                <select id="filter-status" onchange="fetchStudents()">
-                    <option value="">الكل</option>
-                    <option value="منتظم">منتظم</option>
-                    <option value="منسحب">منسحب</option>
-                    <option value="مؤجل">مؤجل</option>
+                <select id="filter-status">
+                    <option value="">جاري التحميل...</option>
                 </select>
             </div>
             <div class="filter-item">
-                <label>البحث بالاسم</label>
-                <input type="text" id="search-name" placeholder="اكتب اسم المتدرب..." oninput="fetchStudents()">
+                <label>بحث بالاسم أو الهوية</label>
+                <input type="text" id="search-box" placeholder="اكتب للبحث...">
             </div>
         </div>
-    </div>
-
-    <div class="stats-bar">
-        <span>إجمالي النتائج: <span id="count-result" class="stat-tag">0</span></span>
     </div>
 
     <div class="table-container">
@@ -87,15 +151,16 @@
                 <tr>
                     <th>الاسم الكامل</th>
                     <th>رقم الهوية</th>
+                    <th>رقم المتدرب</th>
                     <th>التخصص</th>
                     <th>المجموعة</th>
-                    <th>الدراسة</th>
+                    <th>نوع الدراسة</th>
                     <th>الحالة</th>
-                    <th>الفصل</th>
                 </tr>
             </thead>
-            <tbody id="students-table-body">
-                </tbody>
+            <tbody id="students-body">
+                <tr><td colspan="7" style="text-align:center; padding:50px;">جاري جلب البيانات من القاعدة...</td></tr>
+            </tbody>
         </table>
     </div>
 </div>
@@ -107,55 +172,105 @@
     const supabaseKey = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    async function fetchStudents() {
+    // 1. وظيفة لبناء قوائم الفلاتر ديناميكياً من البيانات الفعلية
+    async function initFilters() {
+        const { data, error } = await supabase.from('user_profile').select('track, group_name, study_mode, status');
+        
+        if (error) {
+            console.error("Error loading filters:", error);
+            return;
+        }
+
+        // استخدام Set للحصول على قيم فريدة ومنع التكرار
+        const tracks = [...new Set(data.map(i => i.track).filter(Boolean))].sort();
+        const groups = [...new Set(data.map(i => i.group_name).filter(Boolean))].sort();
+        const modes = [...new Set(data.map(i => i.study_mode).filter(Boolean))].sort();
+        const statuses = [...new Set(data.map(i => i.status).filter(Boolean))].sort();
+
+        // تعبئة القوائم في HTML
+        populateDropdown('filter-track', tracks);
+        populateDropdown('filter-group', groups);
+        populateDropdown('filter-mode', modes);
+        populateDropdown('filter-status', statuses);
+    }
+
+    function populateDropdown(id, items) {
+        const el = document.getElementById(id);
+        el.innerHTML = '<option value="">الكل</option>';
+        items.forEach(item => {
+            el.innerHTML += `<option value="${item}">${item}</option>`;
+        });
+    }
+
+    // 2. وظيفة جلب وعرض البيانات مع الفلاتر
+    async function loadStudents() {
         const track = document.getElementById('filter-track').value;
         const group = document.getElementById('filter-group').value;
         const mode = document.getElementById('filter-mode').value;
         const status = document.getElementById('filter-status').value;
-        const name = document.getElementById('search-name').value;
+        const search = document.getElementById('search-box').value;
 
         let query = supabase.from('user_profile').select('*');
 
-        // تطبيق الفلاتر برمجياً
+        // تطبيق شروط الفلترة إذا تم اختيار قيمة
         if (track) query = query.eq('track', track);
         if (group) query = query.eq('group_name', group);
         if (mode) query = query.eq('study_mode', mode);
-        if (status) query = query.like('status', `%${status}%`);
-        if (name) query = query.ilike('full_name', `%${name}%`);
+        if (status) query = query.eq('status', status);
+        if (search) {
+            query = query.or(`full_name.ilike.%${search}%,national_id.ilike.%${search}%`);
+        }
 
-        const { data, error } = await query.order('full_name', { ascending: true });
+        const { data: students, error } = await query.order('full_name', { ascending: true });
 
         if (error) {
-            console.error(error);
+            console.error("Fetch Error:", error);
             return;
         }
 
-        renderTable(data);
+        renderTable(students);
     }
 
-    function renderTable(students) {
-        const tbody = document.getElementById('students-table-body');
-        document.getElementById('count-result').innerText = students.length;
-        tbody.innerHTML = '';
+    function renderTable(list) {
+        const container = document.getElementById('students-body');
+        document.getElementById('count-result').innerText = list.length;
+        
+        if (list.length === 0) {
+            container.innerHTML = '<tr><td colspan="7" style="text-align:center;">لا توجد نتائج تطابق خيارات البحث</td></tr>';
+            return;
+        }
 
-        students.forEach(std => {
-            const statusClass = std.status?.includes('منتظم') ? 'status-active' : 'status-withdrawn';
-            tbody.innerHTML += `
-                <tr>
-                    <td><b>${std.full_name}</b></td>
-                    <td>${std.national_id || '-'}</td>
-                    <td>${std.track}</td>
-                    <td>${std.group_name}</td>
-                    <td>${std.study_mode}</td>
-                    <td><span class="status-badge ${statusClass}">${std.status}</span></td>
-                    <td>${std.semester}</td>
-                </tr>
-            `;
+        container.innerHTML = list.map(s => `
+            <tr>
+                <td><b>${s.full_name}</b></td>
+                <td>${s.national_id || '-'}</td>
+                <td><code style="background:#f1f5f9; padding:2px 5px;">${s.student_number || '-'}</code></td>
+                <td>${s.track || '-'}</td>
+                <td>${s.group_name || '-'}</td>
+                <td>${s.study_mode || '-'}</td>
+                <td>
+                    <span class="status-pill ${s.status?.includes('منتظم') ? 'status-active' : 'status-other'}">
+                        ${s.status || '-'}
+                    </span>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // 3. تشغيل النظام وربط الأحداث
+    async function startApp() {
+        await initFilters(); // بناء الفلاتر أولاً
+        await loadStudents(); // جلب البيانات ثانياً
+
+        // ربط جميع العناصر بأحداث التغيير لتحديث الجدول تلقائياً
+        ['filter-track', 'filter-group', 'filter-mode', 'filter-status'].forEach(id => {
+            document.getElementById(id).addEventListener('change', loadStudents);
         });
+        
+        document.getElementById('search-box').addEventListener('input', loadStudents);
     }
 
-    // تحميل البيانات عند فتح الصفحة
-    fetchStudents();
+    startApp();
 </script>
 
 </body>
