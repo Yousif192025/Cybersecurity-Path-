@@ -2,57 +2,149 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>إدارة المتدربين | الحل النهائي للجلب الكامل</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة المتدربين المتكامل</title>
+    
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        :root { --primary: #1e40af; --accent: #3b82f6; --bg: #f1f5f9; }
+        :root {
+            --primary: #1e40af;
+            --accent: #0891b2;
+            --success: #059669;
+            --bg: #f8fafc;
+            --white: #ffffff;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
-        body { background-color: var(--bg); padding: 20px; }
-        .admin-container { max-width: 1450px; margin: 0 auto; }
-        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .filter-card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
-        .filter-item label { display: block; margin-bottom: 5px; font-weight: 700; color: #64748b; font-size: 0.85rem; }
-        .filter-item select, .filter-item input { width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; }
-        .stat-badge { background: var(--primary); color: white; padding: 5px 15px; border-radius: 50px; }
-        .table-container { background: white; border-radius: 15px; overflow-x: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        table { width: 100%; border-collapse: collapse; min-width: 1000px; text-align: right; }
-        th { background: #f8fafc; padding: 15px; color: #64748b; border-bottom: 2px solid #edf2f7; }
+        body { background-color: var(--bg); color: #1e293b; padding: 20px; }
+
+        .admin-container { max-width: 1500px; margin: 0 auto; }
+        
+        /* الهيدر والأزرار */
+        .page-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 25px; 
+            background: var(--white); 
+            padding: 20px; 
+            border-radius: 15px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .action-buttons { display: flex; gap: 10px; align-items: center; }
+
+        /* قسم الفلاتر */
+        .filter-card { 
+            background: var(--white); 
+            padding: 20px; 
+            border-radius: 15px; 
+            margin-bottom: 20px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        .filter-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+            gap: 15px; 
+        }
+
+        .filter-item label { display: block; margin-bottom: 8px; font-weight: 700; color: #64748b; font-size: 0.85rem; }
+        .filter-item select, .filter-item input { 
+            width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; transition: 0.3s;
+        }
+
+        /* الوسوم والعدادات */
+        .stat-badge { background: var(--primary); color: white; padding: 6px 15px; border-radius: 50px; font-weight: bold; }
+        .btn-action { 
+            padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; 
+            font-weight: 600; display: flex; align-items: center; gap: 8px; color: white; transition: 0.3s;
+        }
+        .btn-export { background: var(--success); }
+        .btn-print { background: #6366f1; }
+        .btn-action:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        /* الجدول */
+        .table-container { background: var(--white); border-radius: 15px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; text-align: right; }
+        th { background: #f1f5f9; padding: 15px; color: #475569; font-weight: 700; }
         td { padding: 12px 15px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
         tr:hover { background-color: #f8fafc; }
-        .loading-overlay { text-align: center; padding: 20px; color: var(--primary); font-weight: bold; }
+
+        .status-pill { padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
+        .status-active { background: #dcfce7; color: #166534; }
+        .status-default { background: #f1f5f9; color: #475569; }
+
+        /* إعدادات الطباعة */
+        @media print {
+            .filter-card, .btn-action, .page-header h2, .filter-item { display: none !important; }
+            body { padding: 0; background: white; }
+            .admin-container { max-width: 100%; }
+            .table-container { box-shadow: none; border: 1px solid #eee; }
+            table { font-size: 10pt; }
+            .page-header { border-bottom: 2px solid #333; margin-bottom: 10px; }
+        }
     </style>
 </head>
 <body>
 
 <div class="admin-container">
     <div class="page-header">
-        <h2><i class="fas fa-database"></i> السجلات المكتملة</h2>
-        <div>إجمالي السجلات: <span id="count-result" class="stat-badge">جاري الجلب...</span></div>
+        <h2><i class="fas fa-id-card-clip"></i> سجل المتدربين</h2>
+        
+        <div class="action-buttons">
+            <span class="stat-badge">الإجمالي: <span id="count-result">0</span></span>
+            <button onclick="exportToCSV()" class="btn-action btn-export">
+                <i class="fas fa-file-excel"></i> تصدير Excel
+            </button>
+            <button onclick="window.print()" class="btn-action btn-print">
+                <i class="fas fa-print"></i> طباعة / PDF
+            </button>
+        </div>
     </div>
 
     <div class="filter-card">
         <div class="filter-grid">
-            <div class="filter-item"><label>التخصص</label><select id="filter-track"><option value="">الكل</option></select></div>
-            <div class="filter-item"><label>المجموعة</label><select id="filter-group"><option value="">الكل</option></select></div>
-            <div class="filter-item"><label>نوع الدراسة</label><select id="filter-mode"><option value="">الكل</option></select></div>
-            <div class="filter-item"><label>حالة المتدرب</label><select id="filter-status"><option value="">الكل</option></select></div>
-            <div class="filter-item"><label>بحث سريع</label><input type="text" id="search-box" placeholder="اسم أو هوية..."></div>
+            <div class="filter-item">
+                <label>التخصص</label>
+                <select id="filter-track"><option value="">الكل</option></select>
+            </div>
+            <div class="filter-item">
+                <label>المجموعة</label>
+                <select id="filter-group"><option value="">الكل</option></select>
+            </div>
+            <div class="filter-item">
+                <label>نوع الدراسة</label>
+                <select id="filter-mode"><option value="">الكل</option></select>
+            </div>
+            <div class="filter-item">
+                <label>حالة المتدرب</label>
+                <select id="filter-status"><option value="">الكل</option></select>
+            </div>
+            <div class="filter-item">
+                <label>البحث (الاسم أو الهوية)</label>
+                <input type="text" id="search-box" placeholder="اكتب للبحث...">
+            </div>
         </div>
     </div>
 
     <div class="table-container">
-        <div id="loader" class="loading-overlay" style="display:none;">جاري تجميع كافة السجلات من القاعدة...</div>
+        <div id="loader" style="text-align:center; padding:20px; display:none; color:var(--primary);">
+            <i class="fas fa-spinner fa-spin"></i> جاري جلب كامل السجلات (427)...
+        </div>
         <table>
             <thead>
                 <tr>
                     <th>الاسم الكامل</th>
                     <th>رقم الهوية</th>
+                    <th>رقم المتدرب</th>
                     <th>التخصص</th>
                     <th>المجموعة</th>
                     <th>الدراسة</th>
                     <th>الحالة</th>
+                    <th>الفصل</th>
                 </tr>
             </thead>
             <tbody id="students-body"></tbody>
@@ -67,14 +159,13 @@
     const supabaseKey = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    let allData = []; // مخزن لكل السجلات (427)
+    let allData = [];
 
-    // دالة تجلب البيانات على دفعات لتخطي قيود الـ API
-    async function fetchAllStudents() {
+    // جلب البيانات على دفعات لضمان الوصول لـ 427 سجل
+    async function fetchAllData() {
         document.getElementById('loader').style.display = 'block';
-        allData = [];
         let page = 0;
-        const pageSize = 200; // جلب 200 في كل مرة
+        const pageSize = 200;
         let keepFetching = true;
 
         while (keepFetching) {
@@ -89,30 +180,32 @@
             } else {
                 allData = [...allData, ...data];
                 page++;
-                // إذا كان العدد المجلووب أقل من حجم الصفحة، يعني وصلنا للنهاية
                 if (data.length < pageSize) keepFetching = false;
             }
         }
         
         document.getElementById('loader').style.display = 'none';
-        initFilters();
+        setupFilters();
         applyFilters();
     }
 
-    // بناء الفلاتر من المخزن الكامل
-    function initFilters() {
-        const populate = (id, key) => {
-            const items = [...new Set(allData.map(i => i[key]).filter(Boolean))].sort();
-            document.getElementById(id).innerHTML = '<option value="">الكل</option>' + 
-                items.map(v => `<option value="${v}">${v}</option>`).join('');
+    // بناء خيارات الفلاتر ديناميكياً
+    function setupFilters() {
+        const getUnique = (key) => [...new Set(allData.map(i => i[key]).filter(Boolean))].sort();
+        
+        const populate = (id, items) => {
+            const el = document.getElementById(id);
+            el.innerHTML = '<option value="">الكل</option>' + 
+                           items.map(v => `<option value="${v}">${v}</option>`).join('');
         };
-        populate('filter-track', 'track');
-        populate('filter-group', 'group_name');
-        populate('filter-mode', 'study_mode');
-        populate('filter-status', 'status');
+
+        populate('filter-track', getUnique('track'));
+        populate('filter-group', getUnique('group_name'));
+        populate('filter-mode', getUnique('study_mode'));
+        populate('filter-status', getUnique('status'));
     }
 
-    // تصفية البيانات محلياً (أسرع وأدق)
+    // تطبيق الفلترة المحلية (Client-side) لسرعة الاستجابة
     function applyFilters() {
         const track = document.getElementById('filter-track').value;
         const group = document.getElementById('filter-group').value;
@@ -132,29 +225,50 @@
     }
 
     function renderTable(data) {
-        const container = document.getElementById('students-body');
+        const tbody = document.getElementById('students-body');
         document.getElementById('count-result').innerText = data.length;
         
-        container.innerHTML = data.map(s => `
+        tbody.innerHTML = data.map(s => `
             <tr>
                 <td><b>${s.full_name}</b></td>
                 <td>${s.national_id || '-'}</td>
+                <td>${s.student_number || '-'}</td>
                 <td>${s.track || '-'}</td>
                 <td>${s.group_name || '-'}</td>
                 <td>${s.study_mode || '-'}</td>
-                <td>${s.status || '-'}</td>
+                <td><span class="status-pill ${s.status?.includes('منتظم') ? 'status-active' : 'status-default'}">${s.status || '-'}</span></td>
+                <td>${s.semester || '-'}</td>
             </tr>
         `).join('');
     }
 
-    // ربط الأحداث
+    // وظيفة التصدير إلى CSV
+    window.exportToCSV = function() {
+        let csv = [];
+        const rows = document.querySelectorAll("table tr");
+        
+        for (const row of rows) {
+            const rowData = [];
+            const cols = row.querySelectorAll("td, th");
+            for (const col of cols) rowData.push('"' + col.innerText.replace(/"/g, '""') + '"');
+            csv.push(rowData.join(","));
+        }
+        
+        const blob = new Blob(["\uFEFF" + csv.join("\n")], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `سجل_المتدربين_${new Date().toLocaleDateString()}.csv`;
+        link.click();
+    };
+
+    // ربط الأحداث وتشغيل الجلب
     ['filter-track', 'filter-group', 'filter-mode', 'filter-status'].forEach(id => {
         document.getElementById(id).addEventListener('change', applyFilters);
     });
     document.getElementById('search-box').addEventListener('input', applyFilters);
 
-    // ابدأ الجلب
-    fetchAllStudents();
+    fetchAllData();
 </script>
+
 </body>
 </html>
