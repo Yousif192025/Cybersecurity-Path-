@@ -23,7 +23,6 @@
         body { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); padding: 12px; min-height: 100vh; }
         .container { max-width: 1600px; margin: 0 auto; }
 
-        /* الهيدر */
         .header {
             background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
             color: white;
@@ -46,7 +45,6 @@
         .title h1 { font-size: 1.2rem; }
         .title p { font-size: 0.7rem; opacity: 0.9; }
 
-        /* شريط التنقل السريع */
         .nav-cards {
             display: flex;
             gap: 10px;
@@ -68,7 +66,7 @@
         .nav-card.active { background: var(--primary); color: white; }
         .nav-card i { font-size: 1.2rem; display: block; margin-bottom: 5px; }
 
-        /* فلتر متقدم */
+        /* فلتر متقدم مع المجموعة */
         .filter-bar {
             background: white;
             padding: 15px 20px;
@@ -106,8 +104,16 @@
             cursor: pointer;
             font-weight: 600;
         }
+        .btn-reset {
+            background: #64748b;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
 
-        /* تبويبات */
         .tabs {
             display: flex;
             gap: 5px;
@@ -131,7 +137,6 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* إحصائيات */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -157,7 +162,6 @@
             font-size: 20px;
         }
 
-        /* بطاقات المحاضرات */
         .lectures-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -206,7 +210,6 @@
         .btn-primary { background: var(--primary); color: white; }
         .btn-outline { background: white; border: 1px solid var(--border); }
 
-        /* نماذج */
         .prep-form {
             background: white;
             padding: 20px;
@@ -225,7 +228,6 @@
         }
         .form-group textarea { min-height: 80px; resize: vertical; }
 
-        /* جدول الحضور */
         .attendance-table {
             overflow-x: auto;
             background: white;
@@ -259,7 +261,7 @@
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
             .filter-bar { flex-direction: column; }
             .filter-group { width: 100%; }
-            .btn-filter { width: 100%; }
+            .btn-filter, .btn-reset { width: 100%; }
             .nav-cards { flex-direction: column; }
             .nav-card { min-width: auto; }
         }
@@ -275,7 +277,7 @@
             </div>
             <div class="title">
                 <h1>نظام التحضير الإلكتروني للمحاضرات</h1>
-                <p>علوم الحاسب الآلي | الأمن السيبراني | 12 أسبوع تحضير لكل مقرر</p>
+                <p>علوم الحاسب | الأمن السيبراني | 12 أسبوع | حسب المجموعات</p>
             </div>
         </div>
         <div><i class="far fa-calendar-alt"></i> <span id="current-date"></span></div>
@@ -291,8 +293,14 @@
         </div>
     </div>
 
-    <!-- الفلاتر -->
+    <!-- الفلاتر المتقدمة (مع فلتر المجموعة) -->
     <div class="filter-bar">
+        <div class="filter-group">
+            <label><i class="fas fa-users"></i> المجموعة</label>
+            <select id="filter-group">
+                <option value="">جميع المجموعات</option>
+            </select>
+        </div>
         <div class="filter-group">
             <label><i class="fas fa-layer-group"></i> الفصل التدريبي</label>
             <select id="filter-semester">
@@ -318,6 +326,7 @@
             </select>
         </div>
         <button class="btn-filter" onclick="applyFilters()"><i class="fas fa-filter"></i> تطبيق</button>
+        <button class="btn-reset" onclick="resetFilters()"><i class="fas fa-undo"></i> إعادة ضبط</button>
     </div>
 
     <div class="tabs">
@@ -384,7 +393,7 @@
         </div>
         <div class="attendance-table" id="attendance-table-container" style="display:none;">
             <table>
-                <thead><tr><th>المتدرب</th><th>الهوية</th><th>المقرر</th><th>الحضور</th></tr></thead>
+                <thead><tr><th>المتدرب</th><th>الهوية</th><th>المجموعة</th><th>المقرر</th><th>الحضور</th></tr></thead>
                 <tbody id="attendance-tbody"></tbody>
             </table>
             <div style="padding: 15px; text-align: center;">
@@ -429,34 +438,44 @@
 
     let currentTrack = 'cs';
     let students = [];
+    let groups = [];
     let lectures = [];
     let preparations = {};
     let attendanceRecords = {};
     
+    // الفلاتر الحالية
+    let currentGroup = '';
     let currentSemester = '';
     let currentCourse = '';
     let currentWeek = '';
 
-    // توليد المحاضرات (12 أسبوع لكل مقرر)
+    // توليد المحاضرات لكل مجموعة على حدة
     function generateLectures() {
         lectures = [];
         let id = 1;
         const coursesData = currentTrack === 'cs' ? csCourses : cyberCourses;
         
-        for (let [semester, courses] of Object.entries(coursesData)) {
-            for (let course of courses) {
-                for (let week = 1; week <= 12; week++) {
-                    lectures.push({
-                        id: id++,
-                        track: currentTrack,
-                        semester: parseInt(semester),
-                        courseName: course,
-                        week: week,
-                        weekName: `الأسبوع ${week}`,
-                        title: `${course} - الأسبوع ${week}`,
-                        hours: 2,
-                        status: 'pending'
-                    });
+        // إذا لم توجد مجموعات، ننشئ مجموعة افتراضية
+        const activeGroups = groups.length > 0 ? groups : [{ group_name: "عام", track: currentTrack === 'cs' ? "علوم حاسب" : "أمن سيبراني" }];
+        
+        for (let groupInfo of activeGroups) {
+            const groupName = groupInfo.group_name;
+            for (let [semester, courses] of Object.entries(coursesData)) {
+                for (let course of courses) {
+                    for (let week = 1; week <= 12; week++) {
+                        lectures.push({
+                            id: id++,
+                            track: currentTrack,
+                            group: groupName,
+                            semester: parseInt(semester),
+                            courseName: course,
+                            week: week,
+                            weekName: `الأسبوع ${week}`,
+                            title: `${course} - الأسبوع ${week}`,
+                            hours: 2,
+                            status: 'pending'
+                        });
+                    }
                 }
             }
         }
@@ -480,21 +499,49 @@
             const { data } = await supabase.from('user_profile').select('*').range(0, 999);
             if (data && data.length > 0) {
                 students = data;
+                // استخراج المجموعات الفريدة مع التخصص
+                const groupsMap = new Map();
+                students.forEach(s => {
+                    const track = s.track || (currentTrack === 'cs' ? "علوم حاسب" : "أمن سيبراني");
+                    const group = s.group_name || "عام";
+                    const key = `${track}_${group}`;
+                    if (!groupsMap.has(key)) {
+                        groupsMap.set(key, { group_name: group, track: track });
+                    }
+                });
+                groups = Array.from(groupsMap.values());
             } else {
+                // بيانات تجريبية
+                groups = [
+                    { group_name: "CS-A", track: "علوم حاسب" },
+                    { group_name: "CS-B", track: "علوم حاسب" },
+                    { group_name: "CY-A", track: "أمن سيبراني" },
+                    { group_name: "CY-B", track: "أمن سيبراني" }
+                ];
                 students = [
-                    { full_name: "أحمد محمد", national_id: "1001", track: "علوم حاسب", group_name: "CS1" },
-                    { full_name: "سارة عبدالله", national_id: "1002", track: "علوم حاسب", group_name: "CS1" },
-                    { full_name: "خالد علي", national_id: "1003", track: "أمن سيبراني", group_name: "CY1" },
-                    { full_name: "نورة سعد", national_id: "1004", track: "أمن سيبراني", group_name: "CY1" },
+                    { full_name: "أحمد محمد", national_id: "1001", track: "علوم حاسب", group_name: "CS-A" },
+                    { full_name: "سارة عبدالله", national_id: "1002", track: "علوم حاسب", group_name: "CS-A" },
+                    { full_name: "خالد علي", national_id: "1003", track: "علوم حاسب", group_name: "CS-B" },
+                    { full_name: "نورة سعد", national_id: "1004", track: "أمن سيبراني", group_name: "CY-A" },
+                    { full_name: "عمر إبراهيم", national_id: "1005", track: "أمن سيبراني", group_name: "CY-A" },
+                    { full_name: "منى خالد", national_id: "1006", track: "أمن سيبراني", group_name: "CY-B" }
                 ];
             }
+            
+            // تعبئة فلتر المجموعات
+            const groupSelect = document.getElementById('filter-group');
+            const uniqueGroups = [...new Set(students.map(s => s.group_name || "عام"))];
+            groupSelect.innerHTML = '<option value="">جميع المجموعات</option>' + 
+                uniqueGroups.map(g => `<option value="${g}">${g}</option>`).join('');
+            
             document.getElementById('total-students').innerText = students.length;
             initSystem();
         } catch(e) {
             console.error(e);
+            groups = [{ group_name: "عام", track: "علوم حاسب" }];
             students = [
-                { full_name: "أحمد محمد", national_id: "1001", track: "علوم حاسب", group_name: "CS1" },
-                { full_name: "سارة عبدالله", national_id: "1002", track: "علوم حاسب", group_name: "CS1" },
+                { full_name: "أحمد محمد", national_id: "1001", track: "علوم حاسب", group_name: "عام" },
+                { full_name: "سارة عبدالله", national_id: "1002", track: "علوم حاسب", group_name: "عام" },
             ];
             document.getElementById('total-students').innerText = students.length;
             initSystem();
@@ -524,6 +571,7 @@
     }
 
     function applyFilters() {
+        currentGroup = document.getElementById('filter-group').value;
         currentSemester = document.getElementById('filter-semester').value;
         currentCourse = document.getElementById('filter-course').value;
         currentWeek = document.getElementById('filter-week').value;
@@ -533,8 +581,17 @@
         populateLectureSelects();
     }
 
+    function resetFilters() {
+        document.getElementById('filter-group').value = '';
+        document.getElementById('filter-semester').value = '';
+        document.getElementById('filter-course').value = '';
+        document.getElementById('filter-week').value = '';
+        applyFilters();
+    }
+
     function filterLectures(lectureList) {
         return lectureList.filter(l => {
+            if (currentGroup && l.group !== currentGroup) return false;
             if (currentSemester && l.semester != currentSemester) return false;
             if (currentCourse && l.courseName !== currentCourse) return false;
             if (currentWeek && l.week != currentWeek) return false;
@@ -545,18 +602,22 @@
     function renderAllLectures() {
         const filtered = filterLectures(lectures);
         const container = document.getElementById('all-lectures');
+        if (filtered.length === 0) {
+            container.innerHTML = '<div class="lecture-card"><div class="lecture-body" style="text-align:center;">📭 لا توجد محاضرات تطابق الفلتر</div></div>';
+            return;
+        }
         container.innerHTML = filtered.map(lecture => `
             <div class="lecture-card">
                 <div class="lecture-header">
                     <h3>${lecture.title}</h3>
-                    <div class="week">الفصل ${lecture.semester} | ${lecture.hours} ساعة</div>
+                    <div class="week">المجموعة: ${lecture.group} | الفصل ${lecture.semester} | ${lecture.hours} ساعة</div>
                 </div>
                 <div class="lecture-body">
                     <div class="lecture-info"><i class="fas fa-book"></i> ${lecture.courseName}</div>
                     <div class="lecture-info"><span class="prep-status ${lecture.status === 'prepared' ? 'status-done' : 'status-pending'}">${lecture.status === 'prepared' ? '✓ تم التحضير' : '⏳ قيد التحضير'}</span></div>
                     ${lecture.status === 'prepared' && preparations[lecture.id] ? 
-                        `<button class="btn-sm btn-outline" onclick="window.showPreparationDetails(${lecture.id})"><i class="fas fa-eye"></i> عرض</button>` : 
-                        `<button class="btn-sm btn-primary" onclick="window.prepareLecture(${lecture.id})"><i class="fas fa-edit"></i> تحضير</button>`
+                        `<button class="btn-sm btn-outline" onclick="window.showPreparationDetails(${lecture.id})"><i class="fas fa-eye"></i> عرض التفاصيل</button>` : 
+                        `<button class="btn-sm btn-primary" onclick="window.prepareLecture(${lecture.id})"><i class="fas fa-edit"></i> تحضير المحاضرة</button>`
                     }
                 </div>
             </div>
@@ -583,11 +644,11 @@
                 <div class="lecture-card">
                     <div class="lecture-header">
                         <h3>${lecture.title}</h3>
-                        <div class="week">الفصل ${lecture.semester}</div>
+                        <div class="week">المجموعة: ${lecture.group} | الفصل ${lecture.semester}</div>
                     </div>
                     <div class="lecture-body">
                         <div class="lecture-info">${lecture.courseName}</div>
-                        <button class="btn-sm btn-primary" onclick="window.prepareLecture(${lecture.id})"><i class="fas fa-edit"></i> تحضير</button>
+                        <button class="btn-sm btn-primary" onclick="window.prepareLecture(${lecture.id})"><i class="fas fa-edit"></i> تحضير الآن</button>
                     </div>
                 </div>
             `).join('');
@@ -619,7 +680,7 @@
 
     window.saveLecturePreparation = function() {
         const lectureId = parseInt(document.getElementById('lecture-select').value);
-        if (!lectureId) { alert("اختر المحاضرة"); return; }
+        if (!lectureId) { alert("الرجاء اختيار المحاضرة"); return; }
         
         preparations[lectureId] = {
             title: document.getElementById('lecture-title').value,
@@ -634,7 +695,7 @@
         if (lecture) lecture.status = 'prepared';
         
         localStorage.setItem(`preparations_${currentTrack}`, JSON.stringify(preparations));
-        alert("تم حفظ التحضير!");
+        alert("تم حفظ التحضير بنجاح!");
         updateDashboard();
         renderAllLectures();
         
@@ -650,32 +711,41 @@
         if (prep) {
             alert(`📚 ${prep.title}\n\n🎯 الأهداف:\n${prep.objectives}\n\n📖 المحتوى:\n${prep.content}\n\n📚 المراجع:\n${prep.resources}\n\n⚡ الأنشطة:\n${prep.activities}`);
         } else {
-            alert("لا يوجد تحضير");
+            alert("لا يوجد تحضير لهذه المحاضرة بعد");
         }
     };
 
     function populateLectureSelects() {
         const filtered = filterLectures(lectures);
-        const options = filtered.map(l => `<option value="${l.id}">${l.title} (الفصل ${l.semester})</option>`).join('');
+        const options = filtered.map(l => `<option value="${l.id}">${l.title} (${l.group} - فصل ${l.semester})</option>`).join('');
         document.getElementById('lecture-select').innerHTML = '<option value="">-- اختر محاضرة --</option>' + options;
         document.getElementById('attendance-lecture-select').innerHTML = '<option value="">-- اختر محاضرة --</option>' + options;
     }
 
     window.loadAttendance = function() {
         const lectureId = document.getElementById('attendance-lecture-select').value;
-        if (!lectureId) { alert("اختر محاضرة"); return; }
+        if (!lectureId) { alert("اختر محاضرة أولاً"); return; }
         
         const lecture = lectures.find(l => l.id == lectureId);
         if (!lecture) return;
         
+        // فلترة المتدربين حسب المجموعة نفسها
+        const groupStudents = students.filter(s => s.group_name === lecture.group);
+        
+        if (groupStudents.length === 0) {
+            alert(`لا يوجد متدربين في المجموعة ${lecture.group}`);
+            return;
+        }
+        
         const tbody = document.getElementById('attendance-tbody');
-        tbody.innerHTML = students.map(student => {
+        tbody.innerHTML = groupStudents.map(student => {
             const key = `${lectureId}_${student.national_id}`;
             const status = attendanceRecords[key] || 'absent';
             return `
                 <tr>
                     <td>${student.full_name}</td>
                     <td>${student.national_id}</td>
+                    <td>${student.group_name || '-'}</td>
                     <td>${lecture.courseName}</td>
                     <td>
                         <button class="attendance-btn present" onclick="window.setAttendance(${lectureId}, '${student.national_id}', 'present')">✓ حاضر</button>
@@ -699,7 +769,7 @@
     };
 
     window.saveAttendance = function() {
-        alert("تم حفظ الحضور!");
+        alert("✅ تم حفظ سجل الحضور بنجاح!");
         updateAttendanceStats();
     };
 
@@ -713,17 +783,21 @@
     window.exportReports = function() {
         const filtered = filterLectures(lectures);
         const prepared = filtered.filter(l => l.status === 'prepared').length;
-        let report = `تقرير التحضير - ${currentTrack === 'cs' ? 'علوم الحاسب' : 'الأمن السيبراني'}\n`;
+        let report = `تقرير التحضير الإلكتروني\n`;
         report += "=".repeat(50) + "\n";
-        report += `المقررات: ${Object.values(currentTrack === 'cs' ? csCourses : cyberCourses).flat().length} مقرر\n`;
+        report += `التخصص: ${currentTrack === 'cs' ? 'علوم الحاسب' : 'الأمن السيبراني'}\n`;
+        report += `المجموعة: ${currentGroup || "الكل"}\n`;
+        report += `الفصل: ${currentSemester || "الكل"}\n`;
+        report += "-".repeat(50) + "\n";
         report += `إجمالي المحاضرات: ${filtered.length}\n`;
         report += `المحاضرات المحضرة: ${prepared}\n`;
         report += `نسبة التحضير: ${filtered.length > 0 ? Math.round((prepared / filtered.length) * 100) : 0}%\n`;
+        report += `نسبة الحضور الإجمالية: ${document.getElementById('total-attendance').innerText}\n`;
         
         const blob = new Blob([report], { type: 'text/plain' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = `تقرير_${currentTrack}_${new Date().toLocaleDateString()}.txt`;
+        link.download = `تقرير_${currentTrack}_${currentGroup || 'الكل'}_${new Date().toLocaleDateString()}.txt`;
         link.click();
     };
 
@@ -752,7 +826,6 @@
     });
 
     document.getElementById('current-date').innerText = new Date().toLocaleDateString('ar-SA');
-    document.getElementById('filter-track')?.remove();
     
     // بدء التشغيل
     loadStudents();
