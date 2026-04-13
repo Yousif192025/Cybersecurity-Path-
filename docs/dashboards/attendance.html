@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>CyberPath | نظام التحضير الإلكتروني للمحاضرات</title>
+    <title>CyberPath | نظام التحضير الإلكتروني للمحاضرات - حسب المجموعات والتخصصات</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -46,6 +46,45 @@
         .title h1 { font-size: 1.2rem; }
         .title p { font-size: 0.7rem; opacity: 0.9; }
 
+        /* فلتر المجموعات والتخصصات */
+        .filter-bar {
+            background: white;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-end;
+        }
+        .filter-group {
+            flex: 1;
+            min-width: 150px;
+        }
+        .filter-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #475569;
+        }
+        .filter-group select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            background: white;
+        }
+        .btn-filter {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
         /* تبويبات التنقل */
         .tabs {
             display: flex;
@@ -53,6 +92,7 @@
             background: white;
             padding: 10px 20px;
             border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
         }
         .tab {
             padding: 10px 20px;
@@ -134,7 +174,6 @@
         }
         .status-done { background: #d1fae5; color: #065f46; }
         .status-pending { background: #fed7aa; color: #9a3412; }
-        .status-missed { background: #fee2e2; color: #991b1b; }
         
         .btn-sm {
             padding: 6px 12px;
@@ -147,7 +186,6 @@
             gap: 5px;
         }
         .btn-primary { background: var(--primary); color: white; }
-        .btn-success { background: var(--success); color: white; }
         .btn-outline { background: white; border: 1px solid var(--border); }
 
         /* نموذج التحضير */
@@ -190,12 +228,20 @@
         .present { background: var(--success); color: white; }
         .absent { background: var(--danger); color: white; }
         .late { background: var(--warning); color: white; }
+        .group-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.65rem;
+            background: #e2e8f0;
+        }
 
         @media (max-width: 640px) {
             .lectures-grid { grid-template-columns: 1fr; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            .tabs { flex-wrap: wrap; }
-            .tab { flex: 1; text-align: center; padding: 8px; font-size: 0.8rem; }
+            .filter-bar { flex-direction: column; }
+            .filter-group { width: 100%; }
+            .btn-filter { width: 100%; }
         }
     </style>
 </head>
@@ -209,15 +255,46 @@
             </div>
             <div class="title">
                 <h1>نظام التحضير الإلكتروني للمحاضرات</h1>
-                <p>إدارة المحاضرات الأسبوعية | ساعتين لكل مقرر</p>
+                <p>حسب المجموعات والتخصصات | ساعتين أسبوعياً لكل مقرر</p>
             </div>
         </div>
         <div><i class="far fa-calendar-alt"></i> <span id="current-date"></span></div>
     </div>
 
+    <!-- فلتر المجموعة والتخصص -->
+    <div class="filter-bar">
+        <div class="filter-group">
+            <label><i class="fas fa-chalkboard-user"></i> اختر التخصص (المسار)</label>
+            <select id="filter-track">
+                <option value="">جميع التخصصات</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label><i class="fas fa-users"></i> اختر المجموعة</label>
+            <select id="filter-group-name">
+                <option value="">جميع المجموعات</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label><i class="fas fa-calendar-week"></i> الأسبوع</label>
+            <select id="filter-week">
+                <option value="">جميع الأسابيع</option>
+                <option value="1">الأسبوع 1</option><option value="2">الأسبوع 2</option>
+                <option value="3">الأسبوع 3</option><option value="4">الأسبوع 4</option>
+                <option value="5">الأسبوع 5</option><option value="6">الأسبوع 6</option>
+                <option value="7">الأسبوع 7</option><option value="8">الأسبوع 8</option>
+                <option value="9">الأسبوع 9</option><option value="10">الأسبوع 10</option>
+                <option value="11">الأسبوع 11</option><option value="12">الأسبوع 12</option>
+                <option value="13">الأسبوع 13</option><option value="14">الأسبوع 14</option>
+                <option value="15">الأسبوع 15</option>
+            </select>
+        </div>
+        <button class="btn-filter" onclick="applyFilters()"><i class="fas fa-filter"></i> تطبيق الفلتر</button>
+    </div>
+
     <div class="tabs">
         <button class="tab active" data-tab="dashboard">📊 لوحة التحكم</button>
-        <button class="tab" data-tab="lectures">📚 جدول المحاضرات</button>
+        <button class="tab" data-tab="lectures">📚 المحاضرات</button>
         <button class="tab" data-tab="prep">✏️ تحضير المحاضرة</button>
         <button class="tab" data-tab="attendance">✅ تسجيل الحضور</button>
         <button class="tab" data-tab="reports">📈 التقارير</button>
@@ -226,16 +303,15 @@
     <!-- تبويب لوحة التحكم -->
     <div id="dashboard" class="tab-content active">
         <div class="stats-grid">
-            <div class="stat-card"><div class="stat-icon" style="background:#3b82f6;color:white;"><i class="fas fa-chalkboard-user"></i></div><div><h3>إجمالي المحاضرات</h3><h2 id="total-lectures">0</h2></div></div>
-            <div class="stat-card"><div class="stat-icon" style="background:#10b981;color:white;"><i class="fas fa-check-circle"></i></div><div><h3>محاضرات محضرة</h3><h2 id="prepared-lectures">0</h2></div></div>
+            <div class="stat-card"><div class="stat-icon" style="background:#3b82f6;color:white;"><i class="fas fa-chalkboard-user"></i></div><div><h3>المحاضرات</h3><h2 id="total-lectures">0</h2></div></div>
+            <div class="stat-card"><div class="stat-icon" style="background:#10b981;color:white;"><i class="fas fa-check-circle"></i></div><div><h3>تم التحضير</h3><h2 id="prepared-lectures">0</h2></div></div>
             <div class="stat-card"><div class="stat-icon" style="background:#f59e0b;color:white;"><i class="fas fa-clock"></i></div><div><h3>قيد التحضير</h3><h2 id="pending-lectures">0</h2></div></div>
             <div class="stat-card"><div class="stat-icon" style="background:#8b5cf6;color:white;"><i class="fas fa-users"></i></div><div><h3>المتدربين</h3><h2 id="total-students">0</h2></div></div>
         </div>
-
         <div class="lectures-grid" id="upcoming-lectures"></div>
     </div>
 
-    <!-- تبويب جدول المحاضرات -->
+    <!-- تبويب المحاضرات -->
     <div id="lectures" class="tab-content">
         <div class="lectures-grid" id="all-lectures"></div>
     </div>
@@ -243,10 +319,10 @@
     <!-- تبويب تحضير المحاضرة -->
     <div id="prep" class="tab-content">
         <div class="prep-form">
-            <h3 style="margin-bottom: 15px;"><i class="fas fa-edit"></i> تحضير محاضرة جديدة</h3>
+            <h3 style="margin-bottom: 15px;"><i class="fas fa-edit"></i> تحضير محاضرة</h3>
             <div class="form-group">
                 <label>اختر المحاضرة</label>
-                <select id="lecture-select" class="prep-lecture-select"></select>
+                <select id="lecture-select"></select>
             </div>
             <div class="form-group">
                 <label>عنوان المحاضرة</label>
@@ -283,7 +359,7 @@
         </div>
         <div class="attendance-table" id="attendance-table-container" style="display:none;">
             <table>
-                <thead><tr><th>اسم المتدرب</th><th>رقم الهوية</th><th>المسار</th><th>الحضور</th></tr></thead>
+                <thead><tr><th>المتدرب</th><th>الهوية</th><th>التخصص</th><th>المجموعة</th><th>الحضور</th></tr></thead>
                 <tbody id="attendance-tbody"></tbody>
             </table>
             <div style="padding: 15px; text-align: center;">
@@ -296,113 +372,164 @@
     <div id="reports" class="tab-content">
         <div class="stats-grid">
             <div class="stat-card"><div class="stat-icon" style="background:#10b981;"><i class="fas fa-chart-line"></i></div><div><h3>نسبة التحضير</h3><h2 id="prep-percent">0%</h2></div></div>
-            <div class="stat-card"><div class="stat-icon" style="background:#3b82f6;"><i class="fas fa-calendar-check"></i></div><div><h3>الحضور الإجمالي</h3><h2 id="total-attendance">0%</h2></div></div>
+            <div class="stat-card"><div class="stat-icon" style="background:#3b82f6;"><i class="fas fa-calendar-check"></i></div><div><h3>متوسط الحضور</h3><h2 id="total-attendance">0%</h2></div></div>
         </div>
         <button onclick="exportReports()" class="btn-sm btn-primary" style="margin: 10px 0;"><i class="fas fa-download"></i> تصدير التقرير</button>
         <div id="report-details"></div>
     </div>
 </div>
 
-<script>
-    // قاعدة بيانات محاكاة للتخزين المحلي
+<script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+    const supabaseUrl = "https://suvpaunulhqfoclepwoz.supabase.co";
+    const supabaseKey = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // بيانات النظام
+    let students = [];
     let lectures = [];
     let preparations = {};
     let attendanceRecords = {};
-    let students = [];
+    
+    // الفلاتر الحالية
+    let currentTrack = '';
+    let currentGroup = '';
+    let currentWeek = '';
 
-    // بيانات المحاضرات الأسبوعية (لكل مقرر ساعتين أسبوعياً)
-    const courses = [
-        { id: 1, name: "أساسيات الأمن السيبراني", hoursPerWeek: 2 },
-        { id: 2, name: "أمن الشبكات", hoursPerWeek: 2 },
-        { id: 3, name: "الاختبارات الاختراق", hoursPerWeek: 2 },
-        { id: 4, name: "أمن التطبيقات", hoursPerWeek: 2 }
-    ];
+    // المقررات حسب التخصصات
+    const coursesByTrack = {
+        "الأمن السيبراني": [
+            "أساسيات الأمن السيبراني", "أمن الشبكات", "أمن التطبيقات", 
+            "الاختبارات الاختراق", "استجابة الحوادث", "الحوكمة والامتثال"
+        ],
+        "تقنية المعلومات": [
+            "شبكات الحاسوب", "قواعد البيانات", "برمجة متقدمة", 
+            "تحليل النظم", "إدارة المشاريع التقنية", "الحوسبة السحابية"
+        ],
+        "الذكاء الاصطناعي": [
+            "مقدمة في الذكاء الاصطناعي", "تعلم الآلة", "معالجة اللغة الطبيعية",
+            "رؤية الحاسوب", "تحليل البيانات الضخمة", "أخلاقيات الذكاء الاصطناعي"
+        ],
+        "الافتراضي": [
+            "مهارات تقنية", "التفكير الحاسوبي", "أساسيات البرمجة",
+            "الأمن الرقمي", "مهارات التوظيف", "ريادة الأعمال الرقمية"
+        ]
+    };
 
-    const weeks = Array.from({ length: 15 }, (_, i) => ({ week: i + 1, startDate: `الأسبوع ${i + 1}` }));
-
-    // تهيئة المحاضرات
-    function initLectures() {
+    // تهيئة المحاضرات لكل مجموعة وتخصص
+    function generateLectures() {
         lectures = [];
         let id = 1;
-        for (let course of courses) {
-            for (let week of weeks) {
-                lectures.push({
-                    id: id++,
-                    courseId: course.id,
-                    courseName: course.name,
-                    week: week.week,
-                    weekName: `الأسبوع ${week.week}`,
-                    title: `${course.name} - الأسبوع ${week.week}`,
-                    hours: 2,
-                    date: new Date(Date.now() + (week.week - 1) * 7 * 24 * 60 * 60 * 1000).toLocaleDateString('ar-SA'),
-                    status: 'pending'
-                });
+        
+        // تجميع المتدربين حسب (التخصص + المجموعة)
+        const groupsMap = new Map();
+        students.forEach(s => {
+            const track = s.track || "الافتراضي";
+            const group = s.group_name || "عام";
+            const key = `${track}_${group}`;
+            if (!groupsMap.has(key)) {
+                groupsMap.set(key, { track, group, students: [] });
+            }
+            groupsMap.get(key).students.push(s);
+        });
+        
+        // لكل مجموعة وتخصص، ننشئ محاضرات
+        for (let [_, groupInfo] of groupsMap) {
+            const track = groupInfo.track;
+            const group = groupInfo.group;
+            const courses = coursesByTrack[track] || coursesByTrack["الافتراضي"];
+            
+            // لكل مقرر 15 أسبوع (ساعتين أسبوعياً)
+            for (let course of courses) {
+                for (let week = 1; week <= 15; week++) {
+                    lectures.push({
+                        id: id++,
+                        track: track,
+                        group: group,
+                        courseName: course,
+                        week: week,
+                        weekName: `الأسبوع ${week}`,
+                        title: `${course} - الأسبوع ${week}`,
+                        hours: 2,
+                        date: new Date(Date.now() + (week - 1) * 7 * 24 * 60 * 60 * 1000).toLocaleDateString('ar-SA'),
+                        status: 'pending'
+                    });
+                }
             }
         }
         
-        // تحميل البيانات المحفوظة
-        const saved = localStorage.getItem('lecturePreparations');
-        if (saved) preparations = JSON.parse(saved);
+        // تحميل التحضيرات المحفوظة
+        const savedPreps = localStorage.getItem('lecturePreparations_v2');
+        if (savedPreps) {
+            preparations = JSON.parse(savedPreps);
+            lectures.forEach(l => {
+                if (preparations[l.id]) l.status = 'prepared';
+            });
+        }
         
-        const savedAttendance = localStorage.getItem('attendanceRecords');
+        const savedAttendance = localStorage.getItem('attendanceRecords_v2');
         if (savedAttendance) attendanceRecords = JSON.parse(savedAttendance);
-        
-        updateLectureStatuses();
-        saveToLocal();
     }
 
-    function updateLectureStatuses() {
-        for (let lecture of lectures) {
-            if (preparations[lecture.id]) {
-                lecture.status = 'prepared';
-                lecture.preparation = preparations[lecture.id];
-            }
-        }
-    }
-
-    function saveToLocal() {
-        localStorage.setItem('lecturePreparations', JSON.stringify(preparations));
-        localStorage.setItem('attendanceRecords', JSON.stringify(attendanceRecords));
-    }
-
-    // جلب بيانات المتدربين من Supabase (محاكاة)
     async function loadStudents() {
         try {
-            const supabaseUrl = "https://suvpaunulhqfoclepwoz.supabase.co";
-            const supabaseKey = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
-            const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm");
-            const supabase = createClient(supabaseUrl, supabaseKey);
-            const { data } = await supabase.from('user_profile').select('*').range(0, 999);
+            const { data, error } = await supabase.from('user_profile').select('*').range(0, 999);
             if (data && data.length > 0) {
                 students = data;
             } else {
+                // بيانات تجريبية
                 students = [
-                    { full_name: "أحمد محمد", national_id: "1001", track: "أمن سيبراني", group_name: "A" },
-                    { full_name: "سارة عبدالله", national_id: "1002", track: "أمن سيبراني", group_name: "A" },
-                    { full_name: "خالد علي", national_id: "1003", track: "شبكات", group_name: "B" },
-                    { full_name: "نورة سعد", national_id: "1004", track: "برمجة", group_name: "B" }
+                    { full_name: "أحمد محمد", national_id: "1001", track: "الأمن السيبراني", group_name: "A" },
+                    { full_name: "سارة عبدالله", national_id: "1002", track: "الأمن السيبراني", group_name: "A" },
+                    { full_name: "خالد علي", national_id: "1003", track: "الأمن السيبراني", group_name: "B" },
+                    { full_name: "نورة سعد", national_id: "1004", track: "تقنية المعلومات", group_name: "C" },
+                    { full_name: "عمر إبراهيم", national_id: "1005", track: "تقنية المعلومات", group_name: "C" },
+                    { full_name: "منى خالد", national_id: "1006", track: "الذكاء الاصطناعي", group_name: "D" }
                 ];
             }
             document.getElementById('total-students').innerText = students.length;
-            return students;
+            
+            // تعبئة خيارات الفلتر
+            const tracks = [...new Set(students.map(s => s.track || "الافتراضي"))];
+            const groups = [...new Set(students.map(s => s.group_name || "عام"))];
+            
+            const trackSelect = document.getElementById('filter-track');
+            trackSelect.innerHTML = '<option value="">جميع التخصصات</option>' + tracks.map(t => `<option value="${t}">${t}</option>`).join('');
+            
+            const groupSelect = document.getElementById('filter-group-name');
+            groupSelect.innerHTML = '<option value="">جميع المجموعات</option>' + groups.map(g => `<option value="${g}">${g}</option>`).join('');
+            
+            generateLectures();
+            updateDashboard();
+            populateLectureSelects();
+            renderAllLectures();
         } catch(e) {
-            console.log("استخدام بيانات محاكاة", e);
-            students = [
-                { full_name: "أحمد محمد", national_id: "1001", track: "أمن سيبراني", group_name: "A" },
-                { full_name: "سارة عبدالله", national_id: "1002", track: "أمن سيبراني", group_name: "A" }
-            ];
-            document.getElementById('total-students').innerText = students.length;
-            return students;
+            console.error("خطأ في تحميل البيانات", e);
         }
     }
 
-    // عرض المحاضرات
-    function renderLectures(containerId, filterStatus = null) {
-        let filtered = lectures;
-        if (filterStatus === 'prepared') filtered = lectures.filter(l => l.status === 'prepared');
-        else if (filterStatus === 'pending') filtered = lectures.filter(l => l.status === 'pending');
+    function applyFilters() {
+        currentTrack = document.getElementById('filter-track').value;
+        currentGroup = document.getElementById('filter-group-name').value;
+        currentWeek = document.getElementById('filter-week').value;
         
-        const container = document.getElementById(containerId);
+        updateDashboard();
+        renderAllLectures();
+    }
+
+    function filterLectures(lectureList) {
+        return lectureList.filter(l => {
+            if (currentTrack && l.track !== currentTrack) return false;
+            if (currentGroup && l.group !== currentGroup) return false;
+            if (currentWeek && l.week != currentWeek) return false;
+            return true;
+        });
+    }
+
+    function renderAllLectures() {
+        const filtered = filterLectures(lectures);
+        const container = document.getElementById('all-lectures');
         container.innerHTML = filtered.map(lecture => `
             <div class="lecture-card">
                 <div class="lecture-header">
@@ -410,44 +537,75 @@
                     <div class="week"><i class="far fa-calendar-alt"></i> ${lecture.weekName} | ${lecture.date} | ${lecture.hours} ساعة</div>
                 </div>
                 <div class="lecture-body">
+                    <div class="lecture-info"><i class="fas fa-chalkboard-user"></i> ${lecture.track} <span class="group-badge">${lecture.group}</span></div>
                     <div class="lecture-info"><i class="fas fa-book"></i> ${lecture.courseName}</div>
                     <div class="lecture-info"><span class="prep-status ${lecture.status === 'prepared' ? 'status-done' : 'status-pending'}">${lecture.status === 'prepared' ? '✓ تم التحضير' : '⏳ قيد التحضير'}</span></div>
-                    ${lecture.preparation ? `
-                        <div class="lecture-info"><i class="fas fa-bullseye"></i> <strong>الأهداف:</strong> ${lecture.preparation.objectives.substring(0, 100)}...</div>
-                        <button class="btn-sm btn-outline" onclick="showPreparationDetails(${lecture.id})"><i class="fas fa-eye"></i> عرض التفاصيل</button>
-                    ` : `
-                        <button class="btn-sm btn-primary" onclick="prepareLecture(${lecture.id})"><i class="fas fa-edit"></i> تحضير المحاضرة</button>
-                    `}
+                    ${lecture.status === 'prepared' && preparations[lecture.id] ? 
+                        `<button class="btn-sm btn-outline" onclick="window.showPreparationDetails(${lecture.id})"><i class="fas fa-eye"></i> عرض التفاصيل</button>` : 
+                        `<button class="btn-sm btn-primary" onclick="window.prepareLecture(${lecture.id})"><i class="fas fa-edit"></i> تحضير المحاضرة</button>`
+                    }
                 </div>
             </div>
         `).join('');
     }
 
-    function renderAllLectures() {
-        const container = document.getElementById('all-lectures');
-        container.innerHTML = lectures.map(lecture => `
-            <div class="lecture-card">
-                <div class="lecture-header">
-                    <h3>${lecture.title}</h3>
-                    <div class="week"><i class="far fa-calendar-alt"></i> ${lecture.weekName} | ${lecture.date}</div>
+    function updateDashboard() {
+        const filtered = filterLectures(lectures);
+        const total = filtered.length;
+        const prepared = filtered.filter(l => l.status === 'prepared').length;
+        const pending = total - prepared;
+        
+        document.getElementById('total-lectures').innerText = total;
+        document.getElementById('prepared-lectures').innerText = prepared;
+        document.getElementById('pending-lectures').innerText = pending;
+        
+        const prepPercent = total > 0 ? Math.round((prepared / total) * 100) : 0;
+        document.getElementById('prep-percent').innerText = prepPercent + '%';
+        
+        // عرض المحاضرات التي تحتاج تحضير
+        const pendingLectures = filtered.filter(l => l.status === 'pending').slice(0, 4);
+        const upcomingContainer = document.getElementById('upcoming-lectures');
+        if (pendingLectures.length > 0) {
+            upcomingContainer.innerHTML = pendingLectures.map(lecture => `
+                <div class="lecture-card">
+                    <div class="lecture-header">
+                        <h3>${lecture.title}</h3>
+                        <div class="week">${lecture.weekName}</div>
+                    </div>
+                    <div class="lecture-body">
+                        <div class="lecture-info">${lecture.track} - ${lecture.group}</div>
+                        <button class="btn-sm btn-primary" onclick="window.prepareLecture(${lecture.id})"><i class="fas-edit"></i> تحضير الآن</button>
+                    </div>
                 </div>
-                <div class="lecture-body">
-                    <div class="lecture-info"><i class="fas fa-book"></i> ${lecture.courseName}</div>
-                    <div class="lecture-info"><span class="prep-status ${lecture.status === 'prepared' ? 'status-done' : 'status-pending'}">${lecture.status === 'prepared' ? '✓ تم التحضير' : '⏳ لم يحضر بعد'}</span></div>
-                    ${lecture.preparation ? `<button class="btn-sm btn-outline" onclick="showPreparationDetails(${lecture.id})"><i class="fas fa-eye"></i> عرض</button>` : ''}
-                </div>
-            </div>
-        `).join('');
+            `).join('');
+        } else {
+            upcomingContainer.innerHTML = '<div class="lecture-card"><div class="lecture-body" style="text-align:center;">🎉 جميع المحاضرات محضرة!</div></div>';
+        }
     }
 
-    function prepareLecture(lectureId) {
+    window.prepareLecture = function(lectureId) {
         const lecture = lectures.find(l => l.id === lectureId);
+        if (!lecture) return;
+        
         document.querySelector('[data-tab="prep"]').click();
         document.getElementById('lecture-select').value = lectureId;
         document.getElementById('lecture-title').value = lecture.title;
-    }
+        
+        // إذا كان هناك تحضير سابق
+        if (preparations[lectureId]) {
+            document.getElementById('lecture-objectives').value = preparations[lectureId].objectives || '';
+            document.getElementById('lecture-content').value = preparations[lectureId].content || '';
+            document.getElementById('lecture-resources').value = preparations[lectureId].resources || '';
+            document.getElementById('lecture-activities').value = preparations[lectureId].activities || '';
+        } else {
+            document.getElementById('lecture-objectives').value = '';
+            document.getElementById('lecture-content').value = '';
+            document.getElementById('lecture-resources').value = '';
+            document.getElementById('lecture-activities').value = '';
+        }
+    };
 
-    function saveLecturePreparation() {
+    window.saveLecturePreparation = function() {
         const lectureId = parseInt(document.getElementById('lecture-select').value);
         if (!lectureId) { alert("الرجاء اختيار المحاضرة"); return; }
         
@@ -463,23 +621,20 @@
         const lecture = lectures.find(l => l.id === lectureId);
         if (lecture) lecture.status = 'prepared';
         
-        saveToLocal();
+        localStorage.setItem('lecturePreparations_v2', JSON.stringify(preparations));
         alert("تم حفظ التحضير بنجاح!");
         updateDashboard();
-        renderLectures('upcoming-lectures', 'pending');
         renderAllLectures();
-        clearPrepForm();
-    }
-
-    function clearPrepForm() {
+        
+        // تفريغ النموذج
         document.getElementById('lecture-title').value = '';
         document.getElementById('lecture-objectives').value = '';
         document.getElementById('lecture-content').value = '';
         document.getElementById('lecture-resources').value = '';
         document.getElementById('lecture-activities').value = '';
-    }
+    };
 
-    function showPreparationDetails(lectureId) {
+    window.showPreparationDetails = function(lectureId) {
         const prep = preparations[lectureId];
         const lecture = lectures.find(l => l.id === lectureId);
         if (prep) {
@@ -487,14 +642,33 @@
         } else {
             alert("لا يوجد تحضير لهذه المحاضرة بعد");
         }
+    };
+
+    function populateLectureSelects() {
+        const filtered = filterLectures(lectures);
+        const select1 = document.getElementById('lecture-select');
+        const select2 = document.getElementById('attendance-lecture-select');
+        
+        const options = filtered.map(l => `<option value="${l.id}">${l.title} (${l.track} - ${l.group})</option>`).join('');
+        select1.innerHTML = '<option value="">-- اختر محاضرة --</option>' + options;
+        select2.innerHTML = '<option value="">-- اختر محاضرة --</option>' + options;
     }
 
-    function loadAttendance() {
+    window.loadAttendance = function() {
         const lectureId = document.getElementById('attendance-lecture-select').value;
         if (!lectureId) { alert("اختر محاضرة"); return; }
         
+        const lecture = lectures.find(l => l.id == lectureId);
+        if (!lecture) return;
+        
+        // فلترة المتدربين حسب نفس التخصص والمجموعة
+        const filteredStudents = students.filter(s => 
+            (s.track || "الافتراضي") === lecture.track && 
+            (s.group_name || "عام") === lecture.group
+        );
+        
         const tbody = document.getElementById('attendance-tbody');
-        tbody.innerHTML = students.map(student => {
+        tbody.innerHTML = filteredStudents.map(student => {
             const key = `${lectureId}_${student.national_id}`;
             const status = attendanceRecords[key] || 'absent';
             return `
@@ -502,10 +676,11 @@
                     <td>${student.full_name}</td>
                     <td>${student.national_id}</td>
                     <td>${student.track || '-'}</td>
+                    <td>${student.group_name || '-'}</td>
                     <td>
-                        <button class="attendance-btn present" onclick="setAttendance(${lectureId}, '${student.national_id}', 'present')">✓ حاضر</button>
-                        <button class="attendance-btn absent" onclick="setAttendance(${lectureId}, '${student.national_id}', 'absent')">✗ غائب</button>
-                        <button class="attendance-btn late" onclick="setAttendance(${lectureId}, '${student.national_id}', 'late')">⌛ متأخر</button>
+                        <button class="attendance-btn present" onclick="window.setAttendance(${lectureId}, '${student.national_id}', 'present')">✓ حاضر</button>
+                        <button class="attendance-btn absent" onclick="window.setAttendance(${lectureId}, '${student.national_id}', 'absent')">✗ غائب</button>
+                        <button class="attendance-btn late" onclick="window.setAttendance(${lectureId}, '${student.national_id}', 'late')">⌛ متأخر</button>
                         <span id="status-${lectureId}-${student.national_id}" style="margin-right:10px;">${status === 'present' ? '✓ حاضر' : status === 'late' ? '⌛ متأخر' : '✗ غائب'}</span>
                     </td>
                 </tr>
@@ -513,60 +688,49 @@
         }).join('');
         
         document.getElementById('attendance-table-container').style.display = 'block';
-    }
+    };
 
-    function setAttendance(lectureId, nationalId, status) {
+    window.setAttendance = function(lectureId, nationalId, status) {
         const key = `${lectureId}_${nationalId}`;
         attendanceRecords[key] = status;
-        saveToLocal();
+        localStorage.setItem('attendanceRecords_v2', JSON.stringify(attendanceRecords));
         document.getElementById(`status-${lectureId}-${nationalId}`).innerText = status === 'present' ? '✓ حاضر' : status === 'late' ? '⌛ متأخر' : '✗ غائب';
-    }
+        
+        // تحديث نسبة الحضور
+        updateAttendanceStats();
+    };
 
-    function saveAttendance() {
+    window.saveAttendance = function() {
         alert("تم حفظ سجل الحضور بنجاح!");
-        updateDashboard();
+        updateAttendanceStats();
+    };
+
+    function updateAttendanceStats() {
+        const totalRecords = Object.keys(attendanceRecords).length;
+        const presentRecords = Object.values(attendanceRecords).filter(s => s === 'present').length;
+        const attendancePercent = totalRecords > 0 ? Math.round((presentRecords / totalRecords) * 100) : 0;
+        document.getElementById('total-attendance').innerText = attendancePercent + '%';
     }
 
-    function updateDashboard() {
-        const total = lectures.length;
-        const prepared = lectures.filter(l => l.status === 'prepared').length;
-        const pending = total - prepared;
-        document.getElementById('total-lectures').innerText = total;
-        document.getElementById('prepared-lectures').innerText = prepared;
-        document.getElementById('pending-lectures').innerText = pending;
-        
-        const prepPercent = total > 0 ? Math.round((prepared / total) * 100) : 0;
-        document.getElementById('prep-percent').innerText = prepPercent + '%';
-        
-        renderLectures('upcoming-lectures', 'pending');
-    }
-
-    function exportReports() {
+    window.exportReports = function() {
+        const filtered = filterLectures(lectures);
+        const prepared = filtered.filter(l => l.status === 'prepared').length;
         let report = "تقرير التحضير الإلكتروني للمحاضرات\n";
         report += "=".repeat(50) + "\n\n";
-        report += `إجمالي المحاضرات: ${lectures.length}\n`;
-        report += `المحاضرات المحضرة: ${lectures.filter(l => l.status === 'prepared').length}\n`;
-        report += `نسبة التحضير: ${Math.round((lectures.filter(l => l.status === 'prepared').length / lectures.length) * 100)}%\n\n`;
-        report += "تفاصيل المحاضرات المحضرة:\n";
-        lectures.filter(l => l.status === 'prepared').forEach(l => {
-            report += `- ${l.title}: ${l.preparation?.objectives?.substring(0, 50)}...\n`;
-        });
+        report += `التخصص: ${currentTrack || "الكل"}\n`;
+        report += `المجموعة: ${currentGroup || "الكل"}\n`;
+        report += `الأسبوع: ${currentWeek || "الكل"}\n`;
+        report += "-".repeat(50) + "\n";
+        report += `إجمالي المحاضرات: ${filtered.length}\n`;
+        report += `المحاضرات المحضرة: ${prepared}\n`;
+        report += `نسبة التحضير: ${filtered.length > 0 ? Math.round((prepared / filtered.length) * 100) : 0}%\n\n`;
         
         const blob = new Blob([report], { type: 'text/plain' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
         link.download = `تقرير_التحضير_${new Date().toLocaleDateString()}.txt`;
         link.click();
-    }
-
-    function populateLectureSelects() {
-        const select1 = document.getElementById('lecture-select');
-        const select2 = document.getElementById('attendance-lecture-select');
-        
-        const options = lectures.map(l => `<option value="${l.id}">${l.title} (${l.date})</option>`).join('');
-        select1.innerHTML = '<option value="">-- اختر محاضرة --</option>' + options;
-        select2.innerHTML = '<option value="">-- اختر محاضرة --</option>' + options;
-    }
+    };
 
     // التبويبات
     document.querySelectorAll('.tab').forEach(tab => {
@@ -575,7 +739,6 @@
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             tab.classList.add('active');
             document.getElementById(tab.dataset.tab).classList.add('active');
-            
             if (tab.dataset.tab === 'lectures') renderAllLectures();
             if (tab.dataset.tab === 'attendance') populateLectureSelects();
         });
@@ -583,13 +746,19 @@
 
     document.getElementById('current-date').innerText = new Date().toLocaleDateString('ar-SA');
     
-    // التهيئة
-    initLectures();
-    loadStudents().then(() => {
-        updateDashboard();
+    // ربط أحداث الفلتر
+    document.getElementById('filter-track').addEventListener('change', () => {
+        applyFilters();
         populateLectureSelects();
-        renderAllLectures();
     });
+    document.getElementById('filter-group-name').addEventListener('change', () => {
+        applyFilters();
+        populateLectureSelects();
+    });
+    document.getElementById('filter-week').addEventListener('change', applyFilters);
+    
+    // بدء التشغيل
+    loadStudents();
 </script>
 </body>
 </html>
