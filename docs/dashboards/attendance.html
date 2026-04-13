@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>CyberPath | نظام التحضير الإلكتروني للمحاضرات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1e40af;
+            --secondary: #0f172a;
+            --accent: #3b82f6;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --info: #0891b2;
+            --bg: #f8fafc;
+            --border: #cbd5e1;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
+        body { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); padding: 12px; min-height: 100vh; }
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        /* الهيدر */
+        .header {
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .logo-area { display: flex; align-items: center; gap: 12px; }
+        .logo {
+            width: 45px; height: 45px;
+            background: white; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+        .logo img { width: 100%; height: 100%; object-fit: contain; }
+        .title h1 { font-size: 1.2rem; }
+        .title p { font-size: 0.7rem; opacity: 0.9; }
+
+        /* تبويبات التنقل */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            background: white;
+            padding: 10px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        .tab {
+            padding: 10px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #64748b;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* بطاقات الإحصائيات */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+            margin-top: 20px;
+        }
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+        }
+        .stat-icon {
+            width: 45px; height: 45px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        /* بطاقات المحاضرات */
+        .lectures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .lecture-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+            border: 1px solid var(--border);
+        }
+        .lecture-card:hover { transform: translateY(-3px); }
+        .lecture-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 12px 15px;
+        }
+        .lecture-header h3 { font-size: 1rem; }
+        .lecture-header .week { font-size: 0.7rem; opacity: 0.9; }
+        .lecture-body { padding: 15px; }
+        .lecture-info { margin-bottom: 10px; font-size: 0.85rem; }
+        .lecture-info i { width: 25px; color: var(--primary); }
+        .prep-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .status-done { background: #d1fae5; color: #065f46; }
+        .status-pending { background: #fed7aa; color: #9a3412; }
+        .status-missed { background: #fee2e2; color: #991b1b; }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.7rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-outline { background: white; border: 1px solid var(--border); }
+
+        /* نموذج التحضير */
+        .prep-form {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            border: 1px solid var(--border);
+        }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.85rem; }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+        .form-group textarea { min-height: 100px; resize: vertical; }
+
+        /* جدول الحضور */
+        .attendance-table {
+            overflow-x: auto;
+            background: white;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+        table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        th, td { padding: 10px; text-align: right; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
+        th { background: #f1f5f9; font-weight: 700; }
+        .attendance-btn {
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.7rem;
+            margin: 0 2px;
+        }
+        .present { background: var(--success); color: white; }
+        .absent { background: var(--danger); color: white; }
+        .late { background: var(--warning); color: white; }
+
+        @media (max-width: 640px) {
+            .lectures-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .tabs { flex-wrap: wrap; }
+            .tab { flex: 1; text-align: center; padding: 8px; font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="logo-area">
+            <div class="logo">
+                <img src="./assets/images/logos/cYSGUIDE.png" alt="شعار المنصة" onerror="this.src='https://placehold.co/45x45/1e40af/white?text=CP'">
+            </div>
+            <div class="title">
+                <h1>نظام التحضير الإلكتروني للمحاضرات</h1>
+                <p>إدارة المحاضرات الأسبوعية | ساعتين لكل مقرر</p>
+            </div>
+        </div>
+        <div><i class="far fa-calendar-alt"></i> <span id="current-date"></span></div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" data-tab="dashboard">📊 لوحة التحكم</button>
+        <button class="tab" data-tab="lectures">📚 جدول المحاضرات</button>
+        <button class="tab" data-tab="prep">✏️ تحضير المحاضرة</button>
+        <button class="tab" data-tab="attendance">✅ تسجيل الحضور</button>
+        <button class="tab" data-tab="reports">📈 التقارير</button>
+    </div>
+
+    <!-- تبويب لوحة التحكم -->
+    <div id="dashboard" class="tab-content active">
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-icon" style="background:#3b82f6;color:white;"><i class="fas fa-chalkboard-user"></i></div><div><h3>إجمالي المحاضرات</h3><h2 id="total-lectures">0</h2></div></div>
+            <div class="stat-card"><div class="stat-icon" style="background:#10b981;color:white;"><i class="fas fa-check-circle"></i></div><div><h3>محاضرات محضرة</h3><h2 id="prepared-lectures">0</h2></div></div>
+            <div class="stat-card"><div class="stat-icon" style="background:#f59e0b;color:white;"><i class="fas fa-clock"></i></div><div><h3>قيد التحضير</h3><h2 id="pending-lectures">0</h2></div></div>
+            <div class="stat-card"><div class="stat-icon" style="background:#8b5cf6;color:white;"><i class="fas fa-users"></i></div><div><h3>المتدربين</h3><h2 id="total-students">0</h2></div></div>
+        </div>
+
+        <div class="lectures-grid" id="upcoming-lectures"></div>
+    </div>
+
+    <!-- تبويب جدول المحاضرات -->
+    <div id="lectures" class="tab-content">
+        <div class="lectures-grid" id="all-lectures"></div>
+    </div>
+
+    <!-- تبويب تحضير المحاضرة -->
+    <div id="prep" class="tab-content">
+        <div class="prep-form">
+            <h3 style="margin-bottom: 15px;"><i class="fas fa-edit"></i> تحضير محاضرة جديدة</h3>
+            <div class="form-group">
+                <label>اختر المحاضرة</label>
+                <select id="lecture-select" class="prep-lecture-select"></select>
+            </div>
+            <div class="form-group">
+                <label>عنوان المحاضرة</label>
+                <input type="text" id="lecture-title" placeholder="مثال: مقدمة في الأمن السيبراني">
+            </div>
+            <div class="form-group">
+                <label>أهداف المحاضرة</label>
+                <textarea id="lecture-objectives" placeholder="اذكر أهداف المحاضرة..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>المحتوى الرئيسي</label>
+                <textarea id="lecture-content" placeholder="المحاور الرئيسية للمحاضرة..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>المراجع والمصادر</label>
+                <textarea id="lecture-resources" placeholder="المراجع المستخدمة..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>الأنشطة والتمارين</label>
+                <textarea id="lecture-activities" placeholder="الأنشطة المصاحبة للمحاضرة..."></textarea>
+            </div>
+            <button onclick="saveLecturePreparation()" class="btn-sm btn-primary" style="padding: 10px 20px;"><i class="fas fa-save"></i> حفظ التحضير</button>
+        </div>
+    </div>
+
+    <!-- تبويب تسجيل الحضور -->
+    <div id="attendance" class="tab-content">
+        <div class="prep-form">
+            <div class="form-group">
+                <label>اختر المحاضرة</label>
+                <select id="attendance-lecture-select"></select>
+            </div>
+            <button onclick="loadAttendance()" class="btn-sm btn-primary"><i class="fas fa-search"></i> تحميل</button>
+        </div>
+        <div class="attendance-table" id="attendance-table-container" style="display:none;">
+            <table>
+                <thead><tr><th>اسم المتدرب</th><th>رقم الهوية</th><th>المسار</th><th>الحضور</th></tr></thead>
+                <tbody id="attendance-tbody"></tbody>
+            </table>
+            <div style="padding: 15px; text-align: center;">
+                <button onclick="saveAttendance()" class="btn-sm btn-primary"><i class="fas fa-save"></i> حفظ الحضور</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- تبويب التقارير -->
+    <div id="reports" class="tab-content">
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-icon" style="background:#10b981;"><i class="fas fa-chart-line"></i></div><div><h3>نسبة التحضير</h3><h2 id="prep-percent">0%</h2></div></div>
+            <div class="stat-card"><div class="stat-icon" style="background:#3b82f6;"><i class="fas fa-calendar-check"></i></div><div><h3>الحضور الإجمالي</h3><h2 id="total-attendance">0%</h2></div></div>
+        </div>
+        <button onclick="exportReports()" class="btn-sm btn-primary" style="margin: 10px 0;"><i class="fas fa-download"></i> تصدير التقرير</button>
+        <div id="report-details"></div>
+    </div>
+</div>
+
+<script>
+    // قاعدة بيانات محاكاة للتخزين المحلي
+    let lectures = [];
+    let preparations = {};
+    let attendanceRecords = {};
+    let students = [];
+
+    // بيانات المحاضرات الأسبوعية (لكل مقرر ساعتين أسبوعياً)
+    const courses = [
+        { id: 1, name: "أساسيات الأمن السيبراني", hoursPerWeek: 2 },
+        { id: 2, name: "أمن الشبكات", hoursPerWeek: 2 },
+        { id: 3, name: "الاختبارات الاختراق", hoursPerWeek: 2 },
+        { id: 4, name: "أمن التطبيقات", hoursPerWeek: 2 }
+    ];
+
+    const weeks = Array.from({ length: 15 }, (_, i) => ({ week: i + 1, startDate: `الأسبوع ${i + 1}` }));
+
+    // تهيئة المحاضرات
+    function initLectures() {
+        lectures = [];
+        let id = 1;
+        for (let course of courses) {
+            for (let week of weeks) {
+                lectures.push({
+                    id: id++,
+                    courseId: course.id,
+                    courseName: course.name,
+                    week: week.week,
+                    weekName: `الأسبوع ${week.week}`,
+                    title: `${course.name} - الأسبوع ${week.week}`,
+                    hours: 2,
+                    date: new Date(Date.now() + (week.week - 1) * 7 * 24 * 60 * 60 * 1000).toLocaleDateString('ar-SA'),
+                    status: 'pending'
+                });
+            }
+        }
+        
+        // تحميل البيانات المحفوظة
+        const saved = localStorage.getItem('lecturePreparations');
+        if (saved) preparations = JSON.parse(saved);
+        
+        const savedAttendance = localStorage.getItem('attendanceRecords');
+        if (savedAttendance) attendanceRecords = JSON.parse(savedAttendance);
+        
+        updateLectureStatuses();
+        saveToLocal();
+    }
+
+    function updateLectureStatuses() {
+        for (let lecture of lectures) {
+            if (preparations[lecture.id]) {
+                lecture.status = 'prepared';
+                lecture.preparation = preparations[lecture.id];
+            }
+        }
+    }
+
+    function saveToLocal() {
+        localStorage.setItem('lecturePreparations', JSON.stringify(preparations));
+        localStorage.setItem('attendanceRecords', JSON.stringify(attendanceRecords));
+    }
+
+    // جلب بيانات المتدربين من Supabase (محاكاة)
+    async function loadStudents() {
+        try {
+            const supabaseUrl = "https://suvpaunulhqfoclepwoz.supabase.co";
+            const supabaseKey = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
+            const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm");
+            const supabase = createClient(supabaseUrl, supabaseKey);
+            const { data } = await supabase.from('user_profile').select('*').range(0, 999);
+            if (data && data.length > 0) {
+                students = data;
+            } else {
+                students = [
+                    { full_name: "أحمد محمد", national_id: "1001", track: "أمن سيبراني", group_name: "A" },
+                    { full_name: "سارة عبدالله", national_id: "1002", track: "أمن سيبراني", group_name: "A" },
+                    { full_name: "خالد علي", national_id: "1003", track: "شبكات", group_name: "B" },
+                    { full_name: "نورة سعد", national_id: "1004", track: "برمجة", group_name: "B" }
+                ];
+            }
+            document.getElementById('total-students').innerText = students.length;
+            return students;
+        } catch(e) {
+            console.log("استخدام بيانات محاكاة", e);
+            students = [
+                { full_name: "أحمد محمد", national_id: "1001", track: "أمن سيبراني", group_name: "A" },
+                { full_name: "سارة عبدالله", national_id: "1002", track: "أمن سيبراني", group_name: "A" }
+            ];
+            document.getElementById('total-students').innerText = students.length;
+            return students;
+        }
+    }
+
+    // عرض المحاضرات
+    function renderLectures(containerId, filterStatus = null) {
+        let filtered = lectures;
+        if (filterStatus === 'prepared') filtered = lectures.filter(l => l.status === 'prepared');
+        else if (filterStatus === 'pending') filtered = lectures.filter(l => l.status === 'pending');
+        
+        const container = document.getElementById(containerId);
+        container.innerHTML = filtered.map(lecture => `
+            <div class="lecture-card">
+                <div class="lecture-header">
+                    <h3>${lecture.title}</h3>
+                    <div class="week"><i class="far fa-calendar-alt"></i> ${lecture.weekName} | ${lecture.date} | ${lecture.hours} ساعة</div>
+                </div>
+                <div class="lecture-body">
+                    <div class="lecture-info"><i class="fas fa-book"></i> ${lecture.courseName}</div>
+                    <div class="lecture-info"><span class="prep-status ${lecture.status === 'prepared' ? 'status-done' : 'status-pending'}">${lecture.status === 'prepared' ? '✓ تم التحضير' : '⏳ قيد التحضير'}</span></div>
+                    ${lecture.preparation ? `
+                        <div class="lecture-info"><i class="fas fa-bullseye"></i> <strong>الأهداف:</strong> ${lecture.preparation.objectives.substring(0, 100)}...</div>
+                        <button class="btn-sm btn-outline" onclick="showPreparationDetails(${lecture.id})"><i class="fas fa-eye"></i> عرض التفاصيل</button>
+                    ` : `
+                        <button class="btn-sm btn-primary" onclick="prepareLecture(${lecture.id})"><i class="fas fa-edit"></i> تحضير المحاضرة</button>
+                    `}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderAllLectures() {
+        const container = document.getElementById('all-lectures');
+        container.innerHTML = lectures.map(lecture => `
+            <div class="lecture-card">
+                <div class="lecture-header">
+                    <h3>${lecture.title}</h3>
+                    <div class="week"><i class="far fa-calendar-alt"></i> ${lecture.weekName} | ${lecture.date}</div>
+                </div>
+                <div class="lecture-body">
+                    <div class="lecture-info"><i class="fas fa-book"></i> ${lecture.courseName}</div>
+                    <div class="lecture-info"><span class="prep-status ${lecture.status === 'prepared' ? 'status-done' : 'status-pending'}">${lecture.status === 'prepared' ? '✓ تم التحضير' : '⏳ لم يحضر بعد'}</span></div>
+                    ${lecture.preparation ? `<button class="btn-sm btn-outline" onclick="showPreparationDetails(${lecture.id})"><i class="fas fa-eye"></i> عرض</button>` : ''}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function prepareLecture(lectureId) {
+        const lecture = lectures.find(l => l.id === lectureId);
+        document.querySelector('[data-tab="prep"]').click();
+        document.getElementById('lecture-select').value = lectureId;
+        document.getElementById('lecture-title').value = lecture.title;
+    }
+
+    function saveLecturePreparation() {
+        const lectureId = parseInt(document.getElementById('lecture-select').value);
+        if (!lectureId) { alert("الرجاء اختيار المحاضرة"); return; }
+        
+        preparations[lectureId] = {
+            title: document.getElementById('lecture-title').value,
+            objectives: document.getElementById('lecture-objectives').value,
+            content: document.getElementById('lecture-content').value,
+            resources: document.getElementById('lecture-resources').value,
+            activities: document.getElementById('lecture-activities').value,
+            preparedAt: new Date().toISOString()
+        };
+        
+        const lecture = lectures.find(l => l.id === lectureId);
+        if (lecture) lecture.status = 'prepared';
+        
+        saveToLocal();
+        alert("تم حفظ التحضير بنجاح!");
+        updateDashboard();
+        renderLectures('upcoming-lectures', 'pending');
+        renderAllLectures();
+        clearPrepForm();
+    }
+
+    function clearPrepForm() {
+        document.getElementById('lecture-title').value = '';
+        document.getElementById('lecture-objectives').value = '';
+        document.getElementById('lecture-content').value = '';
+        document.getElementById('lecture-resources').value = '';
+        document.getElementById('lecture-activities').value = '';
+    }
+
+    function showPreparationDetails(lectureId) {
+        const prep = preparations[lectureId];
+        const lecture = lectures.find(l => l.id === lectureId);
+        if (prep) {
+            alert(`📚 ${prep.title}\n\n🎯 الأهداف:\n${prep.objectives}\n\n📖 المحتوى:\n${prep.content}\n\n📚 المراجع:\n${prep.resources}\n\n⚡ الأنشطة:\n${prep.activities}`);
+        } else {
+            alert("لا يوجد تحضير لهذه المحاضرة بعد");
+        }
+    }
+
+    function loadAttendance() {
+        const lectureId = document.getElementById('attendance-lecture-select').value;
+        if (!lectureId) { alert("اختر محاضرة"); return; }
+        
+        const tbody = document.getElementById('attendance-tbody');
+        tbody.innerHTML = students.map(student => {
+            const key = `${lectureId}_${student.national_id}`;
+            const status = attendanceRecords[key] || 'absent';
+            return `
+                <tr>
+                    <td>${student.full_name}</td>
+                    <td>${student.national_id}</td>
+                    <td>${student.track || '-'}</td>
+                    <td>
+                        <button class="attendance-btn present" onclick="setAttendance(${lectureId}, '${student.national_id}', 'present')">✓ حاضر</button>
+                        <button class="attendance-btn absent" onclick="setAttendance(${lectureId}, '${student.national_id}', 'absent')">✗ غائب</button>
+                        <button class="attendance-btn late" onclick="setAttendance(${lectureId}, '${student.national_id}', 'late')">⌛ متأخر</button>
+                        <span id="status-${lectureId}-${student.national_id}" style="margin-right:10px;">${status === 'present' ? '✓ حاضر' : status === 'late' ? '⌛ متأخر' : '✗ غائب'}</span>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+        
+        document.getElementById('attendance-table-container').style.display = 'block';
+    }
+
+    function setAttendance(lectureId, nationalId, status) {
+        const key = `${lectureId}_${nationalId}`;
+        attendanceRecords[key] = status;
+        saveToLocal();
+        document.getElementById(`status-${lectureId}-${nationalId}`).innerText = status === 'present' ? '✓ حاضر' : status === 'late' ? '⌛ متأخر' : '✗ غائب';
+    }
+
+    function saveAttendance() {
+        alert("تم حفظ سجل الحضور بنجاح!");
+        updateDashboard();
+    }
+
+    function updateDashboard() {
+        const total = lectures.length;
+        const prepared = lectures.filter(l => l.status === 'prepared').length;
+        const pending = total - prepared;
+        document.getElementById('total-lectures').innerText = total;
+        document.getElementById('prepared-lectures').innerText = prepared;
+        document.getElementById('pending-lectures').innerText = pending;
+        
+        const prepPercent = total > 0 ? Math.round((prepared / total) * 100) : 0;
+        document.getElementById('prep-percent').innerText = prepPercent + '%';
+        
+        renderLectures('upcoming-lectures', 'pending');
+    }
+
+    function exportReports() {
+        let report = "تقرير التحضير الإلكتروني للمحاضرات\n";
+        report += "=".repeat(50) + "\n\n";
+        report += `إجمالي المحاضرات: ${lectures.length}\n`;
+        report += `المحاضرات المحضرة: ${lectures.filter(l => l.status === 'prepared').length}\n`;
+        report += `نسبة التحضير: ${Math.round((lectures.filter(l => l.status === 'prepared').length / lectures.length) * 100)}%\n\n`;
+        report += "تفاصيل المحاضرات المحضرة:\n";
+        lectures.filter(l => l.status === 'prepared').forEach(l => {
+            report += `- ${l.title}: ${l.preparation?.objectives?.substring(0, 50)}...\n`;
+        });
+        
+        const blob = new Blob([report], { type: 'text/plain' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `تقرير_التحضير_${new Date().toLocaleDateString()}.txt`;
+        link.click();
+    }
+
+    function populateLectureSelects() {
+        const select1 = document.getElementById('lecture-select');
+        const select2 = document.getElementById('attendance-lecture-select');
+        
+        const options = lectures.map(l => `<option value="${l.id}">${l.title} (${l.date})</option>`).join('');
+        select1.innerHTML = '<option value="">-- اختر محاضرة --</option>' + options;
+        select2.innerHTML = '<option value="">-- اختر محاضرة --</option>' + options;
+    }
+
+    // التبويبات
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById(tab.dataset.tab).classList.add('active');
+            
+            if (tab.dataset.tab === 'lectures') renderAllLectures();
+            if (tab.dataset.tab === 'attendance') populateLectureSelects();
+        });
+    });
+
+    document.getElementById('current-date').innerText = new Date().toLocaleDateString('ar-SA');
+    
+    // التهيئة
+    initLectures();
+    loadStudents().then(() => {
+        updateDashboard();
+        populateLectureSelects();
+        renderAllLectures();
+    });
+</script>
+</body>
+</html>
