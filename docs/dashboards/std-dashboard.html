@@ -5,20 +5,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة تحكم الطالب - CyberPath</title>
     <link rel="stylesheet" href="../assets/css/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> <style>
-        :root { --primary: #007bff; --secondary: #6c757d; --success: #28a745; --dark: #343a40; }
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { 
+            --primary: #007bff; 
+            --secondary: #6c757d; 
+            --success: #28a745; 
+            --dark: #343a40;
+            --light-bg: #f8f9fa;
+            --border: #dee2e6;
+        }
         body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; margin: 0; }
-        .dashboard-container { max-width: 1000px; margin: 30px auto; padding: 20px; }
+        .dashboard-container { max-width: 1200px; margin: 30px auto; padding: 20px; }
         .header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .card { background: white; border-radius: 12px; padding: 25px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
         .track-card { border-top: 5px solid var(--primary); text-align: center; }
         .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-block; transition: 0.3s; }
         .btn-primary { background: var(--primary); color: white; }
-        .btn-outline { border: 1px solid var(--primary); color: var(--primary); }
+        .btn-outline { border: 1px solid var(--primary); color: var(--primary); background: transparent; }
+        .btn-outline:hover { background: var(--primary); color: white; }
         .form-group { margin-bottom: 15px; text-align: right; }
-        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
         .badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; background: #e7f3ff; color: var(--primary); }
+        
+        /* أكورديون الخطة الدراسية */
+        .plan-section { margin-top: 20px; }
+        .semester-box { margin-bottom: 15px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+        .accordion-btn {
+            width: 100%;
+            background: var(--light-bg);
+            color: var(--dark);
+            cursor: pointer;
+            padding: 15px 20px;
+            text-align: right;
+            border: none;
+            outline: none;
+            font-size: 1rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: 0.3s;
+        }
+        .accordion-btn:hover { background: #e9ecef; }
+        .accordion-btn i { transition: transform 0.3s; }
+        .accordion-btn.active i { transform: rotate(180deg); }
+        .panel {
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background: white;
+        }
+        .panel.show { max-height: 500px; padding: 15px 20px; }
+        .course-item {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .course-item:last-child { border-bottom: none; }
+        .course-item i { color: var(--primary); width: 25px; }
+        .course-item span { flex: 1; }
+        .course-item small { color: var(--secondary); font-size: 0.75rem; }
+        .loading-spinner { text-align: center; padding: 40px; }
+        .empty-state { text-align: center; padding: 40px; color: var(--secondary); }
+        
+        @media (max-width: 768px) {
+            .dashboard-container { padding: 10px; margin: 15px auto; }
+            .header-section { flex-direction: column; gap: 15px; text-align: center; }
+            .grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
@@ -49,8 +109,18 @@
         <div class="card track-card">
             <h3>🚀 مساري التعليمي</h3>
             <p>مسارك الحالي: <span class="badge" id="user-track">جاري التحميل...</span></p>
-            <div id="track-link-container" style="margin-top: 20px;">
-                </div>
+            <div id="track-link-container" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+
+    <!-- الخطة الدراسية - أكورديون -->
+    <div class="card">
+        <h3>📚 خطتي الدراسية</h3>
+        <p style="color: #666; font-size: 14px; margin-bottom: 15px;">المواد المقررة حسب الفصول التدريبية</p>
+        <div id="plan-container">
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i> جاري تحميل الخطة الدراسية...
+            </div>
         </div>
     </div>
 
@@ -72,6 +142,7 @@
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     let currentUserId = null;
+    let currentUserTrack = null;
 
     async function initDashboard() {
         const { data: { user } } = await supabase.auth.getUser();
@@ -92,15 +163,19 @@
             document.getElementById('edit-name').value = profile.full_name;
             document.getElementById('edit-phone').value = profile.phone || "";
             document.getElementById('user-track').innerText = profile.track || "غير محدد";
+            currentUserTrack = profile.track || "غير محدد";
             
             generateTrackLink(profile.track);
+            
+            // تحميل الخطة الدراسية بناءً على المسار
+            await loadStudentPlan(profile.track);
         }
     }
 
     // وظيفة توجيه الطالب حسب مساره
     function generateTrackLink(track) {
         const container = document.getElementById('track-link-container');
-        let link = "/docs/pathways/index.html"; // الافتراضي
+        let link = "/docs/pathways/index.html";
         let btnText = "استعرض المسارات";
 
         const trackLower = (track || "").toLowerCase();
@@ -108,7 +183,7 @@
         if (trackLower.includes("دبلوم") || trackLower.includes("tvtc")) {
             link = "/docs/pathways/tvtc-cs-diploma.html";
             btnText = "دخول مسار الدبلوم";
-        } else if (trackLower.includes("أمن") || trackLower.includes("security")) {
+        } else if (trackLower.includes("أمن") || trackLower.includes("security") || trackLower.includes("سيبراني")) {
             link = "/docs/pathways/tvtc-cs-security.html";
             btnText = "دخول مسار الأمن السيبراني";
         } else if (trackLower.includes("مبتدئ") || trackLower.includes("beginner")) {
@@ -117,9 +192,145 @@
         } else if (trackLower.includes("احترافي") || trackLower.includes("professional")) {
             link = "/docs/pathways/professional.html";
             btnText = "المسار الاحترافي";
+        } else if (trackLower.includes("حاسب") || trackLower.includes("computer")) {
+            link = "/docs/pathways/computer-science.html";
+            btnText = "مسار علوم الحاسب";
         }
 
         container.innerHTML = `<a href="${link}" class="btn btn-primary" style="width:100%">🔓 ${btnText}</a>`;
+    }
+
+    // =============== وظائف الخطة الدراسية (Accordion View) ===============
+    async function loadStudentPlan(studentTrack) {
+        const container = document.getElementById('plan-container');
+        
+        // 1. تحديد الـ category بناءً على مسار الطالب
+        let targetCategory = 'Others';
+        
+        const trackLower = (studentTrack || "").toLowerCase();
+        
+        if (trackLower.includes("حاسب") || trackLower.includes("computer") || trackLower.includes("cs")) {
+            targetCategory = 'Computer Science';
+        } else if (trackLower.includes("أمن") || trackLower.includes("security") || trackLower.includes("سيبراني")) {
+            targetCategory = 'Cybersecurity';
+        } else if (trackLower.includes("دبلوم") || trackLower.includes("tvtc")) {
+            targetCategory = 'Diploma';
+        } else {
+            targetCategory = 'Others';
+        }
+
+        console.log("تحميل الخطة للتصنيف:", targetCategory);
+
+        // 2. استعلام ذكي يجلب المواد مرتبة حسب الفصل والربع
+        const { data: plan, error } = await supabase
+            .from('path_course')
+            .select(`
+                semester,
+                sort_order,
+                courses (
+                    id,
+                    title,
+                    description,
+                    credit_hours
+                ),
+                learning_paths!inner (
+                    category,
+                    name
+                )
+            `)
+            .eq('learning_paths.category', targetCategory)
+            .order('semester', { ascending: true })
+            .order('sort_order', { ascending: true });
+
+        if (error) {
+            console.error("خطأ في جلب الخطة:", error);
+            container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i> حدث خطأ في تحميل الخطة الدراسية</div>`;
+            return;
+        }
+
+        if (!plan || plan.length === 0) {
+            container.innerHTML = `<div class="empty-state"><i class="fas fa-info-circle"></i> لا توجد خطة دراسية متاحة لهذا التخصص حالياً</div>`;
+            return;
+        }
+
+        // 3. عرض البيانات في الواجهة
+        renderPlanUI(plan);
+    }
+
+    function renderPlanUI(plan) {
+        const container = document.getElementById('plan-container');
+        container.innerHTML = '';
+
+        // تجميع المواد حسب الفصل (Semester)
+        const semestersMap = new Map();
+        
+        plan.forEach(item => {
+            const sem = item.semester;
+            if (!semestersMap.has(sem)) {
+                semestersMap.set(sem, []);
+            }
+            semestersMap.get(sem).push(item);
+        });
+        
+        // ترتيب الفصول تصاعدياً
+        const sortedSemesters = Array.from(semestersMap.keys()).sort((a, b) => a - b);
+
+        if (sortedSemesters.length === 0) {
+            container.innerHTML = `<div class="empty-state">لا توجد فصول دراسية متاحة</div>`;
+            return;
+        }
+
+        sortedSemesters.forEach(sem => {
+            const semesterData = semestersMap.get(sem);
+            
+            // إنشاء عنصر الأكورديون
+            const semesterBox = document.createElement('div');
+            semesterBox.className = 'semester-box';
+            
+            const accordionBtn = document.createElement('button');
+            accordionBtn.className = 'accordion-btn';
+            accordionBtn.innerHTML = `
+                <span>📖 الفصل التدريبي ${sem}</span>
+                <i class="fas fa-chevron-down"></i>
+            `;
+            
+            const panel = document.createElement('div');
+            panel.className = 'panel';
+            
+            // إضافة المواد داخل اللوحة
+            semesterData.forEach(courseItem => {
+                const course = courseItem.courses;
+                const quarter = courseItem.sort_order;
+                
+                const courseDiv = document.createElement('div');
+                courseDiv.className = 'course-item';
+                courseDiv.innerHTML = `
+                    <i class="fas fa-book-open"></i>
+                    <span><strong>${course?.title || 'مادة غير محددة'}</strong></span>
+                    ${quarter ? `<small>(الربع ${quarter})</small>` : ''}
+                    ${course?.credit_hours ? `<small style="margin-right:10px;">${course.credit_hours} ساعة</small>` : ''}
+                `;
+                panel.appendChild(courseDiv);
+            });
+            
+            // إضافة حدث النقر للأكورديون
+            accordionBtn.addEventListener('click', function() {
+                this.classList.toggle('active');
+                const panelElement = this.nextElementSibling;
+                panelElement.classList.toggle('show');
+            });
+            
+            semesterBox.appendChild(accordionBtn);
+            semesterBox.appendChild(panel);
+            container.appendChild(semesterBox);
+        });
+        
+        // فتح أول فصل افتراضياً
+        const firstBtn = container.querySelector('.accordion-btn');
+        if (firstBtn) {
+            firstBtn.classList.add('active');
+            firstBtn.nextElementSibling.classList.add('show');
+        }
     }
 
     // وظيفة تحديث البيانات
@@ -128,7 +339,14 @@
         const newPhone = document.getElementById('edit-phone').value;
         const btn = document.getElementById('save-btn');
 
+        if (!newName.trim()) {
+            Swal.fire('تنبيه', 'الرجاء إدخال الاسم الكامل', 'warning');
+            return;
+        }
+
         btn.innerText = "جاري الحفظ...";
+        btn.disabled = true;
+        
         const { error } = await supabase
             .from('user_profile')
             .update({ full_name: newName, phone: newPhone })
@@ -141,13 +359,26 @@
             document.getElementById('user-name').innerText = newName;
         }
         btn.innerText = "حفظ التغييرات";
+        btn.disabled = false;
     }
 
     window.handleLogout = async function() {
-        await supabase.auth.signOut();
-        window.location.href = "temp-login.html";
+        const result = await Swal.fire({
+            title: 'تسجيل الخروج',
+            text: 'هل أنت متأكد من رغبتك في تسجيل الخروج؟',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'نعم',
+            cancelButtonText: 'إلغاء'
+        });
+        
+        if (result.isConfirmed) {
+            await supabase.auth.signOut();
+            window.location.href = "temp-login.html";
+        }
     }
 
+    // بدء التشغيل
     initDashboard();
 </script>
 </body>
