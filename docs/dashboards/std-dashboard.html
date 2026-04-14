@@ -59,18 +59,20 @@
             transition: max-height 0.3s ease-out;
             background: white;
         }
-        .panel.show { max-height: 500px; padding: 15px 20px; }
+        .panel.show { max-height: 800px; padding: 15px 20px; }
         .course-item {
-            padding: 10px 0;
+            padding: 12px 0;
             border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-wrap: wrap;
         }
         .course-item:last-child { border-bottom: none; }
         .course-item i { color: var(--primary); width: 25px; }
         .course-item span { flex: 1; }
-        .course-item small { color: var(--secondary); font-size: 0.75rem; }
+        .course-item small { color: var(--secondary); font-size: 0.7rem; }
+        .course-item .hours { background: #e7f3ff; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; }
         .loading-spinner { text-align: center; padding: 40px; }
         .empty-state { text-align: center; padding: 40px; color: var(--secondary); }
         
@@ -144,6 +146,25 @@
     let currentUserId = null;
     let currentUserTrack = null;
 
+    // =============== البيانات الافتراضية (Mock Data) للخطة الدراسية ===============
+    // خطة تخصص علوم الحاسب
+    const csPlanData = {
+        1: ["التوجيه المهني والتميز", "مقدمة تطبيقات الحاسب", "تجميع الحاسب وتشغيله", "الرياضيات", "برمجة الحاسب", "لغة إنجليزية 1"],
+        2: ["لغة إنجليزية 2", "نظم تشغيل", "تطبيقات الحاسب المتقدمة", "شبكات الحاسب", "الكتابة الفنية", "الفيزياء"],
+        3: ["لغة إنجليزية 3", "تحليل وتصميم النظم", "مبادئ قواعد البيانات", "أساسيات تقنية المعلومات", "مهارات التعلم", "السلوك الوظيفي", "تقنيات الإنترنت المتقدمة", "الدراسات الإسلامية"],
+        4: ["أمن الشبكات", "أخلاقيات نظم وتقنية المعلومات", "مهارات الدعم الفني", "تطوير وإدارة المواقع", "التأهيل للشهادات الاحترافية", "الذكاء الاصطناعي", "مشروع"],
+        5: ["التدريب التعاوني 1", "التدريب التعاوني 2"]
+    };
+
+    // خطة تخصص الأمن السيبراني
+    const cyberPlanData = {
+        1: ["التوجيه المهني والتميز", "مقدمة تطبيقات الحاسب", "مبادئ شبكات الحاسب", "الرياضيات", "أساسيات الأمن السيبراني", "لغة إنجليزية 1"],
+        2: ["لغة إنجليزية 2", "نظم تشغيل", "تطبيقات الحاسب المتقدمة", "برمجة الحاسب", "الكتابة الفنية", "إدارة أمن المعلومات", "لغة إنجليزية 3"],
+        3: ["أمن أنظمة التشغيل", "السلوك الوظيفي", "تطوير البرمجيات الآمنة", "مهارات التعلم", "أمن الشبكات والاتصالات", "اختبار الاختراق", "الدراسات الإسلامية"],
+        4: ["التشفير التطبيقي", "إنترنت الأشياء الآمنة", "إدارة المخاطر", "الجرائم الإلكترونية", "الحوسبة السحابية", "مشروع التخرج"],
+        5: ["التدريب التعاوني 1", "التدريب التعاوني 2"]
+    };
+
     async function initDashboard() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { window.location.href = "temp-login.html"; return; }
@@ -167,7 +188,7 @@
             
             generateTrackLink(profile.track);
             
-            // تحميل الخطة الدراسية بناءً على المسار
+            // تحميل الخطة الدراسية (محاولة من قاعدة البيانات أولاً، ثم البيانات الافتراضية)
             await loadStudentPlan(profile.track);
         }
     }
@@ -200,61 +221,90 @@
         container.innerHTML = `<a href="${link}" class="btn btn-primary" style="width:100%">🔓 ${btnText}</a>`;
     }
 
-    // =============== وظائف الخطة الدراسية (Accordion View) ===============
+    // =============== وظائف الخطة الدراسية (مع دعم البيانات الافتراضية) ===============
     async function loadStudentPlan(studentTrack) {
         const container = document.getElementById('plan-container');
         
-        // 1. تحديد الـ category بناءً على مسار الطالب
-        let targetCategory = 'Others';
-        
+        // تحديد نوع التخصص
         const trackLower = (studentTrack || "").toLowerCase();
+        let planType = 'cs'; // افتراضي علوم حاسب
         
-        if (trackLower.includes("حاسب") || trackLower.includes("computer") || trackLower.includes("cs")) {
-            targetCategory = 'Computer Science';
-        } else if (trackLower.includes("أمن") || trackLower.includes("security") || trackLower.includes("سيبراني")) {
-            targetCategory = 'Cybersecurity';
-        } else if (trackLower.includes("دبلوم") || trackLower.includes("tvtc")) {
-            targetCategory = 'Diploma';
+        if (trackLower.includes("أمن") || trackLower.includes("security") || trackLower.includes("سيبراني")) {
+            planType = 'cyber';
+        } else if (trackLower.includes("حاسب") || trackLower.includes("computer") || trackLower.includes("cs")) {
+            planType = 'cs';
         } else {
-            targetCategory = 'Others';
+            planType = 'cs';
         }
-
-        console.log("تحميل الخطة للتصنيف:", targetCategory);
-
-        // 2. استعلام ذكي يجلب المواد مرتبة حسب الفصل والربع
-        const { data: plan, error } = await supabase
-            .from('path_course')
-            .select(`
-                semester,
-                sort_order,
-                courses (
-                    id,
-                    title,
-                    description,
-                    credit_hours
-                ),
-                learning_paths!inner (
-                    category,
-                    name
-                )
-            `)
-            .eq('learning_paths.category', targetCategory)
-            .order('semester', { ascending: true })
-            .order('sort_order', { ascending: true });
-
-        if (error) {
-            console.error("خطأ في جلب الخطة:", error);
-            container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i> حدث خطأ في تحميل الخطة الدراسية</div>`;
-            return;
+        
+        // محاولة جلب البيانات من قاعدة البيانات أولاً
+        let planData = null;
+        let fromDatabase = false;
+        
+        try {
+            // محاولة الاستعلام من جداول قاعدة البيانات (إذا كانت موجودة)
+            const targetCategory = planType === 'cs' ? 'Computer Science' : 'Cybersecurity';
+            
+            const { data: dbPlan, error: dbError } = await supabase
+                .from('path_course')
+                .select(`
+                    semester,
+                    sort_order,
+                    courses (
+                        id,
+                        title,
+                        description,
+                        credit_hours
+                    ),
+                    learning_paths!inner (
+                        category,
+                        name
+                    )
+                `)
+                .eq('learning_paths.category', targetCategory)
+                .order('semester', { ascending: true })
+                .order('sort_order', { ascending: true })
+                .limit(100);
+            
+            if (!dbError && dbPlan && dbPlan.length > 0) {
+                planData = dbPlan;
+                fromDatabase = true;
+                console.log("تم جلب البيانات من قاعدة البيانات بنجاح");
+            }
+        } catch(e) {
+            console.log("خطأ في الاتصال بقاعدة البيانات، سيتم استخدام البيانات الافتراضية", e.message);
         }
-
-        if (!plan || plan.length === 0) {
+        
+        // إذا لم تنجح محاولة قاعدة البيانات، استخدم البيانات الافتراضية
+        if (!planData || planData.length === 0) {
+            console.log("استخدام البيانات الافتراضية للخطة الدراسية");
+            const mockPlan = [];
+            const semesterData = planType === 'cs' ? csPlanData : cyberPlanData;
+            
+            for (const [semester, courses] of Object.entries(semesterData)) {
+                courses.forEach((course, index) => {
+                    mockPlan.push({
+                        semester: parseInt(semester),
+                        sort_order: index + 1,
+                        courses: {
+                            id: index + 1,
+                            title: course,
+                            description: `مقرر ${course}`,
+                            credit_hours: semester >= 5 ? 6 : 3
+                        }
+                    });
+                });
+            }
+            planData = mockPlan;
+        }
+        
+        if (!planData || planData.length === 0) {
             container.innerHTML = `<div class="empty-state"><i class="fas fa-info-circle"></i> لا توجد خطة دراسية متاحة لهذا التخصص حالياً</div>`;
             return;
         }
-
-        // 3. عرض البيانات في الواجهة
-        renderPlanUI(plan);
+        
+        // عرض البيانات في الواجهة
+        renderPlanUI(planData);
     }
 
     function renderPlanUI(plan) {
@@ -298,17 +348,19 @@
             panel.className = 'panel';
             
             // إضافة المواد داخل اللوحة
-            semesterData.forEach(courseItem => {
+            semesterData.forEach((courseItem, idx) => {
                 const course = courseItem.courses;
-                const quarter = courseItem.sort_order;
+                const courseTitle = course?.title || courseItem.course_name || 'مادة غير محددة';
+                const quarter = courseItem.sort_order || idx + 1;
+                const hours = course?.credit_hours || (sem >= 5 ? 6 : 3);
                 
                 const courseDiv = document.createElement('div');
                 courseDiv.className = 'course-item';
                 courseDiv.innerHTML = `
                     <i class="fas fa-book-open"></i>
-                    <span><strong>${course?.title || 'مادة غير محددة'}</strong></span>
-                    ${quarter ? `<small>(الربع ${quarter})</small>` : ''}
-                    ${course?.credit_hours ? `<small style="margin-right:10px;">${course.credit_hours} ساعة</small>` : ''}
+                    <span><strong>${courseTitle}</strong></span>
+                    <small>(الربع ${quarter})</small>
+                    <span class="hours">${hours} ساعة</span>
                 `;
                 panel.appendChild(courseDiv);
             });
