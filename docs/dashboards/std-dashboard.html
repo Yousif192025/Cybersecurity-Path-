@@ -60,6 +60,8 @@
         </div>
 </div>
 
+// ... (الجزء العلوي من HTML والـ CSS يبقى كما هو في كودك) ...
+
 <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
@@ -68,117 +70,134 @@
         "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"
     );
 
-    let user = null;
+    let currentUserId = null;
 
-    // 1. التحقق من الهوية وتحميل البروفايل
-    async function init() {
-        const { data: userData } = await supabase.auth.getUser();
-        if (!userData.user) {
-            window.location.href = "../login.html";
-            return;
-        }
-        user = userData.user;
-
-        const { data: profile } = await supabase.from("user_profile").select("*").eq("user_id", user.id).maybeSingle();
+    async function initDashboard() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { window.location.href = "login.html"; return; }
         
-        document.getElementById("profile-area").innerHTML = `
-            <h2>أهلاً، ${profile?.full_name || user.email.split('@')[0]} 👋</h2>
-            <span class="status-text">المسار التدريبي: ${profile?.track || 'غير محدد'}</span>
-        `;
+        currentUserId = user.id;
+        document.getElementById('user-email').innerText = user.email;
 
-        loadTab('courses'); // تحميل التبويب الافتراضي
+        // 1. جلب بيانات البروفايل لمعرفة المسار (Track)
+        const { data: profile } = await supabase
+            .from('user_profile')
+            .select('*')
+            .eq('user_id', currentUserId)
+            .maybeSingle();
+
+        if (profile) {
+            document.getElementById('user-name').innerText = profile.full_name;
+            document.getElementById('user-track').innerText = profile.track || "غير محدد";
+            
+            // 2. تحميل الخطة بناءً على مسار المستخدم من جدول courses مباشرة
+            await loadDynamicPlan(profile.track);
+        }
     }
 
-    // 2. متحكم التبويبات
-    async function loadTab(tabName) {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+    async function loadDynamicPlan(userTrack) {
+        const container = document.getElementById('plan-container');
+        
+        // جلب المقررات التي تنتمي لمسار المستخدم فقط
+        // ملاحظة: نفترض وجود عمود 'track' وعمود 'semester' في جدول courses
+        const { data: allCourses, error: courseError } = await supabase
+            .from('courses')
+            .select('*')
+            .eq('track', userTrack) // فلترة حسب المسار
+            .order('semester', { ascending: true });
 
-        const container = document.getElementById('tab-content');
-        container.innerHTML = '<div class="loading"><i class="fas fa-circle-notch fa-spin"></i> جاري التحميل...</div>';
-
-        if (tabName === 'courses') await renderAllCourses(container);
-        else if (tabName === 'my-plan') await renderMyProgress(container);
-        else if (tabName === 'assignments') container.innerHTML = '<div class="card"><h3>قريباً.. قسم التكليفات</h3></div>';
-        else if (tabName === 'quizzes') container.innerHTML = '<div class="card"><h3>قريباً.. قسم الاختبارات</h3></div>';
-    }
-
-    // 3. عرض كل المقررات (من منطق كودك السابق)
-    async function renderAllCourses(container) {
-        const { data: allCourses } = await supabase.from("courses").select("course_id, title, description");
-        const { data: myEnrolls } = await supabase.from("enrollments").select("course_id").eq("user_id", user.id);
-        const enrolledIds = myEnrolls?.map(e => e.course_id) || [];
-
-        let html = '<div class="grid">';
-        allCourses.forEach(c => {
-            const isEnrolled = enrolledIds.includes(c.course_id);
-            html += `
-                <div class="card">
-                    <h3>${c.title}</h3>
-                    <p>${c.description || 'لا يوجد وصف متاح لهذا المقرر حالياً.'}</p>
-                    ${isEnrolled 
-                        ? `<button class="btn btn-success" onclick="window.location.href='../pages/course-player.html?course_id=${c.course_id}'">▶ استكمال التعلم</button>` 
-                        : `<button class="btn btn-primary" onclick="enroll('${c.course_id}')">تسجيل في المقرر</button>`}
-                </div>
-            `;
-        });
-        html += '</div>';
-        container.innerHTML = html;
-    }
-
-    // 4. عرض خطتي الدراسية (التقدم)
-    async function renderMyProgress(container) {
+        // جلب سجلات تقدم الطالب
         const { data: enrollments } = await supabase
-            .from("enrollments")
-            .select(`course_id, courses(title, description)`)
-            .eq("user_id", user.id);
+            .from('enrollments')
+            .select('course_id, completion_status')
+            .eq('user_id', currentUserId);
 
-        if (!enrollments || enrollments.length === 0) {
-            container.innerHTML = '<div class="card"><h3>أنت غير مسجل في أي مقررات حالياً.</h3></div>';
+        const enrollMap = {};
+        enrollments?.forEach(e => enrollMap[e.course_id] = e.completion_status);
+
+        if (courseError || !allCourses || allCourses.length === 0) {
+            container.innerHTML = `<div class="empty-state">لا توجد مواد مسجلة لمسار ${userTrack} حالياً.</div>`;
             return;
         }
 
-        let html = '<div class="grid">';
-        for (const e of enrollments) {
-            const progress = await calculateProgress(e.course_id);
-            html += `
-                <div class="card">
-                    <h3>${e.courses.title}</h3>
-                    <div class="progress-container"><div class="progress-fill" style="width:${progress}%"></div></div>
-                    <div class="status-text">نسبة الإنجاز: ${progress}%</div>
-                    <button class="btn btn-primary" onclick="window.location.href='../pages/course-player.html?course_id=${e.course_id}'">فتح المحتوى</button>
+        renderPlan(allCourses, enrollMap);
+    }
+
+    function renderPlan(courses, enrollMap) {
+        const container = document.getElementById('plan-container');
+        container.innerHTML = '';
+        
+        // تجميع المواد حسب الفصل (Semester)
+        const semesters = {};
+        courses.forEach(c => {
+            if (!semesters[c.semester]) semesters[c.semester] = [];
+            semesters[c.semester].push(c);
+        });
+
+        let total = courses.length;
+        let completed = 0;
+
+        Object.keys(semesters).forEach(semNum => {
+            const semesterSection = document.createElement('div');
+            semesterSection.className = 'semester-section';
+            
+            const semCourses = semesters[semNum];
+            const semCompleted = semCourses.filter(c => enrollMap[c.course_id] === 'completed').length;
+            completed += semCompleted;
+
+            semesterSection.innerHTML = `
+                <button class="accordion-btn">
+                    <span>📖 الفصل التدريبي ${semNum}</span>
+                    <span style="font-size: 0.8rem;">${semCompleted}/${semCourses.length} مكتمل <i class="fas fa-chevron-down"></i></span>
+                </button>
+                <div class="panel">
+                    ${semCourses.map(c => `
+                        <div class="course-row status-${enrollMap[c.course_id] || 'not_started'}">
+                            <div class="course-info">
+                                <i class="${getStatusIcon(enrollMap[c.course_id])}"></i>
+                                <span><strong>${c.title}</strong></span>
+                            </div>
+                            <div class="course-badge">${getStatusText(enrollMap[c.course_id])}</div>
+                        </div>
+                    `).join('')}
                 </div>
             `;
-        }
-        html += '</div>';
-        container.innerHTML = html;
+            
+            container.appendChild(semesterSection);
+        });
+
+        // تفعيل الأكورديون
+        document.querySelectorAll('.accordion-btn').forEach(btn => {
+            btn.onclick = function() {
+                this.classList.toggle('active');
+                this.nextElementSibling.classList.toggle('show');
+            };
+        });
+
+        updateProgressHeader(total, completed);
     }
 
-    // 5. وظائف مساعدة
-    async function calculateProgress(courseId) {
-        const { count: total } = await supabase.from("lessons").select("*", { count: "exact", head: true }).eq("course_id", courseId);
-        const { data: done } = await supabase.from("learning_progress").select("lesson_id").eq("user_id", user.id).eq("course_id", courseId);
-        if (!total) return 0;
-        return Math.round(((done?.length || 0) / total) * 100);
+    function getStatusIcon(status) {
+        if (status === 'completed') return 'fas fa-check-circle';
+        if (status === 'in_progress') return 'fas fa-spinner fa-spin';
+        return 'far fa-circle';
     }
 
-    window.enroll = async (courseId) => {
-        const { error } = await supabase.from("enrollments").insert({ user_id: user.id, course_id: courseId, completion_status: 'in_progress' });
-        if (error) alert("خطأ في التسجيل: " + error.message);
-        else { alert("تم التسجيل بنجاح! ✅"); loadTab('my-plan'); }
-    };
+    function getStatusText(status) {
+        const map = { 'completed': '✅ مكتمل', 'in_progress': '🔄 قيد الدراسة' };
+        return map[status] || '⏳ لم يبدأ';
+    }
 
-    window.handleLogout = async () => {
-        await supabase.auth.signOut();
-        window.location.href = "../login.html";
-    };
+    function updateProgressHeader(total, completed) {
+        const percent = Math.round((completed / total) * 100);
+        document.getElementById('total-courses').innerText = total;
+        document.getElementById('completed-courses').innerText = completed;
+        document.getElementById('progress-fill').style.width = percent + '%';
+        document.getElementById('progress-percent').innerText = `نسبة الإنجاز: ${percent}%`;
+        document.getElementById('progress-summary').style.display = 'flex';
+    }
 
-    // ربط مستمعي الأحداث للتبويبات
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.addEventListener('click', () => loadTab(tab.dataset.tab));
-    });
-
-    init();
+    initDashboard();
 </script>
 </body>
 </html>
