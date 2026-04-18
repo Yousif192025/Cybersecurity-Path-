@@ -8,12 +8,9 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        :root { 
-            --primary: #007bff; --secondary: #6c757d; --success: #28a745; 
-            --dark: #343a40; --light-bg: #f8f9fa; --border: #dee2e6;
-        }
+        :root { --primary: #007bff; --dark: #343a40; --light-bg: #f8f9fa; --border: #dee2e6; }
         body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; margin: 0; text-align: right; }
-        .dashboard-container { max-width: 1200px; margin: 30px auto; padding: 20px; }
+        .dashboard-container { max-width: 1000px; margin: 30px auto; padding: 20px; }
         .card { background: white; border-radius: 12px; padding: 25px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .semester-section { margin-bottom: 15px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
         .accordion-btn {
@@ -23,29 +20,20 @@
         }
         .panel { padding: 0; max-height: 0; overflow: hidden; transition: 0.3s ease-out; background: white; }
         .panel.show { max-height: 2000px; padding: 15px 20px; }
-        .course-row {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 12px 0; border-bottom: 1px solid var(--border);
-        }
-        .course-info { display: flex; align-items: center; gap: 12px; }
-        .loading-spinner { text-align: center; padding: 40px; }
+        .course-row { padding: 12px 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+        .course-row:last-child { border-bottom: none; }
     </style>
 </head>
 <body>
 
 <div class="dashboard-container">
     <div class="card">
-        <h2>مرحباً بك في لوحة التحكم</h2>
+        <h2>📚 الخطة الدراسية</h2>
         <p id="user-email" style="color: #666;"></p>
     </div>
 
-    <div class="card">
-        <h3>📚 خطتي الدراسية (الخطة المعتمدة)</h3>
-        <div id="plan-container">
-            <div class="loading-spinner">
-                <i class="fas fa-spinner fa-spin fa-2x"></i> جاري جلب البيانات...
-            </div>
-        </div>
+    <div id="plan-container">
+        <div style="text-align:center; padding:40px;">جاري تحميل المواد...</div>
     </div>
 </div>
 
@@ -60,12 +48,10 @@
         const container = document.getElementById('plan-container');
         
         try {
-            // 1. جلب المستخدم
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) { container.innerHTML = "يرجى تسجيل الدخول"; return; }
-            document.getElementById('user-email').innerText = user.email;
+            if (user) document.getElementById('user-email').innerText = user.email;
 
-            // 2. جلب جدول الربط (الـ 73 مادة)
+            // 1. جلب جدول الربط (الـ 73 مادة)
             const { data: pathCourses, error: pError } = await supabase
                 .from('path_course')
                 .select('semester, course_id')
@@ -73,70 +59,49 @@
 
             if (pError) throw pError;
 
-            // 3. جلب جدول المقررات (استخدام اسم العمود course_id بدلاً من id)
+            // 2. جلب جدول المقررات (بالأعمدة الأكيدة فقط)
             const { data: allCourses, error: cError } = await supabase
                 .from('courses')
-                .select('course_id, title, credit_hours'); // تم تغيير id لـ course_id
+                .select('course_id, title'); // تم الاكتفاء بالعناوين والمعرفات فقط
 
             if (cError) throw cError;
 
-            // 4. الربط اليدوي لضمان الدقة
+            // 3. تنظيم البيانات
             const coursesMap = {};
-            allCourses.forEach(c => {
-                coursesMap[c.course_id] = c;
-            });
+            allCourses.forEach(c => coursesMap[c.course_id] = c.title);
 
             const semesters = {};
             pathCourses.forEach(pc => {
                 if (!semesters[pc.semester]) semesters[pc.semester] = [];
-                const details = coursesMap[pc.course_id];
-                if (details) semesters[pc.semester].push(details);
+                const title = coursesMap[pc.course_id];
+                if (title) semesters[pc.semester].push(title);
             });
 
-            // 5. بناء الواجهة
-            if (Object.keys(semesters).length === 0) {
-                container.innerHTML = "لا توجد مواد مرتبطة بالفصول الدراسية حالياً.";
-                return;
-            }
-
+            // 4. عرض النتيجة
             container.innerHTML = "";
             Object.keys(semesters).sort().forEach(sem => {
                 const semBox = document.createElement('div');
                 semBox.className = 'semester-section';
                 
-                const btn = document.createElement('button');
-                btn.className = 'accordion-btn';
-                btn.innerHTML = `<span>📖 الفصل التدريبي ${sem}</span> <i class="fas fa-chevron-down"></i>`;
-                
-                const panel = document.createElement('div');
-                panel.className = 'panel';
-                
-                semesters[sem].forEach(c => {
-                    const row = document.createElement('div');
-                    row.className = 'course-row';
-                    row.innerHTML = `
-                        <div class="course-info">
-                            <i class="far fa-circle" style="color:#ccc"></i>
-                            <span>${c.title}</span>
-                        </div>
-                        <span style="color:#888; font-size:0.8rem">${c.credit_hours || 3} ساعة</span>
-                    `;
-                    panel.appendChild(row);
-                });
-
-                btn.onclick = () => {
-                    btn.classList.toggle('active');
-                    panel.classList.toggle('show');
-                };
-
-                semBox.appendChild(btn);
-                semBox.appendChild(panel);
+                semBox.innerHTML = `
+                    <button class="accordion-btn" onclick="this.nextElementSibling.classList.toggle('show')">
+                        <span>📖 الفصل التدريبي ${sem}</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="panel">
+                        ${semesters[sem].map(title => `
+                            <div class="course-row">
+                                <i class="far fa-circle" style="color:#ccc"></i>
+                                <span>${title}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
                 container.appendChild(semBox);
             });
 
         } catch (err) {
-            console.error(err);
-            container.innerHTML = `<div style="color:red; padding:20px;">حدث خطأ أثناء جلب البيانات: ${err.message}</div>`;
+            container.innerHTML = `<div style="color:red; padding:20px;">حدث خطأ: ${err.message}</div>`;
         }
     }
 
