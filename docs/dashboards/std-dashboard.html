@@ -107,147 +107,100 @@
     const supabaseKey = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    let _uid = null;
-    let _doneSet = new Set();
-
     async function init() {
-        // 1. التحقق من الجلسة
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { window.location.href = "temp-login.html"; return; }
+        const container = document.getElementById('plan-container');
         
-        _uid = user.id;
-        document.getElementById('user-email').innerText = user.email;
+        try {
+            // 1. جلب المستخدم الحالي
+            const { data: { user }, error: authError } = await supabase.auth.getUser();
+            if (authError || !user) {
+                container.innerHTML = "خطأ في الجلسة: يرجى تسجيل الدخول";
+                return;
+            }
+            document.getElementById('user-email').innerText = user.email;
 
-        // 2. جلب البروفايل
-        const { data: profile } = await supabase.from('user_profile').select('*').eq('user_id', _uid).maybeSingle();
-        
-        if (profile) {
-            document.getElementById('user-name').innerText = profile.full_name || "متدرب";
-            document.getElementById('edit-name').value = profile.full_name || "";
-            document.getElementById('user-track').innerText = profile.track || "غير محدد";
-            
-            // 3. جلب المواد التي سجلها الطالب كمكتملة
-            const { data: enrolls } = await supabase.from('user_courses').select('course_id').eq('user_id', _uid).eq('completed', true);
-            if (enrolls) enrolls.forEach(e => _doneSet.add(e.course_id));
+            // 2. جلب البروفايل (بدون شروط معقدة)
+            const { data: profile } = await supabase.from('user_profile').select('*').eq('user_id', user.id).maybeSingle();
+            if (profile) {
+                document.getElementById('user-name').innerText = profile.full_name || "متدرب";
+                document.getElementById('user-track').innerText = profile.track || "لم يحدد مسار";
+            }
 
-            // 4. تحميل الخطة (باستخدام ID المسار من البروفايل أو البحث عنه)
-            await loadRealPlan(profile.path_id, profile.track);
+            // 3. الخطوة الحاسمة: جلب الـ 73 مادة مباشرة
+            // جربنا الجلب مع Join وفشل، الآن سنجلب الـ IDs أولاً
+            const { data: pathCourses, error: pathError } = await supabase
+                .from('path_course')
+                .select('semester, course_id, sort_order')
+                .order('semester', { ascending: true });
+
+            if (pathError) throw new Error("فشل جلب جدول الربط: " + pathError.message);
+            if (!pathCourses || pathCourses.length === 0) {
+                container.innerHTML = "جدول الربط (path_course) فارغ في قاعدة البيانات!";
+                return;
+            }
+
+            // 4. جلب تفاصيل المواد
+            const { data: allCourses, error: coursesError } = await supabase
+                .from('courses')
+                .select('id, title, credit_hours');
+
+            if (coursesError) throw new Error("فشل جلب جدول المواد: " + coursesError.message);
+
+            // 5. دمج البيانات يدوياً (Client-side Join) لضمان عدم ضياع البيانات
+            renderFinalPlan(pathCourses, allCourses);
+
+        } catch (err) {
+            console.error(err);
+            container.innerHTML = `<div style="color:red; padding:20px; border:1px solid red;">
+                <h4>حدث خطأ تقني:</h4>
+                <p>${err.message}</p>
+                <small>تأكد من تعطيل RLS في Supabase لجدول path_course و courses</small>
+            </div>`;
         }
     }
 
-    async function loadRealPlan(pathId, trackName) {
-        let targetId = pathId;
-
-        // إذا لم يكن المسار مسجلاً في بروفايل الطالب، نبحث عن المسار المناسب من الـ 73 مادة المتوفرة
-        if (!targetId) {
-            const isCyber = (trackName || "").includes("أمن") || (trackName || "").includes("Cyber");
-            const category = isCyber ? 'Cybersecurity' : 'Computer Science';
-            
-            const { data: pathData } = await supabase.from('learning_paths')
-                .select('path_id')
-                .ilike('category', `%${category}%`)
-                .limit(1).maybeSingle();
-            
-            if (pathData) targetId = pathData.path_id;
-        }
-
-        if (!targetId) {
-            document.getElementById('plan-container').innerHTML = "لم يتم تحديد مسار دراسي لك بعد.";
-            return;
-        }
-
-        // جلب البيانات من جدول الربط الفعلي path_course الذي يحتوي على الـ 73 مادة
-        const { data: plan, error } = await supabase
-            .from('path_course')
-            .select(`
-                semester, 
-                course_id, 
-                courses (id, title, credit_hours)
-            `)
-            .eq('path_id', targetId)
-            .order('semester', { ascending: true })
-            .order('sort_order', { ascending: true });
-
-        if (error || !plan || plan.length === 0) {
-            document.getElementById('plan-container').innerHTML = "توجد مشكلة في جلب مواد المسار من قاعدة البيانات.";
-            return;
-        }
-
-        renderPlan(plan);
-    }
-
-    function renderPlan(data) {
+    function renderFinalPlan(pathCourses, allCourses) {
         const container = document.getElementById('plan-container');
         container.innerHTML = "";
         
-        const semesters = {};
-        let total = 0, done = 0;
+        // تحويل المواد إلى Map لسهولة البحث
+        const coursesMap = {};
+        allCourses.forEach(c => coursesMap[c.id] = c);
 
-        data.forEach(item => {
-            if (!item.courses) return; // تخطي أي بيانات ناقصة
-            if (!semesters[item.semester]) semesters[item.semester] = [];
-            
-            const isCompleted = _doneSet.has(item.course_id);
-            semesters[item.semester].push({ ...item.courses, isCompleted });
-            
-            total++;
-            if (isCompleted) done++;
+        // تجميع حسب الفصل
+        const semesters = {};
+        pathCourses.forEach(pc => {
+            if (!semesters[pc.semester]) semesters[pc.semester] = [];
+            const details = coursesMap[pc.course_id];
+            if (details) {
+                semesters[pc.semester].push(details);
+            }
         });
 
-        // تحديث شريط التقدم
-        const percent = total > 0 ? Math.round((done / total) * 100) : 0;
-        document.getElementById('prog-ratio').innerText = `${done} / ${total}`;
-        document.getElementById('progress-fill').style.width = percent + '%';
-        document.getElementById('progress-percent').innerText = percent + '%';
-
-        // إنشاء الأكورديون لكل فصل
-        Object.keys(semesters).sort().forEach(semNum => {
+        // إنشاء الواجهة
+        Object.keys(semesters).sort().forEach(sem => {
             const semBox = document.createElement('div');
             semBox.className = 'semester-section';
-            
-            const btn = document.createElement('button');
-            btn.className = 'accordion-btn';
-            btn.innerHTML = `<span>الفصل التدريبي ${semNum}</span> <i class="fas fa-chevron-down"></i>`;
-            
-            const panel = document.createElement('div');
-            panel.className = 'panel';
-            
-            semesters[semNum].forEach(c => {
-                const row = document.createElement('div');
-                row.className = 'course-row';
-                row.innerHTML = `
-                    <div class="course-info">
-                        <i class="${c.isCompleted ? 'fas fa-check-circle' : 'far fa-circle'}" style="color:${c.isCompleted ? 'var(--success)' : '#ccc'}"></i>
-                        <span>${c.title}</span>
-                    </div>
-                    <span class="badge" style="background:${c.isCompleted ? '#d4edda' : '#f0f0f0'}; color:${c.isCompleted ? '#155724' : '#666'}">
-                        ${c.isCompleted ? 'مكتمل' : 'مطلوب'}
-                    </span>
-                `;
-                panel.appendChild(row);
-            });
-
-            btn.onclick = () => {
-                btn.classList.toggle('active');
-                panel.classList.toggle('show');
-            };
-
-            semBox.appendChild(btn);
-            semBox.appendChild(panel);
+            semBox.innerHTML = `
+                <button class="accordion-btn" onclick="this.nextElementSibling.classList.toggle('show')">
+                    <span>الفصل التدريبي ${sem}</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="panel">
+                    ${semesters[sem].map(c => `
+                        <div class="course-row">
+                            <div class="course-info">
+                                <i class="far fa-circle" style="color:#ccc"></i>
+                                <span>${c.title}</span>
+                            </div>
+                            <span class="course-hours">${c.credit_hours || 3} ساعة</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
             container.appendChild(semBox);
         });
     }
-
-    window.updateProfile = async () => {
-        const name = document.getElementById('edit-name').value;
-        const { error } = await supabase.from('user_profile').update({ full_name: name }).eq('user_id', _uid);
-        if (!error) Swal.fire('تم!', 'تم تحديث الاسم بنجاح', 'success');
-    };
-
-    window.handleLogout = async () => {
-        await supabase.auth.signOut();
-        window.location.href = "temp-login.html";
-    };
 
     init();
 </script>
