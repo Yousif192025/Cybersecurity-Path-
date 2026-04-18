@@ -63,6 +63,11 @@
         
         .loading-spinner { text-align: center; padding: 40px; color: var(--primary); }
         .empty-state { text-align: center; padding: 40px; color: var(--secondary); background: var(--light-bg); border-radius: 12px; border: 1px dashed var(--border); }
+        
+        @media (max-width: 768px) {
+            .progress-summary { flex-direction: column; text-align: center; }
+            .progress-bar-bg { margin: 10px 0; width: 100%; }
+        }
     </style>
 </head>
 <body>
@@ -120,27 +125,27 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-    const SUPABASE_URL = "https://suvpaunulhqfoclepwoz.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // ========== استخدام اسم متغير فريد لتجنب التضارب ==========
+    const SB_URL = "https://suvpaunulhqfoclepwoz.supabase.co";
+    const SB_KEY = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
+    
+    // تعريف العميل بمتغير لا يتصادم مع تعريفات المكتبة التلقائية
+    const sbClient = window.supabase.createClient(SB_URL, SB_KEY);
 
     let currentUserId = null;
     let userEnrollments = new Map();
 
     async function initDashboard() {
-        // التحقق من الجلسة
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await sbClient.auth.getSession();
         if (sessionError || !session) { 
             window.location.href = "temp-login.html"; 
             return; 
         }
         
-        const user = session.user;
-        currentUserId = user.id;
-        document.getElementById('user-email').innerText = user.email;
+        currentUserId = session.user.id;
+        document.getElementById('user-email').innerText = session.user.email;
 
-        // جلب البروفايل
-        let { data: profile } = await supabase
+        let { data: profile } = await sbClient
             .from('user_profile')
             .select('*')
             .eq('user_id', currentUserId)
@@ -154,9 +159,7 @@
             
             generateTrackLink(profile.track);
 
-            // جلب سجلات المواد المسجلة للطالب (من جدول user_courses أو enrollments)
-            // ملاحظة: تأكد من اسم الجدول في قاعدة بياناتك (أنت تستخدم user_courses في الكود الأخير)
-            const { data: enrolls } = await supabase
+            const { data: enrolls } = await sbClient
                 .from('user_courses')
                 .select('course_id, completed, progress')
                 .eq('user_id', currentUserId);
@@ -167,7 +170,6 @@
                     userEnrollments.set(e.course_id, status);
                 });
             }
-
             await loadRealPlan(profile.path_id, profile.track);
         }
     }
@@ -177,13 +179,12 @@
         let targetPathId = pathId;
 
         try {
-            // البحث عن المسار إذا لم يكن مسجلاً في البروفايل
             if (!targetPathId) {
                 const trackLower = (trackName || "").toLowerCase();
                 const isCyber = trackLower.includes("أمن") || trackLower.includes("سيبراني") || trackLower.includes("cyber");
                 const categorySearch = isCyber ? 'Cybersecurity' : 'Computer Science';
 
-                const { data: pathData } = await supabase
+                const { data: pathData } = await sbClient
                     .from('learning_paths')
                     .select('path_id')
                     .ilike('category', `%${categorySearch}%`)
@@ -191,37 +192,27 @@
                     .maybeSingle();
 
                 if (pathData) targetPathId = pathData.path_id;
-                else {
-                    const { data: fallback } = await supabase.from('learning_paths').select('path_id').limit(1).maybeSingle();
-                    if (fallback) targetPathId = fallback.path_id;
-                }
             }
 
             if (!targetPathId) {
-                container.innerHTML = `<div class="empty-state">⚠️ لا يوجد مسارات مسجلة في قاعدة البيانات حالياً.</div>`;
+                container.innerHTML = `<div class="empty-state">⚠️ لا يوجد مسار محدد.</div>`;
                 return;
             }
 
-            // جلب المواد المربوطة بالخطة
-            const { data: dbPlan, error } = await supabase
+            const { data: dbPlan, error } = await sbClient
                 .from('path_course')
-                .select(`
-                    semester,
-                    sort_order,
-                    course_id,
-                    courses ( title, credit_hours )
-                `)
+                .select(`semester, sort_order, course_id, courses ( title, credit_hours )`)
                 .eq('path_id', targetPathId)
                 .order('semester', { ascending: true })
                 .order('sort_order', { ascending: true });
 
             if (error || !dbPlan || dbPlan.length === 0) {
-                container.innerHTML = `<div class="empty-state">✅ تم العثور على المسار ولكن لم يتم ربط مواد به في جدول (path_course) بعد.</div>`;
+                container.innerHTML = `<div class="empty-state">✅ المسار موجود ولكن لا توجد مواد مرتبطة به حالياً.</div>`;
                 return;
             }
-
             renderUI(dbPlan);
         } catch (err) {
+            console.error("loadRealPlan error:", err);
             container.innerHTML = `<div class="empty-state">خطأ في التحميل: ${err.message}</div>`;
         }
     }
@@ -303,7 +294,7 @@
     function generateTrackLink(track) {
         const container = document.getElementById('track-link-container');
         const t = (track || "").toLowerCase();
-        const isCyber = t.includes("أمن") || t.includes("cyber");
+        const isCyber = t.includes("أمن") || t.includes("سيبراني") || t.includes("cyber") || t.includes("security");
         const link = isCyber ? "/docs/pathways/tvtc-cs-security.html" : "/docs/pathways/tvtc-cs-diploma.html";
         container.innerHTML = `<a href="${link}" class="btn btn-primary" style="width:100%; text-align:center;">🔓 دخول حقيبة المسار</a>`;
     }
@@ -311,20 +302,38 @@
     window.updateProfile = async () => {
         const name = document.getElementById('edit-name').value;
         const phone = document.getElementById('edit-phone').value;
-        if (!name) return Swal.fire('تنبيه', 'الاسم مطلوب', 'warning');
+        const btn = document.getElementById('save-btn');
         
-        const { error } = await supabase.from('user_profile').update({ full_name: name, phone: phone }).eq('user_id', currentUserId);
-        if (!error) {
-            Swal.fire('تم الحفظ', 'تم التحديث بنجاح', 'success');
-            document.getElementById('user-name').innerText = name;
+        if (!name) {
+            Swal.fire('تنبيه', 'الرجاء إدخال الاسم الكامل', 'warning');
+            return;
         }
+        
+        btn.disabled = true;
+        btn.innerText = 'جاري الحفظ...';
+        
+        const { error } = await sbClient
+            .from('user_profile')
+            .update({ full_name: name, phone: phone })
+            .eq('user_id', currentUserId);
+        
+        if (!error) {
+            Swal.fire('تم الحفظ', 'تم تحديث بياناتك بنجاح', 'success');
+            document.getElementById('user-name').innerText = name;
+        } else {
+            Swal.fire('خطأ', error.message, 'error');
+        }
+        
+        btn.disabled = false;
+        btn.innerText = 'حفظ التغييرات';
     };
 
     window.handleLogout = async () => {
-        await supabase.auth.signOut();
+        await sbClient.auth.signOut();
         window.location.href = "temp-login.html";
     };
 
+    // بدء التشغيل
     initDashboard();
 </script>
 </body>
