@@ -4,70 +4,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة تحكم الطالب - CyberPath</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root { 
-            --primary: #007bff; 
-            --secondary: #6c757d; 
-            --success: #28a745; 
-            --warning: #ffc107;
-            --danger: #dc3545;
-            --dark: #343a40;
-            --light-bg: #f8f9fa;
-            --border: #dee2e6;
+            --primary: #007bff; --secondary: #6c757d; --success: #28a745; 
+            --warning: #ffc107; --danger: #dc3545; --dark: #343a40;
+            --light-bg: #f8f9fa; --border: #dee2e6;
         }
-        body { background: #f0f2f5; font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; }
+        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; margin: 0; text-align: right; }
         .dashboard-container { max-width: 1200px; margin: 30px auto; padding: 20px; }
-        .header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); flex-wrap: wrap; gap: 15px; }
+        .header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .card { background: white; border-radius: 12px; padding: 25px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-        .track-card { border-top: 5px solid var(--primary); text-align: center; }
-        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-block; transition: 0.3s; font-family: inherit; }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-block; transition: 0.3s; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-outline { border: 1px solid var(--primary); color: var(--primary); background: transparent; }
-        .btn-outline:hover { background: var(--primary); color: white; }
-        .form-group { margin-bottom: 15px; text-align: right; }
-        label { display: block; margin-bottom: 5px; font-weight: 500; }
-        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: inherit; }
-        .badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; background: #e7f3ff; color: var(--primary); display: inline-block; }
+        .form-group { margin-bottom: 15px; }
+        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+        .badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; background: #e7f3ff; color: var(--primary); }
         
-        /* أكورديون الخطة الدراسية */
+        /* تصميم الأكورديون */
         .semester-section { margin-bottom: 15px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
         .accordion-btn {
-            width: 100%; background: var(--light-bg); color: var(--dark); cursor: pointer; padding: 15px 20px;
-            text-align: right; border: none; outline: none; font-size: 1rem; font-weight: bold;
-            display: flex; justify-content: space-between; align-items: center; transition: 0.3s;
+            width: 100%; background: var(--light-bg); color: var(--dark); cursor: pointer;
+            padding: 15px 20px; text-align: right; border: none; font-weight: bold;
+            display: flex; justify-content: space-between; align-items: center;
         }
-        .accordion-btn:hover { background: #e9ecef; }
-        .accordion-btn.active i { transform: rotate(180deg); }
-        .panel { padding: 0; max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background: white; }
-        .panel.show { max-height: 2500px; padding: 15px 20px; }
+        .panel { padding: 0; max-height: 0; overflow: hidden; transition: 0.3s ease-out; background: white; }
+        .panel.show { max-height: 1500px; padding: 15px 20px; }
         
-        .course-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
+        .course-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 0; border-bottom: 1px solid var(--border);
+        }
         .course-row:last-child { border-bottom: none; }
-        .course-info { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-        .course-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; min-width: 100px; text-align: center; }
-        .course-hours { color: var(--secondary); font-size: 0.7rem; background: #f0f0f0; padding: 2px 8px; border-radius: 12px; }
-
-        .status-completed .course-info i { color: var(--success); }
-        .status-completed .course-badge { background: #d4edda; color: #155724; }
-        .status-in_progress .course-info i { color: var(--primary); }
-        .status-in_progress .course-badge { background: #cce5ff; color: #004085; }
-        .status-not_started .course-info i { color: var(--secondary); }
-        .status-not_started .course-badge { background: #e2e3e5; color: #383d41; }
-
-        .progress-summary { background: linear-gradient(135deg, var(--primary), #0056b3); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; display: none; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
-        .progress-bar-bg { background: rgba(255,255,255,0.3); border-radius: 10px; height: 10px; flex: 1; min-width: 150px; margin: 0 20px; overflow: hidden; }
-        .progress-bar-fill { background: white; height: 100%; width: 0%; transition: width 0.5s; }
+        .course-info { display: flex; align-items: center; gap: 12px; }
         
-        .loading-spinner { text-align: center; padding: 40px; color: var(--primary); }
-        .empty-state { text-align: center; padding: 40px; color: var(--secondary); background: var(--light-bg); border-radius: 12px; border: 1px dashed var(--border); }
-        
-        @media (max-width: 768px) {
-            .progress-summary { flex-direction: column; text-align: center; }
-            .progress-bar-bg { margin: 10px 0; width: 100%; }
+        .progress-summary {
+            background: linear-gradient(135deg, var(--primary), #0056b3); color: white;
+            padding: 20px; border-radius: 12px; margin-bottom: 20px; display: flex;
+            justify-content: space-between; align-items: center;
         }
+        .progress-bar-bg { background: rgba(255,255,255,0.3); border-radius: 10px; height: 10px; flex: 1; margin: 0 20px; overflow: hidden; }
+        .progress-bar-fill { background: white; height: 100%; width: 0%; transition: 0.5s; }
     </style>
 </head>
 <body>
@@ -81,260 +62,194 @@
         <button onclick="handleLogout()" class="btn btn-outline">تسجيل الخروج</button>
     </div>
 
+    <div id="progress-summary" class="progress-summary">
+        <div>
+            <div style="font-size: 1.2rem; font-weight: bold;" id="prog-ratio">0 / 0</div>
+            <div style="font-size: 0.8rem;">المواد المكتملة</div>
+        </div>
+        <div class="progress-bar-bg">
+            <div id="progress-fill" class="progress-bar-fill"></div>
+        </div>
+        <div id="progress-percent">0%</div>
+    </div>
+
     <div class="grid">
         <div class="card">
-            <h3>📝 تحديث بياناتي</h3>
+            <h3>📝 بياناتي</h3>
             <div class="form-group">
                 <label>الاسم الكامل:</label>
-                <input type="text" id="edit-name" placeholder="أدخل اسمك الكامل">
+                <input type="text" id="edit-name">
             </div>
-            <div class="form-group">
-                <label>رقم الهاتف:</label>
-                <input type="text" id="edit-phone" placeholder="05xxxxxxxx">
-            </div>
-            <button onclick="updateProfile()" class="btn btn-primary" id="save-btn">حفظ التغييرات</button>
+            <button onclick="updateProfile()" class="btn btn-primary" id="save-btn" style="width:100%">حفظ التغييرات</button>
         </div>
 
-        <div class="card track-card">
-            <h3>🚀 مساري التعليمي</h3>
-            <p>مسارك الحالي: <span class="badge" id="user-track">جاري التحميل...</span></p>
-            <div id="track-link-container" style="margin-top: 20px;"></div>
+        <div class="card" style="text-align:center">
+            <h3>🚀 تخصصي</h3>
+            <span class="badge" id="user-track" style="font-size:1.1rem; padding:10px 20px">جاري التحميل...</span>
+            <div id="track-link-container" style="margin-top:20px"></div>
         </div>
     </div>
 
     <div class="card">
-        <h3>📚 خطتي الدراسية (البيانات الحقيقية)</h3>
-        
-        <div id="progress-summary" class="progress-summary">
-            <div>
-                <span id="completed-courses">0</span> / <span id="total-courses">0</span> مادة مكتملة
-            </div>
-            <div class="progress-bar-bg">
-                <div class="progress-bar-fill" id="progress-fill"></div>
-            </div>
-            <div id="progress-percent">0%</div>
-        </div>
-        
+        <h3>📚 الخطة الدراسية المعتمدة</h3>
         <div id="plan-container">
-            <div class="loading-spinner">
-                <i class="fas fa-spinner fa-spin"></i> جاري مزامنة بياناتك مع قاعدة البيانات...
+            <div style="text-align:center; padding:40px">
+                <i class="fas fa-spinner fa-spin fa-2x"></i> جاري جلب خطتك من قاعدة البيانات...
             </div>
         </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-    // ========== استخدام اسم متغير فريد لتجنب التضارب ==========
-    const SB_URL = "https://suvpaunulhqfoclepwoz.supabase.co";
-    const SB_KEY = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
-    
-    // تعريف العميل بمتغير لا يتصادم مع تعريفات المكتبة التلقائية
-    const sbClient = window.supabase.createClient(SB_URL, SB_KEY);
+<script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-    let currentUserId = null;
-    let userEnrollments = new Map();
+    const supabaseUrl = "https://suvpaunulhqfoclepwoz.supabase.co";
+    const supabaseKey = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-    async function initDashboard() {
-        const { data: { session }, error: sessionError } = await sbClient.auth.getSession();
-        if (sessionError || !session) { 
-            window.location.href = "temp-login.html"; 
-            return; 
-        }
+    let _uid = null;
+    let _doneSet = new Set();
+
+    async function init() {
+        // 1. التحقق من الجلسة
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { window.location.href = "temp-login.html"; return; }
         
-        currentUserId = session.user.id;
-        document.getElementById('user-email').innerText = session.user.email;
+        _uid = user.id;
+        document.getElementById('user-email').innerText = user.email;
 
-        let { data: profile } = await sbClient
-            .from('user_profile')
-            .select('*')
-            .eq('user_id', currentUserId)
-            .maybeSingle();
-
+        // 2. جلب البروفايل
+        const { data: profile } = await supabase.from('user_profile').select('*').eq('user_id', _uid).maybeSingle();
+        
         if (profile) {
-            document.getElementById('user-name').innerText = profile.full_name || "طالب";
+            document.getElementById('user-name').innerText = profile.full_name || "متدرب";
             document.getElementById('edit-name').value = profile.full_name || "";
-            document.getElementById('edit-phone').value = profile.phone || "";
             document.getElementById('user-track').innerText = profile.track || "غير محدد";
             
-            generateTrackLink(profile.track);
+            // 3. جلب المواد التي سجلها الطالب كمكتملة
+            const { data: enrolls } = await supabase.from('user_courses').select('course_id').eq('user_id', _uid).eq('completed', true);
+            if (enrolls) enrolls.forEach(e => _doneSet.add(e.course_id));
 
-            const { data: enrolls } = await sbClient
-                .from('user_courses')
-                .select('course_id, completed, progress')
-                .eq('user_id', currentUserId);
-
-            if (enrolls) {
-                enrolls.forEach(e => {
-                    const status = e.completed ? 'completed' : (e.progress > 0 ? 'in_progress' : 'not_started');
-                    userEnrollments.set(e.course_id, status);
-                });
-            }
+            // 4. تحميل الخطة (باستخدام ID المسار من البروفايل أو البحث عنه)
             await loadRealPlan(profile.path_id, profile.track);
         }
     }
 
     async function loadRealPlan(pathId, trackName) {
-        const container = document.getElementById('plan-container');
-        let targetPathId = pathId;
+        let targetId = pathId;
 
-        try {
-            if (!targetPathId) {
-                const trackLower = (trackName || "").toLowerCase();
-                const isCyber = trackLower.includes("أمن") || trackLower.includes("سيبراني") || trackLower.includes("cyber");
-                const categorySearch = isCyber ? 'Cybersecurity' : 'Computer Science';
-
-                const { data: pathData } = await sbClient
-                    .from('learning_paths')
-                    .select('path_id')
-                    .ilike('category', `%${categorySearch}%`)
-                    .limit(1)
-                    .maybeSingle();
-
-                if (pathData) targetPathId = pathData.path_id;
-            }
-
-            if (!targetPathId) {
-                container.innerHTML = `<div class="empty-state">⚠️ لا يوجد مسار محدد.</div>`;
-                return;
-            }
-
-            const { data: dbPlan, error } = await sbClient
-                .from('path_course')
-                .select(`semester, sort_order, course_id, courses ( title, credit_hours )`)
-                .eq('path_id', targetPathId)
-                .order('semester', { ascending: true })
-                .order('sort_order', { ascending: true });
-
-            if (error || !dbPlan || dbPlan.length === 0) {
-                container.innerHTML = `<div class="empty-state">✅ المسار موجود ولكن لا توجد مواد مرتبطة به حالياً.</div>`;
-                return;
-            }
-            renderUI(dbPlan);
-        } catch (err) {
-            console.error("loadRealPlan error:", err);
-            container.innerHTML = `<div class="empty-state">خطأ في التحميل: ${err.message}</div>`;
+        // إذا لم يكن المسار مسجلاً في بروفايل الطالب، نبحث عن المسار المناسب من الـ 73 مادة المتوفرة
+        if (!targetId) {
+            const isCyber = (trackName || "").includes("أمن") || (trackName || "").includes("Cyber");
+            const category = isCyber ? 'Cybersecurity' : 'Computer Science';
+            
+            const { data: pathData } = await supabase.from('learning_paths')
+                .select('path_id')
+                .ilike('category', `%${category}%`)
+                .limit(1).maybeSingle();
+            
+            if (pathData) targetId = pathData.path_id;
         }
+
+        if (!targetId) {
+            document.getElementById('plan-container').innerHTML = "لم يتم تحديد مسار دراسي لك بعد.";
+            return;
+        }
+
+        // جلب البيانات من جدول الربط الفعلي path_course الذي يحتوي على الـ 73 مادة
+        const { data: plan, error } = await supabase
+            .from('path_course')
+            .select(`
+                semester, 
+                course_id, 
+                courses (id, title, credit_hours)
+            `)
+            .eq('path_id', targetId)
+            .order('semester', { ascending: true })
+            .order('sort_order', { ascending: true });
+
+        if (error || !plan || plan.length === 0) {
+            document.getElementById('plan-container').innerHTML = "توجد مشكلة في جلب مواد المسار من قاعدة البيانات.";
+            return;
+        }
+
+        renderPlan(plan);
     }
 
-    function renderUI(plan) {
+    function renderPlan(data) {
         const container = document.getElementById('plan-container');
-        container.innerHTML = '';
-        const semestersMap = new Map();
-        let total = 0, completed = 0;
+        container.innerHTML = "";
+        
+        const semesters = {};
+        let total = 0, done = 0;
 
-        plan.forEach(item => {
-            if (!item.courses) return;
-            const status = userEnrollments.get(item.course_id) || 'not_started';
-            if (!semestersMap.has(item.semester)) semestersMap.set(item.semester, []);
+        data.forEach(item => {
+            if (!item.courses) return; // تخطي أي بيانات ناقصة
+            if (!semesters[item.semester]) semesters[item.semester] = [];
             
-            semestersMap.get(item.semester).push({
-                title: item.courses.title,
-                hours: item.courses.credit_hours || 3,
-                status: status
-            });
-
+            const isCompleted = _doneSet.has(item.course_id);
+            semesters[item.semester].push({ ...item.courses, isCompleted });
+            
             total++;
-            if (status === 'completed') completed++;
+            if (isCompleted) done++;
         });
 
-        const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
-        document.getElementById('total-courses').innerText = total;
-        document.getElementById('completed-courses').innerText = completed;
+        // تحديث شريط التقدم
+        const percent = total > 0 ? Math.round((done / total) * 100) : 0;
+        document.getElementById('prog-ratio').innerText = `${done} / ${total}`;
         document.getElementById('progress-fill').style.width = percent + '%';
         document.getElementById('progress-percent').innerText = percent + '%';
-        document.getElementById('progress-summary').style.display = 'flex';
 
-        Array.from(semestersMap.keys()).sort((a,b)=>a-b).forEach(sem => {
-            const courses = semestersMap.get(sem);
-            const semDiv = document.createElement('div');
-            semDiv.className = 'semester-section';
-            const done = courses.filter(c => c.status === 'completed').length;
+        // إنشاء الأكورديون لكل فصل
+        Object.keys(semesters).sort().forEach(semNum => {
+            const semBox = document.createElement('div');
+            semBox.className = 'semester-section';
             
-            semDiv.innerHTML = `
-                <button class="accordion-btn">
-                    <span>📖 الفصل التدريبي ${sem} (${done}/${courses.length})</span>
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-                <div class="panel">
-                    ${courses.map(c => `
-                        <div class="course-row status-${c.status}">
-                            <div class="course-info">
-                                <i class="${getStatusIcon(c.status)}"></i>
-                                <span><strong>${c.title}</strong></span>
-                                <span class="course-hours">${c.hours} ساعة</span>
-                            </div>
-                            <div class="course-badge">${getStatusText(c.status)}</div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
+            const btn = document.createElement('button');
+            btn.className = 'accordion-btn';
+            btn.innerHTML = `<span>الفصل التدريبي ${semNum}</span> <i class="fas fa-chevron-down"></i>`;
             
-            const btn = semDiv.querySelector('.accordion-btn');
+            const panel = document.createElement('div');
+            panel.className = 'panel';
+            
+            semesters[semNum].forEach(c => {
+                const row = document.createElement('div');
+                row.className = 'course-row';
+                row.innerHTML = `
+                    <div class="course-info">
+                        <i class="${c.isCompleted ? 'fas fa-check-circle' : 'far fa-circle'}" style="color:${c.isCompleted ? 'var(--success)' : '#ccc'}"></i>
+                        <span>${c.title}</span>
+                    </div>
+                    <span class="badge" style="background:${c.isCompleted ? '#d4edda' : '#f0f0f0'}; color:${c.isCompleted ? '#155724' : '#666'}">
+                        ${c.isCompleted ? 'مكتمل' : 'مطلوب'}
+                    </span>
+                `;
+                panel.appendChild(row);
+            });
+
             btn.onclick = () => {
                 btn.classList.toggle('active');
-                semDiv.querySelector('.panel').classList.toggle('show');
+                panel.classList.toggle('show');
             };
-            container.appendChild(semDiv);
+
+            semBox.appendChild(btn);
+            semBox.appendChild(panel);
+            container.appendChild(semBox);
         });
-    }
-
-    function getStatusIcon(s) {
-        if (s === 'completed') return 'fas fa-check-circle';
-        if (s === 'in_progress') return 'fas fa-spinner fa-pulse';
-        return 'far fa-circle';
-    }
-
-    function getStatusText(s) {
-        if (s === 'completed') return '✅ مكتمل';
-        if (s === 'in_progress') return '🔄 قيد الدراسة';
-        return '⏳ لم يبدأ';
-    }
-
-    function generateTrackLink(track) {
-        const container = document.getElementById('track-link-container');
-        const t = (track || "").toLowerCase();
-        const isCyber = t.includes("أمن") || t.includes("سيبراني") || t.includes("cyber") || t.includes("security");
-        const link = isCyber ? "/docs/pathways/tvtc-cs-security.html" : "/docs/pathways/tvtc-cs-diploma.html";
-        container.innerHTML = `<a href="${link}" class="btn btn-primary" style="width:100%; text-align:center;">🔓 دخول حقيبة المسار</a>`;
     }
 
     window.updateProfile = async () => {
         const name = document.getElementById('edit-name').value;
-        const phone = document.getElementById('edit-phone').value;
-        const btn = document.getElementById('save-btn');
-        
-        if (!name) {
-            Swal.fire('تنبيه', 'الرجاء إدخال الاسم الكامل', 'warning');
-            return;
-        }
-        
-        btn.disabled = true;
-        btn.innerText = 'جاري الحفظ...';
-        
-        const { error } = await sbClient
-            .from('user_profile')
-            .update({ full_name: name, phone: phone })
-            .eq('user_id', currentUserId);
-        
-        if (!error) {
-            Swal.fire('تم الحفظ', 'تم تحديث بياناتك بنجاح', 'success');
-            document.getElementById('user-name').innerText = name;
-        } else {
-            Swal.fire('خطأ', error.message, 'error');
-        }
-        
-        btn.disabled = false;
-        btn.innerText = 'حفظ التغييرات';
+        const { error } = await supabase.from('user_profile').update({ full_name: name }).eq('user_id', _uid);
+        if (!error) Swal.fire('تم!', 'تم تحديث الاسم بنجاح', 'success');
     };
 
     window.handleLogout = async () => {
-        await sbClient.auth.signOut();
+        await supabase.auth.signOut();
         window.location.href = "temp-login.html";
     };
 
-    // بدء التشغيل
-    initDashboard();
+    init();
 </script>
 </body>
 </html>
