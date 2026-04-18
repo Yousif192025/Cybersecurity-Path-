@@ -10,22 +10,11 @@
     <style>
         :root { 
             --primary: #007bff; --secondary: #6c757d; --success: #28a745; 
-            --warning: #ffc107; --danger: #dc3545; --dark: #343a40;
-            --light-bg: #f8f9fa; --border: #dee2e6;
+            --dark: #343a40; --light-bg: #f8f9fa; --border: #dee2e6;
         }
         body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; margin: 0; text-align: right; }
         .dashboard-container { max-width: 1200px; margin: 30px auto; padding: 20px; }
-        .header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .card { background: white; border-radius: 12px; padding: 25px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-block; transition: 0.3s; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-outline { border: 1px solid var(--primary); color: var(--primary); background: transparent; }
-        .form-group { margin-bottom: 15px; }
-        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
-        .badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; background: #e7f3ff; color: var(--primary); }
-        
-        /* تصميم الأكورديون */
         .semester-section { margin-bottom: 15px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
         .accordion-btn {
             width: 100%; background: var(--light-bg); color: var(--dark); cursor: pointer;
@@ -33,68 +22,28 @@
             display: flex; justify-content: space-between; align-items: center;
         }
         .panel { padding: 0; max-height: 0; overflow: hidden; transition: 0.3s ease-out; background: white; }
-        .panel.show { max-height: 1500px; padding: 15px 20px; }
-        
+        .panel.show { max-height: 2000px; padding: 15px 20px; }
         .course-row {
             display: flex; justify-content: space-between; align-items: center;
             padding: 12px 0; border-bottom: 1px solid var(--border);
         }
-        .course-row:last-child { border-bottom: none; }
         .course-info { display: flex; align-items: center; gap: 12px; }
-        
-        .progress-summary {
-            background: linear-gradient(135deg, var(--primary), #0056b3); color: white;
-            padding: 20px; border-radius: 12px; margin-bottom: 20px; display: flex;
-            justify-content: space-between; align-items: center;
-        }
-        .progress-bar-bg { background: rgba(255,255,255,0.3); border-radius: 10px; height: 10px; flex: 1; margin: 0 20px; overflow: hidden; }
-        .progress-bar-fill { background: white; height: 100%; width: 0%; transition: 0.5s; }
+        .loading-spinner { text-align: center; padding: 40px; }
     </style>
 </head>
 <body>
 
 <div class="dashboard-container">
-    <div class="header-section">
-        <div>
-            <h2>مرحباً، <span id="user-name">...</span> 👋</h2>
-            <p id="user-email" style="color: #666; font-size: 14px;"></p>
-        </div>
-        <button onclick="handleLogout()" class="btn btn-outline">تسجيل الخروج</button>
-    </div>
-
-    <div id="progress-summary" class="progress-summary">
-        <div>
-            <div style="font-size: 1.2rem; font-weight: bold;" id="prog-ratio">0 / 0</div>
-            <div style="font-size: 0.8rem;">المواد المكتملة</div>
-        </div>
-        <div class="progress-bar-bg">
-            <div id="progress-fill" class="progress-bar-fill"></div>
-        </div>
-        <div id="progress-percent">0%</div>
-    </div>
-
-    <div class="grid">
-        <div class="card">
-            <h3>📝 بياناتي</h3>
-            <div class="form-group">
-                <label>الاسم الكامل:</label>
-                <input type="text" id="edit-name">
-            </div>
-            <button onclick="updateProfile()" class="btn btn-primary" id="save-btn" style="width:100%">حفظ التغييرات</button>
-        </div>
-
-        <div class="card" style="text-align:center">
-            <h3>🚀 تخصصي</h3>
-            <span class="badge" id="user-track" style="font-size:1.1rem; padding:10px 20px">جاري التحميل...</span>
-            <div id="track-link-container" style="margin-top:20px"></div>
-        </div>
+    <div class="card">
+        <h2>مرحباً بك في لوحة التحكم</h2>
+        <p id="user-email" style="color: #666;"></p>
     </div>
 
     <div class="card">
-        <h3>📚 الخطة الدراسية المعتمدة</h3>
+        <h3>📚 خطتي الدراسية (الخطة المعتمدة)</h3>
         <div id="plan-container">
-            <div style="text-align:center; padding:40px">
-                <i class="fas fa-spinner fa-spin fa-2x"></i> جاري جلب خطتك من قاعدة البيانات...
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin fa-2x"></i> جاري جلب البيانات...
             </div>
         </div>
     </div>
@@ -111,95 +60,84 @@
         const container = document.getElementById('plan-container');
         
         try {
-            // 1. جلب المستخدم الحالي
-            const { data: { user }, error: authError } = await supabase.auth.getUser();
-            if (authError || !user) {
-                container.innerHTML = "خطأ في الجلسة: يرجى تسجيل الدخول";
-                return;
-            }
+            // 1. جلب المستخدم
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) { container.innerHTML = "يرجى تسجيل الدخول"; return; }
             document.getElementById('user-email').innerText = user.email;
 
-            // 2. جلب البروفايل (بدون شروط معقدة)
-            const { data: profile } = await supabase.from('user_profile').select('*').eq('user_id', user.id).maybeSingle();
-            if (profile) {
-                document.getElementById('user-name').innerText = profile.full_name || "متدرب";
-                document.getElementById('user-track').innerText = profile.track || "لم يحدد مسار";
-            }
-
-            // 3. الخطوة الحاسمة: جلب الـ 73 مادة مباشرة
-            // جربنا الجلب مع Join وفشل، الآن سنجلب الـ IDs أولاً
-            const { data: pathCourses, error: pathError } = await supabase
+            // 2. جلب جدول الربط (الـ 73 مادة)
+            const { data: pathCourses, error: pError } = await supabase
                 .from('path_course')
-                .select('semester, course_id, sort_order')
+                .select('semester, course_id')
                 .order('semester', { ascending: true });
 
-            if (pathError) throw new Error("فشل جلب جدول الربط: " + pathError.message);
-            if (!pathCourses || pathCourses.length === 0) {
-                container.innerHTML = "جدول الربط (path_course) فارغ في قاعدة البيانات!";
+            if (pError) throw pError;
+
+            // 3. جلب جدول المقررات (استخدام اسم العمود course_id بدلاً من id)
+            const { data: allCourses, error: cError } = await supabase
+                .from('courses')
+                .select('course_id, title, credit_hours'); // تم تغيير id لـ course_id
+
+            if (cError) throw cError;
+
+            // 4. الربط اليدوي لضمان الدقة
+            const coursesMap = {};
+            allCourses.forEach(c => {
+                coursesMap[c.course_id] = c;
+            });
+
+            const semesters = {};
+            pathCourses.forEach(pc => {
+                if (!semesters[pc.semester]) semesters[pc.semester] = [];
+                const details = coursesMap[pc.course_id];
+                if (details) semesters[pc.semester].push(details);
+            });
+
+            // 5. بناء الواجهة
+            if (Object.keys(semesters).length === 0) {
+                container.innerHTML = "لا توجد مواد مرتبطة بالفصول الدراسية حالياً.";
                 return;
             }
 
-            // 4. جلب تفاصيل المواد
-            const { data: allCourses, error: coursesError } = await supabase
-                .from('courses')
-                .select('id, title, credit_hours');
+            container.innerHTML = "";
+            Object.keys(semesters).sort().forEach(sem => {
+                const semBox = document.createElement('div');
+                semBox.className = 'semester-section';
+                
+                const btn = document.createElement('button');
+                btn.className = 'accordion-btn';
+                btn.innerHTML = `<span>📖 الفصل التدريبي ${sem}</span> <i class="fas fa-chevron-down"></i>`;
+                
+                const panel = document.createElement('div');
+                panel.className = 'panel';
+                
+                semesters[sem].forEach(c => {
+                    const row = document.createElement('div');
+                    row.className = 'course-row';
+                    row.innerHTML = `
+                        <div class="course-info">
+                            <i class="far fa-circle" style="color:#ccc"></i>
+                            <span>${c.title}</span>
+                        </div>
+                        <span style="color:#888; font-size:0.8rem">${c.credit_hours || 3} ساعة</span>
+                    `;
+                    panel.appendChild(row);
+                });
 
-            if (coursesError) throw new Error("فشل جلب جدول المواد: " + coursesError.message);
+                btn.onclick = () => {
+                    btn.classList.toggle('active');
+                    panel.classList.toggle('show');
+                };
 
-            // 5. دمج البيانات يدوياً (Client-side Join) لضمان عدم ضياع البيانات
-            renderFinalPlan(pathCourses, allCourses);
+                semBox.appendChild(btn);
+                semBox.appendChild(panel);
+                container.appendChild(semBox);
+            });
 
         } catch (err) {
             console.error(err);
-            container.innerHTML = `<div style="color:red; padding:20px; border:1px solid red;">
-                <h4>حدث خطأ تقني:</h4>
-                <p>${err.message}</p>
-                <small>تأكد من تعطيل RLS في Supabase لجدول path_course و courses</small>
-            </div>`;
+            container.innerHTML = `<div style="color:red; padding:20px;">حدث خطأ أثناء جلب البيانات: ${err.message}</div>`;
         }
-    }
-
-    function renderFinalPlan(pathCourses, allCourses) {
-        const container = document.getElementById('plan-container');
-        container.innerHTML = "";
-        
-        // تحويل المواد إلى Map لسهولة البحث
-        const coursesMap = {};
-        allCourses.forEach(c => coursesMap[c.id] = c);
-
-        // تجميع حسب الفصل
-        const semesters = {};
-        pathCourses.forEach(pc => {
-            if (!semesters[pc.semester]) semesters[pc.semester] = [];
-            const details = coursesMap[pc.course_id];
-            if (details) {
-                semesters[pc.semester].push(details);
-            }
-        });
-
-        // إنشاء الواجهة
-        Object.keys(semesters).sort().forEach(sem => {
-            const semBox = document.createElement('div');
-            semBox.className = 'semester-section';
-            semBox.innerHTML = `
-                <button class="accordion-btn" onclick="this.nextElementSibling.classList.toggle('show')">
-                    <span>الفصل التدريبي ${sem}</span>
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-                <div class="panel">
-                    ${semesters[sem].map(c => `
-                        <div class="course-row">
-                            <div class="course-info">
-                                <i class="far fa-circle" style="color:#ccc"></i>
-                                <span>${c.title}</span>
-                            </div>
-                            <span class="course-hours">${c.credit_hours || 3} ساعة</span>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-            container.appendChild(semBox);
-        });
     }
 
     init();
