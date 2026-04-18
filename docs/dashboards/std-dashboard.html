@@ -17,7 +17,7 @@
             --light-bg: #f8f9fa;
             --border: #dee2e6;
         }
-        body { background: #f0f2f5; font-family: 'Segoe UI', Tahoma, 'Tajawal', sans-serif; margin: 0; }
+        body { background: #f0f2f5; font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; }
         .dashboard-container { max-width: 1200px; margin: 30px auto; padding: 20px; }
         .header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); flex-wrap: wrap; gap: 15px; }
         .card { background: white; border-radius: 12px; padding: 25px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
@@ -42,15 +42,14 @@
         .accordion-btn:hover { background: #e9ecef; }
         .accordion-btn.active i { transform: rotate(180deg); }
         .panel { padding: 0; max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background: white; }
-        .panel.show { max-height: 1500px; padding: 15px 20px; }
+        .panel.show { max-height: 2500px; padding: 15px 20px; }
         
         .course-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
         .course-row:last-child { border-bottom: none; }
         .course-info { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-        .course-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; min-width: 90px; text-align: center; }
+        .course-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; min-width: 100px; text-align: center; }
         .course-hours { color: var(--secondary); font-size: 0.7rem; background: #f0f0f0; padding: 2px 8px; border-radius: 12px; }
 
-        /* حالات التقدم */
         .status-completed .course-info i { color: var(--success); }
         .status-completed .course-badge { background: #d4edda; color: #155724; }
         .status-in_progress .course-info i { color: var(--primary); }
@@ -58,20 +57,12 @@
         .status-not_started .course-info i { color: var(--secondary); }
         .status-not_started .course-badge { background: #e2e3e5; color: #383d41; }
 
-        /* شريط التقدم */
         .progress-summary { background: linear-gradient(135deg, var(--primary), #0056b3); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; display: none; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         .progress-bar-bg { background: rgba(255,255,255,0.3); border-radius: 10px; height: 10px; flex: 1; min-width: 150px; margin: 0 20px; overflow: hidden; }
         .progress-bar-fill { background: white; height: 100%; width: 0%; transition: width 0.5s; }
         
         .loading-spinner { text-align: center; padding: 40px; color: var(--primary); }
-        .empty-state { text-align: center; padding: 40px; color: var(--secondary); background: var(--light-bg); border-radius: 12px; }
-        
-        @media (max-width: 768px) {
-            .dashboard-container { margin: 15px auto; padding: 10px; }
-            .header-section { flex-direction: column; text-align: center; }
-            .progress-summary { flex-direction: column; text-align: center; }
-            .progress-bar-bg { margin: 10px 0; width: 100%; }
-        }
+        .empty-state { text-align: center; padding: 40px; color: var(--secondary); background: var(--light-bg); border-radius: 12px; border: 1px dashed var(--border); }
     </style>
 </head>
 <body>
@@ -129,7 +120,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-    // ========== التعريف الوحيد لـ Supabase ==========
     const SUPABASE_URL = "https://suvpaunulhqfoclepwoz.supabase.co";
     const SUPABASE_KEY = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -138,6 +128,7 @@
     let userEnrollments = new Map();
 
     async function initDashboard() {
+        // التحقق من الجلسة
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         if (sessionError || !session) { 
             window.location.href = "temp-login.html"; 
@@ -148,40 +139,12 @@
         currentUserId = user.id;
         document.getElementById('user-email').innerText = user.email;
 
-        // 1. جلب بيانات البروفايل
-        let { data: profile, error: profileError } = await supabase
+        // جلب البروفايل
+        let { data: profile } = await supabase
             .from('user_profile')
             .select('*')
             .eq('user_id', currentUserId)
             .maybeSingle();
-
-        if (!profile) {
-            // محاولة البحث بالإيميل
-            const { data: oldProfile } = await supabase
-                .from('user_profile')
-                .select('*')
-                .eq('email', user.email)
-                .maybeSingle();
-            
-            if (oldProfile) {
-                await supabase.from('user_profile').update({ user_id: currentUserId }).eq('email', user.email);
-                profile = oldProfile;
-            } else {
-                // إنشاء بروفايل جديد
-                const { data: newProfile } = await supabase
-                    .from('user_profile')
-                    .insert([{ 
-                        user_id: currentUserId, 
-                        email: user.email, 
-                        full_name: user.email.split('@')[0], 
-                        track: 'مسار عام',
-                        path_id: null
-                    }])
-                    .select()
-                    .single();
-                profile = newProfile;
-            }
-        }
 
         if (profile) {
             document.getElementById('user-name').innerText = profile.full_name || "طالب";
@@ -191,7 +154,8 @@
             
             generateTrackLink(profile.track);
 
-            // 2. جلب حالات التسجيل الفعلية للطالب من جدول user_courses
+            // جلب سجلات المواد المسجلة للطالب (من جدول user_courses أو enrollments)
+            // ملاحظة: تأكد من اسم الجدول في قاعدة بياناتك (أنت تستخدم user_courses في الكود الأخير)
             const { data: enrolls } = await supabase
                 .from('user_courses')
                 .select('course_id, completed, progress')
@@ -204,7 +168,6 @@
                 });
             }
 
-            // 3. جلب الخطة الحقيقية من قاعدة البيانات
             await loadRealPlan(profile.path_id, profile.track);
         }
     }
@@ -214,9 +177,10 @@
         let targetPathId = pathId;
 
         try {
-            // 1. محاولة جلب المسار بناءً على النصوص العربية أو الإنجليزية
+            // البحث عن المسار إذا لم يكن مسجلاً في البروفايل
             if (!targetPathId) {
-                const isCyber = (trackName || "").includes("أمن") || (trackName || "").includes("سيبراني") || (trackName || "").toLowerCase().includes("cyber");
+                const trackLower = (trackName || "").toLowerCase();
+                const isCyber = trackLower.includes("أمن") || trackLower.includes("سيبراني") || trackLower.includes("cyber");
                 const categorySearch = isCyber ? 'Cybersecurity' : 'Computer Science';
 
                 const { data: pathData } = await supabase
@@ -226,51 +190,39 @@
                     .limit(1)
                     .maybeSingle();
 
-                if (pathData) {
-                    targetPathId = pathData.path_id;
-                } else {
-                    // خيار احتياطي: جلب أول مسار متاح في الجدول
-                    const { data: fallbackPath } = await supabase.from('learning_paths').select('path_id').limit(1).maybeSingle();
-                    if (fallbackPath) targetPathId = fallbackPath.path_id;
+                if (pathData) targetPathId = pathData.path_id;
+                else {
+                    const { data: fallback } = await supabase.from('learning_paths').select('path_id').limit(1).maybeSingle();
+                    if (fallback) targetPathId = fallback.path_id;
                 }
             }
 
             if (!targetPathId) {
-                container.innerHTML = `<div class="empty-state">⚠️ لم يتم العثور على أي مسارات في جدول learning_paths. يرجى التأكد من إضافة المسارات أولاً.</div>`;
+                container.innerHTML = `<div class="empty-state">⚠️ لا يوجد مسارات مسجلة في قاعدة البيانات حالياً.</div>`;
                 return;
             }
 
-            // 2. جلب الخطة باستخدام الـ ID الذي وجدناه
+            // جلب المواد المربوطة بالخطة
             const { data: dbPlan, error } = await supabase
                 .from('path_course')
                 .select(`
                     semester,
                     sort_order,
                     course_id,
-                    courses (
-                        title,
-                        credit_hours
-                    )
+                    courses ( title, credit_hours )
                 `)
                 .eq('path_id', targetPathId)
                 .order('semester', { ascending: true })
                 .order('sort_order', { ascending: true });
 
             if (error || !dbPlan || dbPlan.length === 0) {
-                console.error("Supabase Error:", error);
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <p>✅ المسار موجود (ID: ${targetPathId}) ولكن جدول <b>path_course</b> فارغ حالياً.</p>
-                        <small>الرجاء إضافة المواد الدراسية إلى هذا المسار لعرض الخطة الدراسية.</small>
-                    </div>`;
+                container.innerHTML = `<div class="empty-state">✅ تم العثور على المسار ولكن لم يتم ربط مواد به في جدول (path_course) بعد.</div>`;
                 return;
             }
 
             renderUI(dbPlan);
-
         } catch (err) {
-            console.error("LoadRealPlan Error:", err);
-            container.innerHTML = `<div class="empty-state">حدث خطأ غير متوقع: ${err.message}</div>`;
+            container.innerHTML = `<div class="empty-state">خطأ في التحميل: ${err.message}</div>`;
         }
     }
 
@@ -283,20 +235,18 @@
         plan.forEach(item => {
             if (!item.courses) return;
             const status = userEnrollments.get(item.course_id) || 'not_started';
-            
             if (!semestersMap.has(item.semester)) semestersMap.set(item.semester, []);
+            
             semestersMap.get(item.semester).push({
                 title: item.courses.title,
                 hours: item.courses.credit_hours || 3,
-                status: status,
-                course_id: item.course_id
+                status: status
             });
 
             total++;
             if (status === 'completed') completed++;
         });
 
-        // تحديث شريط التقدم
         const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
         document.getElementById('total-courses').innerText = total;
         document.getElementById('completed-courses').innerText = completed;
@@ -304,10 +254,7 @@
         document.getElementById('progress-percent').innerText = percent + '%';
         document.getElementById('progress-summary').style.display = 'flex';
 
-        // بناء الأكورديون
-        const sortedSemesters = Array.from(semestersMap.keys()).sort((a, b) => a - b);
-        
-        sortedSemesters.forEach(sem => {
+        Array.from(semestersMap.keys()).sort((a,b)=>a-b).forEach(sem => {
             const courses = semestersMap.get(sem);
             const semDiv = document.createElement('div');
             semDiv.className = 'semester-section';
@@ -350,45 +297,27 @@
     function getStatusText(s) {
         if (s === 'completed') return '✅ مكتمل';
         if (s === 'in_progress') return '🔄 قيد الدراسة';
-        return '⏳ لم يبدأ بعد';
+        return '⏳ لم يبدأ';
     }
 
     function generateTrackLink(track) {
         const container = document.getElementById('track-link-container');
-        const trackLower = (track || "").toLowerCase();
-        const isCyber = trackLower.includes("أمن") || trackLower.includes("سيبراني") || trackLower.includes("cyber") || trackLower.includes("security");
+        const t = (track || "").toLowerCase();
+        const isCyber = t.includes("أمن") || t.includes("cyber");
         const link = isCyber ? "/docs/pathways/tvtc-cs-security.html" : "/docs/pathways/tvtc-cs-diploma.html";
-        container.innerHTML = `<a href="${link}" class="btn btn-primary" style="width:100%; display:block; text-align:center;">🔓 دخول حقيبة المسار</a>`;
+        container.innerHTML = `<a href="${link}" class="btn btn-primary" style="width:100%; text-align:center;">🔓 دخول حقيبة المسار</a>`;
     }
 
-    // وظائف النافذة
     window.updateProfile = async () => {
         const name = document.getElementById('edit-name').value;
         const phone = document.getElementById('edit-phone').value;
-        const btn = document.getElementById('save-btn');
+        if (!name) return Swal.fire('تنبيه', 'الاسم مطلوب', 'warning');
         
-        if (!name) {
-            Swal.fire('تنبيه', 'الرجاء إدخال الاسم الكامل', 'warning');
-            return;
-        }
-        
-        btn.disabled = true;
-        btn.innerText = 'جاري الحفظ...';
-        
-        const { error } = await supabase
-            .from('user_profile')
-            .update({ full_name: name, phone: phone })
-            .eq('user_id', currentUserId);
-        
+        const { error } = await supabase.from('user_profile').update({ full_name: name, phone: phone }).eq('user_id', currentUserId);
         if (!error) {
-            Swal.fire('تم الحفظ', 'تم تحديث بياناتك بنجاح', 'success');
+            Swal.fire('تم الحفظ', 'تم التحديث بنجاح', 'success');
             document.getElementById('user-name').innerText = name;
-        } else {
-            Swal.fire('خطأ', error.message, 'error');
         }
-        
-        btn.disabled = false;
-        btn.innerText = 'حفظ التغييرات';
     };
 
     window.handleLogout = async () => {
@@ -396,7 +325,6 @@
         window.location.href = "temp-login.html";
     };
 
-    // بدء التشغيل
     initDashboard();
 </script>
 </body>
