@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة الطالب - CyberPath</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { --primary: #007bff; --dark: #343a40; --light-bg: #f8f9fa; --border: #dee2e6; --success: #28a745; }
+        body { background: #f0f2f5; font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; direction: rtl; }
+        .dashboard-container { max-width: 1100px; margin: 20px auto; padding: 15px; }
+        .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .btn { padding: 8px 18px; border-radius: 6px; border: none; cursor: pointer; font-family: inherit; transition: 0.3s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-outline { border: 1px solid var(--primary); color: var(--primary); background: transparent; }
+        .progress-summary { background: var(--primary); color: white; padding: 15px; border-radius: 10px; display: none; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .progress-bar { flex: 1; height: 8px; background: rgba(255,255,255,0.3); border-radius: 4px; overflow: hidden; }
+        .progress-fill { height: 100%; background: white; width: 0%; transition: 0.5s; }
+        .semester-box { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
+        .sem-header { background: var(--light-bg); padding: 12px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; }
+        .course-list { display: none; padding: 10px; background: white; }
+        .course-list.show { display: block; }
+        .course-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .course-item:last-child { border-bottom: none; }
+        .badge-status { font-size: 11px; padding: 3px 8px; border-radius: 10px; }
+        .status-done { background: #d4edda; color: #155724; }
+        .status-wait { background: #e2e3e5; color: #383d41; }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+    <div class="header card">
+        <div>
+            <h2 style="margin:0">مرحباً، <span id="display-name">...</span></h2>
+            <small id="display-email"></small>
+        </div>
+        <button onclick="logout()" class="btn btn-outline">خروج</button>
+    </div>
+
+    <div id="progress-area" class="progress-summary">
+        <span id="prog-text">0/0</span>
+        <div class="progress-bar"><div id="prog-fill" class="progress-fill"></div></div>
+        <span id="prog-percent">0%</span>
+    </div>
+
+    <div class="card">
+        <h3>خطة التدريب الحالية</h3>
+        <div id="plan-viewer">جاري تحميل البيانات...</div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    // استخدام أسماء متغيرات فريدة تماماً لتجنب أي تعارض
+    const CONFIG_URL = "https://suvpaunulhqfoclepwoz.supabase.co";
+    const CONFIG_KEY = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
+    const _client = window.supabase.createClient(CONFIG_URL, CONFIG_KEY);
+
+    let _userId = null;
+    let _doneMap = new Map();
+
+    async function start() {
+        const { data: { session } } = await _client.auth.getSession();
+        if (!session) { window.location.href = "temp-login.html"; return; }
+        
+        _userId = session.user.id;
+        document.getElementById('display-email').innerText = session.user.email;
+
+        // 1. جلب البروفايل والمسار
+        const { data: profile } = await _client.from('user_profile').select('*').eq('user_id', _userId).single();
+        
+        if (profile) {
+            document.getElementById('display-name').innerText = profile.full_name || "المتدرب";
+            
+            // 2. جلب المواد التي أكملها الطالب
+            const { data: completed } = await _client.from('user_courses').select('course_id').eq('user_id', _userId).eq('completed', true);
+            if (completed) completed.forEach(c => _doneMap.set(c.course_id, true));
+
+            // 3. تحميل الخطة
+            loadPlan(profile.path_id, profile.track);
+        }
+    }
+
+    async function loadPlan(pathId, trackName) {
+        let pId = pathId;
+        
+        // محاولة إيجاد المسار إذا كان مفقوداً
+        if (!pId) {
+            const isCyber = (trackName || "").includes("أمن") || (trackName || "").includes("Cyber");
+            const { data: pData } = await _client.from('learning_paths').select('path_id').ilike('category', isCyber ? '%Cyber%' : '%Computer%').limit(1).maybeSingle();
+            if (pData) pId = pData.path_id;
+        }
+
+        if (!pId) {
+            document.getElementById('plan-viewer').innerHTML = "لم يتم تحديد مسار تدريبي لك بعد.";
+            return;
+        }
+
+        // جلب البيانات من جدول الربط path_course
+        const { data: plan, error } = await _client
+            .from('path_course')
+            .select('semester, course_id, courses(title, credit_hours)')
+            .eq('path_id', pId)
+            .order('semester', { ascending: true });
+
+        if (error || !plan || plan.length === 0) {
+            document.getElementById('plan-viewer').innerHTML = "المسار موجود ولكن لا توجد مواد مرتبطة به في جدول (path_course).";
+            return;
+        }
+
+        render(plan);
+    }
+
+    function render(data) {
+        const container = document.getElementById('plan-viewer');
+        container.innerHTML = "";
+        const semesters = {};
+        let total = 0, doneCount = 0;
+
+        data.forEach(item => {
+            if (!semesters[item.semester]) semesters[item.semester] = [];
+            semesters[item.semester].push(item);
+            total++;
+            if (_doneMap.has(item.course_id)) doneCount++;
+        });
+
+        // تحديث التقدم
+        const ratio = total > 0 ? Math.round((doneCount / total) * 100) : 0;
+        document.getElementById('progress-area').style.display = 'flex';
+        document.getElementById('prog-text').innerText = `${doneCount} / ${total}`;
+        document.getElementById('prog-fill').style.width = ratio + '%';
+        document.getElementById('prog-percent').innerText = ratio + '%';
+
+        // رسم الأكورديون
+        Object.keys(semesters).forEach(s => {
+            const box = document.createElement('div');
+            box.className = 'semester-box';
+            box.innerHTML = `
+                <div class="sem-header" onclick="this.nextElementSibling.classList.toggle('show')">
+                    <span>الفصل التدريبي ${s}</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="course-list">
+                    ${semesters[s].map(c => `
+                        <div class="course-item">
+                            <span>${c.courses.title} (${c.courses.credit_hours} س)</span>
+                            <span class="badge-status ${_doneMap.has(c.course_id) ? 'status-done' : 'status-wait'}">
+                                ${_doneMap.has(c.course_id) ? 'مكتمل' : 'قيد التدريب'}
+                            </span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            container.appendChild(box);
+        });
+    }
+
+    window.logout = async () => { await _client.auth.signOut(); window.location.href = "temp-login.html"; };
+
+    start();
+</script>
+
+</body>
+</html>
