@@ -32,32 +32,23 @@
         input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
         .badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; background: #e7f3ff; color: var(--primary); }
         
-        /* أكورديون الخطة الدراسية */
         .semester-section { margin-bottom: 15px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
         .accordion-btn {
             width: 100%; background: var(--light-bg); color: var(--dark); cursor: pointer;
             padding: 15px 20px; text-align: right; border: none; outline: none;
             font-size: 1rem; font-weight: bold; display: flex; justify-content: space-between; align-items: center; transition: 0.3s;
         }
-        .accordion-btn i { transition: transform 0.3s; }
         .accordion-btn.active i { transform: rotate(180deg); }
         .panel { padding: 0; max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background: white; }
         .panel.show { max-height: 1000px; padding: 15px 20px; }
         
-        .course-row {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 12px 0; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 10px;
-        }
+        .course-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
         .course-info { display: flex; align-items: center; gap: 12px; flex: 1; }
         .course-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
         .course-hours { color: var(--secondary); font-size: 0.7rem; background: #f0f0f0; padding: 2px 8px; border-radius: 12px; }
 
-        /* تلوين الحالات بناءً على التعديل الجديد */
-        .status-completed { border-right: 4px solid var(--success); }
         .status-completed .course-info i { color: var(--success); }
         .status-completed .course-badge { background: #d4edda; color: #155724; }
-        
-        .status-in_progress { border-right: 4px solid var(--primary); }
         .status-in_progress .course-info i { color: var(--primary); }
         .status-in_progress .course-badge { background: #cce5ff; color: #004085; }
 
@@ -67,8 +58,7 @@
             display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;
         }
         .progress-stats { display: flex; gap: 20px; }
-        .progress-bar-container { flex: 1; min-width: 200px; }
-        .progress-bar-bg { background: rgba(255,255,255,0.3); border-radius: 10px; height: 10px; overflow: hidden; }
+        .progress-bar-bg { background: rgba(255,255,255,0.3); border-radius: 10px; height: 10px; overflow: hidden; margin-top: 5px; }
         .progress-bar-fill { background: white; height: 100%; transition: width 0.5s ease; }
     </style>
 </head>
@@ -112,22 +102,14 @@
                 <div style="text-align:center"><div class="number" id="completed-courses">0</div><div style="font-size:0.7rem">مكتملة</div></div>
                 <div style="text-align:center"><div class="number" id="in-progress-courses">0</div><div style="font-size:0.7rem">قيد الدراسة</div></div>
             </div>
-            <div class="progress-bar-container">
+            <div style="flex:1; min-width:200px;">
                 <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill" style="width: 0%"></div></div>
                 <div style="font-size: 0.7rem; margin-top: 5px;" id="progress-percent">نسبة الإنجاز: 0%</div>
             </div>
         </div>
         
         <div id="plan-container">
-            <div style="text-align:center; padding:40px;"><i class="fas fa-spinner fa-spin"></i> جاري مزامنة خطتك الدراسية...</div>
-        </div>
-    </div>
-
-    <div class="card">
-        <h3>🔗 روابط سريعة</h3>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <a href="https://cyberpath.vercel.app/self-tests/quiz-bank.html" class="btn btn-outline">🏦 بنك الاختبارات</a>
-            <a href="/docs/pathways/roadmap-builder.html" class="btn btn-outline">🗺️ بناء مسار</a>
+            <div style="text-align:center; padding:40px;"><i class="fas fa-spinner fa-spin"></i> جاري مزامنة بياناتك...</div>
         </div>
     </div>
 </div>
@@ -140,7 +122,7 @@
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     let currentUserId = null;
-    let currentEnrollments = [];
+    let userEnrollments = new Map(); // تخزين الحالات لسرعة الوصول
 
     async function initDashboard() {
         const { data: { user } } = await supabase.auth.getUser();
@@ -149,6 +131,7 @@
         currentUserId = user.id;
         document.getElementById('user-email').innerText = user.email;
 
+        // 1. جلب البروفايل
         const { data: profile } = await supabase.from('user_profile').select('*').eq('user_id', currentUserId).single();
 
         if (profile) {
@@ -158,59 +141,51 @@
             document.getElementById('user-track').innerText = profile.track || "غير محدد";
             
             generateTrackLink(profile.track);
-            
-            // 1. جلب التسجيلات الفعلية من قاعدة البيانات
-            await fetchEnrollments();
-            // 2. بناء الواجهة بناءً على البيانات القادمة
-            await loadPlan(profile.track);
-        }
-    }
 
-    async function fetchEnrollments() {
-        const { data, error } = await supabase
-            .from('enrollments')
-            .select(`course_id, completion_status, courses(title)`)
-            .eq('user_id', currentUserId);
-        
-        if (!error && data) {
-            currentEnrollments = data;
+            // 2. جلب سجلات الطالب (enrollments) وتخزينها في Map
+            const { data: enrolls } = await supabase.from('enrollments').select('course_id, completion_status').eq('user_id', currentUserId);
+            if (enrolls) enrolls.forEach(e => userEnrollments.set(e.course_id, e.completion_status));
+
+            // 3. جلب الخطة الدراسية (الربط البرمجي لتفادي أخطاء الاستعلام المعقد)
+            await loadPlan(profile.track);
         }
     }
 
     async function loadPlan(studentTrack) {
         const container = document.getElementById('plan-container');
         const trackLower = (studentTrack || "").toLowerCase();
-        const targetCategory = (trackLower.includes("أمن") || trackLower.includes("security")) ? 'Cybersecurity' : 'Computer Science';
+        const targetCategory = (trackLower.includes("أمن") || trackLower.includes("security") || trackLower.includes("سيبراني")) ? 'Cybersecurity' : 'Computer Science';
 
-        // محاولة جلب الخطة من قاعدة البيانات (path_course)
+        // استعلام بسيط لجلب الخطة والمواد المرتبطة بها فقط
         const { data: dbPlan, error } = await supabase
             .from('path_course')
             .select(`
-                semester, sort_order,
+                semester, sort_order, course_id,
                 courses (id, title, credit_hours)
             `)
             .order('semester', { ascending: true })
             .order('sort_order', { ascending: true });
 
-        if (!error && dbPlan && dbPlan.length > 0) {
-            renderEnhancedUI(dbPlan);
-        } else {
-            container.innerHTML = "فشل تحميل الخطة الدراسية من قاعدة البيانات.";
+        if (error || !dbPlan || dbPlan.length === 0) {
+            container.innerHTML = "فشل تحميل الخطة من قاعدة البيانات. تأكد من وجود بيانات في جدول path_course.";
+            return;
         }
+
+        renderPlanUI(dbPlan);
     }
 
-    function renderEnhancedUI(plan) {
+    function renderPlanUI(plan) {
         const container = document.getElementById('plan-container');
         container.innerHTML = '';
-        
         const semestersMap = new Map();
         let total = 0, completed = 0, inProgress = 0;
 
         plan.forEach(item => {
             const course = item.courses;
-            // التحقق من الحالة في المصفوفة التي جلبناها من enrollments
-            const enroll = currentEnrollments.find(e => e.course_id === course.id || e.courses?.title === course.title);
-            const status = enroll ? enroll.completion_status : 'not_started';
+            if (!course) return;
+
+            // الحصول على الحالة من الـ Map التي جلبناها في البداية
+            const status = userEnrollments.get(course.id) || 'not_started';
 
             if (!semestersMap.has(item.semester)) semestersMap.set(item.semester, []);
             semestersMap.get(item.semester).push({ ...course, status });
@@ -220,18 +195,18 @@
             else if (status === 'in_progress') inProgress++;
         });
 
-        updateStats(total, completed, inProgress);
+        updateProgress(total, completed, inProgress);
 
         Array.from(semestersMap.keys()).sort((a,b)=>a-b).forEach(sem => {
             const courses = semestersMap.get(sem);
-            const doneInSem = courses.filter(c => c.status === 'completed').length;
+            const done = courses.filter(c => c.status === 'completed').length;
 
-            const semDiv = document.createElement('div');
-            semDiv.className = 'semester-section';
+            const semBox = document.createElement('div');
+            semBox.className = 'semester-section';
             
             const btn = document.createElement('button');
             btn.className = 'accordion-btn';
-            btn.innerHTML = `<span>📖 الفصل ${sem}</span> <span style="font-size:0.8rem">${doneInSem}/${courses.length} مكتمل <i class="fas fa-chevron-down"></i></span>`;
+            btn.innerHTML = `<span>📖 الفصل ${sem}</span> <span style="font-size:0.8rem">${done}/${courses.length} مكتمل <i class="fas fa-chevron-down"></i></span>`;
             
             const panel = document.createElement('div');
             panel.className = 'panel';
@@ -250,22 +225,18 @@
                 panel.appendChild(row);
             });
 
-            btn.onclick = () => {
-                btn.classList.toggle('active');
-                panel.classList.toggle('show');
-            };
-
-            semDiv.appendChild(btn);
-            semDiv.appendChild(panel);
-            container.appendChild(semDiv);
+            btn.onclick = () => { btn.classList.toggle('active'); panel.classList.toggle('show'); };
+            semBox.appendChild(btn);
+            semBox.appendChild(panel);
+            container.appendChild(semBox);
         });
 
         // فتح أول فصل تلقائياً
-        const first = container.querySelector('.accordion-btn');
-        if(first) { first.classList.add('active'); first.nextElementSibling.classList.add('show'); }
+        const first = container.querySelector('.panel');
+        if(first) { first.classList.add('show'); container.querySelector('.accordion-btn').classList.add('active'); }
     }
 
-    function updateStats(t, c, i) {
+    function updateProgress(t, c, i) {
         const p = t > 0 ? Math.round((c / t) * 100) : 0;
         document.getElementById('total-courses').innerText = t;
         document.getElementById('completed-courses').innerText = c;
@@ -291,12 +262,14 @@
 
     window.updateProfile = async function() {
         const name = document.getElementById('edit-name').value;
-        const phone = document.getElementById('edit-phone').value;
-        const { error } = await supabase.from('user_profile').update({ full_name: name, phone: phone }).eq('user_id', currentUserId);
-        if (!error) Swal.fire('تم الحفظ', 'تم تحديث بياناتك بنجاح', 'success');
+        const { error } = await supabase.from('user_profile').update({ full_name: name }).eq('user_id', currentUserId);
+        if (!error) Swal.fire('تم الحفظ', 'تم التحديث بنجاح', 'success');
     };
 
-    window.handleLogout = async () => { await supabase.auth.signOut(); window.location.href = "temp-login.html"; };
+    window.handleLogout = async () => { 
+        await supabase.auth.signOut(); 
+        window.location.href = "temp-login.html"; 
+    };
 
     initDashboard();
 </script>
