@@ -49,7 +49,6 @@
         .course-hours { color: var(--secondary); font-size: 0.75rem; background: #f0f0f0; padding: 2px 8px; border-radius: 12px; }
         .course-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
 
-        /* حالات الألوان */
         .status-completed .course-info i { color: var(--success); }
         .status-completed .course-badge { background: #d4edda; color: #155724; }
         .status-in_progress .course-info i { color: var(--primary); }
@@ -126,78 +125,80 @@
     let currentUserId = null;
 
     async function initDashboard() {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { window.location.href = "temp-login.html"; return; }
-        
-        currentUserId = user.id;
-        document.getElementById('user-email').innerText = user.email;
-
-        const { data: profile } = await supabase
-            .from('user_profile')
-            .select('*')
-            .eq('user_id', currentUserId)
-            .maybeSingle();
-
-        if (profile) {
-            document.getElementById('user-name').innerText = profile.full_name;
-            document.getElementById('edit-name').value = profile.full_name;
-            document.getElementById('edit-phone').value = profile.phone || "";
-            document.getElementById('user-track').innerText = profile.track || "غير محدد";
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) { window.location.href = "temp-login.html"; return; }
             
-            generateTrackLink(profile.track);
-            // مررنا المعرف الخاص بالمستخدم للتأكد من جلب تسجيلاته هو فقط
-            await loadStudentPlan(profile.track, currentUserId);
+            currentUserId = user.id;
+            document.getElementById('user-email').innerText = user.email;
+
+            const { data: profile } = await supabase
+                .from('user_profile')
+                .select('*')
+                .eq('user_id', currentUserId)
+                .maybeSingle();
+
+            if (profile) {
+                document.getElementById('user-name').innerText = profile.full_name;
+                document.getElementById('edit-name').value = profile.full_name;
+                document.getElementById('edit-phone').value = profile.phone || "";
+                document.getElementById('user-track').innerText = profile.track || "غير محدد";
+                
+                generateTrackLink(profile.track);
+                await loadStudentPlan(profile.track, currentUserId);
+            }
+        } catch (e) {
+            console.error("Init Error:", e);
         }
     }
 
     async function loadStudentPlan(userTrack, userId) {
         const container = document.getElementById('plan-container');
         
-        /* التعديل الجذري: الجلب يتم من جدول path_course 
-           لأنه الجدول الذي يحتوي على معلومات الـ semester (الفصل الدراسي)
-        */
-        const { data: pathData, error } = await supabase
-            .from('path_course')
-            .select(`
-                semester,
-                sort_order,
-                courses (
-                    course_id,
-                    title,
-                    credit_hours,
-                    enrollments!left ( 
-                        completion_status 
+        try {
+            const { data: pathData, error } = await supabase
+                .from('path_course')
+                .select(`
+                    semester,
+                    courses!inner (
+                        course_id,
+                        title,
+                        credit_hours,
+                        track,
+                        enrollments!left ( 
+                            completion_status,
+                            user_id
+                        )
                     )
-                )
-            `)
-            .eq('courses.track', userTrack)
-            .eq('courses.enrollments.user_id', userId)
-            .order('semester', { ascending: true })
-            .order('sort_order', { ascending: true });
+                `)
+                .eq('courses.track', userTrack)
+                .eq('courses.enrollments.user_id', userId)
+                .order('semester', { ascending: true });
 
-        if (error) {
-            console.error("Supabase Error:", error);
-            container.innerHTML = `<p style="text-align:center; color:red;">خطأ في تحميل الخطة: ${error.message}</p>`;
-            return;
+            if (error) throw error;
+
+            if (!pathData || pathData.length === 0) {
+                container.innerHTML = `<p style="text-align:center;">لا توجد مواد مسجلة لهذا المسار حالياً.</p>`;
+                return;
+            }
+
+            const formattedCourses = pathData.map(item => ({
+                semester: item.semester,
+                title: item.courses.title,
+                course_id: item.courses.course_id,
+                credit_hours: item.courses.credit_hours,
+                status: item.courses.enrollments?.[0]?.completion_status || 'not_started'
+            }));
+
+            renderPlanUI(formattedCourses);
+
+        } catch (err) {
+            console.error("Plan Loading Error:", err);
+            container.innerHTML = `<p style="text-align:center; color:red;">فشل تحميل الخطة: ${err.message}</p>`;
         }
-
-        if (!pathData || pathData.length === 0) {
-            container.innerHTML = `<p style="text-align:center;">لا توجد مواد مسجلة لهذا المسار حالياً.</p>`;
-            return;
-        }
-
-        // تحويل البيانات لشكل يفهمه نظام العرض (UI)
-        const formattedCourses = pathData.map(item => ({
-            semester: item.semester,
-            title: item.courses.title,
-            course_id: item.courses.course_id,
-            credit_hours: item.courses.credit_hours,
-            status: item.courses.enrollments?.[0]?.completion_status || 'not_started'
-        }));
-
-        renderPlanUI(formattedCourses);
     }
-    function loadStudentPlan(courses) {
+
+    function renderPlanUI(courses) {
         const container = document.getElementById('plan-container');
         container.innerHTML = '';
         
@@ -205,14 +206,11 @@
         let completed = 0;
 
         courses.forEach(c => {
-            // تجميع المواد حسب الفصل الدراسي
             if (!semesters[c.semester]) semesters[c.semester] = [];
-            const status = c.enrollments?.[0]?.completion_status || 'not_started';
-            semesters[c.semester].push({ ...c, status });
-            if (status === 'completed') completed++;
+            semesters[c.semester].push(c);
+            if (c.status === 'completed') completed++;
         });
 
-        // ترتيب الفصول الدراسية تصاعدياً
         const sortedSemesters = Object.keys(semesters).sort((a, b) => a - b);
 
         sortedSemesters.forEach(semNum => {
@@ -242,7 +240,6 @@
             container.appendChild(section);
         });
 
-        // تفعيل حركة الأكورديون
         document.querySelectorAll('.accordion-btn').forEach(btn => {
             btn.onclick = function() {
                 this.classList.toggle('active');
