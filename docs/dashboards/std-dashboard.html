@@ -153,19 +153,27 @@
     async function loadStudentPlan(userTrack, userId) {
         const container = document.getElementById('plan-container');
         
-        // التعديل هنا: استخدام course_id بدلاً من id وإضافة فلتر لـ user_id داخل التسجيلات
-        const { data: courses, error } = await supabase
-            .from('courses')
+        /* التعديل الجذري: الجلب يتم من جدول path_course 
+           لأنه الجدول الذي يحتوي على معلومات الـ semester (الفصل الدراسي)
+        */
+        const { data: pathData, error } = await supabase
+            .from('path_course')
             .select(`
-                course_id, 
-                title, 
-                semester, 
-                credit_hours,
-                enrollments!left ( completion_status )
+                semester,
+                sort_order,
+                courses (
+                    course_id,
+                    title,
+                    credit_hours,
+                    enrollments!left ( 
+                        completion_status 
+                    )
+                )
             `)
-            .eq('track', userTrack)
-            .eq('enrollments.user_id', userId) // تأكيد جلب بيانات الطالب الحالي فقط
-            .order('semester', { ascending: true });
+            .eq('courses.track', userTrack)
+            .eq('courses.enrollments.user_id', userId)
+            .order('semester', { ascending: true })
+            .order('sort_order', { ascending: true });
 
         if (error) {
             console.error("Supabase Error:", error);
@@ -173,15 +181,23 @@
             return;
         }
 
-        if (!courses || courses.length === 0) {
+        if (!pathData || pathData.length === 0) {
             container.innerHTML = `<p style="text-align:center;">لا توجد مواد مسجلة لهذا المسار حالياً.</p>`;
             return;
         }
 
-        renderPlanUI(courses);
-    }
+        // تحويل البيانات لشكل يفهمه نظام العرض (UI)
+        const formattedCourses = pathData.map(item => ({
+            semester: item.semester,
+            title: item.courses.title,
+            course_id: item.courses.course_id,
+            credit_hours: item.courses.credit_hours,
+            status: item.courses.enrollments?.[0]?.completion_status || 'not_started'
+        }));
 
-    function renderPlanUI(courses) {
+        renderPlanUI(formattedCourses);
+    }
+    function loadStudentPlan(courses) {
         const container = document.getElementById('plan-container');
         container.innerHTML = '';
         
