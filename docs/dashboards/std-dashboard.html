@@ -156,6 +156,7 @@
         const container = document.getElementById('plan-container');
         
         try {
+            // جلب البيانات مع إزالة credit_hours مؤقتاً لتجنب الخطأ
             const { data: pathData, error } = await supabase
                 .from('path_course')
                 .select(`
@@ -163,7 +164,6 @@
                     courses!inner (
                         course_id,
                         title,
-                        credit_hours,
                         track,
                         enrollments!left ( 
                             completion_status,
@@ -178,7 +178,7 @@
             if (error) throw error;
 
             if (!pathData || pathData.length === 0) {
-                container.innerHTML = `<p style="text-align:center;">لا توجد مواد مسجلة لهذا المسار حالياً.</p>`;
+                container.innerHTML = `<p style="text-align:center;">لا توجد مواد مسجلة لهذا المسار حالياً أو لم يتم تسجيلك في المواد بعد.</p>`;
                 return;
             }
 
@@ -186,7 +186,7 @@
                 semester: item.semester,
                 title: item.courses.title,
                 course_id: item.courses.course_id,
-                credit_hours: item.courses.credit_hours,
+                credit_hours: item.courses.credit_hours || 0,
                 status: item.courses.enrollments?.[0]?.completion_status || 'not_started'
             }));
 
