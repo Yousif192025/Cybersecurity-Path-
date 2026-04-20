@@ -156,38 +156,50 @@
         const container = document.getElementById('plan-container');
         
         try {
-            // جلب البيانات مع إزالة credit_hours مؤقتاً لتجنب الخطأ
+            // 1. أولاً: نجلب المعرف الخاص بالمسار بناءً على اسم التخصص
+            const { data: pathInfo } = await supabase
+                .from('learning_paths')
+                .select('path_id')
+                .ilike('category', `%${userTrack}%`)
+                .maybeSingle();
+
+            if (!pathInfo) {
+                container.innerHTML = `<p style="text-align:center;">لم يتم العثور على مسار تعليمي لـ ${userTrack}</p>`;
+                return;
+            }
+
+            // 2. ثانياً: نجلب الخطة باستخدام الـ path_id الذي حصلنا عليه
             const { data: pathData, error } = await supabase
                 .from('path_course')
                 .select(`
                     semester,
-                    courses!inner (
+                    courses (
                         course_id,
                         title,
-                        track,
                         enrollments!left ( 
                             completion_status,
                             user_id
                         )
                     )
                 `)
-                .eq('courses.track', userTrack)
+                .eq('path_id', pathInfo.path_id)
                 .eq('courses.enrollments.user_id', userId)
                 .order('semester', { ascending: true });
 
             if (error) throw error;
 
             if (!pathData || pathData.length === 0) {
-                container.innerHTML = `<p style="text-align:center;">لا توجد مواد مسجلة لهذا المسار حالياً أو لم يتم تسجيلك في المواد بعد.</p>`;
+                container.innerHTML = `<p style="text-align:center;">الخطة الدراسية فارغة حالياً لهذا المسار.</p>`;
                 return;
             }
 
+            // 3. تحويل البيانات للعرض
             const formattedCourses = pathData.map(item => ({
                 semester: item.semester,
-                title: item.courses.title,
-                course_id: item.courses.course_id,
-                credit_hours: item.courses.credit_hours || 0,
-                status: item.courses.enrollments?.[0]?.completion_status || 'not_started'
+                title: item.courses?.title || 'مادة غير معنونة',
+                course_id: item.courses?.course_id,
+                credit_hours: 0, // تجاهلنا العمود لضمان عدم حدوث خطأ 400
+                status: item.courses?.enrollments?.[0]?.completion_status || 'not_started'
             }));
 
             renderPlanUI(formattedCourses);
