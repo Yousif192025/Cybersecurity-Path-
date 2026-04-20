@@ -145,23 +145,35 @@
             document.getElementById('user-track').innerText = profile.track || "غير محدد";
             
             generateTrackLink(profile.track);
-            await loadStudentPlan(profile.track);
+            // مررنا المعرف الخاص بالمستخدم للتأكد من جلب تسجيلاته هو فقط
+            await loadStudentPlan(profile.track, currentUserId);
         }
     }
 
-    async function loadStudentPlan(userTrack) {
+    async function loadStudentPlan(userTrack, userId) {
         const container = document.getElementById('plan-container');
         
+        // التعديل هنا: استخدام course_id بدلاً من id وإضافة فلتر لـ user_id داخل التسجيلات
         const { data: courses, error } = await supabase
             .from('courses')
             .select(`
-                id, title, semester, credit_hours,
+                course_id, 
+                title, 
+                semester, 
+                credit_hours,
                 enrollments!left ( completion_status )
             `)
             .eq('track', userTrack)
+            .eq('enrollments.user_id', userId) // تأكيد جلب بيانات الطالب الحالي فقط
             .order('semester', { ascending: true });
 
-        if (error || !courses || courses.length === 0) {
+        if (error) {
+            console.error("Supabase Error:", error);
+            container.innerHTML = `<p style="text-align:center; color:red;">خطأ في تحميل الخطة: ${error.message}</p>`;
+            return;
+        }
+
+        if (!courses || courses.length === 0) {
             container.innerHTML = `<p style="text-align:center;">لا توجد مواد مسجلة لهذا المسار حالياً.</p>`;
             return;
         }
@@ -177,13 +189,17 @@
         let completed = 0;
 
         courses.forEach(c => {
+            // تجميع المواد حسب الفصل الدراسي
             if (!semesters[c.semester]) semesters[c.semester] = [];
             const status = c.enrollments?.[0]?.completion_status || 'not_started';
             semesters[c.semester].push({ ...c, status });
             if (status === 'completed') completed++;
         });
 
-        Object.keys(semesters).forEach(semNum => {
+        // ترتيب الفصول الدراسية تصاعدياً
+        const sortedSemesters = Object.keys(semesters).sort((a, b) => a - b);
+
+        sortedSemesters.forEach(semNum => {
             const semCourses = semesters[semNum];
             const semDone = semCourses.filter(s => s.status === 'completed').length;
 
@@ -191,7 +207,7 @@
             section.className = 'semester-section';
             section.innerHTML = `
                 <button class="accordion-btn">
-                    <span>📖 الفصل ${semNum}</span>
+                    <span>📖 الفصل الدراسي ${semNum}</span>
                     <span style="font-size:0.8rem;">${semDone}/${semCourses.length} مكتمل <i class="fas fa-chevron-down"></i></span>
                 </button>
                 <div class="panel">
@@ -200,7 +216,7 @@
                             <div class="course-info">
                                 <i class="${getStatusIcon(c.status)}"></i>
                                 <span><strong>${c.title}</strong></span>
-                                <span class="course-hours">${c.credit_hours} ساعة</span>
+                                <span class="course-hours">${c.credit_hours || 0} ساعة</span>
                             </div>
                             <div class="course-badge">${getStatusText(c.status)}</div>
                         </div>
@@ -210,6 +226,7 @@
             container.appendChild(section);
         });
 
+        // تفعيل حركة الأكورديون
         document.querySelectorAll('.accordion-btn').forEach(btn => {
             btn.onclick = function() {
                 this.classList.toggle('active');
