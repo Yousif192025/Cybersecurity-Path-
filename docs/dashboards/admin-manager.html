@@ -14,50 +14,22 @@
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         body { background: var(--bg); padding: 20px; color: var(--secondary); }
-        
         .admin-container { max-width: 1400px; margin: 0 auto; }
-        
         .main-header {
             background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
             color: white; padding: 25px; border-radius: 15px;
             display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
         }
-
-        .control-panel {
-            background: white; padding: 25px; border-radius: 15px;
-            border: 1px solid var(--border); margin-bottom: 25px;
-        }
-        
-        .control-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px;
-        }
-
+        .control-panel { background: white; padding: 25px; border-radius: 15px; border: 1px solid var(--border); margin-bottom: 25px; }
+        .control-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
         .control-item label { display: block; font-size: 0.9rem; font-weight: 700; margin-bottom: 10px; }
-        .control-item select, .control-item input {
-            width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 0.95rem;
-            outline: none; transition: 0.3s;
-        }
-        .control-item select:focus { border-color: var(--accent); }
-
-        .batch-actions {
-            margin-top: 20px; padding: 20px; background: #f0f7ff; border-radius: 12px;
-            display: flex; align-items: center; gap: 15px; border: 1px dashed var(--accent);
-        }
-
+        .control-item select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; outline: none; }
+        .batch-actions { margin-top: 20px; padding: 20px; background: #f0f7ff; border-radius: 12px; display: flex; align-items: center; gap: 15px; border: 1px dashed var(--accent); }
         .table-section { background: white; border-radius: 15px; border: 1px solid var(--border); overflow: hidden; }
         table { width: 100%; border-collapse: collapse; text-align: right; }
-        th { background: #f8fafc; padding: 15px; font-size: 0.9rem; border-bottom: 2px solid var(--border); }
-        td { padding: 15px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
-
-        .btn { padding: 10px 25px; border-radius: 10px; border: none; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-success { background: var(--success); color: white; width: 100%; justify-content: center; }
-        .btn:hover { transform: translateY(-2px); opacity: 0.9; }
-
-        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
-        .status-in_progress { background: #dbeafe; color: #1e40af; }
-        .status-completed { background: #d1fae5; color: #065f46; }
+        th { background: #f8fafc; padding: 15px; border-bottom: 2px solid var(--border); }
+        td { padding: 15px; border-bottom: 1px solid #f1f5f9; }
+        .btn-success { background: var(--success); color: white; padding: 10px 25px; border-radius: 10px; border: none; cursor: pointer; font-weight: 600; width: 100%; }
     </style>
 </head>
 <body>
@@ -66,21 +38,18 @@
     <header class="main-header">
         <div>
             <h1><i class="fas fa-tasks"></i> إدارة شؤون المتدربين</h1>
-            <p id="stats-summary">جاري جلب الإحصائيات...</p>
+            <p id="stats-summary">يرجى اختيار المجموعة لبدء الإدارة</p>
         </div>
-        <div style="text-align: left;">
-            <div id="current-time"></div>
-            <div style="font-size: 0.8rem; opacity: 0.8;">متصل بـ Supabase</div>
-        </div>
+        <div id="current-time"></div>
     </header>
 
     <div class="control-panel">
         <div class="control-grid">
             <div class="control-item">
-                <label>نوع الدبلوم</label>
+                <label>نوع الدبلوم (المسار)</label>
                 <select id="select-track">
-                    <option value="الأمن السيبراني">الأمن السيبراني</option>
-                    <option value="علوم الحاسب">علوم الحاسب</option>
+                    <option value="دبلوم الأمن السيبراني">دبلوم الأمن السيبراني</option>
+                    <option value="دبلوم علوم الحاسب التطبيقي">دبلوم علوم الحاسب التطبيقي</option>
                 </select>
             </div>
             <div class="control-item">
@@ -110,16 +79,13 @@
 
         <div class="batch-actions">
             <div style="flex-grow: 1;">
-                <label style="font-size: 0.8rem; font-weight: bold;">تغيير حالة المقرر لجميع الطلاب المختارين:</label>
-                <select id="target-status" style="margin-top: 5px; padding: 8px; width: 200px; border-radius: 8px;">
+                <select id="target-status" style="padding: 8px; width: 200px; border-radius: 8px;">
                     <option value="in_progress">قيد الدراسة (🔄)</option>
                     <option value="completed">مكتمل (✅)</option>
                     <option value="not_started">لم يبدأ بعد (⚪)</option>
                 </select>
             </div>
-            <button class="btn btn-success" onclick="updateBatchStatus()">
-                <i class="fas fa-bolt"></i> تنفيذ التحديث الجماعي
-            </button>
+            <button class="btn-success" onclick="updateBatchStatus()">تحديث حالة المقرر للطلاب المختارين</button>
         </div>
     </div>
 
@@ -129,13 +95,12 @@
                 <tr>
                     <th>اسم المتدرب</th>
                     <th>الهوية/الهاتف</th>
-                    <th>التخصص</th>
+                    <th>المسار المسجل</th>
                     <th>المجموعة</th>
-                    <th>الإجراء</th>
                 </tr>
             </thead>
             <tbody id="students-table-body">
-                <tr><td colspan="5" style="text-align: center;">يرجى اختيار مجموعة لتحميل البيانات...</td></tr>
+                <tr><td colspan="4" style="text-align: center;">جاري جلب البيانات...</td></tr>
             </tbody>
         </table>
     </div>
@@ -149,14 +114,14 @@
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const curriculum = {
-        "علوم الحاسب": {
+        "دبلوم علوم الحاسب التطبيقي": {
             1: ["التوجيه المهني والتميز", "مقدمة تطبيقات الحاسب", "تجميع الحاسب وتشغيله", "الرياضيات", "برمجة الحاسب", "لغة إنجليزية (1)"],
             2: ["لغة إنجليزية (2)", "نظم تشغيل", "تطبيقات الحاسب المتقدمة", "شبكات الحاسب", "الكتابة الفنية", "الفيزياء"],
             3: ["لغة إنجليزية (3)", "تحليل وتصميم النظم", "مبادئ قواعد البيانات", "أساسيات تقنية المعلومات", "مهارات التعلم", "تقنيات الإنترنت المتقدمة"],
             4: ["أمن الشبكات", "أخلاقيات نظم وتقنية المعلومات", "مهارات الدعم الفني", "تطوير وإدارة المواقع", "الذكاء الاصطناعي", "مشروع"],
             5: ["التدريب التعاوني -1", "التدريب التعاوني -2"]
         },
-        "الأمن السيبراني": {
+        "دبلوم الأمن السيبراني": {
             1: ["التوجيه المهني والتميز", "مقدمة تطبيقات الحاسب", "مبادئ شبكات الحاسب", "الرياضيات", "أساسيات الأمن السيبراني", "لغة إنجليزية - 1"],
             2: ["لغة إنجليزية - 2", "نظم تشغيل", "تطبيقات الحاسب المتقدمة", "برمجة الحاسب", "إدارة أمن المعلومات", "لغة إنجليزية - 3"],
             3: ["أمن أنظمة التشغيل", "السلوك الوظيفي ومهارات الاتصال", "تطوير البرمجيات الآمنة", "مهارات التعلم", "أمن الشبكات والاتصالات", "اختبار الاختراق", "الدراسات الإسلامية"],
@@ -169,83 +134,69 @@
 
     async function loadStudents() {
         const group = document.getElementById('select-group').value;
-        const track = document.getElementById('select-track').value;
+        const trackName = document.getElementById('select-track').value;
         
         let query = supabase.from('user_profile').select('*');
         if(group !== 'all') query = query.eq('group_name', group);
-        query = query.ilike('track', `%${track}%`);
 
         const { data, error } = await query;
         if (data) {
-            currentStudents = data;
-            document.getElementById('stats-summary').innerText = `تم العثور على ${data.length} متدرب في ${group}`;
+            // فلترة ذكية: إذا كان المسار في قاعدة البيانات يحتوي على كلمات مفتاحية
+            currentStudents = data.filter(s => {
+                if(!s.track) return false;
+                if(trackName.includes("الأمن") && (s.track.includes("الأمن") || s.track.includes("Cyber"))) return true;
+                if(trackName.includes("علوم الحاسب") && (s.track.includes("علوم") || s.track.includes("Computer"))) return true;
+                return false;
+            });
             renderTable();
+            document.getElementById('stats-summary').innerText = `المعروض: ${currentStudents.length} طالب`;
         }
     }
 
     function renderTable() {
         const body = document.getElementById('students-table-body');
-        if(currentStudents.length === 0) {
-            body.innerHTML = '<tr><td colspan="5" style="text-align:center;">لا يوجد طلاب في هذه المجموعة</td></tr>';
-            return;
-        }
         body.innerHTML = currentStudents.map(s => `
             <tr>
                 <td><b>${s.full_name}</b></td>
                 <td>${s.phone || s.national_id}</td>
                 <td>${s.track}</td>
                 <td>${s.group_name}</td>
-                <td><button class="status-badge status-in_progress" onclick="alert('معاينة الملف الشخصي قيد التطوير')">معاينة</button></td>
             </tr>
-        `).join('');
+        `).join('') || '<tr><td colspan="4" style="text-align:center;">لا يوجد طلاب مطابقين لهذه الفلاتر</td></tr>';
     }
 
     function updateCourseList() {
         const track = document.getElementById('select-track').value;
         const sem = document.getElementById('select-semester').value;
         const courses = curriculum[track][sem] || [];
-        const select = document.getElementById('select-course');
-        select.innerHTML = courses.map(c => `<option value="${c}">${c}</option>`).join('');
+        document.getElementById('select-course').innerHTML = courses.map(c => `<option value="${c}">${c}</option>`).join('');
     }
 
     window.updateBatchStatus = async function() {
         const courseName = document.getElementById('select-course').value;
         const status = document.getElementById('target-status').value;
-        
-        if(currentStudents.length === 0) return alert("يرجى اختيار مجموعة تحتوي على طلاب أولاً");
+        if(currentStudents.length === 0) return alert("لا يوجد طلاب محددين");
 
-        // 1. البحث عن معرف المقرر (البحث بالجزء العربي)
         const cleanName = courseName.split('(')[0].trim();
         const { data: course } = await supabase.from('courses').select('course_id').ilike('title', `%${cleanName}%`).limit(1).maybeSingle();
 
-        if(!course) return alert("لم يتم العثور على المقرر في قاعدة البيانات العامة.");
+        if(!course) return alert("المقرر غير موجود في جدول courses بنفس الاسم.");
 
-        // 2. تحديث الطلاب
-        const ids = currentStudents.map(s => s.user_id);
         const { error } = await supabase.from('enrollments')
-            .update({ 
-                completion_status: status,
-                completion_percentage: status === 'completed' ? 100 : (status === 'in_progress' ? 50 : 0)
-            })
-            .in('user_id', ids)
+            .update({ completion_status: status, completion_percentage: status === 'completed' ? 100 : 50 })
+            .in('user_id', currentStudents.map(s => s.user_id))
             .eq('course_id', course.course_id);
 
-        if(!error) {
-            alert(`تم تحديث حالة ${ids.length} طالب بنجاح!`);
-        } else {
-            alert("خطأ: " + error.message);
-        }
+        if(!error) alert("تم التحديث بنجاح!");
+        else alert("خطأ: " + error.message);
     };
 
-    // التفاعلات
     document.getElementById('select-track').addEventListener('change', () => { updateCourseList(); loadStudents(); });
     document.getElementById('select-group').addEventListener('change', loadStudents);
     document.getElementById('select-semester').addEventListener('change', updateCourseList);
 
-    // التشغيل الأولي
     updateCourseList();
     loadStudents();
-    document.getElementById('current-time').innerText = new Date().toLocaleString('ar-SA');
 </script>
 </body>
 </html>
