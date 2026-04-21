@@ -57,6 +57,12 @@
         .bg-success { background: var(--success); }
         .bg-warning { background: var(--warning); }
         .bg-danger { background: var(--danger); }
+        
+        .page-btn { 
+            background: var(--primary); color: white; border: none; 
+            padding: 5px 12px; border-radius: 6px; cursor: pointer; 
+        }
+        .page-btn:hover { opacity: 0.8; }
     </style>
 </head>
 <body>
@@ -142,10 +148,10 @@
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
     const supabaseUrl = "https://suvpaunulhqfoclepwoz.supabase.co";
-    const supabaseKey = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"; // تأكد من الـ Key الصحيح
+    const supabaseKey = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // قاعدة بيانات المقررات التي زودتني بها
+    // قاعدة بيانات المقررات
     const curriculum = {
         "علوم الحاسب": {
             1: ["التوجيه المهني والتميز", "مقدمة تطبيقات الحاسب", "تجميع الحاسب وتشغيله", "الرياضيات", "برمجة الحاسب", "لغة إنجليزية (1)"],
@@ -171,6 +177,7 @@
         
         let query = supabase.from('user_profile').select('*');
         if(group !== 'all') query = query.eq('group_name', group);
+        if(track) query = query.eq('track', track);
         
         const { data, error } = await query;
         if (data) {
@@ -182,47 +189,74 @@
     function updateCourseDropdown() {
         const track = document.getElementById('select-track').value;
         const sem = document.getElementById('select-semester').value;
-        const courses = curriculum[track][sem] || [];
+        const courses = curriculum[track]?.[sem] || [];
         const select = document.getElementById('select-course');
         select.innerHTML = courses.map(c => `<option value="${c}">${c}</option>`).join('');
+        if(courses.length === 0) select.innerHTML = '<option>لا توجد مقررات</option>';
     }
 
     function renderStudents() {
         const body = document.getElementById('admin-students-body');
         body.innerHTML = students.map(s => `
             <tr>
-                <td><input type="checkbox" class="std-check" value="${s.user_id}"></td>
-                <td><strong>${s.full_name}</strong></td>
-                <td>${s.phone || s.national_id}</td>
-                <td>${s.track}</td>
-                <td>${s.group_name}</td>
+                <td><input type="checkbox" class="std-check" data-id="${s.user_id}"></td>
+                <td><strong>${s.full_name || 'غير محدد'}</strong></td>
+                <td>${s.phone || s.national_id || 'غير متوفر'}</td>
+                <td>${s.track || 'غير محدد'}</td>
+                <td>${s.group_name || 'غير محدد'}</td>
                 <td><span class="status-dot bg-warning"></span> جاري التحميل..</td>
                 <td><button onclick="alert('تعديل ملف ${s.full_name}')" class="page-btn">تعديل</button></td>
             </tr>
         `).join('');
+        
+        // إعادة ربط حدث تحديد الكل
+        const selectAll = document.getElementById('select-all');
+        if(selectAll) {
+            selectAll.onclick = function() {
+                document.querySelectorAll('.std-check').forEach(cb => cb.checked = this.checked);
+            };
+        }
     }
 
-    // وظيفة التحديث الجماعي
+    // وظيفة التحديث الجماعي (النسخة المطلوبة)
     window.updateBatchStatus = async function() {
         const targetCourse = document.getElementById('select-course').value;
         const targetStatus = document.getElementById('target-status').value;
         const selectedGroup = document.getElementById('select-group').value;
 
-        if(!confirm(`هل أنت متأكد من تغيير حالة مقرر (${targetCourse}) إلى (${targetStatus}) لجميع طلاب ${selectedGroup}؟`)) return;
-
-        // تنفيذ الـ Logic البرمجي (Update Enrollments)
-        // سنحتاج أولاً لجلب الـ course_id بناءً على الاسم
-        const { data: courseData } = await supabase.from('courses').select('course_id').ilike('title', `%${targetCourse}%`).maybeSingle();
-        
-        if(!courseData) {
-            alert("خطأ: لم يتم العثور على المقرر في قاعدة البيانات العامة");
+        if(selectedGroup === 'all') {
+            alert("يرجى اختيار مجموعة محددة أولاً (مثلاً Group -1)");
             return;
         }
 
-        // تحديث جماعي لكل الطلاب في المجموعة
+        // 1. تنظيف اسم المقرر للبحث (نأخذ النص العربي فقط قبل أي أقواس أو فواصل)
+        const cleanSearchName = targetCourse.split('(')[0].split('|')[0].trim();
+        
+        // 2. البحث عن معرف المقرر باستخدام الجزء العربي
+        const { data: courseData, error: courseError } = await supabase
+            .from('courses')
+            .select('course_id, title')
+            .ilike('title', `%${cleanSearchName}%`)
+            .limit(1)
+            .maybeSingle();
+        
+        if(!courseData) {
+            alert(`لم يتم العثور على المقرر: ${targetCourse}\nنص البحث المستخدم: ${cleanSearchName}`);
+            return;
+        }
+
+        if(!confirm(`تأكيد التحديث:\nالمقرر: ${courseData.title}\nالمجموعة: ${selectedGroup}\nالحالة الجديدة: ${targetStatus}`)) return;
+
+        // 3. الحصول على معرفات الطلاب
         const studentIds = students.map(s => s.user_id);
         
-        const { error } = await supabase
+        if(studentIds.length === 0) {
+            alert("لا يوجد طلاب في هذه المجموعة حالياً.");
+            return;
+        }
+
+        // 4. تنفيذ التحديث في جدول enrollments
+        const { error: updateError } = await supabase
             .from('enrollments')
             .update({ 
                 completion_status: targetStatus,
@@ -231,13 +265,13 @@
             .in('user_id', studentIds)
             .eq('course_id', courseData.course_id);
 
-        if(!error) {
-            alert("تم التحديث بنجاح!");
+        if(!updateError) {
+            alert(`تم بنجاح تحديث حالة (${targetCourse}) لعدد ${studentIds.length} طالب.`);
             loadData();
         } else {
-            alert("حدث خطأ أثناء التحديث: " + error.message);
+            alert("حدث خطأ أثناء التحديث: " + updateError.message);
         }
-    }
+    };
 
     // مستمعي الأحداث
     document.getElementById('select-track').addEventListener('change', () => { updateCourseDropdown(); loadData(); });
