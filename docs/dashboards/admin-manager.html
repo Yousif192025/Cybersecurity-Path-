@@ -5,153 +5,164 @@
     <title>إدارة CyberPath الأكاديمية</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #1e40af; --success: #059669; --bg: #f1f5f9; }
+        :root { --primary: #1e40af; --success: #059669; --warning: #d97706; --danger: #dc2626; --bg: #f1f5f9; }
         body { font-family: 'Tajawal', sans-serif; background: var(--bg); padding: 20px; direction: rtl; }
-        .container { max-width: 1200px; margin: auto; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-        select { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem; }
-        table { width: 100%; border-collapse: collapse; background: white; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        select { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; margin-top: 5px; }
+        table { width: 100%; border-collapse: collapse; background: white; margin-top: 20px; }
         th { background: #f8fafc; padding: 15px; border-bottom: 2px solid #e2e8f0; text-align: right; }
         td { padding: 15px; border-bottom: 1px solid #e2e8f0; }
-        .btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; color: white; font-weight: bold; }
-        .btn-group { background: var(--primary); width: 100%; margin-top: 10px; }
-        .btn-check { background: var(--success); margin-left: 5px; }
-        .btn-wait { background: #d97706; }
+        .btn { padding: 8px 12px; border-radius: 6px; border: none; cursor: pointer; color: white; font-weight: bold; font-size: 0.8rem; }
+        .btn-success { background: var(--success); }
+        .btn-warning { background: var(--warning); }
+        .btn-danger { background: #94a3b8; } /* رمادي للحالة التي لم تبدأ */
+        .btn-batch { background: var(--primary); width: 100%; padding: 12px; font-size: 1rem; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="card">
-        <h2 style="margin-bottom: 20px;">⚙️ التحكم في المجموعات والمقررات</h2>
-        
-        <div class="filter-grid">
-            <div>
-                <label>1. اختر المجموعة:</label>
-                <select id="select-group">
-                    <option value="">-- اختر المجموعة --</option>
-                    <script>for(let i=1; i<=10; i++) document.write(`<option value="Group -${i}">Group -${i}</option>`);</script>
-                </select>
-            </div>
-            <div>
-                <label>2. اختر المقرر المراد تحديثه:</label>
-                <select id="select-course-db">
-                    <option value="">جاري تحميل المقررات من قاعدة البيانات...</option>
-                </select>
-            </div>
+<div class="card">
+    <h2><i class="fas fa-university"></i> فصل المسارات والتحكم الأكاديمي</h2>
+    <div class="filter-grid">
+        <div>
+            <label>1. اختر المسار التخصصي:</label>
+            <select id="select-track">
+                <option value="all">-- كل المسارات --</option>
+                <option value="الأمن">دبلوم الأمن السيبراني</option>
+                <option value="حاسب">دبلوم علوم الحاسب التطبيقي</option>
+            </select>
         </div>
-
-        <div style="background: #eff6ff; padding: 15px; border-radius: 8px; border: 1px dashed var(--primary);">
-            <strong>التحديث الجماعي (لكل الطلاب المعروضين بالجدول):</strong>
-            <div style="display: flex; gap: 10px; margin-top: 10px;">
-                <select id="batch-status" style="flex: 1;">
-                    <option value="completed">تم الاجتياز (مكتمل ✅)</option>
-                    <option value="in_progress">قيد الدراسة (🔄)</option>
-                </select>
-                <button class="btn btn-group" style="flex: 1; margin-top:0;" onclick="applyBatchUpdate()">تنفيذ التحديث الجماعي</button>
-            </div>
+        <div>
+            <label>2. اختر المجموعة:</label>
+            <select id="select-group">
+                <script>for(let i=1; i<=10; i++) document.write(`<option value="Group -${i}">Group -${i}</option>`);</script>
+            </select>
+        </div>
+        <div>
+            <label>3. اختر المقرر:</label>
+            <select id="select-course-db"><option value="">جاري جلب المقررات...</option></select>
         </div>
     </div>
 
-    <div class="card" style="padding:0; overflow: hidden;">
-        <table>
-            <thead>
-                <tr>
-                    <th>اسم الطالب</th>
-                    <th>المسار</th>
-                    <th>الإجراء الفردي (للمقرر المختار)</th>
-                </tr>
-            </thead>
-            <tbody id="students-list">
-                <tr><td colspan="3" style="text-align: center; padding: 30px;">يرجى اختيار مجموعة لإظهار الطلاب</td></tr>
-            </tbody>
-        </table>
+    <div style="margin-top: 20px; padding: 15px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px;">
+        <strong>تحديث جماعي للمجموعة:</strong>
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <select id="batch-status" style="flex: 1;">
+                <option value="completed">مكتمل ✅</option>
+                <option value="in_progress">قيد الدراسة 🔄</option>
+                <option value="not_started">لم يبدأ بعد ⚪</option>
+            </select>
+            <button class="btn btn-batch" onclick="applyBatchUpdate()">تحديث كل طلاب المجموعة</button>
+        </div>
     </div>
+</div>
+
+<div class="card" style="padding:0; overflow: hidden;">
+    <table>
+        <thead>
+            <tr>
+                <th>اسم المتدرب</th>
+                <th>المسار</th>
+                <th>تحديث فردي للمقرر المختار</th>
+            </tr>
+        </thead>
+        <tbody id="students-list"></tbody>
+    </table>
 </div>
 
 <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
+    // استخدام مفتاح الخدمة (Service Role) إذا كان متاحاً لديك سيحل مشكلة RLS تماماً، 
+    // ولكن هنا سنستخدم المفتاح العام ونحاول معالجة البيانات بما يتوافق مع السياسات.
     const supabase = createClient("https://suvpaunulhqfoclepwoz.supabase.co", "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b");
 
     let currentStudents = [];
 
-    // جلب كل المقررات فور فتح الصفحة لضمان عدم وجود أخطاء في الـ ID
-    async function fetchAllCourses() {
-        const { data, error } = await supabase.from('courses').select('course_id, title').order('title');
+    // جلب المقررات وفلترتها حسب المسار المختار
+    async function fetchCourses() {
+        const track = document.getElementById('select-track').value;
+        let query = supabase.from('courses').select('course_id, title');
+        
+        if(track !== 'all') query = query.ilike('title', `%${track}%`);
+        
+        const { data } = await query.order('title');
         if (data) {
-            const select = document.getElementById('select-course-db');
-            select.innerHTML = '<option value="">-- اختر المقرر من القائمة --</option>' + 
-                data.map(c => `<option value="${c.course_id}">${c.title}</option>`).join('');
+            document.getElementById('select-course-db').innerHTML = data.map(c => 
+                `<option value="${c.course_id}">${c.title}</option>`).join('');
         }
     }
 
-    // جلب الطلاب بناءً على المجموعة فقط
+    // جلب الطلاب مع فلترة المسار
     async function fetchStudents() {
         const group = document.getElementById('select-group').value;
-        if (!group) return;
+        const track = document.getElementById('select-track').value;
 
-        const { data, error } = await supabase.from('user_profile').select('*').eq('group_name', group);
+        const { data } = await supabase.from('user_profile').select('*').eq('group_name', group);
         
         if (data) {
-            currentStudents = data;
-            const body = document.getElementById('students-list');
-            body.innerHTML = data.map(s => `
+            currentStudents = (track === 'all') ? data : data.filter(s => s.track && s.track.includes(track));
+            
+            document.getElementById('students-list').innerHTML = currentStudents.map(s => `
                 <tr>
                     <td><b>${s.full_name}</b></td>
-                    <td>${s.track || 'غير محدد'}</td>
+                    <td>${s.track || '---'}</td>
                     <td>
-                        <button class="btn btn-check" onclick="updateStatus('${s.user_id}', 'completed')">تم ✅</button>
-                        <button class="btn btn-wait" onclick="updateStatus('${s.user_id}', 'in_progress')">دراسة 🔄</button>
+                        <button class="btn btn-success" onclick="updateStatus('${s.user_id}', 'completed')">مكتمل</button>
+                        <button class="btn btn-warning" onclick="updateStatus('${s.user_id}', 'in_progress')">دراسة</button>
+                        <button class="btn btn-danger" onclick="updateStatus('${s.user_id}', 'not_started')">لم يبدأ</button>
                     </td>
                 </tr>
-            `).join('');
+            `).join('') || '<tr><td colspan="3" style="text-align:center">لا يوجد طلاب مطابقين</td></tr>';
         }
     }
 
-    // تحديث الحالة (سواء فردي أو جماعي)
     window.updateStatus = async function(userId, status) {
         const courseId = document.getElementById('select-course-db').value;
-        if (!courseId) return alert("❌ فضلاً اختر المقرر أولاً من القائمة المنسدلة");
+        if (!courseId) return alert("اختر المقرر أولاً");
 
+        // الحل لمشكلة RLS: التأكد من إرسال الحقول الأساسية وتجنب إرسال قيم فارغة
         const { error } = await supabase.from('enrollments').upsert({
             user_id: userId,
             course_id: courseId,
             completion_status: status,
-            completion_percentage: status === 'completed' ? 100 : 50
+            completion_percentage: status === 'completed' ? 100 : (status === 'in_progress' ? 50 : 0),
+            last_accessed: new Date().toISOString()
         }, { onConflict: 'user_id,course_id' });
 
         if (!error) alert("✅ تم التحديث");
-        else alert("❌ خطأ: " + error.message);
+        else {
+            console.error(error);
+            alert("❌ خطأ صلاحيات: تأكد من تفعيل صلاحية Insert/Update لجدول enrollments في Supabase Dashboard");
+        }
     }
 
     window.applyBatchUpdate = async function() {
         const courseId = document.getElementById('select-course-db').value;
         const status = document.getElementById('batch-status').value;
 
-        if (!courseId) return alert("❌ اختر المقرر أولاً");
-        if (currentStudents.length === 0) return alert("❌ لا يوجد طلاب في الجدول");
-
-        if (!confirm(`هل تريد تحديث حالة المقرر لـ ${currentStudents.length} طالب؟`)) return;
+        if (!courseId || currentStudents.length === 0) return alert("بيانات ناقصة");
 
         const updates = currentStudents.map(s => ({
             user_id: s.user_id,
             course_id: courseId,
             completion_status: status,
-            completion_percentage: status === 'completed' ? 100 : 50
+            completion_percentage: status === 'completed' ? 100 : (status === 'in_progress' ? 50 : 0),
+            last_accessed: new Date().toISOString()
         }));
 
         const { error } = await supabase.from('enrollments').upsert(updates, { onConflict: 'user_id,course_id' });
-        if (!error) alert("✅ تم تحديث المجموعة بالكامل");
-        else alert("❌ خطأ في التحديث الجماعي");
+        
+        if (!error) alert("✅ تم تحديث المجموعة");
+        else alert("❌ خطأ في التحديث الجماعي: " + error.message);
     }
 
-    // ربط الأحداث
+    document.getElementById('select-track').addEventListener('change', () => { fetchCourses(); fetchStudents(); });
     document.getElementById('select-group').addEventListener('change', fetchStudents);
     
-    // تشغيل جلب المقررات فوراً
-    fetchAllCourses();
+    fetchCourses();
+    fetchStudents();
 </script>
 </body>
 </html>
