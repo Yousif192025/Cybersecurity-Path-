@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة منصة CyberPath | لوحة التحكم المركزية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1e40af; --secondary: #0f172a; --accent: #3b82f6;
+            --success: #059669; --warning: #d97706; --danger: #dc2626;
+            --bg: #f8fafc; --border: #cbd5e1;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
+        body { background: var(--bg); padding: 15px; }
+        
+        .admin-container { max-width: 1600px; margin: 0 auto; }
+        
+        /* تصميم الهيدر */
+        .main-header {
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+            color: white; padding: 20px; border-radius: 12px;
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+        }
+
+        /* منطقة التحكم السريع (Quick Actions) */
+        .control-panel {
+            background: white; padding: 20px; border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+        .control-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;
+        }
+        .control-item label { display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 8px; color: var(--secondary); }
+        .control-item select, .control-item input {
+            width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem;
+        }
+
+        /* جدول الطلاب */
+        .table-section { background: white; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; text-align: right; }
+        th { background: #f1f5f9; padding: 12px; font-size: 0.85rem; color: var(--secondary); border-bottom: 2px solid var(--border); }
+        td { padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 0.85rem; }
+        
+        /* أزرار الإجراءات */
+        .batch-actions {
+            margin-top: 15px; padding: 15px; background: #eff6ff; border-radius: 8px;
+            display: flex; align-items: center; gap: 15px; flex-wrap: wrap;
+        }
+        .btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .btn-update { background: var(--success); color: white; }
+        .btn-update:hover { opacity: 0.9; }
+        
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-left: 5px; }
+        .bg-success { background: var(--success); }
+        .bg-warning { background: var(--warning); }
+        .bg-danger { background: var(--danger); }
+    </style>
+</head>
+<body>
+
+<div class="admin-container">
+    <header class="main-header">
+        <div>
+            <h1><i class="fas fa-user-shield"></i> لوحة التحكم المركزية</h1>
+            <p>إدارة الحالات الأكاديمية وتقدم المتدربين</p>
+        </div>
+        <div id="sync-status"><i class="fas fa-check-circle"></i> متصل بقاعدة البيانات</div>
+    </header>
+
+    <div class="control-panel">
+        <h3 style="margin-bottom: 15px;"><i class="fas fa-filter"></i> تصفية وإدارة الدفعات</h3>
+        <div class="control-grid">
+            <div class="control-item">
+                <label>التخصص</label>
+                <select id="select-track">
+                    <option value="الأمن السيبراني">الأمن السيبراني</option>
+                    <option value="علوم الحاسب">علوم الحاسب</option>
+                </select>
+            </div>
+            <div class="control-item">
+                <label>المجموعة</label>
+                <select id="select-group">
+                    <option value="all">جميع المجموعات</option>
+                    <script>
+                        for(let i=1; i<=10; i++) document.write(`<option value="Group -${i}">Group -${i}</option>`);
+                    </script>
+                </select>
+            </div>
+            <div class="control-item">
+                <label>الفصل التدريبي</label>
+                <select id="select-semester">
+                    <option value="1">الفصل الأول</option>
+                    <option value="2">الفصل الثاني</option>
+                    <option value="3">الفصل الثالث</option>
+                    <option value="4">الفصل الرابع</option>
+                    <option value="5">الفصل الخامس</option>
+                </select>
+            </div>
+            <div class="control-item">
+                <label>المقرر المستهدف</label>
+                <select id="select-course">
+                    </select>
+            </div>
+        </div>
+
+        <div class="batch-actions">
+            <strong><i class="fas fa-magic"></i> إجراء سريع للمجموعة المختارة:</strong>
+            <select id="target-status" style="padding: 8px; border-radius: 5px;">
+                <option value="completed">تم الاجتياز (مكتمل)</option>
+                <option value="in_progress">قيد الدراسة (نشط)</option>
+                <option value="not_started">لم يبدأ بعد</option>
+            </select>
+            <button class="btn btn-update" onclick="updateBatchStatus()">
+                <i class="fas fa-sync"></i> تحديث حالة المقرر للكل
+            </button>
+        </div>
+    </div>
+
+    <div class="table-section">
+        <table>
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="select-all"></th>
+                    <th>اسم المتدرب</th>
+                    <th>الهوية/الهاتف</th>
+                    <th>التخصص</th>
+                    <th>المجموعة</th>
+                    <th>حالة المقرر الحالي</th>
+                    <th>الإجراء</th>
+                </tr>
+            </thead>
+            <tbody id="admin-students-body">
+                </tbody>
+        </table>
+    </div>
+</div>
+
+<script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+    const supabaseUrl = "https://suvpaunulhqfoclepwoz.supabase.co";
+    const supabaseKey = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"; // تأكد من الـ Key الصحيح
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // قاعدة بيانات المقررات التي زودتني بها
+    const curriculum = {
+        "علوم الحاسب": {
+            1: ["التوجيه المهني والتميز", "مقدمة تطبيقات الحاسب", "تجميع الحاسب وتشغيله", "الرياضيات", "برمجة الحاسب", "لغة إنجليزية (1)"],
+            2: ["لغة إنجليزية (2)", "نظم تشغيل", "تطبيقات الحاسب المتقدمة", "شبكات الحاسب", "الكتابة الفنية", "الفيزياء"],
+            3: ["لغة إنجليزية (3)", "تحليل وتصميم النظم", "مبادئ قواعد البيانات", "أساسيات تقنية المعلومات", "مهارات التعلم", "تقنيات الإنترنت المتقدمة"],
+            4: ["أمن الشبكات", "أخلاقيات نظم وتقنية المعلومات", "مهارات الدعم الفني", "تطوير وإدارة المواقع", "الذكاء الاصطناعي", "مشروع"],
+            5: ["التدريب التعاوني -1", "التدريب التعاوني -2"]
+        },
+        "الأمن السيبراني": {
+            1: ["التوجيه المهني والتميز", "مقدمة تطبيقات الحاسب", "مبادئ شبكات الحاسب", "الرياضيات", "أساسيات الأمن السيبراني", "لغة إنجليزية - 1"],
+            2: ["لغة إنجليزية - 2", "نظم تشغيل", "تطبيقات الحاسب المتقدمة", "برمجة الحاسب", "إدارة أمن المعلومات"],
+            3: ["أمن أنظمة التشغيل", "تطوير البرمجيات الآمنة", "أمن الشبكات والاتصالات", "اختبار الاختراق"],
+            4: ["التشفير التطبيقي", "إنترنت الأشياء الآمنة", "إدارة المخاطر", "الجرائم الإلكترونية", "مشروع التخرج"],
+            5: ["التدريب التعاوني", "التدريب التعاوني -2"]
+        }
+    };
+
+    let students = [];
+
+    async function loadData() {
+        const track = document.getElementById('select-track').value;
+        const group = document.getElementById('select-group').value;
+        
+        let query = supabase.from('user_profile').select('*');
+        if(group !== 'all') query = query.eq('group_name', group);
+        
+        const { data, error } = await query;
+        if (data) {
+            students = data;
+            renderStudents();
+        }
+    }
+
+    function updateCourseDropdown() {
+        const track = document.getElementById('select-track').value;
+        const sem = document.getElementById('select-semester').value;
+        const courses = curriculum[track][sem] || [];
+        const select = document.getElementById('select-course');
+        select.innerHTML = courses.map(c => `<option value="${c}">${c}</option>`).join('');
+    }
+
+    function renderStudents() {
+        const body = document.getElementById('admin-students-body');
+        body.innerHTML = students.map(s => `
+            <tr>
+                <td><input type="checkbox" class="std-check" value="${s.user_id}"></td>
+                <td><strong>${s.full_name}</strong></td>
+                <td>${s.phone || s.national_id}</td>
+                <td>${s.track}</td>
+                <td>${s.group_name}</td>
+                <td><span class="status-dot bg-warning"></span> جاري التحميل..</td>
+                <td><button onclick="alert('تعديل ملف ${s.full_name}')" class="page-btn">تعديل</button></td>
+            </tr>
+        `).join('');
+    }
+
+    // وظيفة التحديث الجماعي
+    window.updateBatchStatus = async function() {
+        const targetCourse = document.getElementById('select-course').value;
+        const targetStatus = document.getElementById('target-status').value;
+        const selectedGroup = document.getElementById('select-group').value;
+
+        if(!confirm(`هل أنت متأكد من تغيير حالة مقرر (${targetCourse}) إلى (${targetStatus}) لجميع طلاب ${selectedGroup}؟`)) return;
+
+        // تنفيذ الـ Logic البرمجي (Update Enrollments)
+        // سنحتاج أولاً لجلب الـ course_id بناءً على الاسم
+        const { data: courseData } = await supabase.from('courses').select('course_id').ilike('title', `%${targetCourse}%`).maybeSingle();
+        
+        if(!courseData) {
+            alert("خطأ: لم يتم العثور على المقرر في قاعدة البيانات العامة");
+            return;
+        }
+
+        // تحديث جماعي لكل الطلاب في المجموعة
+        const studentIds = students.map(s => s.user_id);
+        
+        const { error } = await supabase
+            .from('enrollments')
+            .update({ 
+                completion_status: targetStatus,
+                completion_percentage: targetStatus === 'completed' ? 100 : (targetStatus === 'in_progress' ? 50 : 0)
+            })
+            .in('user_id', studentIds)
+            .eq('course_id', courseData.course_id);
+
+        if(!error) {
+            alert("تم التحديث بنجاح!");
+            loadData();
+        } else {
+            alert("حدث خطأ أثناء التحديث: " + error.message);
+        }
+    }
+
+    // مستمعي الأحداث
+    document.getElementById('select-track').addEventListener('change', () => { updateCourseDropdown(); loadData(); });
+    document.getElementById('select-semester').addEventListener('change', updateCourseDropdown);
+    document.getElementById('select-group').addEventListener('change', loadData);
+
+    // البداية
+    updateCourseDropdown();
+    loadData();
+</script>
+</body>
+</html>
