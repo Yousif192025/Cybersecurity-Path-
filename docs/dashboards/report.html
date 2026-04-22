@@ -2,14 +2,17 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>تقرير أداء المتدرب | CyberPath</title>
+    <title>تقرير المتدرب الحي | CyberPath</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Tajawal', sans-serif; background: #f0f2f5; padding: 20px; }
-        .report-card { max-width: 800px; margin: auto; background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .report-header { background: #1e3a8a; color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
-        .user-info h2 { margin: 0; font-size: 1.5rem; }
-        .user-info p { margin: 5px 0 0; opacity: 0.9; }
+        body { font-family: 'Tajawal', sans-serif; background: #f0f2f5; padding: 20px; direction: rtl; }
+        .container { max-width: 900px; margin: auto; }
+        .search-box { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; gap: 10px; }
+        input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-family: inherit; }
+        .btn-search { background: #1e3a8a; color: white; border: none; padding: 0 25px; border-radius: 8px; cursor: pointer; }
+        
+        .report-card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: none; }
+        .report-header { background: #1e3a8a; color: white; padding: 25px; display: flex; justify-content: space-between; align-items: center; }
         
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 20px; background: #f8fafc; }
         .stat-item { padding: 15px; border-radius: 10px; text-align: center; color: white; }
@@ -17,15 +20,13 @@
         .stat-progress { background: #f59e0b; }
         .stat-pending { background: #94a3b8; }
         .stat-value { font-size: 1.8rem; font-weight: bold; display: block; }
-        .stat-label { font-size: 0.9rem; opacity: 0.9; }
-
+        
         .progress-section { padding: 20px; border-top: 1px solid #eee; }
         .progress-bar-bg { background: #e2e8f0; height: 12px; border-radius: 10px; margin-top: 10px; overflow: hidden; }
-        .progress-bar-fill { background: #2563eb; height: 100%; transition: width 0.5s; }
+        .progress-bar-fill { background: #2563eb; height: 100%; transition: width 0.8s ease-in-out; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { padding: 12px; text-align: right; border-bottom: 1px solid #eee; }
-        th { color: #64748b; font-size: 0.85rem; }
         .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
         .pill-done { background: #dcfce7; color: #15803d; }
         .pill-ongoing { background: #fef3c7; color: #92400e; }
@@ -33,109 +34,137 @@
 </head>
 <body>
 
-<div class="report-card">
-    <div class="report-header">
-        <div class="user-info">
-            <h2 id="rep-name">اسم المتدرب التجريبي</h2>
-            <p id="rep-track">مسار الأمن السيبراني</p>
-        </div>
-        <div style="text-align: left;">
-            <div id="rep-percent" style="font-size: 2rem; font-weight: bold;">0%</div>
-            <div style="font-size: 0.8rem;">نسبة الإنجاز الكلية</div>
-        </div>
+<div class="container">
+    <div class="search-box">
+        <input type="text" id="student-email" placeholder="أدخل البريد الإلكتروني للمتدرب أو الـ ID...">
+        <button class="btn-search" onclick="fetchStudentReport()">عرض التقرير</button>
     </div>
 
-    <div class="stats-grid">
-        <div class="stat-item stat-completed">
-            <span class="stat-value" id="count-done">0</span>
-            <span class="stat-label">مقررات مكتملة</span>
+    <div id="report-content" class="report-card">
+        <div class="report-header">
+            <div>
+                <h2 id="rep-name">...</h2>
+                <p id="rep-track">...</p>
+                <p id="rep-group" style="font-size: 0.8rem; opacity: 0.8;"></p>
+            </div>
+            <div style="text-align: left;">
+                <div id="rep-percent" style="font-size: 2.5rem; font-weight: bold;">0%</div>
+                <div>نسبة الإنجاز</div>
+            </div>
         </div>
-        <div class="stat-item stat-progress">
-            <span class="stat-value" id="count-ongoing">0</span>
-            <span class="stat-label">قيد الدراسة</span>
-        </div>
-        <div class="stat-item stat-pending">
-            <span class="stat-value" id="count-left">0</span>
-            <span class="stat-label">متبقية</span>
-        </div>
-    </div>
 
-    <div class="progress-section">
-        <div style="display: flex; justify-content: space-between; font-weight: bold;">
-            <span>التقدم في الخطة الدراسية</span>
-            <span id="progress-text">0 / 27 مقرر</span>
+        <div class="stats-grid">
+            <div class="stat-item stat-completed">
+                <span class="stat-value" id="count-done">0</span>
+                <span class="stat-label">مكتملة</span>
+            </div>
+            <div class="stat-item stat-progress">
+                <span class="stat-value" id="count-ongoing">0</span>
+                <span class="stat-label">قيد الدراسة</span>
+            </div>
+            <div class="stat-item stat-pending">
+                <span class="stat-value" id="count-left">0</span>
+                <span class="stat-label">متبقية</span>
+            </div>
         </div>
-        <div class="progress-bar-bg">
-            <div class="progress-bar-fill" id="bar-fill" style="width: 0%;"></div>
-        </div>
-    </div>
 
-    <div style="padding: 20px;">
-        <h3 style="font-size: 1rem; color: #1e293b;">آخر التحديثات:</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>اسم المقرر</th>
-                    <th>الحالة</th>
-                    <th>النسبة</th>
-                </tr>
-            </thead>
-            <tbody id="rep-table">
-                </tbody>
-        </table>
+        <div class="progress-section">
+            <div style="display: flex; justify-content: space-between; font-weight: bold;">
+                <span>التقدم في الخطة الدراسية</span>
+                <span id="progress-text">0 / 0</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="bar-fill" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <div style="padding: 20px;">
+            <h3>سجل المقررات المسجلة:</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>المقرر</th>
+                        <th>الحالة</th>
+                        <th>النسبة</th>
+                    </tr>
+                </thead>
+                <tbody id="rep-table"></tbody>
+            </table>
+        </div>
     </div>
 </div>
 
-<script>
-    // بيانات تجريبية للمحاكاة
-    const sampleData = {
-        name: "عبدالله محمد علي",
-        track: "دبلوم الأمن السيبراني", // أو "دبلوم علوم الحاسب التطبيقي"
-        completed: 12,
-        inProgress: 5,
-        courses: [
-            { title: "أساسيات الأمن السيبراني", status: "completed", perc: 100 },
-            { title: "أمن الشبكات والاتصالات", status: "in_progress", perc: 50 },
-            { title: "التشفير التطبيقي", status: "completed", perc: 100 },
-            { title: "التحقيق الجنائي الرقمي", status: "not_started", perc: 0 }
-        ]
-    };
+<script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-    function generateReport(data) {
-        // تحديد العدد الكلي بناءً على المسار
-        const totalCourses = data.track.includes("الأمن") ? 27 : 29;
-        const left = totalCourses - (data.completed + data.inProgress);
-        const totalPerc = Math.round((data.completed / totalCourses) * 100);
+    const supabase = createClient("https://suvpaunulhqfoclepwoz.supabase.co", "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b");
 
-        // تحديث النصوص
-        document.getElementById('rep-name').innerText = data.name;
-        document.getElementById('rep-track').innerText = data.track;
-        document.getElementById('rep-percent').innerText = totalPerc + "%";
-        document.getElementById('progress-text').innerText = `${data.completed} / ${totalCourses} مقرر`;
-        document.getElementById('bar-fill').style.width = totalPerc + "%";
+    window.fetchStudentReport = async function() {
+        const identifier = document.getElementById('student-email').value.trim();
+        if (!identifier) return alert("يرجى إدخال بيانات البحث");
+
+        // 1. جلب بيانات الملف الشخصي للمتدرب
+        // البحث هنا يدعم الإيميل أو الـ User ID
+        const { data: user, error: userErr } = await supabase
+            .from('user_profile')
+            .select('*')
+            .or(`email.eq.${identifier},user_id.eq.${identifier}`)
+            .single();
+
+        if (userErr || !user) return alert("لم يتم العثور على المتدرب");
+
+        // 2. جلب سجلات التسجيل (Enrollments) مع أسماء المقررات
+        const { data: enrolls, error: enrollErr } = await supabase
+            .from('enrollments')
+            .select(`
+                completion_status,
+                completion_percentage,
+                courses ( title )
+            `)
+            .eq('user_id', user.user_id);
+
+        if (enrollErr) return alert("خطأ في جلب السجلات");
+
+        renderReport(user, enrolls);
+    }
+
+    function renderReport(user, enrolls) {
+        const track = user.track || "";
+        // تحديد العدد الكلي بناءً على المسار كما طلبت
+        const totalCourses = track.includes("امن") || track.includes("Cyber") ? 27 : 29;
         
-        // تحديث الأرقام
-        document.getElementById('count-done').innerText = data.completed;
-        document.getElementById('count-ongoing').innerText = data.inProgress;
-        document.getElementById('count-left').innerText = left;
+        const doneCount = enrolls.filter(e => e.completion_status === 'completed').length;
+        const ongoingCount = enrolls.filter(e => e.completion_status === 'in_progress').length;
+        const leftCount = totalCourses - doneCount; // المتبقية هي التي لم تكتمل بعد
+        
+        const percent = Math.round((doneCount / totalCourses) * 100);
 
-        // تحديث الجدول
+        // تحديث الواجهة
+        document.getElementById('report-content').style.display = 'block';
+        document.getElementById('rep-name').innerText = user.full_name;
+        document.getElementById('rep-track').innerText = track;
+        document.getElementById('rep-group').innerText = "المجموعة: " + (user.group_name || "غير محددة");
+        document.getElementById('rep-percent').innerText = percent + "%";
+        document.getElementById('count-done').innerText = doneCount;
+        document.getElementById('count-ongoing').innerText = ongoingCount;
+        document.getElementById('count-left').innerText = leftCount;
+        document.getElementById('progress-text').innerText = `${doneCount} من أصل ${totalCourses} مقرر مكتمل`;
+        document.getElementById('bar-fill').style.width = percent + "%";
+
+        // تحديث جدول المقررات
         const tableBody = document.getElementById('rep-table');
-        tableBody.innerHTML = data.courses.map(c => `
+        tableBody.innerHTML = enrolls.map(e => `
             <tr>
-                <td>${c.title}</td>
+                <td>${e.courses.title}</td>
                 <td>
-                    <span class="status-pill ${c.status === 'completed' ? 'pill-done' : 'pill-ongoing'}">
-                        ${c.status === 'completed' ? 'مكتمل ✅' : (c.status === 'in_progress' ? 'قيد الدراسة 🔄' : 'لم يبدأ ⚪')}
+                    <span class="status-pill ${e.completion_status === 'completed' ? 'pill-done' : 'pill-ongoing'}">
+                        ${e.completion_status === 'completed' ? 'مكتمل ✅' : 'قيد الدراسة 🔄'}
                     </span>
                 </td>
-                <td>${c.perc}%</td>
+                <td>${e.completion_percentage}%</td>
             </tr>
         `).join('');
     }
-
-    // تشغيل التقرير بالبيانات التجريبية
-    generateReport(sampleData);
 </script>
 
 </body>
