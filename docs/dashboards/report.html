@@ -2,17 +2,15 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>تقرير المتدرب الحي | CyberPath</title>
+    <title>تقرير المتدرب | CyberPath</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Tajawal', sans-serif; background: #f0f2f5; padding: 20px; direction: rtl; text-align: right; }
         .container { max-width: 900px; margin: auto; }
-        .search-box { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; gap: 10px; align-items: center; }
+        .search-box { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; gap: 10px; }
         input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-family: inherit; }
-        .btn-search { background: #1e3a8a; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        
-        /* تصميم التقرير */
-        .report-card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: none; margin-top: 20px; }
+        .btn-search { background: #1e3a8a; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; }
+        .report-card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: none; }
         .report-header { background: #1e3a8a; color: white; padding: 25px; display: flex; justify-content: space-between; align-items: center; }
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 20px; background: #f8fafc; }
         .stat-item { padding: 15px; border-radius: 10px; text-align: center; color: white; }
@@ -32,14 +30,14 @@
 
 <div class="container">
     <div class="search-box">
-        <input type="text" id="student-search" placeholder="ابحث باسم المتدرب أو البريد الإلكتروني...">
-        <button class="btn-search" onclick="fetchStudentReport()">بحث وعرض التقرير</button>
+        <input type="text" id="student-search" placeholder="اكتب اسم المتدرب كاملاً كما هو في الجدول...">
+        <button class="btn-search" onclick="fetchStudentReport()">عرض التقرير</button>
     </div>
 
     <div id="report-content" class="report-card">
         <div class="report-header">
             <div>
-                <h2 id="rep-name">اسم المتدرب</h2>
+                <h2 id="rep-name">الاسم</h2>
                 <p id="rep-track">المسار</p>
                 <p id="rep-group" style="font-size: 0.8rem; opacity: 0.8;"></p>
             </div>
@@ -48,25 +46,20 @@
                 <div>نسبة الإنجاز</div>
             </div>
         </div>
-
         <div class="stats-grid">
             <div class="stat-item stat-completed"><span class="stat-value" id="count-done">0</span><span>مكتملة</span></div>
             <div class="stat-item stat-progress"><span class="stat-value" id="count-ongoing">0</span><span>قيد الدراسة</span></div>
             <div class="stat-item stat-pending"><span class="stat-value" id="count-left">0</span><span>متبقية</span></div>
         </div>
-
         <div class="progress-section">
             <div style="display: flex; justify-content: space-between; font-weight: bold;">
-                <span>التقدم في الخطة</span>
-                <span id="progress-text">0 / 0</span>
+                <span id="progress-text">0 / 0 مقرر</span>
             </div>
             <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-fill" style="width: 0%;"></div></div>
         </div>
-
         <div style="padding: 20px;">
-            <h3>سجل المقررات:</h3>
             <table>
-                <thead><tr><th>المقرر</th><th>الحالة</th><th>النسبة</th></tr></thead>
+                <thead><tr><th>المقرر</th><th>الحالة</th></tr></thead>
                 <tbody id="rep-table"></tbody>
             </table>
         </div>
@@ -78,66 +71,58 @@
     const supabase = createClient("https://suvpaunulhqfoclepwoz.supabase.co", "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b");
 
     window.fetchStudentReport = async function() {
-        const queryText = document.getElementById('student-search').value.trim();
-        if (!queryText) return alert("الرجاء إدخال اسم أو بريد للبحث");
+        const val = document.getElementById('student-search').value.trim();
+        if (!val) return;
 
-        // البحث باستخدام ilike لجعل البحث مرن (يجد الاسم حتى لو كان جزءاً منه)
-        const { data: users, error: userErr } = await supabase
+        // محاولة البحث في الأعمدة المحتملة
+        const { data, error } = await supabase
             .from('user_profile')
             .select('*')
-            .or(`full_name.ilike.%${queryText}%,email.ilike.%${queryText}%,user_id.eq.${queryText}`);
+            .or(`full_name.eq."${val}",email.eq."${val}",user_id.eq."${val}"`);
 
-        if (userErr || !users || users.length === 0) {
-            console.error(userErr);
-            return alert("لم يتم العثور على المتدرب. تأكد من كتابة الاسم أو الإيميل بشكل صحيح.");
+        if (error) {
+            console.error("خطأ في الاتصال:", error);
+            return alert("حدث خطأ تقني، تفقد الـ Console");
         }
 
-        const user = users[0]; // نأخذ أول نتيجة مطابقة
+        if (!data || data.length === 0) {
+            return alert("لم نجد هذا الاسم. تأكد من كتابة الاسم مطابقاً لما هو في جدول user_profile");
+        }
 
-        // جلب سجلات المواد
-        const { data: enrolls, error: enrollErr } = await supabase
+        const user = data[0];
+
+        // جلب المقررات
+        const { data: enrolls } = await supabase
             .from('enrollments')
-            .select('completion_status, completion_percentage, courses(title)')
+            .select('completion_status, courses(title)')
             .eq('user_id', user.user_id);
 
-        if (enrollErr) return alert("خطأ في جلب سجلات المواد");
-
-        renderReport(user, enrolls || []);
+        render(user, enrolls || []);
     }
 
-    function renderReport(user, enrolls) {
+    function render(user, enrolls) {
         const track = user.track || "";
-        // المنطق الخاص بالأعداد (27 للأمن، 29 للحاسب)
-        const totalCourses = (track.includes("امن") || track.includes("Cyber")) ? 27 : 29;
-        
-        const doneCount = enrolls.filter(e => e.completion_status === 'completed').length;
-        const ongoingCount = enrolls.filter(e => e.completion_status === 'in_progress').length;
-        const leftCount = totalCourses - doneCount; 
-        const percent = Math.round((doneCount / totalCourses) * 100);
+        const total = (track.includes("امن") || track.includes("Cyber")) ? 27 : 29;
+        const done = enrolls.filter(e => e.completion_status === 'completed').length;
+        const perc = Math.round((done / total) * 100);
 
         document.getElementById('report-content').style.display = 'block';
         document.getElementById('rep-name').innerText = user.full_name;
         document.getElementById('rep-track').innerText = track;
-        document.getElementById('rep-group').innerText = "المجموعة: " + (user.group_name || "غير محددة");
-        document.getElementById('rep-percent').innerText = percent + "%";
-        document.getElementById('count-done').innerText = doneCount;
-        document.getElementById('count-ongoing').innerText = ongoingCount;
-        document.getElementById('count-left').innerText = leftCount;
-        document.getElementById('progress-text').innerText = `${doneCount} من أصل ${totalCourses} مقرر مكتمل`;
-        document.getElementById('bar-fill').style.width = percent + "%";
+        document.getElementById('rep-group').innerText = "المجموعة: " + user.group_name;
+        document.getElementById('rep-percent').innerText = perc + "%";
+        document.getElementById('count-done').innerText = done;
+        document.getElementById('count-ongoing').innerText = enrolls.filter(e => e.completion_status === 'in_progress').length;
+        document.getElementById('count-left').innerText = total - done;
+        document.getElementById('bar-fill').style.width = perc + "%";
+        document.getElementById('progress-text').innerText = `${done} من أصل ${total} مقرر مكتمل`;
 
-        const tableBody = document.getElementById('rep-table');
-        tableBody.innerHTML = enrolls.length > 0 ? enrolls.map(e => `
+        document.getElementById('rep-table').innerHTML = enrolls.map(e => `
             <tr>
-                <td>${e.courses ? e.courses.title : 'مقرر غير معروف'}</td>
-                <td>
-                    <span class="status-pill ${e.completion_status === 'completed' ? 'pill-done' : 'pill-ongoing'}">
-                        ${e.completion_status === 'completed' ? 'مكتمل ✅' : 'قيد الدراسة 🔄'}
-                    </span>
-                </td>
-                <td>${e.completion_percentage}%</td>
+                <td>${e.courses?.title || 'مقرر'}</td>
+                <td><span class="status-pill ${e.completion_status === 'completed' ? 'pill-done' : 'pill-ongoing'}">${e.completion_status}</span></td>
             </tr>
-        `).join('') : '<tr><td colspan="3" style="text-align:center;">لا توجد مواد مسجلة لهذا المتدرب بعد</td></tr>';
+        `).join('');
     }
 </script>
 </body>
