@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>تقرير المتدرب (هوية المستخدم) | CyberPath</title>
+    <title>تقرير المتدرب | CyberPath</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Tajawal', sans-serif; background: #f0f2f5; padding: 20px; direction: rtl; text-align: right; }
         .container { max-width: 900px; margin: auto; }
         .search-box { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; gap: 10px; }
-        input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-family: inherit; text-align: left; direction: ltr; }
+        input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-family: inherit; }
         .btn-search { background: #1e3a8a; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; }
         
         .report-card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: none; }
@@ -33,7 +33,7 @@
 
 <div class="container">
     <div class="search-box">
-        <input type="text" id="user-id-input" placeholder="أدخل هوية المتدرب (User ID / UUID)...">
+        <input type="text" id="student-query" placeholder="أدخل رقم الهوية الوطنية أو الاسم الكامل للمتدرب...">
         <button class="btn-search" onclick="fetchStudentReport()">عرض التقرير</button>
     </div>
 
@@ -43,10 +43,11 @@
                 <h2 id="rep-name">...</h2>
                 <p id="rep-track">...</p>
                 <p id="rep-group" style="font-size: 0.8rem; opacity: 0.8;"></p>
+                <p id="rep-id" style="font-size: 0.8rem; opacity: 0.7;"></p>
             </div>
             <div style="text-align: left;">
                 <div id="rep-percent" style="font-size: 2.5rem; font-weight: bold;">0%</div>
-                <div>نسبة الإنجاز</div>
+                <div>إجمالي الإنجاز</div>
             </div>
         </div>
 
@@ -64,10 +65,10 @@
         </div>
 
         <div style="padding: 20px;">
-            <h3>سجل إنجاز المقررات:</h3>
+            <h3>تفاصيل الخطة الدراسية:</h3>
             <table>
                 <thead>
-                    <tr><th>المقرر</th><th>الحالة</th><th>النسبة</th></tr>
+                    <tr><th>اسم المقرر</th><th>الحالة</th><th>النسبة</th></tr>
                 </thead>
                 <tbody id="rep-table"></tbody>
             </table>
@@ -80,26 +81,28 @@
     const supabase = createClient("https://suvpaunulhqfoclepwoz.supabase.co", "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b");
 
     window.fetchStudentReport = async function() {
-        const userId = document.getElementById('user-id-input').value.trim();
-        if (!userId) return alert("يرجى إدخال هوية المتدرب");
+        const queryText = document.getElementById('student-query').value.trim();
+        if (!queryText) return alert("يرجى إدخال قيمة للبحث");
 
-        // 1. جلب بيانات المتدرب بواسطة الـ ID حصراً
-        const { data: user, error: userErr } = await supabase
+        // البحث المرن: يبحث في عمود الهوية الوطنية أو الاسم الكامل
+        // ملاحظة: تأكد أن اسم العمود في جدولك هو national_id أو عدله هنا
+        const { data: users, error: userErr } = await supabase
             .from('user_profile')
             .select('*')
-            .eq('user_id', userId)
-            .single();
+            .or(`national_id.eq."${queryText}",full_name.ilike.%${queryText}%`);
 
-        if (userErr || !user) {
-            console.error("User Fetch Error:", userErr);
-            return alert("لم يتم العثور على متدرب بهذه الهوية. تأكد من صحة الـ ID.");
+        if (userErr || !users || users.length === 0) {
+            console.error(userErr);
+            return alert("لم يتم العثور على متدرب بهذه البيانات. تأكد من رقم الهوية أو الاسم.");
         }
 
-        // 2. جلب سجلات المقررات المرتبطة بهذا الـ ID
+        const user = users[0];
+
+        // جلب سجلات المواد باستخدام الـ user_id (الربط الداخلي)
         const { data: enrolls, error: enrollErr } = await supabase
             .from('enrollments')
             .select('completion_status, completion_percentage, courses(title)')
-            .eq('user_id', userId);
+            .eq('user_id', user.user_id);
 
         if (enrollErr) console.error("Enrollment Fetch Error:", enrollErr);
 
@@ -108,7 +111,7 @@
 
     function renderReport(user, enrolls) {
         const track = user.track || "";
-        // المنطق المطلوب (27 أمن / 29 حاسب)
+        // منطق الأرقام (27 أمن / 29 حاسب)
         const total = (track.includes("امن") || track.includes("Cyber")) ? 27 : 29;
         
         const done = enrolls.filter(e => e.completion_status === 'completed').length;
@@ -119,6 +122,7 @@
         document.getElementById('rep-name').innerText = user.full_name;
         document.getElementById('rep-track').innerText = track;
         document.getElementById('rep-group').innerText = "المجموعة: " + (user.group_name || "غير محددة");
+        document.getElementById('rep-id').innerText = "رقم الهوية: " + (user.national_id || "غير متوفر");
         document.getElementById('rep-percent').innerText = perc + "%";
         document.getElementById('count-done').innerText = done;
         document.getElementById('count-ongoing').innerText = ongoing;
@@ -136,7 +140,7 @@
                 </td>
                 <td>${e.completion_percentage || 0}%</td>
             </tr>
-        `).join('') : '<tr><td colspan="3" style="text-align:center;">لا توجد سجلات لهذا المتدرب حالياً</td></tr>';
+        `).join('') : '<tr><td colspan="3" style="text-align:center;">لا توجد سجلات مواد لهذا المتدرب حالياً</td></tr>';
     }
 </script>
 </body>
