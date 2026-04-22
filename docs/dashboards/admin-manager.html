@@ -44,14 +44,14 @@
     </div>
 
     <div style="background: #e9ecef; padding: 15px; border-radius: 8px;">
-        <strong>تحديث جماعي للمجموعة:</strong>
+        <strong>تحديث جماعي (سيطابق المسار آلياً):</strong>
         <div style="display: flex; gap: 10px; margin-top: 10px;">
             <select id="status-select" style="flex: 1;">
                 <option value="completed">مكتمل ✅</option>
                 <option value="in_progress">قيد الدراسة 🔄</option>
                 <option value="not_started">لم يبدأ بعد ⚪</option>
             </select>
-            <button class="btn btn-batch" style="flex: 1; margin: 0;" onclick="batchUpdate()">تحديث المجموعة كاملة</button>
+            <button class="btn btn-batch" style="flex: 1; margin: 0;" onclick="batchUpdate()">تحديث المستحقين فقط</button>
         </div>
     </div>
 
@@ -75,23 +75,23 @@
     const supabase = createClient("https://suvpaunulhqfoclepwoz.supabase.co", "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b");
 
     let studentsData = [];
+    let coursesData = [];
 
-    // جلب كل المقررات فوراً عند تحميل الصفحة
     async function init() {
-        const { data, error } = await supabase.from('courses').select('course_id, title').order('title');
+        const { data } = await supabase.from('courses').select('course_id, title').order('title');
         if (data) {
+            coursesData = data; // حفظ بيانات المقررات للتحقق منها لاحقاً
             const select = document.getElementById('course-select');
             select.innerHTML = '<option value="">-- اختر المقرر من القائمة --</option>' + 
                 data.map(c => `<option value="${c.course_id}">${c.title}</option>`).join('');
         }
     }
 
-    // جلب الطلاب بناءً على المجموعة فقط لضمان ظهورهم
     window.loadStudents = async function() {
         const group = document.getElementById('group-select').value;
         if (!group) return;
 
-        const { data, error } = await supabase.from('user_profile').select('*').eq('group_name', group);
+        const { data } = await supabase.from('user_profile').select('*').eq('group_name', group);
         
         const body = document.getElementById('students-body');
         if (data && data.length > 0) {
@@ -101,9 +101,9 @@
                     <td><b>${s.full_name}</b></td>
                     <td>${s.track || 'غير محدد'}</td>
                     <td>
-                        <button class="btn btn-green" onclick="singleUpdate('${s.user_id}', 'completed')">مكتمل</button>
-                        <button class="btn btn-orange" onclick="singleUpdate('${s.user_id}', 'in_progress')">دراسة</button>
-                        <button class="btn btn-gray" onclick="singleUpdate('${s.user_id}', 'not_started')">لم يبدأ</button>
+                        <button class="btn btn-green" onclick="singleUpdate('${s.user_id}', 'completed', '${s.track}')">مكتمل</button>
+                        <button class="btn btn-orange" onclick="singleUpdate('${s.user_id}', 'in_progress', '${s.track}')">دراسة</button>
+                        <button class="btn btn-gray" onclick="singleUpdate('${s.user_id}', 'not_started', '${s.track}')">لم يبدأ</button>
                     </td>
                 </tr>
             `).join('');
@@ -112,10 +112,31 @@
         }
     }
 
-    // التحديث الفردي
-    window.singleUpdate = async function(userId, status) {
+    // التحقق من مطابقة المسار للمقرر
+    function isTrackMatching(studentTrack, courseTitle) {
+        if (!studentTrack || !courseTitle) return false;
+        // إذا كان المقرر يحتوي على كلمة "أمن" والطالب مساره "أمن"
+        if (courseTitle.includes("الأمن") && studentTrack.includes("الأمن")) return true;
+        // إذا كان المقرر يحتوي على كلمة "حاسب" والطالب مساره "حاسب"
+        if (courseTitle.includes("حاسب") && studentTrack.includes("حاسب")) return true;
+        // الدورات الحرة (اختياري: يمكن السماح للجميع بها)
+        if (courseTitle.includes("الحرة") || studentTrack.includes("الحرة")) return true;
+        
+        return false;
+    }
+
+    window.singleUpdate = async function(userId, status, studentTrack) {
         const courseId = document.getElementById('course-select').value;
         if (!courseId) return alert("الرجاء اختيار المقرر أولاً");
+
+        const course = coursesData.find(c => c.course_id === courseId);
+        
+        // التحقق قبل الحفظ
+        if (!isTrackMatching(studentTrack, course.title)) {
+            if (!confirm(`تنبيه: هذا المقرر (${course.title}) قد لا يتبع مسار الطالب (${studentTrack}). هل تريد الاستمرار على أي حال؟`)) {
+                return;
+            }
+        }
 
         const { error } = await supabase.from('enrollments').upsert({
             user_id: userId,
@@ -125,29 +146,33 @@
         }, { onConflict: 'user_id,course_id' });
 
         if (!error) alert("✅ تم التحديث");
-        else alert("❌ خطأ: " + error.message);
     }
 
-    // التحديث الجماعي
     window.batchUpdate = async function() {
         const courseId = document.getElementById('course-select').value;
         const status = document.getElementById('status-select').value;
-
         if (!courseId || studentsData.length === 0) return alert("تأكد من اختيار المقرر والمجموعة");
 
-        const updates = studentsData.map(s => ({
+        const course = coursesData.find(c => c.course_id === courseId);
+
+        // فلترة الطلاب المستحقين للمقرر فقط
+        const eligibleStudents = studentsData.filter(s => isTrackMatching(s.track, course.title));
+
+        if (eligibleStudents.length === 0) {
+            return alert("لا يوجد طلاب في هذه المجموعة يتبعون مسار هذا المقرر!");
+        }
+
+        const updates = eligibleStudents.map(s => ({
             user_id: s.user_id,
             course_id: courseId,
             completion_status: status,
             completion_percentage: status === 'completed' ? 100 : (status === 'in_progress' ? 50 : 0)
         }));
 
-        if (!confirm(`سيتم تحديث ${studentsData.length} طالب، هل أنت متأكد؟`)) return;
+        if (!confirm(`سيتم تحديث ${updates.length} طالب (من أصل ${studentsData.length}) يطابقون مسار المقرر. استمرار؟`)) return;
 
         const { error } = await supabase.from('enrollments').upsert(updates, { onConflict: 'user_id,course_id' });
-        
-        if (!error) alert("✅ تم تحديث المجموعة بالكامل");
-        else alert("❌ خطأ جماعي: " + error.message);
+        if (!error) alert(`✅ تم تحديث ${updates.length} طالب مستحق بنجاح`);
     }
 
     init();
