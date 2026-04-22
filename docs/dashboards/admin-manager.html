@@ -8,9 +8,8 @@
         body { font-family: 'Tajawal', sans-serif; background: #f4f7f6; direction: rtl; padding: 20px; }
         .container { max-width: 1100px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .header { border-bottom: 2px solid #eee; margin-bottom: 20px; padding-bottom: 10px; }
-        /* تعديل التصميم ليتناسب مع 3 فلاتر */
-        .controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-family: inherit; }
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        select, input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-family: inherit; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { padding: 12px; border: 1px solid #eee; text-align: right; }
         th { background: #f9f9f9; }
@@ -30,37 +29,34 @@
 
     <div class="controls">
         <div>
-            <label>1. اختر المسار:</label>
-            <select id="path-select" onchange="loadStudents()">
-                <option value="6b6c73af-9699-44e0-a9eb-fb8ad3a4b8a9">دبلوم الأمن السيبراني</option>
-                <option value="e405540d-2471-406d-8011-c01bc408b53a">دبلوم علوم الحاسب التطبيقي</option>
-                <option value="26ca24f8-8401-4e70-91d9-561174ce5417">الدورات الحرة والتخصصية</option>
-            </select>
-        </div>
-        <div>
-            <label>2. اختر المجموعة:</label>
+            <label>1. اختر المجموعة:</label>
             <select id="group-select" onchange="loadStudents()">
                 <option value="">-- اختر المجموعة --</option>
                 <script>for(let i=1; i<=10; i++) document.write(`<option value="Group -${i}">Group -${i}</option>`);</script>
             </select>
         </div>
         <div>
-            <label>3. اختر المقرر:</label>
+            <label>2. اختر المقرر المراد تحديثه:</label>
             <select id="course-select">
                 <option value="">جاري تحميل المقررات...</option>
             </select>
         </div>
     </div>
 
+    <div style="margin-bottom: 15px;">
+        <label>🔍 تصفية سريعة (اكتب: الأمن أو حاسب):</label>
+        <input type="text" id="quick-filter" onkeyup="filterRows()" placeholder="ابحث بالاسم أو المسار...">
+    </div>
+
     <div style="background: #e9ecef; padding: 15px; border-radius: 8px;">
-        <strong>تحديث جماعي للطلاب الظاهرين أدناه:</strong>
+        <strong>تحديث جماعي للطلاب (الظاهرين فقط):</strong>
         <div style="display: flex; gap: 10px; margin-top: 10px;">
             <select id="status-select" style="flex: 1;">
                 <option value="completed">مكتمل ✅</option>
                 <option value="in_progress">قيد الدراسة 🔄</option>
                 <option value="not_started">لم يبدأ بعد ⚪</option>
             </select>
-            <button class="btn btn-batch" style="flex: 1; margin: 0;" onclick="batchUpdate()">تحديث المجموعة كاملة</button>
+            <button class="btn btn-batch" style="flex: 1; margin: 0;" onclick="batchUpdate()">تحديث الظاهرين في الجدول</button>
         </div>
     </div>
 
@@ -85,35 +81,28 @@
 
     let studentsData = [];
 
-    // جلب المقررات (بدون فلترة معقدة لضمان الظهور)
     async function init() {
-        const { data, error } = await supabase.from('courses').select('course_id, title').order('title');
+        const { data } = await supabase.from('courses').select('course_id, title').order('title');
         if (data) {
             const select = document.getElementById('course-select');
-            select.innerHTML = '<option value="">-- اختر المقرر --</option>' + 
+            select.innerHTML = '<option value="">-- اختر المقرر من القائمة --</option>' + 
                 data.map(c => `<option value="${c.course_id}">${c.title}</option>`).join('');
         }
     }
 
-    // جلب الطلاب بناءً على المسار والمجموعة
     window.loadStudents = async function() {
         const group = document.getElementById('group-select').value;
-        const pathId = document.getElementById('path-select').value;
         if (!group) return;
 
-        // الفلترة هنا تتم بناءً على path_id و group_name
-        const { data, error } = await supabase.from('user_profile')
-            .select('*')
-            .eq('group_name', group)
-            .eq('path_id', pathId);
+        const { data } = await supabase.from('user_profile').select('*').eq('group_name', group);
         
         const body = document.getElementById('students-body');
         if (data && data.length > 0) {
             studentsData = data;
             body.innerHTML = data.map(s => `
-                <tr>
+                <tr class="student-row">
                     <td><b>${s.full_name}</b></td>
-                    <td>${s.track || 'غير محدد'}</td>
+                    <td class="track-cell">${s.track || 'غير محدد'}</td>
                     <td>
                         <button class="btn btn-green" onclick="singleUpdate('${s.user_id}', 'completed')">مكتمل</button>
                         <button class="btn btn-orange" onclick="singleUpdate('${s.user_id}', 'in_progress')">دراسة</button>
@@ -122,9 +111,18 @@
                 </tr>
             `).join('');
         } else {
-            studentsData = [];
-            body.innerHTML = '<tr><td colspan="3" style="text-align: center;">لا يوجد طلاب في هذا المسار لهذه المجموعة</td></tr>';
+            body.innerHTML = '<tr><td colspan="3" style="text-align: center;">لا يوجد طلاب في هذه المجموعة</td></tr>';
         }
+    }
+
+    // دالة الفلترة البصرية (Client-side) لضمان عدم اختفاء البيانات
+    window.filterRows = function() {
+        const query = document.getElementById('quick-filter').value.toLowerCase();
+        const rows = document.querySelectorAll('.student-row');
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
+        });
     }
 
     window.singleUpdate = async function(userId, status) {
@@ -145,21 +143,26 @@
     window.batchUpdate = async function() {
         const courseId = document.getElementById('course-select').value;
         const status = document.getElementById('status-select').value;
+        
+        // الحصول على الطلاب الظاهرين فقط حالياً في الجدول
+        const visibleRows = Array.from(document.querySelectorAll('.student-row')).filter(r => r.style.display !== 'none');
+        
+        if (!courseId || visibleRows.length === 0) return alert("تأكد من اختيار المقرر ووجود طلاب في الجدول");
 
-        if (!courseId || studentsData.length === 0) return alert("تأكد من اختيار المقرر والمجموعة");
-
-        const updates = studentsData.map(s => ({
+        // استخراج IDs الطلاب من الصفوف الظاهرة فقط
+        const updates = studentsData.filter(s => {
+            return visibleRows.some(row => row.innerText.includes(s.full_name));
+        }).map(s => ({
             user_id: s.user_id,
             course_id: courseId,
             completion_status: status,
             completion_percentage: status === 'completed' ? 100 : (status === 'in_progress' ? 50 : 0)
         }));
 
-        if (!confirm(`سيتم تحديث ${studentsData.length} طالب، هل أنت متأكد؟`)) return;
+        if (!confirm(`سيتم تحديث ${updates.length} طالب، هل أنت متأكد؟`)) return;
 
         const { error } = await supabase.from('enrollments').upsert(updates, { onConflict: 'user_id,course_id' });
-        
-        if (!error) alert("✅ تم تحديث المجموعة بالكامل");
+        if (!error) alert("✅ تم تحديث المجموعة الظاهرة بنجاح");
         else alert("❌ خطأ جماعي: " + error.message);
     }
 
