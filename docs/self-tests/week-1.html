@@ -2,268 +2,216 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>اختبار الأمن السيبراني - الأسبوع الأول</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار الأمن السيبراني المطور</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --primary: #1a3a5f;
+            --secondary: #2c7cb6;
+            --success: #28a745;
+            --danger: #dc3545;
         }
 
         body {
-            background: linear-gradient(145deg, #e9f0f5 0%, #d9e2ec 100%);
-            font-family: 'Segoe UI', 'Arial', sans-serif;
-            padding: 30px 20px;
-            min-height: 100vh;
-        }
-
-        .exam-wrapper {
-            max-width: 900px;
-            margin: 0 auto;
-            background-color: #ffffff;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-
-        #exam {
-            padding: 40px;
-            background: white;
-        }
-
-        .exam-header {
-            text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 4px double #1e4a76;
-            padding-bottom: 20px;
-        }
-
-        .exam-header h2 {
-            font-size: 2rem;
-            color: #0a2f44;
-        }
-
-        .info-panel {
-            background: #f1f5f9;
-            border-radius: 15px;
+            background-color: #f0f2f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
             padding: 20px;
-            margin-bottom: 30px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            border: 1px solid #cbdde9;
         }
 
-        .info-field label {
-            display: block;
-            font-weight: bold;
-            color: #1e4663;
-            margin-bottom: 8px;
+        .exam-container {
+            max-width: 850px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
         }
 
-        .info-field input {
-            width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            border: 1.5px solid #cbdde9;
-            font-size: 1rem;
-        }
-
-        .section-title {
-            font-size: 1.4rem;
-            color: #fff;
-            background: #1e4a76;
-            padding: 10px 20px;
-            border-radius: 8px;
-            margin: 30px 0 20px 0;
-        }
-
-        .question {
+        .header {
+            text-align: center;
+            border-bottom: 2px solid var(--primary);
             margin-bottom: 25px;
+            padding-bottom: 15px;
+        }
+
+        .student-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+
+        .input-group label { display: block; font-weight: bold; margin-bottom: 5px; color: var(--primary); }
+        .input-group input { width: 90%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+
+        .question-box {
+            margin-bottom: 20px;
             padding: 15px;
-            border-right: 4px solid #2c7cb6;
-            background: #fafafa;
-        }
-
-        .question p {
-            font-weight: bold;
-            font-size: 1.1rem;
-            margin-bottom: 15px;
-            color: #1a2c3e;
-        }
-
-        .options {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .options label {
-            cursor: pointer;
-            padding: 8px 15px;
-            background: #fff;
             border: 1px solid #eee;
             border-radius: 8px;
-            transition: 0.3s;
+            page-break-inside: avoid; /* يمنع قص السؤال بين صفحتين */
         }
 
-        .options label:hover {
-            background: #eef4fc;
-        }
+        .question-text { font-weight: bold; margin-bottom: 12px; display: block; }
+        
+        .options-list { list-style: none; padding: 0; }
+        .options-list li { margin-bottom: 8px; padding: 8px; border-radius: 5px; transition: 0.3s; }
+        
+        textarea { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; min-height: 80px; font-family: inherit; }
 
-        textarea {
-            width: 100%;
-            border-radius: 10px;
-            border: 1.5px solid #cbdde9;
-            padding: 15px;
-            font-family: inherit;
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .btn-container {
+        .score-box {
+            display: none; /* يظهر فقط في الـ PDF أو بعد التصحيح */
             text-align: center;
-            margin-top: 40px;
+            font-size: 1.5rem;
+            color: var(--success);
+            padding: 15px;
+            border: 2px solid var(--success);
+            margin-bottom: 20px;
+            border-radius: 10px;
         }
 
-        .btn-pdf {
-            background: #1b5e20;
+        .correct-answer { color: var(--success); font-weight: bold; font-size: 0.9rem; display: none; }
+
+        .btn-submit {
+            background: var(--primary);
             color: white;
+            padding: 15px 30px;
             border: none;
-            font-size: 1.2rem;
-            font-weight: bold;
-            padding: 15px 40px;
-            border-radius: 50px;
+            border-radius: 30px;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            font-size: 1.1rem;
+            width: 100%;
             transition: 0.3s;
         }
 
-        .btn-pdf:hover {
-            background: #2e7d32;
-            transform: scale(1.05);
-        }
+        .btn-submit:hover { background: var(--secondary); }
 
+        /* تنسيقات الطباعة والـ PDF */
+        .pdf-only { display: none; }
         @media print {
-            .btn-container { display: none; }
-            body { background: white; padding: 0; }
-            .exam-wrapper { box-shadow: none; max-width: 100%; }
+            .no-print { display: none; }
+            .pdf-only { display: block; }
+            .correct-answer { display: block !important; }
+            .score-box { display: block !important; }
         }
     </style>
 </head>
 <body>
 
-<div class="exam-wrapper">
-    <div id="exam">
-        <div class="exam-header">
-            <h2>📘 اختبار واجبات الأسبوع الأول</h2>
-            <p>19 – 23 أبريل 2026</p>
-            <div style="margin-top:10px; color: #555;">أمن المعلومات واختبار الاختراق</div>
+<div class="exam-container" id="printable-area">
+    <div class="header">
+        <h2>واجبات الأسبوع الأول - الأمن السيبراني</h2>
+        <p>الدرجة المستحقة: 5 علامات</p>
+    </div>
+
+    <div class="student-info">
+        <div class="input-group">
+            <label>الاسم:</label>
+            <input type="text" id="name" placeholder="أدخل الاسم">
         </div>
-
-        <div class="info-panel">
-            <div class="info-field">
-                <label>👤 اسم المتدرب الثلاثي:</label>
-                <input type="text" id="studentName" placeholder="أدخل اسمك هنا">
-            </div>
-            <div class="info-field">
-                <label>🆔 رقم الهوية:</label>
-                <input type="text" id="studentId" placeholder="10xxxxxxxx">
-            </div>
-            <div class="info-field">
-                <label>📚 المجموعة الدراسية:</label>
-                <input type="text" id="studentGroup" placeholder="مثال: المجموعة A">
-            </div>
+        <div class="input-group">
+            <label>الهوية:</label>
+            <input type="text" id="id_num" placeholder="رقم الهوية">
         </div>
-
-        <div class="section-title">📌 أولاً: الاختيار من متعدد</div>
-
-        <div class="question">
-            <p>1. أي من الخوارزميات التالية تُستخدم في التشفير غير المتماثل؟</p>
-            <div class="options">
-                <label><input type="radio" name="q1" value="AES"> AES</label>
-                <label><input type="radio" name="q1" value="DES"> DES</label>
-                <label><input type="radio" name="q1" value="RSA"> RSA</label>
-                <label><input type="radio" name="q1" value="MD5"> MD5</label>
-            </div>
+        <div class="input-group">
+            <label>المجموعة:</label>
+            <input type="text" id="group" placeholder="المجموعة الدراسية">
         </div>
+    </div>
 
-        <div class="question">
-            <p>2. ما هو الغرض الأساسي من نظام IDS؟</p>
-            <div class="options">
-                <label><input type="radio" name="q2" value="منع"> منع الهجمات تلقائياً</label>
-                <label><input type="radio" name="q2" value="اكتشاف"> اكتشاف الأنشطة المشبوهة والتنبيه عنها</label>
-                <label><input type="radio" name="q2" value="تشفير"> تشفير حركة المرور في الشبكة</label>
-            </div>
+    <div id="result-summary" class="score-box"></div>
+
+    <div class="question-box" data-q="1">
+        <span class="question-text">1. أي من الخوارزميات التالية تُستخدم في التشفير غير المتماثل؟ (علامة واحدة)</span>
+        <div class="options-list">
+            <label><input type="radio" name="q1" value="AES"> AES</label><br>
+            <label><input type="radio" name="q1" value="RSA" data-correct="true"> RSA</label><br>
+            <label><input type="radio" name="q1" value="MD5"> MD5</label>
         </div>
+        <span class="correct-answer">الإجابة الصحيحة: RSA</span>
+    </div>
 
-        <div class="question">
-            <p>3. هجوم DDoS يهدف بشكل أساسي إلى ضرب أي عنصر من عناصر (CIA Triad)؟</p>
-            <div class="options">
-                <label><input type="radio" name="q3" value="Confidentiality"> السرية (Confidentiality)</label>
-                <label><input type="radio" name="q3" value="Integrity"> السلامة (Integrity)</label>
-                <label><input type="radio" name="q3" value="Availability"> التوافر (Availability)</label>
-            </div>
+    <div class="question-box" data-q="2">
+        <span class="question-text">2. ما هو الغرض من نظام IDS؟ (علامة واحدة)</span>
+        <div class="options-list">
+            <label><input type="radio" name="q2" value="1"> تشفير البيانات</label><br>
+            <label><input type="radio" name="q2" value="2" data-correct="true"> اكتشاف الأنشطة المشبوهة</label><br>
+            <label><input type="radio" name="q2" value="3"> منع الوصول الفعلي</label>
         </div>
+        <span class="correct-answer">الإجابة الصحيحة: اكتشاف الأنشطة المشبوهة</span>
+    </div>
 
-        <div class="section-title">✍️ ثانياً: الأسئلة المقالية</div>
-
-        <div class="question">
-            <p>1. اشرح باختصار الفرق بين التشفير المتماثل وغير المتماثل.</p>
-            <textarea id="essay1" placeholder="اكتب إجابتك هنا..."></textarea>
+    <div class="question-box" data-q="3">
+        <span class="question-text">3. أي نوع من الهجمات يعتمد على تعطيل الخدمة؟ (علامة واحدة)</span>
+        <div class="options-list">
+            <label><input type="radio" name="q3" value="1"> Phishing</label><br>
+            <label><input type="radio" name="q3" value="2" data-correct="true"> DDoS</label><br>
+            <label><input type="radio" name="q3" value="3"> SQLi</label>
         </div>
+        <span class="correct-answer">الإجابة الصحيحة: DDoS</span>
+    </div>
 
-        <div class="question">
-            <p>2. ما هي مراحل عملية "اختبار الاختراق" بالترتيب؟</p>
-            <textarea id="essay2" placeholder="اكتب المراحل هنا..."></textarea>
-        </div>
+    <div class="question-box">
+        <span class="question-text">4. قارن بين التشفير المتماثل وغير المتماثل؟ (علامتان)</span>
+        <textarea id="essay1" placeholder="اكتب إجابتك هنا..."></textarea>
+        <p style="font-size: 0.8rem; color: #666;">(يتم تصحيح هذا السؤال يدوياً من قبل المدرب)</p>
+    </div>
 
-        <div class="btn-container">
-            <button class="btn-pdf" onclick="generatePDF()">إرسال الإجابات وتحميل PDF</button>
-        </div>
-        
-        <p style="text-align: center; color: #888; font-size: 0.8rem; margin-top: 20px;">
-            سيتم حفظ الملف باسمك الشخصي لسهولة الفرز لدى المدرب.
-        </p>
+    <div class="no-print">
+        <button class="btn-submit" onclick="processAndDownload()">تصحيح الاختبار وتحميل PDF</button>
     </div>
 </div>
 
 <script>
-    function generatePDF() {
-        const name = document.getElementById('studentName').value.trim();
-        const id = document.getElementById('studentId').value.trim();
-        const group = document.getElementById('studentGroup').value.trim();
+    function processAndDownload() {
+        const name = document.getElementById('name').value;
+        if(!name) { alert("لطفاً اكتب الاسم أولاً"); return; }
 
-        if (!name || !id || !group) {
-            alert("⚠️ يرجى تعبئة كافة البيانات (الاسم، الهوية، المجموعة) قبل تحميل الملف.");
-            return;
-        }
-
-        // تحويل الراديو بوتون لتبدو مختارة في الـ PDF لأن html2pdf قد لا يظهر النقطة أحياناً
-        const radios = document.querySelectorAll('input[type="radio"]:checked');
-        radios.forEach(r => {
-            r.parentElement.style.backgroundColor = "#d1e7dd";
-            r.parentElement.style.fontWeight = "bold";
+        let score = 0;
+        // تصحيح الأسئلة الاختيارية (3 علامات)
+        const correctAnswers = document.querySelectorAll('input[data-correct="true"]');
+        correctAnswers.forEach(ans => {
+            if(ans.checked) {
+                score++;
+                ans.parentElement.style.color = "green";
+                ans.parentElement.style.fontWeight = "bold";
+            } else {
+                ans.parentElement.style.border = "1px dashed red";
+            }
         });
 
-        const element = document.getElementById('exam');
+        // إظهار النتائج في الصفحة قبل التحويل
+        const resultDiv = document.getElementById('result-summary');
+        resultDiv.style.display = "block";
+        resultDiv.innerHTML = `نتيجة الأسئلة التلقائية: ${score} من 3 <br> <small>بانتظار تقييم المدرب للسؤال المقالي (من علامتين)</small>`;
+
+        // إظهار الإجابات النموذجية في الـ PDF
+        document.querySelectorAll('.correct-answer').forEach(el => el.style.display = 'block');
+
+        // إعدادات PDF مطورة لحل مشاكل القص والصفحات الخالية
+        const element = document.getElementById('printable-area');
         const opt = {
-            margin:       0.3,
-            filename:     `إجابة_المتدرب_${name}.pdf`,
+            margin:       [0.5, 0.3], // هوامش علوية وجانبية
+            filename:     `اختبار_${name}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
-            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            html2canvas:  { 
+                scale: 2, 
+                useCORS: true, 
+                logging: false,
+                letterRendering: true 
+            },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
+            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] } // يمنع قص العناصر
         };
 
-        // إخفاء الزر أثناء التحميل
-        document.querySelector('.btn-container').style.display = 'none';
-
+        // التحويل
         html2pdf().set(opt).from(element).save().then(() => {
-            // إعادة إظهار الزر بعد الانتهاء
-            document.querySelector('.btn-container').style.display = 'block';
-            alert("✅ تم إنشاء ملف PDF بنجاح باسم: " + name);
+            alert("تم تحميل ملف الإجابات والدرجة بنجاح");
         });
     }
 </script>
