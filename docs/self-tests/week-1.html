@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>واجبات الأسبوع الأول - الأمن السيبراني</title>
+    <title>واجبات الأسبوع الأول - الأمن السيبراني (نسخة نهائية)</title>
+    <!-- مكتبة html2pdf -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
+        /* إزالة أي Flexbox من body - سبب رئيسي للمشاكل */
         * {
             margin: 0;
             padding: 0;
@@ -14,9 +17,10 @@
         body {
             background: #eef2f7;
             font-family: 'Segoe UI', 'Tahoma', 'Arial', sans-serif;
-            padding: 20px;
+            padding: 30px 20px;
         }
 
+        /* إزالة overflow:hidden */
         .exam-wrapper {
             max-width: 1100px;
             width: 100%;
@@ -28,7 +32,7 @@
 
         #examContent {
             background: white;
-            padding: 25px 30px 35px 30px;
+            padding: 28px 32px 40px 32px;
         }
 
         /* الرأس */
@@ -40,7 +44,7 @@
         }
 
         .exam-header h1 {
-            font-size: 26px;
+            font-size: 28px;
             color: #0a2f44;
             margin-bottom: 6px;
         }
@@ -58,13 +62,13 @@
         /* معلومات المتدرب */
         .info-panel {
             background: #f8fbfe;
-            border-radius: 20px;
-            padding: 18px 22px;
+            border-radius: 22px;
+            padding: 18px 24px;
             margin-bottom: 25px;
             border: 1px solid #e2edf5;
             display: flex;
             flex-wrap: wrap;
-            gap: 18px;
+            gap: 20px;
         }
 
         .info-field {
@@ -90,7 +94,12 @@
             font-family: inherit;
         }
 
-        /* عناوين الأقسام */
+        .info-field input:focus {
+            border-color: #1a6ea8;
+            outline: none;
+        }
+
+        /* قسم الأسئلة */
         .section-title {
             font-size: 22px;
             font-weight: 800;
@@ -100,7 +109,6 @@
             padding-right: 14px;
         }
 
-        /* بطاقات الأسئلة */
         .question-card {
             background: #ffffff;
             border-radius: 18px;
@@ -132,7 +140,6 @@
             font-weight: bold;
         }
 
-        /* خيارات الاختيار */
         .options-row {
             display: flex;
             flex-wrap: wrap;
@@ -180,30 +187,6 @@
             border-right: 4px solid #b13e3e;
         }
 
-        /* textarea - حل مشكلة تعدد الأسطر */
-        .essay-textarea {
-            width: 100%;
-            border-radius: 14px;
-            padding: 12px;
-            border: 1.5px solid #cde0ec;
-            font-family: inherit;
-            font-size: 14px;
-            line-height: 1.6;
-            resize: vertical;
-            background: #fefefe;
-        }
-
-        .char-counter {
-            text-align: left;
-            font-size: 12px;
-            color: #5f7f9e;
-            margin-top: 5px;
-        }
-        .char-counter.danger {
-            color: #b13e3e;
-            font-weight: bold;
-        }
-
         /* منطقة النتيجة */
         .score-area {
             background: linear-gradient(135deg, #1a6ea8 0%, #0e4b73 100%);
@@ -233,11 +216,11 @@
             display: inline-block;
         }
 
-        /* الأزرار */
+        /* أزرار التحكم - تم إخفاء زر التصحيح */
         .action-buttons {
             display: flex;
             gap: 15px;
-            margin-top: 25px;
+            margin-top: 20px;
             justify-content: center;
         }
 
@@ -251,23 +234,26 @@
             cursor: pointer;
             transition: 0.2s;
             font-family: inherit;
+            text-align: center;
         }
 
-        .btn-primary {
-            background: #1a6ea8;
-            color: white;
-        }
-        .btn-primary:hover {
-            background: #0e5783;
-            transform: translateY(-2px);
-        }
-
-        .btn-success {
+        .btn-pdf {
             background: #1e6f3f;
             color: white;
         }
-        .btn-success:hover {
+
+        .btn-pdf:hover {
             background: #115a34;
+            transform: translateY(-2px);
+        }
+
+        .btn-print {
+            background: #d97706;
+            color: white;
+        }
+
+        .btn-print:hover {
+            background: #b45309;
             transform: translateY(-2px);
         }
 
@@ -281,51 +267,50 @@
         }
 
         /* ============================================ */
-        /* CSS الطباعة - الحل النهائي والمضمون */
+        /* CSS مخصص للطباعة */
         /* ============================================ */
         @media print {
             body {
-                background: white;
-                padding: 0;
-                margin: 0;
+                display: block !important;
+                background: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
             }
-            
+
             .exam-wrapper {
-                box-shadow: none;
-                margin: 0;
-                border-radius: 0;
-                max-width: 100%;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                overflow: visible !important;
+                max-width: 100% !important;
             }
-            
+
             #examContent {
-                padding: 15px;
+                padding: 15px !important;
+                width: 100% !important;
+                max-width: 100% !important;
             }
-            
-            /* منع تكسر الصفحات */
-            .question-card, .info-panel, .score-area, .exam-header {
-                break-inside: avoid;
+
+            .question-card,
+            .info-panel,
+            .score-area,
+            .exam-header {
                 page-break-inside: avoid;
+                break-inside: avoid;
+            }
+
+            .action-buttons,
+            .btn-pdf,
+            .btn-print {
+                display: none !important;
+            }
+
+            textarea {
+                border: 1px solid #ccc !important;
+                background: white !important;
             }
             
-            /* إخفاء الأزرار */
-            .action-buttons, .btn {
-                display: none;
-            }
-            
-            /* ضمان ظهور النص كاملاً في textarea */
-            .essay-textarea {
-                border: 1px solid #999;
-                background: white;
-                white-space: pre-wrap;
-                word-wrap: break-word;
-                overflow: visible;
-                height: auto;
-                min-height: 80px;
-            }
-            
-            /* إظهار الإجابات المختارة */
-            input, textarea {
-                border: 1px solid #ccc;
+            input {
+                border: 1px solid #ccc !important;
             }
         }
     </style>
@@ -333,7 +318,7 @@
 <body>
 <div class="exam-wrapper">
     <div id="examContent">
-        <!-- الرأس -->
+        <!-- رأس الاختبار -->
         <div class="exam-header">
             <h1>📘 واجبات الأسبوع الأول - الأمن السيبراني</h1>
             <div class="date-range">🗓 19 – 23 أبريل 2026</div>
@@ -341,107 +326,116 @@
 
         <!-- بيانات المتدرب -->
         <div class="info-panel">
-            <div class="info-field"><label>👤 الاسم الكامل</label><input type="text" id="fullName" placeholder="أدخل اسمك الثلاثي"></div>
-            <div class="info-field"><label>🆔 رقم الهوية</label><input type="text" id="nationalId" placeholder="رقم الهوية"></div>
-            <div class="info-field"><label>📚 المجموعة الدراسية</label><input type="text" id="groupName" placeholder="مثال: الأمن السيبراني - A"></div>
+            <div class="info-field">
+                <label>👤 الاسم الكامل</label>
+                <input type="text" id="fullName" placeholder="أدخل اسمك الثلاثي" autocomplete="off">
+            </div>
+            <div class="info-field">
+                <label>🆔 رقم الهوية</label>
+                <input type="text" id="nationalId" placeholder="رقم الهوية" autocomplete="off">
+            </div>
+            <div class="info-field">
+                <label>📚 المجموعة الدراسية</label>
+                <input type="text" id="groupName" placeholder="مثال: الأمن السيبراني - المجموعة A" autocomplete="off">
+            </div>
         </div>
 
-        <!-- قسم الاختيار من متعدد -->
+        <!-- قسم الاختيار من متعدد (5 أسئلة - الدرجة 5) -->
         <div class="section-title">✅ أولاً: أسئلة الاختيار من متعدد (الدرجة: 5)</div>
 
-        <!-- سؤال 1 -->
-        <div class="question-card">
-            <div class="question-header"><span class="q-number">1</span> أي الخوارزميات تستخدم في التشفير غير المتماثل؟</div>
-            <div class="options-row">
+        <!-- سؤال 1: RSA -->
+        <div class="question-card" id="q1Card">
+            <div class="question-header"><span class="q-number">1</span> أي من الخوارزميات التالية تُستخدم في التشفير غير المتماثل؟</div>
+            <div class="options-row" id="q1Options">
                 <label><input type="radio" name="q1" value="AES"> AES</label>
                 <label><input type="radio" name="q1" value="DES"> DES</label>
                 <label><input type="radio" name="q1" value="RSA"> RSA</label>
                 <label><input type="radio" name="q1" value="MD5"> MD5</label>
             </div>
-            <div id="q1Feedback" class="result-feedback" style="display:none"></div>
+            <div id="q1Feedback" class="result-feedback" style="display: none;"></div>
         </div>
 
-        <!-- سؤال 2 -->
-        <div class="question-card">
-            <div class="question-header"><span class="q-number">2</span> ما الغرض الأساسي من IDS؟</div>
-            <div class="options-row">
+        <!-- سؤال 2: اكتشاف الأنشطة المشبوهة -->
+        <div class="question-card" id="q2Card">
+            <div class="question-header"><span class="q-number">2</span> ما هو الغرض الأساسي من IDS (نظام كشف التسلل)؟</div>
+            <div class="options-row" id="q2Options">
                 <label><input type="radio" name="q2" value="منع الهجمات"> منع الهجمات</label>
                 <label><input type="radio" name="q2" value="اكتشاف الأنشطة المشبوهة"> اكتشاف الأنشطة المشبوهة</label>
                 <label><input type="radio" name="q2" value="تشفير البيانات"> تشفير البيانات</label>
                 <label><input type="radio" name="q2" value="إدارة كلمات المرور"> إدارة كلمات المرور</label>
             </div>
-            <div id="q2Feedback" class="result-feedback" style="display:none"></div>
+            <div id="q2Feedback" class="result-feedback" style="display: none;"></div>
         </div>
 
-        <!-- سؤال 3 -->
-        <div class="question-card">
-            <div class="question-header"><span class="q-number">3</span> أي نوع من الهجمات يعتمد على تعطيل الخدمة؟</div>
-            <div class="options-row">
-                <label><input type="radio" name="q3" value="Phishing"> التصيد</label>
+        <!-- سؤال 3: DDoS -->
+        <div class="question-card" id="q3Card">
+            <div class="question-header"><span class="q-number">3</span> أي نوع من الهجمات يعتمد على تعطيل الخدمة وجعلها غير متاحة؟</div>
+            <div class="options-row" id="q3Options">
+                <label><input type="radio" name="q3" value="Phishing"> التصيد (Phishing)</label>
                 <label><input type="radio" name="q3" value="SQL Injection"> حقن SQL</label>
-                <label><input type="radio" name="q3" value="DDoS"> DDoS</label>
-                <label><input type="radio" name="q3" value="MITM"> رجل في الوسط</label>
+                <label><input type="radio" name="q3" value="DDoS"> هجوم DDoS</label>
+                <label><input type="radio" name="q3" value="MITM"> رجل في الوسط (MITM)</label>
             </div>
-            <div id="q3Feedback" class="result-feedback" style="display:none"></div>
+            <div id="q3Feedback" class="result-feedback" style="display: none;"></div>
         </div>
 
-        <!-- سؤال 4 -->
-        <div class="question-card">
+        <!-- سؤال 4: Encryption قابل للعكس -->
+        <div class="question-card" id="q4Card">
             <div class="question-header"><span class="q-number">4</span> الفرق بين Hashing و Encryption؟</div>
-            <div class="options-row">
+            <div class="options-row" id="q4Options">
                 <label><input type="radio" name="q4" value="لا يوجد فرق"> لا يوجد فرق</label>
                 <label><input type="radio" name="q4" value="Hashing قابل للعكس"> Hashing قابل للعكس</label>
-                <label><input type="radio" name="q4" value="Encryption قابل للعكس"> Encryption قابل للعكس</label>
-                <label><input type="radio" name="q4" value="كلاهما غير قابل"> كلاهما غير قابل</label>
+                <label><input type="radio" name="q4" value="Encryption قابل للعكس"> Encryption قابل للعكس (بالمفتاح)</label>
+                <label><input type="radio" name="q4" value="كلاهما غير قابل"> كلاهما غير قابل للعكس</label>
             </div>
-            <div id="q4Feedback" class="result-feedback" style="display:none"></div>
+            <div id="q4Feedback" class="result-feedback" style="display: none;"></div>
         </div>
 
-        <!-- سؤال 5 -->
-        <div class="question-card">
+        <!-- سؤال 5: Metasploit -->
+        <div class="question-card" id="q5Card">
             <div class="question-header"><span class="q-number">5</span> أداة مشهورة لاختبار الاختراق تحتوي على وحدات استغلالية؟</div>
-            <div class="options-row">
+            <div class="options-row" id="q5Options">
                 <label><input type="radio" name="q5" value="Wireshark"> Wireshark</label>
                 <label><input type="radio" name="q5" value="Metasploit"> Metasploit</label>
                 <label><input type="radio" name="q5" value="Word"> Word</label>
                 <label><input type="radio" name="q5" value="Excel"> Excel</label>
             </div>
-            <div id="q5Feedback" class="result-feedback" style="display:none"></div>
+            <div id="q5Feedback" class="result-feedback" style="display: none;"></div>
         </div>
 
-        <!-- النتيجة -->
+        <!-- منطقة عرض النتيجة (تظهر تلقائياً عند التحميل/الطباعة) -->
         <div id="scoreContainer" class="score-area" style="display: none;">
             <div class="score-text">📊 درجة التقييم:</div>
             <div class="score-value" id="scoreValue">0 / 5</div>
         </div>
 
         <!-- الأسئلة المقالية -->
-        <div class="section-title">✍️ ثانياً: الأسئلة المقالية (حد أقصى 110 حرف)</div>
+        <div class="section-title">✍️ ثانياً: الأسئلة المقالية</div>
         
         <div class="question-card">
-            <div class="question-header"><span class="q-number">أ</span> قارن بين التشفير المتماثل وغير المتماثل.</div>
-            <textarea id="essay1" class="essay-textarea" rows="3" maxlength="110" placeholder="اكتب إجابتك هنا (حد أقصى 110 حرف)..."></textarea>
-            <div class="char-counter" id="counter1">0 / 110 حرف</div>
+            <div class="question-header"><span class="q-number">أ</span> قارن بين التشفير المتماثل وغير المتماثل من حيث: عدد المفاتيح، السرعة، والاستخدامات.</div>
+            <textarea id="essay1" rows="3" style="width:100%; border-radius:14px; padding:10px; border:1.5px solid #cde0ec; font-family:inherit;" placeholder="اكتب إجابتك هنا..."></textarea>
         </div>
 
         <div class="question-card">
-            <div class="question-header"><span class="q-number">ب</span> اشرح هجوم SQL Injection واذكر مثالاً.</div>
-            <textarea id="essay2" class="essay-textarea" rows="3" maxlength="110" placeholder="اكتب إجابتك هنا (حد أقصى 110 حرف)..."></textarea>
-            <div class="char-counter" id="counter2">0 / 110 حرف</div>
+            <div class="question-header"><span class="q-number">ب</span> اشرح هجوم SQL Injection: ما هو، وكيف يحدث، واذكر مثالاً على ضرره.</div>
+            <textarea id="essay2" rows="3" style="width:100%; border-radius:14px; padding:10px; border:1.5px solid #cde0ec; font-family:inherit;" placeholder="اكتب إجابتك هنا..."></textarea>
         </div>
 
         <div class="question-card">
-            <div class="question-header"><span class="q-number">ج</span> اشرح دورة اختبار الاختراق ومراحلها.</div>
-            <textarea id="essay3" class="essay-textarea" rows="3" maxlength="110" placeholder="اكتب إجابتك هنا (حد أقصى 110 حرف)..."></textarea>
-            <div class="char-counter" id="counter3">0 / 110 حرف</div>
+            <div class="question-header"><span class="q-number">ج</span> اشرح دورة اختبار الاختراق واذكر مراحلها الأساسية.</div>
+            <textarea id="essay3" rows="3" style="width:100%; border-radius:14px; padding:10px; border:1.5px solid #cde0ec; font-family:inherit;" placeholder="اكتب إجابتك هنا..."></textarea>
         </div>
 
-        <!-- الأزرار -->
+        <!-- أزرار التحكم - زر التصحيح تم إزالته تماماً -->
         <div class="action-buttons">
-            <button id="correctBtn" class="btn btn-primary">🔍 تصحيح الاختبار</button>
-            <button id="printBtn" class="btn btn-success">🖨 طباعة / حفظ PDF</button>
+            <button id="downloadPdfBtn" class="btn btn-pdf">📄 تحميل كملف PDF (مع النتيجة)</button>
+            <button id="printBtn" class="btn btn-print">🖨 طباعة / حفظ PDF (أفضل جودة)</button>
         </div>
-        <div class="footer-note">※ الحد الأقصى لكل سؤال مقالي هو 110 حرف. ※ استخدم زر الطباعة للحصول على أفضل جودة PDF.</div>
+        <div class="footer-note">
+            ※ عند الضغط على أي زر سيتم تصحيح الاختبار تلقائياً وعرض نتيجتك.<br>
+            ※ الدرجة تحسب من 5 بناءً على إجابات الاختيار من متعدد.
+        </div>
     </div>
 </div>
 
@@ -455,65 +449,116 @@
         q5: "Metasploit"
     };
 
-    // عدادات الأحرف
-    function updateCounter(textareaId, counterId) {
-        const textarea = document.getElementById(textareaId);
-        const counter = document.getElementById(counterId);
-        if (!textarea || !counter) return;
-        const len = textarea.value.length;
-        counter.innerText = `${len} / 110 حرف`;
-        if (len >= 100) counter.classList.add("danger");
-        else counter.classList.remove("danger");
-        if (len > 110) textarea.value = textarea.value.substring(0, 110);
-    }
-    
-    document.getElementById("essay1")?.addEventListener("input", () => updateCounter("essay1", "counter1"));
-    document.getElementById("essay2")?.addEventListener("input", () => updateCounter("essay2", "counter2"));
-    document.getElementById("essay3")?.addEventListener("input", () => updateCounter("essay3", "counter3"));
-    updateCounter("essay1", "counter1");
-    updateCounter("essay2", "counter2");
-    updateCounter("essay3", "counter3");
+    // متغير لمنع التصحيح المتكرر (تحسين الأداء)
+    let isCorrected = false;
 
-    // التصحيح
+    // دالة تقييم الاختبار (تعرض النتيجة والتغذية الراجعة)
     function evaluateExam() {
+        if (isCorrected) return; // منع التصحيح المتكرر
+        
         let score = 0;
         for (let i = 1; i <= 5; i++) {
             const qName = `q${i}`;
-            const selected = document.querySelector(`input[name="${qName}"]:checked`);
-            const val = selected ? selected.value : null;
-            const isCorrect = (val === correctAnswers[qName]);
-            if (isCorrect && val) score++;
+            const selectedRadio = document.querySelector(`input[name="${qName}"]:checked`);
+            const selectedValue = selectedRadio ? selectedRadio.value : null;
+            const isCorrect = (selectedValue === correctAnswers[qName]);
             
-            const fb = document.getElementById(`${qName}Feedback`);
-            if (fb) {
-                if (!val) {
-                    fb.style.display = "block";
-                    fb.className = "result-feedback wrong-feedback";
-                    fb.innerHTML = `❌ لم يتم الاختيار | الإجابة الصحيحة: ${correctAnswers[qName]}`;
+            if (isCorrect && selectedValue !== null) {
+                score++;
+            }
+            
+            const feedbackDiv = document.getElementById(`${qName}Feedback`);
+            if (feedbackDiv) {
+                if (selectedValue === null) {
+                    feedbackDiv.style.display = "block";
+                    feedbackDiv.className = "result-feedback wrong-feedback";
+                    feedbackDiv.innerHTML = "❌ لم يتم الاختيار | الإجابة الصحيحة: " + correctAnswers[qName];
                 } else if (isCorrect) {
-                    fb.style.display = "block";
-                    fb.className = "result-feedback correct-feedback";
-                    fb.innerHTML = "✅ إجابة صحيحة";
+                    feedbackDiv.style.display = "block";
+                    feedbackDiv.className = "result-feedback correct-feedback";
+                    feedbackDiv.innerHTML = "✅ إجابة صحيحة";
                 } else {
-                    fb.style.display = "block";
-                    fb.className = "result-feedback wrong-feedback";
-                    fb.innerHTML = `❌ إجابة خاطئة | الإجابة الصحيحة: ${correctAnswers[qName]}`;
+                    feedbackDiv.style.display = "block";
+                    feedbackDiv.className = "result-feedback wrong-feedback";
+                    feedbackDiv.innerHTML = `❌ إجابة خاطئة | الإجابة الصحيحة: ${correctAnswers[qName]}`;
                 }
             }
         }
         
-        document.getElementById("scoreContainer").style.display = "flex";
-        document.getElementById("scoreValue").innerText = `${score} / 5`;
+        const scoreContainer = document.getElementById("scoreContainer");
+        const scoreValueSpan = document.getElementById("scoreValue");
+        scoreValueSpan.innerText = `${score} / 5`;
+        scoreContainer.style.display = "flex";
+        isCorrected = true;
+        return score;
     }
 
-    // زر التصحيح
-    document.getElementById("correctBtn").addEventListener("click", evaluateExam);
+    // دالة لإعادة ضبط حالة التصحيح (للضرورة)
+    function resetCorrectionState() {
+        // لا نريد مسح التغذية الراجعة، فقط نسمح بالتصحيح مرة واحدة
+        // هذه الدالة لا تُستخدم حالياً
+    }
+
+    // ============================================
+    // تحميل PDF باستخدام html2pdf (مع التصحيح التلقائي)
+    // ============================================
+    function downloadAsPDF() {
+        // تصحيح تلقائي قبل التحميل
+        evaluateExam();
+        
+        const element = document.getElementById("examContent");
+        if (!element) return;
+        
+        const btn = document.getElementById("downloadPdfBtn");
+        const originalText = btn.innerHTML;
+        btn.innerHTML = "⏳ جاري إنشاء PDF...";
+        btn.disabled = true;
+        
+        const opt = {
+            margin: 0.3,
+            filename: `واجبات_الأسبوع_الأول_${document.getElementById('fullName')?.value.trim() || 'متدرب'}.pdf`,
+            image: { type: 'jpeg', quality: 1 },
+            html2canvas: {
+                scale: 3,
+                useCORS: true,
+                scrollY: 0,
+                letterRendering: true
+            },
+            jsPDF: {
+                unit: 'mm',
+                format: 'a4',
+                orientation: 'portrait'
+            },
+            pagebreak: {
+                mode: ['avoid-all', 'css', 'legacy']
+            }
+        };
+        
+        html2pdf().set(opt).from(element).save().then(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }).catch(err => {
+            console.error("PDF error:", err);
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            alert("حدث خطأ، حاول استخدام زر الطباعة.");
+        });
+    }
     
-    // زر الطباعة (الحل المضمون لظهور كل المحتوى)
-    document.getElementById("printBtn").addEventListener("click", function() {
-        evaluateExam();  // تصحيح قبل الطباعة
+    // ============================================
+    // الطباعة المباشرة (مع التصحيح التلقائي)
+    // ============================================
+    function printExam() {
+        // تصحيح تلقائي قبل الطباعة
+        evaluateExam();
         window.print();
-    });
+    }
+    
+    // ربط الأزرار
+    document.getElementById("downloadPdfBtn").addEventListener("click", downloadAsPDF);
+    document.getElementById("printBtn").addEventListener("click", printExam);
+    
+    console.log("✅ النسخة النهائية - التصحيح يحدث تلقائياً عند الضغط على أزرار التحميل أو الطباعة فقط");
 </script>
 </body>
 </html>
