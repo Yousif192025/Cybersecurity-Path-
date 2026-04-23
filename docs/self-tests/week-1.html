@@ -3,180 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>واجب الأمن السيبراني - الأسبوع الأول</title>
+    <title>اختبار الأمن السيبراني - الأسبوع الأول</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        :root { --blue: #1e4a76; --light-bg: #f4f7f9; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #d1d9e0; padding: 20px; direction: rtl; }
-        
-        /* الحاوية الرئيسية */
-        .page-container { 
-            background: white; 
-            max-width: 850px; 
-            margin: auto; 
-            padding: 40px; 
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        /* إعدادات المتصفح الأساسية - تجنب Flexbox في الـ Body */
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
         }
 
-        .header { text-align: center; border-bottom: 3px solid var(--blue); margin-bottom: 30px; padding-bottom: 10px; }
-        
-        /* جدول بيانات الطالب - لضمان الترتيب */
-        .info-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; background: var(--light-bg); }
-        .info-table td { padding: 12px; border: 1px solid #ccc; vertical-align: middle; }
-        .info-table label { font-weight: bold; color: var(--blue); }
-        .info-table input { width: 95%; padding: 8px; border: 1px solid #bbb; border-radius: 4px; font-family: inherit; }
-
-        .section-head { background: var(--blue); color: white; padding: 10px; border-radius: 5px; margin: 25px 0 15px; font-size: 1.2rem; }
-        
-        .question { margin-bottom: 20px; padding: 15px; border-bottom: 1px solid #eee; page-break-inside: avoid; }
-        .question p { font-weight: bold; margin-bottom: 10px; color: #333; }
-        
-        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .option-item { background: #f9f9f9; padding: 8px; border-radius: 5px; border: 1px solid #eee; cursor: pointer; }
-
-        textarea { width: 100%; min-height: 80px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; margin-top: 10px; font-family: inherit; resize: none; }
-
-        .score-display { 
-            display: none; background: #e8f5e9; color: #2e7d32; 
-            padding: 15px; border: 2px solid #2e7d32; border-radius: 8px; 
-            text-align: center; margin-bottom: 20px; font-size: 1.3rem; font-weight: bold;
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border: 1px solid #ddd;
         }
 
-        .correct-hint { color: #28a745; font-size: 0.85rem; font-weight: bold; display: none; margin-top: 5px; }
+        /* الهيدر */
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #1e4a76;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+        }
 
-        .no-print { text-align: center; margin-top: 30px; }
-        .btn-download { background: #2e7d32; color: white; padding: 15px 40px; border: none; border-radius: 50px; font-size: 1.2rem; cursor: pointer; transition: 0.3s; width: 100%; }
-        .btn-download:hover { background: #1b5e20; }
+        /* لوحة البيانات */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+            background: #f9f9f9;
+            padding: 15px;
+            border: 1px solid #eee;
+        }
 
-        /* تعديلات الـ PDF لضمان عدم وجود صفحات فارغة */
+        .info-item label { font-weight: bold; display: block; color: #1e4a76; }
+        .info-item input { width: 90%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+
+        /* منطقة النتيجة */
+        .score-box {
+            display: none;
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        /* الأسئلة */
+        .section-title { background: #1e4a76; color: white; padding: 10px; margin: 20px 0; }
+        .question-block { 
+            margin-bottom: 20px; 
+            padding: 10px; 
+            border-bottom: 1px solid #eee; 
+            page-break-inside: avoid; /* منع قص السؤال */
+        }
+        .question-text { font-weight: bold; display: block; margin-bottom: 10px; }
+        .options-list { list-style: none; padding: 0; }
+        .options-list li { margin-bottom: 8px; }
+        
+        textarea { width: 100%; height: 80px; border: 1px solid #ccc; border-radius: 4px; padding: 10px; font-family: inherit; }
+
+        /* الأزرار */
+        .action-buttons { text-align: center; margin-top: 30px; }
+        .btn {
+            padding: 12px 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            margin: 5px;
+            color: white;
+            font-weight: bold;
+        }
+        .btn-download { background: #28a745; }
+        .btn-print { background: #007bff; }
+
+        /* ✳️ CSS مخصص للطباعة - يحل مشاكل القص والصفحات الخالية */
         @media print {
-            body { background: white; padding: 0; }
-            .page-container { box-shadow: none; border: none; width: 100%; padding: 20px; }
-            .no-print { display: none; }
-            .correct-hint { display: block !important; }
-            .score-display { display: block !important; }
+            body { background: white !important; padding: 0 !important; display: block !important; }
+            .container { border: none !important; width: 100% !important; max-width: 100% !important; box-shadow: none !important; }
+            .action-buttons, .hint-icon { display: none !important; }
+            .question-block { page-break-inside: avoid !important; break-inside: avoid !important; }
+            .score-box { display: block !important; }
+            textarea { border: 1px solid #000 !important; overflow: visible !important; }
         }
     </style>
 </head>
 <body>
 
-<div class="page-container" id="pdf-area">
+<div class="container" id="examArea">
     <div class="header">
-        <h1>واجبات الأسبوع الأول - الأمن السيبراني</h1>
-        <p>الدرجة الكلية: 5 علامات (3 للاختيارات - 2 للمقالي)</p>
+        <h2>واجبات الأسبوع الأول - الأمن السيبراني</h2>
+        <p>الدرجة الكلية: 5 علامات (3 أسئلة خيارات + 2 أسئلة مقالية)</p>
     </div>
 
-    <div id="scoreBox" class="score-display"></div>
+    <div id="finalScore" class="score-box"></div>
 
-    <table class="info-table">
-        <tr>
-            <td><label>الاسم الكامل:</label></td>
-            <td><input type="text" id="stdName" placeholder="اكتب اسمك هنا"></td>
-            <td><label>رقم الهوية:</label></td>
-            <td><input type="text" id="stdId" placeholder="10xxxxxxxx"></td>
-        </tr>
-        <tr>
-            <td><label>المجموعة:</label></td>
-            <td colspan="3"><input type="text" id="stdGroup" placeholder="مثال: أمن سيبراني - المجموعة A"></td>
-        </tr>
-    </table>
-
-    <div class="section-head">أولاً: الاختيار من متعدد (3 علامات)</div>
-
-    <div class="question">
-        <p>1. أي من الخوارزميات التالية تُستخدم في التشفير غير المتماثل؟</p>
-        <div class="options-grid">
-            <label class="option-item"><input type="radio" name="q1" value="AES"> AES</label>
-            <label class="option-item"><input type="radio" name="q1" value="RSA" data-correct="true"> RSA</label>
-            <label class="option-item"><input type="radio" name="q1" value="DES"> DES</label>
-            <label class="option-item"><input type="radio" name="q1" value="MD5"> MD5</label>
+    <div class="info-grid">
+        <div class="info-item">
+            <label>اسم المتدرب:</label>
+            <input type="text" id="stdName" placeholder="الاسم ثلاثي">
         </div>
-        <div class="correct-hint">الإجابة الصحيحة: RSA</div>
-    </div>
-
-    <div class="question">
-        <p>2. ما هو الغرض من نظام IDS (نظام كشف التسلل)؟</p>
-        <div class="options-grid">
-            <label class="option-item"><input type="radio" name="q2" value="A"> منع الهجمات</label>
-            <label class="option-item"><input type="radio" name="q2" value="B" data-correct="true"> اكتشاف الأنشطة المشبوهة</label>
-            <label class="option-item"><input type="radio" name="q2" value="C"> تشفير البيانات</label>
-            <label class="option-item"><input type="radio" name="q2" value="D"> إدارة كلمات المرور</label>
+        <div class="info-item">
+            <label>رقم الهوية:</label>
+            <input type="text" id="stdId" placeholder="10xxxxxxxx">
         </div>
-        <div class="correct-hint">الإجابة الصحيحة: اكتشاف الأنشطة المشبوهة</div>
-    </div>
-
-    <div class="question">
-        <p>3. أي نوع من الهجمات يعتمد على تعطيل الخدمة وجعلها غير متاحة؟</p>
-        <div class="options-grid">
-            <label class="option-item"><input type="radio" name="q3" value="A"> Phishing</label>
-            <label class="option-item"><input type="radio" name="q3" value="B"> SQL Injection</label>
-            <label class="option-item"><input type="radio" name="q3" value="C" data-correct="true"> DDoS</label>
-            <label class="option-item"><input type="radio" name="q3" value="D"> MITM</label>
+        <div class="info-item">
+            <label>المجموعة الدراسية:</label>
+            <input type="text" id="stdGroup" placeholder="رقم المجموعة">
         </div>
-        <div class="correct-hint">الإجابة الصحيحة: DDoS</div>
     </div>
 
-    <div class="section-head">ثانياً: الأسئلة المقالية (علامتان)</div>
+    <div class="section-title">أولاً: الأسئلة الموضوعية (3 علامات)</div>
 
-    <div class="question">
-        <p>1. قارن بين التشفير المتماثل وغير المتماثل (المفاتيح، السرعة):</p>
+    <div class="question-block">
+        <span class="question-text">1. أي من الخوارزميات التالية تُستخدم في التشفير غير المتماثل؟</span>
+        <ul class="options-list">
+            <li><label><input type="radio" name="q1" value="0"> AES</label></li>
+            <li><label><input type="radio" name="q1" value="1" data-correct="true"> RSA</label></li>
+            <li><label><input type="radio" name="q1" value="0"> DES</label></li>
+        </ul>
+    </div>
+
+    <div class="question-block">
+        <span class="question-text">2. ما الغرض الأساسي من نظام IDS؟</span>
+        <ul class="options-list">
+            <li><label><input type="radio" name="q2" value="0"> تشفير البيانات</label></li>
+            <li><label><input type="radio" name="q2" value="1" data-correct="true"> اكتشاف الأنشطة المشبوهة</label></li>
+            <li><label><input type="radio" name="q2" value="0"> منع الوصول الفعلي</label></li>
+        </ul>
+    </div>
+
+    <div class="question-block">
+        <span class="question-text">3. أي نوع من الهجمات يهدف لتعطيل الخدمة (Availability)؟</span>
+        <ul class="options-list">
+            <li><label><input type="radio" name="q3" value="0"> Phishing</label></li>
+            <li><label><input type="radio" name="q3" value="1" data-correct="true"> DDoS</label></li>
+            <li><label><input type="radio" name="q3" value="0"> SQL Injection</label></li>
+        </ul>
+    </div>
+
+    <div class="section-title">ثانياً: الأسئلة المقالية (2 علامة)</div>
+
+    <div class="question-block">
+        <span class="question-text">1. قارن بين التشفير المتماثل وغير المتماثل من حيث السرعة والمفاتيح:</span>
         <textarea id="ess1"></textarea>
     </div>
 
-    <div class="question">
-        <p>2. اشرح هجوم SQL Injection باختصار ومثال لضرره:</p>
+    <div class="question-block">
+        <span class="question-text">2. اشرح باختصار آلية عمل هجوم SQL Injection:</span>
         <textarea id="ess2"></textarea>
     </div>
 
-    <div class="question">
-        <p>3. اذكر مراحل دورة اختبار الاختراق (PenTesting):</p>
-        <textarea id="ess3"></textarea>
-    </div>
-
-    <div class="no-print">
-        <button class="btn-download" onclick="exportToPDF()">إرسال وتحميل ملف PDF بالنتيجة</button>
+    <div class="action-buttons">
+        <button class="btn btn-download" onclick="savePDF()">💾 تحميل PDF (نسخة آلية)</button>
+        <button class="btn btn-print" onclick="window.print()">🖨 طباعة / حفظ كـ PDF (أعلى جودة)</button>
     </div>
 </div>
 
 <script>
-    function exportToPDF() {
+    function savePDF() {
         const name = document.getElementById('stdName').value.trim();
-        if (!name) { alert("من فضلك اكتب اسمك أولاً"); return; }
+        if(!name) { alert("يرجى كتابة الاسم"); return; }
 
-        // حساب الدرجة التلقائية
+        // حساب الدرجة
         let score = 0;
-        const totalPoints = 3; 
-        const questions = ['q1', 'q2', 'q3'];
-        
-        questions.forEach(q => {
-            const selected = document.querySelector(`input[name="${q}"]:checked`);
-            if (selected && selected.hasAttribute('data-correct')) {
-                score++;
-            }
-        });
+        const correctOnes = document.querySelectorAll('input[data-correct="true"]');
+        correctOnes.forEach(el => { if(el.checked) score++; });
 
-        // تحديث صندوق الدرجة والظهور في PDF
-        const scoreBox = document.getElementById('scoreBox');
-        scoreBox.style.display = "block";
-        scoreBox.innerHTML = `الدرجة المسجلة: ${score} من 3 (الأسئلة الاختيارية) <br> <span style="font-size: 0.9rem;">بانتظار تقييم المدرب للمقالي (2 علامة)</span>`;
+        const scoreDiv = document.getElementById('finalScore');
+        scoreDiv.style.display = 'block';
+        scoreDiv.innerHTML = `النتيجة التلقائية: ${score} من 3 <br> (السؤال المقالي يخضع لتقييم المدرب من علامتين)`;
 
-        // إظهار الإجابات النموذجية في الـ PDF للمدرب
-        document.querySelectorAll('.correct-hint').forEach(hint => hint.style.display = 'block');
+        // ✳️ إعدادات احترافية تمنع القص والصفحات البيضاء
+        document.body.style.height = "auto";
+        document.documentElement.style.height = "auto";
 
-        // إعدادات تصدير PDF قوية جداً
-        const element = document.getElementById('pdf-area');
+        const element = document.getElementById('examArea');
         const opt = {
-            margin: [0.2, 0.2, 0.2, 0.2], // تقليل الهوامش لمنع القص
-            filename: `واجب_الاسبوع_1_${name}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+            margin: 0.4,
+            filename: `واجب_${name}.pdf`,
+            image: { type: 'jpeg', quality: 1 },
+            html2canvas: {
+                scale: 3, 
+                useCORS: true,
+                scrollY: 0,
+                letterRendering: true
+            },
             jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
             pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
         };
 
         html2pdf().set(opt).from(element).save().then(() => {
-            alert("تم التحميل بنجاح باسم المتدرب");
+            alert("تم تحميل الملف بنجاح");
         });
     }
 </script>
