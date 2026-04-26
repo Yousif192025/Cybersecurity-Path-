@@ -84,43 +84,47 @@
         const queryText = document.getElementById('student-query').value.trim();
         if (!queryText) return alert("يرجى إدخال قيمة للبحث");
 
-        // البحث المرن: يبحث في عمود الهوية الوطنية أو الاسم الكامل
-        // ملاحظة: تأكد أن اسم العمود في جدولك هو national_id أو عدله هنا
         const { data: users, error: userErr } = await supabase
             .from('user_profile')
             .select('*')
             .or(`national_id.eq."${queryText}",full_name.ilike.%${queryText}%`);
 
         if (userErr || !users || users.length === 0) {
-            console.error(userErr);
-            return alert("لم يتم العثور على متدرب بهذه البيانات. تأكد من رقم الهوية أو الاسم.");
+            return alert("لم يتم العثور على متدرب بهذه البيانات.");
         }
 
         const user = users[0];
 
-        // جلب سجلات المواد باستخدام الـ user_id (الربط الداخلي)
         const { data: enrolls, error: enrollErr } = await supabase
             .from('enrollments')
             .select('completion_status, completion_percentage, courses(title)')
             .eq('user_id', user.user_id);
 
-        if (enrollErr) console.error("Enrollment Fetch Error:", enrollErr);
-
         renderReport(user, enrolls || []);
     }
 
     function renderReport(user, enrolls) {
-        const track = user.track || "";
-        // منطق الأرقام (28 أمن / 29 حاسب)
-        const total = (track.includes("امن") || track.includes("Cyber")) ? 28 : 29;
-        
-        const done = enrolls.filter(e => e.completion_status === 'completed').length;
-        const ongoing = enrolls.filter(e => e.completion_status === 'in_progress').length;
+        const rawTrack = user.track || "";
+        const isCyber = rawTrack.includes("امن") || rawTrack.includes("Cyber");
+        const total = isCyber ? 28 : 29;
+
+        // --- تعديل الفلترة الذكي لضمان دقة التقرير ---
+        const filteredEnrolls = enrolls.filter(e => {
+            const title = e.courses ? e.courses.title : "";
+            // إذا كان الطالب حاسب والمقرر هو "أمن الشبكات والاتصالات"، يتم إخفاؤه فوراً
+            if (!isCyber && title.includes("أمن الشبكات والاتصالات")) {
+                return false; 
+            }
+            return true;
+        });
+
+        const done = filteredEnrolls.filter(e => e.completion_status === 'completed').length;
+        const ongoing = filteredEnrolls.filter(e => e.completion_status === 'in_progress').length;
         const perc = Math.round((done / total) * 100);
 
         document.getElementById('report-content').style.display = 'block';
         document.getElementById('rep-name').innerText = user.full_name;
-        document.getElementById('rep-track').innerText = track;
+        document.getElementById('rep-track').innerText = rawTrack;
         document.getElementById('rep-group').innerText = "المجموعة: " + (user.group_name || "غير محددة");
         document.getElementById('rep-id').innerText = "رقم الهوية: " + (user.national_id || "غير متوفر");
         document.getElementById('rep-percent').innerText = perc + "%";
@@ -130,7 +134,7 @@
         document.getElementById('bar-fill').style.width = perc + "%";
         document.getElementById('progress-text').innerText = `${done} من أصل ${total} مقرر مكتمل`;
 
-        document.getElementById('rep-table').innerHTML = enrolls.length > 0 ? enrolls.map(e => `
+        document.getElementById('rep-table').innerHTML = filteredEnrolls.length > 0 ? filteredEnrolls.map(e => `
             <tr>
                 <td>${e.courses ? e.courses.title : 'مقرر'}</td>
                 <td>
