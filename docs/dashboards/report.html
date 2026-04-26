@@ -2,76 +2,124 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>تقرير المتدرب | CyberPath</title>
+    <title>تقرير المتدرب الأكاديمي | CyberPath</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Tajawal', sans-serif; background: #f0f2f5; padding: 20px; direction: rtl; text-align: right; }
+        :root { --primary: #1e3a8a; --secondary: #2563eb; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --gray: #64748b; }
+        body { font-family: 'Tajawal', sans-serif; background: #f8fafc; padding: 20px; direction: rtl; color: #1e293b; }
         .container { max-width: 900px; margin: auto; }
-        .search-box { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; gap: 10px; }
-        input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-family: inherit; }
-        .btn-search { background: #1e3a8a; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; }
         
-        .report-card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: none; }
-        .report-header { background: #1e3a8a; color: white; padding: 25px; display: flex; justify-content: space-between; align-items: center; }
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 20px; background: #f8fafc; }
-        .stat-item { padding: 15px; border-radius: 10px; text-align: center; color: white; }
-        .stat-completed { background: #10b981; } .stat-progress { background: #f59e0b; } .stat-pending { background: #94a3b8; }
-        .stat-value { font-size: 1.8rem; font-weight: bold; display: block; }
+        /* أدوات البحث - تختفي عند الطباعة */
+        .search-box { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); display: flex; gap: 10px; }
+        input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit; font-size: 1rem; }
+        .btn-search { background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-search:hover { background: var(--secondary); }
+
+        /* بطاقة التقرير */
+        .report-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: none; border: 1px solid #e2e8f0; }
+        .report-header { background: var(--primary); color: white; padding: 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--success); }
+        .report-header h2 { margin: 0; font-size: 1.8rem; }
         
-        .progress-section { padding: 20px; border-top: 1px solid #eee; }
-        .progress-bar-bg { background: #e2e8f0; height: 12px; border-radius: 10px; margin-top: 10px; overflow: hidden; }
-        .progress-bar-fill { background: #2563eb; height: 100%; transition: width 0.8s; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; text-align: right; border-bottom: 1px solid #eee; }
-        .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
-        .pill-done { background: #dcfce7; color: #15803d; }
+        /* شبكة الإحصائيات (أزرار تفاعلية) */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 20px; background: #fff; }
+        .stat-btn { border: none; padding: 20px; border-radius: 12px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; color: white; position: relative; }
+        .stat-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2); }
+        .stat-btn.active { ring: 3px solid #000; outline: 3px solid rgba(0,0,0,0.2); }
+        .stat-completed { background: var(--success); }
+        .stat-progress { background: var(--warning); }
+        .stat-pending { background: var(--gray); }
+        .stat-value { font-size: 2rem; font-weight: bold; display: block; }
+        .stat-label { font-size: 0.9rem; font-weight: bold; opacity: 0.9; }
+
+        /* شريط الإنجاز */
+        .progress-section { padding: 20px; background: #f1f5f9; }
+        .progress-bar-bg { background: #e2e8f0; height: 14px; border-radius: 10px; margin-top: 10px; overflow: hidden; }
+        .progress-bar-fill { background: var(--success); height: 100%; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* جدول المقررات */
+        .table-container { padding: 20px; }
+        .table-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8fafc; color: var(--gray); font-size: 0.85rem; text-transform: uppercase; padding: 12px; border-bottom: 2px solid #e2e8f0; }
+        td { padding: 15px 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.95rem; }
+        .status-pill { padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
+        .pill-done { background: #dcfce7; color: #166534; }
         .pill-ongoing { background: #fef3c7; color: #92400e; }
+        .pill-todo { background: #f1f5f9; color: #475569; }
+
+        /* أزرار الإجراءات */
+        .actions { padding: 20px; display: flex; gap: 10px; justify-content: center; }
+        .btn-print { background: #4b5563; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+
+        /* تنسيق الطباعة */
+        @media print {
+            body { background: white; padding: 0; }
+            .search-box, .actions, .btn-search { display: none !important; }
+            .report-card { box-shadow: none; border: 1px solid #000; width: 100%; }
+            .stat-btn { transform: none !important; box-shadow: none !important; -webkit-print-color-adjust: exact; }
+            .report-header { -webkit-print-color-adjust: exact; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="search-box">
-        <input type="text" id="student-query" placeholder="أدخل رقم الهوية الوطنية أو الاسم الكامل للمتدرب...">
-        <button class="btn-search" onclick="fetchStudentReport()">عرض التقرير</button>
+        <input type="text" id="student-query" placeholder="أدخل رقم الهوية أو الاسم الكامل...">
+        <button class="btn-search" onclick="fetchStudentReport()">عرض التقرير الذكي</button>
     </div>
 
     <div id="report-content" class="report-card">
         <div class="report-header">
             <div>
-                <h2 id="rep-name">...</h2>
-                <p id="rep-track">...</p>
-                <p id="rep-group" style="font-size: 0.8rem; opacity: 0.8;"></p>
-                <p id="rep-id" style="font-size: 0.8rem; opacity: 0.7;"></p>
+                <h2 id="rep-name">الاسم</h2>
+                <p id="rep-track" style="margin: 5px 0 0; opacity: 0.9;">المسار</p>
+                <p id="rep-id" style="font-size: 0.85rem; opacity: 0.8; margin-top: 5px;"></p>
             </div>
             <div style="text-align: left;">
-                <div id="rep-percent" style="font-size: 2.5rem; font-weight: bold;">0%</div>
-                <div>إجمالي الإنجاز</div>
+                <div id="rep-percent" style="font-size: 3rem; font-weight: bold; line-height: 1;">0%</div>
+                <div style="font-size: 0.9rem; opacity: 0.9;">معدل الإنجاز</div>
             </div>
         </div>
 
         <div class="stats-grid">
-            <div class="stat-item stat-completed"><span class="stat-value" id="count-done">0</span><span>مكتملة</span></div>
-            <div class="stat-item stat-progress"><span class="stat-value" id="count-ongoing">0</span><span>قيد الدراسة</span></div>
-            <div class="stat-item stat-pending"><span class="stat-value" id="count-left">0</span><span>متبقية</span></div>
+            <button class="stat-btn stat-completed" onclick="filterTable('completed')">
+                <span class="stat-value" id="count-done">0</span>
+                <span class="stat-label">مكتملة (عرض)</span>
+            </button>
+            <button class="stat-btn stat-progress" onclick="filterTable('in_progress')">
+                <span class="stat-value" id="count-ongoing">0</span>
+                <span class="stat-label">قيد الدراسة</span>
+            </button>
+            <button class="stat-btn stat-pending" onclick="filterTable('not_started')">
+                <span class="stat-value" id="count-left">0</span>
+                <span class="stat-label">متبقية (لم تبدأ)</span>
+            </button>
         </div>
 
         <div class="progress-section">
-            <div style="display: flex; justify-content: space-between; font-weight: bold;">
-                <span id="progress-text">0 / 0 مقرر مكتمل</span>
+            <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 0.9rem;">
+                <span id="progress-text">0 / 0 مقرر</span>
+                <span id="rep-group">المجموعة</span>
             </div>
             <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-fill" style="width: 0%;"></div></div>
         </div>
 
-        <div style="padding: 20px;">
-            <h3>تفاصيل الخطة الدراسية:</h3>
+        <div class="table-container">
+            <div class="table-title">
+                <h3 id="current-view-title" style="margin:0;">قائمة المقررات (الكل)</h3>
+                <button onclick="filterTable('all')" style="font-size: 0.8rem; cursor: pointer; background: none; border: 1px solid #ccc; border-radius: 4px;">عرض الكل</button>
+            </div>
             <table>
                 <thead>
                     <tr><th>اسم المقرر</th><th>الحالة</th><th>النسبة</th></tr>
                 </thead>
                 <tbody id="rep-table"></tbody>
             </table>
+        </div>
+
+        <div class="actions">
+            <button class="btn-print" onclick="window.print()">🖨️ طباعة التقرير / حفظ بصيغة PDF</button>
         </div>
     </div>
 </div>
@@ -80,71 +128,91 @@
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
     const supabase = createClient("https://suvpaunulhqfoclepwoz.supabase.co", "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b");
 
+    let currentStudentEnrollments = [];
+    let isCyberStudent = false;
+
     window.fetchStudentReport = async function() {
         const queryText = document.getElementById('student-query').value.trim();
-        if (!queryText) return alert("يرجى إدخال قيمة للبحث");
+        if (!queryText) return alert("يرجى إدخال بيانات البحث");
 
         const { data: users, error: userErr } = await supabase
             .from('user_profile')
             .select('*')
             .or(`national_id.eq."${queryText}",full_name.ilike.%${queryText}%`);
 
-        if (userErr || !users || users.length === 0) {
-            return alert("لم يتم العثور على متدرب بهذه البيانات.");
-        }
+        if (userErr || !users || users.length === 0) return alert("المتدرب غير موجود");
 
         const user = users[0];
+        isCyberStudent = (user.track || "").includes("امن") || (user.track || "").includes("Cyber");
 
-        const { data: enrolls, error: enrollErr } = await supabase
+        const { data: enrolls } = await supabase
             .from('enrollments')
             .select('completion_status, completion_percentage, courses(title)')
             .eq('user_id', user.user_id);
 
-        renderReport(user, enrolls || []);
+        currentStudentEnrollments = enrolls || [];
+        renderReport(user);
     }
 
-    function renderReport(user, enrolls) {
-        const rawTrack = user.track || "";
-        const isCyber = rawTrack.includes("امن") || rawTrack.includes("Cyber");
-        const total = isCyber ? 28 : 29;
+    function renderReport(user) {
+        const total = isCyberStudent ? 28 : 29;
 
-        // --- تعديل الفلترة الذكي لضمان دقة التقرير ---
-        const filteredEnrolls = enrolls.filter(e => {
+        // فلترة المقررات الخاصة بالأمن عن طلاب الحاسب
+        const filtered = currentStudentEnrollments.filter(e => {
             const title = e.courses ? e.courses.title : "";
-            // إذا كان الطالب حاسب والمقرر هو "أمن الشبكات والاتصالات"، يتم إخفاؤه فوراً
-            if (!isCyber && title.includes("أمن الشبكات والاتصالات")) {
-                return false; 
-            }
+            if (!isCyberStudent && title.includes("أمن الشبكات والاتصالات")) return false;
             return true;
         });
 
-        const done = filteredEnrolls.filter(e => e.completion_status === 'completed').length;
-        const ongoing = filteredEnrolls.filter(e => e.completion_status === 'in_progress').length;
+        const done = filtered.filter(e => e.completion_status === 'completed').length;
+        const ongoing = filtered.filter(e => e.completion_status === 'in_progress').length;
+        const left = total - (done + ongoing);
         const perc = Math.round((done / total) * 100);
 
         document.getElementById('report-content').style.display = 'block';
         document.getElementById('rep-name').innerText = user.full_name;
-        document.getElementById('rep-track').innerText = rawTrack;
-        document.getElementById('rep-group').innerText = "المجموعة: " + (user.group_name || "غير محددة");
-        document.getElementById('rep-id').innerText = "رقم الهوية: " + (user.national_id || "غير متوفر");
+        document.getElementById('rep-track').innerText = user.track || "غير محدد";
+        document.getElementById('rep-id').innerText = "هوية رقم: " + user.national_id;
+        document.getElementById('rep-group').innerText = "المجموعة: " + (user.group_name || "-");
         document.getElementById('rep-percent').innerText = perc + "%";
         document.getElementById('count-done').innerText = done;
         document.getElementById('count-ongoing').innerText = ongoing;
-        document.getElementById('count-left').innerText = total - (done + ongoing);
+        document.getElementById('count-left').innerText = left < 0 ? 0 : left;
         document.getElementById('bar-fill').style.width = perc + "%";
         document.getElementById('progress-text').innerText = `${done} من أصل ${total} مقرر مكتمل`;
 
-        document.getElementById('rep-table').innerHTML = filteredEnrolls.length > 0 ? filteredEnrolls.map(e => `
+        window.filterTable('all'); 
+    }
+
+    window.filterTable = function(status) {
+        const tableBody = document.getElementById('rep-table');
+        const titleView = document.getElementById('current-view-title');
+        
+        let filtered = currentStudentEnrollments.filter(e => {
+            const title = e.courses ? e.courses.title : "";
+            if (!isCyberStudent && title.includes("أمن الشبكات والاتصالات")) return false;
+            return true;
+        });
+
+        if (status !== 'all') {
+            filtered = filtered.filter(e => e.completion_status === status);
+            const statusNames = { 'completed': 'المكتملة', 'in_progress': 'التي قيد الدراسة', 'not_started': 'المتبقية' };
+            titleView.innerText = "قائمة المقررات " + statusNames[status];
+        } else {
+            titleView.innerText = "خطة المقررات الكاملة";
+        }
+
+        tableBody.innerHTML = filtered.map(e => `
             <tr>
-                <td>${e.courses ? e.courses.title : 'مقرر'}</td>
+                <td style="font-weight:bold;">${e.courses ? e.courses.title : 'مقرر غير معروف'}</td>
                 <td>
-                    <span class="status-pill ${e.completion_status === 'completed' ? 'pill-done' : 'pill-ongoing'}">
-                        ${e.completion_status === 'completed' ? 'مكتمل ✅' : (e.completion_status === 'in_progress' ? 'قيد الدراسة 🔄' : 'لم يبدأ ⚪')}
+                    <span class="status-pill ${e.completion_status === 'completed' ? 'pill-done' : (e.completion_status === 'in_progress' ? 'pill-ongoing' : 'pill-todo')}">
+                        ${e.completion_status === 'completed' ? 'مكتمل ✅' : (e.completion_status === 'in_progress' ? 'قيد الدراسة 🔄' : 'لم يبدأ بعد ⚪')}
                     </span>
                 </td>
-                <td>${e.completion_percentage || 0}%</td>
+                <td style="color:var(--gray); font-weight:bold;">${e.completion_percentage || 0}%</td>
             </tr>
-        `).join('') : '<tr><td colspan="3" style="text-align:center;">لا توجد سجلات مواد لهذا المتدرب حالياً</td></tr>';
+        `).join('');
     }
 </script>
 </body>
