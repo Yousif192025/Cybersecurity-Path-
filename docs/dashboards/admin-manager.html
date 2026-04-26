@@ -46,7 +46,7 @@
     </div>
 
     <div style="background: #f1f5f9; padding: 20px; border-radius: 10px; border: 1px solid #cbd5e1;">
-        <strong style="color: #0f172a;">التحديث الجماعي (نظام الربط الأكاديمي):</strong>
+        <strong style="color: #0f172a;">التحديث الجماعي (نظام الفصل الأكاديمي الدقيق):</strong>
         <div style="display: flex; gap: 12px; margin-top: 12px;">
             <select id="status-select" style="flex: 1;">
                 <option value="completed">مكتمل ✅</option>
@@ -56,7 +56,7 @@
             <button class="btn btn-batch" style="flex: 1.5; margin: 0;" onclick="batchUpdate()">تحديث المستحقين للمقرر فقط</button>
         </div>
         <p style="font-size: 0.85rem; color: #475569; margin-top: 10px;">
-            📢 <b>ملاحظة:</b> يتم مطابقة المقرر مع مسار المتدرب (29 مقرر للحاسب / 28 للأمن) لضمان دقة البيانات.
+            📢 <b>ملاحظة:</b> تم ضبط دقة التعرف لتمييز "أمن الشبكات" (حاسب) عن "أمن الشبكات والاتصالات" (أمن).
         </p>
     </div>
 
@@ -117,7 +117,6 @@
         }
     }
 
-    // الدالة الذكية المحدثة لحل مشكلة عدم التعرف على مسار الحاسب
     function isTrackMatching(studentTrack, courseTitle) {
         if (!studentTrack || !courseTitle) return true;
 
@@ -125,7 +124,17 @@
         const sTrack = clean(studentTrack);
         const cTitle = clean(courseTitle);
 
-        // 1. المقررات المشتركة (17)
+        const isCSStudent = sTrack.includes("حاسب") || sTrack.includes("computer") || sTrack.includes("applied") || sTrack.includes("علوم") || sTrack.includes("تطبيقات");
+        const isCyberStudent = sTrack.includes("امن") || sTrack.includes("cyber");
+
+        // حالة خاصة دقيقة لتمييز أمن الشبكات
+        if (cTitle.includes("اتصالات") && cTitle.includes("شبكات")) {
+             return isCyberStudent; // أمن الشبكات والاتصالات للأمن فقط
+        }
+        if (cTitle === "امن الشبكات" || cTitle.includes("امن الشبكات | network security")) {
+             return isCSStudent; // أمن الشبكات للحاسب فقط
+        }
+
         const commonCourses = [
             "التوجيه المهني والتميز", "مقدمة تطبيقات الحاسب", "الرياضيات", 
             "برمجة الحاسب", "تطبيقات الحاسب المتقدمة", "نظم تشغيل", 
@@ -135,31 +144,22 @@
             "مشروع التخرج", "التدريب التعاوني - 1", "التدريب التعاوني - 2"
         ];
 
-        // 2. تخصص الحاسب (12)
         const csOnlyCourses = [
             "تجميع الحاسب وتشغيله", "الفيزياء", "تحليل وتصميم النظم", 
             "مبادئ قواعد البيانات", "اساسيات تقنية المعلومات", "تقنيات الانترنت المتقدمة", 
-            "امن الشبكات", "اخلاقيات نظم وتقنية المعلومات", "مهارات الدعم الفني", 
+            "اخلاقيات نظم وتقنية المعلومات", "مهارات الدعم الفني", 
             "تطوير وادارة المواقع", "التاهيل للشهادات الاحترافية", "الذكاء الاصطناعي"
         ];
 
-        // 3. تخصص الأمن (11)
         const cyberOnlyCourses = [
             "اساسيات الامن السيبراني", "ادارة امن المعلومات", "امن انظمة التشغيل", 
-            "تطوير البرمجيات الامنة", "امن الشبكات والاتصالات", "اختبار الاختراق", 
+            "تطوير البرمجيات الامنة", "اختبار الاختراق", 
             "التشفير التطبيقي", "انترنت الاشياء الامنة", "ادارة المخاطر والاستجابة للحوادث", 
             "الجرائم الالكترونية", "الحوسبة السحابية وامن المحاكاة الافتراضية"
         ];
 
-        // كشف نوع الطالب (معدل ليشمل "علوم" و "تطبيقات")
-        const isCSStudent = sTrack.includes("حاسب") || sTrack.includes("computer") || sTrack.includes("applied") || sTrack.includes("علوم") || sTrack.includes("تطبيقات");
-        const isCyberStudent = sTrack.includes("امن") || sTrack.includes("cyber");
-
-        // منطق التحقق
         if (commonCourses.some(course => cTitle.includes(clean(course)))) return true;
-        
         if (csOnlyCourses.some(course => cTitle.includes(clean(course))) && isCSStudent) return true;
-        
         if (cyberOnlyCourses.some(course => cTitle.includes(clean(course))) && isCyberStudent) return true;
 
         if (cTitle.includes("حره") || cTitle.includes("هكر") || cTitle.includes("تحقيق")) return true;
