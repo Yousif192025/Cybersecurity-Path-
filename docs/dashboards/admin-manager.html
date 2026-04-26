@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة التحكم المتقدمة | CyberPath</title>
+    <title>لوحة التحكم الاحترافية | CyberPath</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Tajawal', sans-serif; background: #f4f7f6; direction: rtl; padding: 20px; }
@@ -19,8 +19,7 @@
         .btn-orange { background: #f59e0b; } .btn-orange:hover { background: #d97706; }
         .btn-gray { background: #6b7280; } .btn-gray:hover { background: #4b5563; }
         .btn-batch { background: #2563eb; width: 100%; padding: 14px; font-size: 1rem; margin-top: 10px; }
-        .btn-batch:hover { background: #1d4ed8; }
-        .badge-track { padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; background: #e0e7ff; color: #4338ca; }
+        .badge-track { padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; background: #e0e7ff; color: #4338ca; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -32,22 +31,22 @@
 
     <div class="controls">
         <div>
-            <label>1. اختر المجموعة التدريبية:</label>
+            <label>1. اختيار المجموعة التدريبية:</label>
             <select id="group-select" onchange="loadStudents()">
                 <option value="">-- اختر المجموعة --</option>
                 <script>for(let i=1; i<=10; i++) document.write(`<option value="Group -${i}">Group -${i}</option>`);</script>
             </select>
         </div>
         <div>
-            <label>2. اختر المقرر المراد تحديثه:</label>
+            <label>2. اختيار المقرر المطلوب تحديثه:</label>
             <select id="course-select">
-                <option value="">جاري تحميل المقررات من القاعدة...</option>
+                <option value="">جاري جلب البيانات من Supabase...</option>
             </select>
         </div>
     </div>
 
-    <div style="background: #f8fafc; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0;">
-        <strong style="color: #1e293b;">تحديث جماعي (نظام التصفية الأكاديمي الذكي):</strong>
+    <div style="background: #f1f5f9; padding: 20px; border-radius: 10px; border: 1px solid #cbd5e1;">
+        <strong style="color: #0f172a;">التحديث الجماعي (نظام الربط الأكاديمي):</strong>
         <div style="display: flex; gap: 12px; margin-top: 12px;">
             <select id="status-select" style="flex: 1;">
                 <option value="completed">مكتمل ✅</option>
@@ -56,8 +55,8 @@
             </select>
             <button class="btn btn-batch" style="flex: 1.5; margin: 0;" onclick="batchUpdate()">تحديث المستحقين للمقرر فقط</button>
         </div>
-        <p style="font-size: 0.85rem; color: #64748b; margin-top: 10px;">
-            ℹ️ <b>كيف يعمل النظام؟</b> سيقوم النظام بفحص مسار كل طالب تلقائياً. إذا كان المقرر "مشتركاً" سيشمل الجميع، وإذا كان "تخصصياً" (مثل الفيزياء للحاسب أو التشفير للأمن) سيقوم بتحديث الطلاب المعنيين فقط واستثناء البقية.
+        <p style="font-size: 0.85rem; color: #475569; margin-top: 10px;">
+            📢 <b>ملاحظة:</b> يتم مطابقة المقرر مع مسار المتدرب (29 مقرر للحاسب / 28 للأمن) لضمان دقة البيانات.
         </p>
     </div>
 
@@ -66,11 +65,11 @@
             <tr>
                 <th>اسم المتدرب</th>
                 <th>المسار الدراسي</th>
-                <th>تعديل فردي للمقرر المختار</th>
+                <th>تعديل حالة المقرر المختار</th>
             </tr>
         </thead>
         <tbody id="students-body">
-            <tr><td colspan="3" style="text-align: center; color: #94a3b8;">يرجى اختيار مجموعة لإظهار المتدربين</td></tr>
+            <tr><td colspan="3" style="text-align: center; color: #94a3b8;">اختر مجموعة لعرض المتدربين</td></tr>
         </tbody>
     </table>
 </div>
@@ -88,7 +87,7 @@
         if (data) {
             coursesData = data;
             const select = document.getElementById('course-select');
-            select.innerHTML = '<option value="">-- اختر المقرر من القائمة الموحدة --</option>' + 
+            select.innerHTML = '<option value="">-- اختر المقرر من القائمة --</option>' + 
                 data.map(c => `<option value="${c.course_id}">${c.title}</option>`).join('');
         }
     }
@@ -109,16 +108,16 @@
                     <td>
                         <button class="btn btn-green" onclick="singleUpdate('${s.user_id}', 'completed', '${s.track}')">مكتمل</button>
                         <button class="btn btn-orange" onclick="singleUpdate('${s.user_id}', 'in_progress', '${s.track}')">دراسة</button>
-                        <button class="btn btn-gray" onclick="singleUpdate('${s.user_id}', 'not_started', '${s.track}')">إلغاء</button>
+                        <button class="btn btn-gray" onclick="singleUpdate('${s.user_id}', 'not_started', '${s.track}')">مسح</button>
                     </td>
                 </tr>
             `).join('');
         } else {
-            body.innerHTML = '<tr><td colspan="3" style="text-align: center;">لا يوجد متدربين مسجلين في هذه المجموعة</td></tr>';
+            body.innerHTML = '<tr><td colspan="3" style="text-align: center;">لا توجد بيانات لهذه المجموعة</td></tr>';
         }
     }
 
-    // الدالة الذكية لضبط المقررات بناءً على الخطط الدراسية (29 حاسب / 28 أمن)
+    // الدالة الذكية المحدثة لحل مشكلة عدم التعرف على مسار الحاسب
     function isTrackMatching(studentTrack, courseTitle) {
         if (!studentTrack || !courseTitle) return true;
 
@@ -126,7 +125,7 @@
         const sTrack = clean(studentTrack);
         const cTitle = clean(courseTitle);
 
-        // 1. قائمة المقررات المشتركة (17 مقرراً)
+        // 1. المقررات المشتركة (17)
         const commonCourses = [
             "التوجيه المهني والتميز", "مقدمة تطبيقات الحاسب", "الرياضيات", 
             "برمجة الحاسب", "تطبيقات الحاسب المتقدمة", "نظم تشغيل", 
@@ -136,7 +135,7 @@
             "مشروع التخرج", "التدريب التعاوني - 1", "التدريب التعاوني - 2"
         ];
 
-        // 2. قائمة مقررات علوم الحاسب النوعية (12 مقرراً)
+        // 2. تخصص الحاسب (12)
         const csOnlyCourses = [
             "تجميع الحاسب وتشغيله", "الفيزياء", "تحليل وتصميم النظم", 
             "مبادئ قواعد البيانات", "اساسيات تقنية المعلومات", "تقنيات الانترنت المتقدمة", 
@@ -144,7 +143,7 @@
             "تطوير وادارة المواقع", "التاهيل للشهادات الاحترافية", "الذكاء الاصطناعي"
         ];
 
-        // 3. قائمة مقررات الأمن السيبراني النوعية (11 مقرراً)
+        // 3. تخصص الأمن (11)
         const cyberOnlyCourses = [
             "اساسيات الامن السيبراني", "ادارة امن المعلومات", "امن انظمة التشغيل", 
             "تطوير البرمجيات الامنة", "امن الشبكات والاتصالات", "اختبار الاختراق", 
@@ -152,15 +151,17 @@
             "الجرائم الالكترونية", "الحوسبة السحابية وامن المحاكاة الافتراضية"
         ];
 
-        const isCSStudent = sTrack.includes("حاسب") || sTrack.includes("applied");
+        // كشف نوع الطالب (معدل ليشمل "علوم" و "تطبيقات")
+        const isCSStudent = sTrack.includes("حاسب") || sTrack.includes("computer") || sTrack.includes("applied") || sTrack.includes("علوم") || sTrack.includes("تطبيقات");
         const isCyberStudent = sTrack.includes("امن") || sTrack.includes("cyber");
 
-        // منطق الفلترة:
+        // منطق التحقق
         if (commonCourses.some(course => cTitle.includes(clean(course)))) return true;
+        
         if (csOnlyCourses.some(course => cTitle.includes(clean(course))) && isCSStudent) return true;
+        
         if (cyberOnlyCourses.some(course => cTitle.includes(clean(course))) && isCyberStudent) return true;
 
-        // الدورات الإضافية أو الحرة
         if (cTitle.includes("حره") || cTitle.includes("هكر") || cTitle.includes("تحقيق")) return true;
 
         return false;
@@ -168,12 +169,12 @@
 
     window.singleUpdate = async function(userId, status, studentTrack) {
         const courseId = document.getElementById('course-select').value;
-        if (!courseId) return alert("يرجى اختيار المقرر من القائمة العلوية أولاً");
+        if (!courseId) return alert("الرجاء اختيار المقرر أولاً من القائمة");
 
         const course = coursesData.find(c => c.course_id === courseId);
         
         if (!isTrackMatching(studentTrack, course.title)) {
-            if (!confirm(`تنبيه أكاديمي: المقرر (${course.title}) ليس جزءاً من خطة تخصص (${studentTrack}). هل تود التحديث يدوياً على أي حال؟`)) return;
+            if (!confirm(`تنبيه: هذا المقرر (${course.title}) لا ينتمي لمسار المتدرب (${studentTrack}). هل تود المتابعة؟`)) return;
         }
 
         const { error } = await supabase.from('enrollments').upsert({
@@ -184,12 +185,10 @@
         }, { onConflict: 'user_id,course_id' });
 
         if (!error) {
-            const btn = event.target;
-            const originalText = btn.innerText;
-            btn.innerText = "تم ✅";
-            setTimeout(() => btn.innerText = originalText, 1500);
+            alert("تم التحديث بنجاح");
+            loadStudents(); 
         } else {
-            alert("❌ فشل التحديث: " + error.message);
+            alert("خطأ: " + error.message);
         }
     }
 
@@ -197,15 +196,13 @@
         const courseId = document.getElementById('course-select').value;
         const status = document.getElementById('status-select').value;
 
-        if (!courseId || studentsData.length === 0) return alert("يجب اختيار المجموعة والمقرر أولاً");
+        if (!courseId || studentsData.length === 0) return alert("اختر المجموعة والمقرر أولاً");
 
         const course = coursesData.find(c => c.course_id === courseId);
-
-        // تصفية الطلاب المستحقين بناءً على المنطق الأكاديمي الموحد
         const eligibleStudents = studentsData.filter(s => isTrackMatching(s.track, course.title));
 
         if (eligibleStudents.length === 0) {
-            return alert("هذا المقرر لا ينتمي لخطة أي طالب في هذه المجموعة بناءً على مساراتهم.");
+            return alert("لم يتم العثور على متدربين يطابق تخصصهم هذا المقرر في هذه المجموعة.");
         }
 
         const updates = eligibleStudents.map(s => ({
@@ -215,12 +212,12 @@
             completion_percentage: status === 'completed' ? 100 : (status === 'in_progress' ? 50 : 0)
         }));
 
-        if (!confirm(`سيتم تحديث ${updates.length} متدرب مستحق لهذا المقرر.\n(تم استبعاد ${studentsData.length - updates.length} لعدم مطابقة المسار).\n\nهل تود الاستمرار؟`)) return;
+        if (!confirm(`سيتم تحديث ${updates.length} متدرب مطابق لهذا المقرر. استمرار؟`)) return;
 
         const { error } = await supabase.from('enrollments').upsert(updates, { onConflict: 'user_id,course_id' });
         
-        if (!error) alert(`✅ تمت العملية بنجاح! تم تحديث سجلات ${updates.length} متدرب.`);
-        else alert("❌ خطأ أثناء التحديث الجماعي: " + error.message);
+        if (!error) alert(`✅ تم تحديث ${updates.length} سجل بنجاح.`);
+        else alert("❌ خطأ جماعي: " + error.message);
     }
 
     init();
