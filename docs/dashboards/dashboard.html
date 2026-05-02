@@ -3,201 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyberPath | Dashboard</title>
+    <title>CyberPath | Advanced Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* (احتفظت بنفس التنسيقات السابقة مع إضافة لمسات بسيطة) */
         :root {
             --bg-dark: #0f172a; --card-dark: #1e293b;
             --primary: #3b82f6; --accent: #8b5cf6;
             --text-main: #f8fafc; --text-muted: #94a3b8;
-            --border: #334155; --success: #10b981;
+            --border: #334155; --success: #10b981; --danger: #ef4444;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Tajawal', sans-serif; background: var(--bg-dark); color: var(--text-main); overflow-x: hidden; }
-
-        /* Layout Structure */
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg-dark); color: var(--text-main); }
         .app-container { display: flex; min-height: 100vh; }
-
-        /* Sidebar */
-        .sidebar {
-            width: 260px; background: var(--card-dark); border-left: 1px solid var(--border);
-            padding: 20px; display: flex; flex-direction: column; transition: 0.3s;
-        }
+        .sidebar { width: 260px; background: var(--card-dark); border-left: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; }
         .logo { font-size: 1.5rem; font-weight: bold; color: var(--primary); margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
-        .nav-menu { list-style: none; flex: 1; }
-        .nav-item { 
-            padding: 12px 15px; border-radius: 8px; cursor: pointer; color: var(--text-muted);
-            margin-bottom: 5px; transition: 0.2s; display: flex; align-items: center; gap: 12px;
-        }
+        .nav-item { padding: 12px 15px; border-radius: 8px; cursor: pointer; color: var(--text-muted); margin-bottom: 5px; transition: 0.2s; display: flex; align-items: center; gap: 12px; }
         .nav-item:hover, .nav-item.active { background: var(--primary); color: white; }
-
-        /* Main Content */
-        .main-content { flex: 1; display: flex; flex-direction: column; }
-        .topbar { 
-            height: 70px; background: var(--card-dark); border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: space-between; padding: 0 30px;
-        }
-        .dashboard-area { padding: 30px; }
-
-        /* Grid & Cards */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: var(--card-dark); padding: 20px; border-radius: 12px; border: 1px solid var(--border); }
-        .stat-card h3 { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 10px; }
-        .stat-card .value { font-size: 1.8rem; font-weight: bold; }
-
-        /* Tables */
-        .data-table-container { background: var(--card-dark); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; }
+        .main-content { flex: 1; padding: 30px; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: var(--card-dark); padding: 20px; border-radius: 12px; border: 1px solid var(--border); }
+        
+        /* Search & Actions */
+        .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        .search-box input { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: #0f172a; color: white; }
+        
+        /* Table Styles */
+        .data-table-container { background: var(--card-dark); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; margin-top: 20px; }
         table { width: 100%; border-collapse: collapse; text-align: right; }
-        th { background: #1e293b; padding: 15px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid var(--border); }
-        td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-
-        /* Badges */
-        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
-        .badge-admin { background: #fee2e2; color: #dc2626; }
-        .badge-student { background: #dcfce7; color: #16a34a; }
-
-        /* Utility */
+        th { background: #1e293b; padding: 15px; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+        td { padding: 15px; border-bottom: 1px solid var(--border); }
+        
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; }
+        .badge-admin { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .badge-instructor { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .badge-student { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+        
         .hidden { display: none; }
-        .loading-spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 50px auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <!-- Sidebar -->
     <aside class="sidebar">
         <div class="logo"><i class="fas fa-shield-halved"></i> CyberPath</div>
-        <ul class="nav-menu" id="dynamic-menu">
-            <!-- الروابط سيتم توليدها برمجياً بناءً على الدور -->
-        </ul>
-        <div class="nav-item" onclick="handleLogout()" style="margin-top: auto; color: #ef4444;">
+        <ul class="nav-menu" id="dynamic-menu"></ul>
+        <div class="nav-item" onclick="handleLogout()" style="margin-top: auto; color: var(--danger);">
             <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
         </div>
     </aside>
 
-    <!-- Main Content -->
     <main class="main-content">
         <header class="topbar">
-            <h2 id="role-title">لوحة التحكم</h2>
-            <div id="user-profile-summary" style="display: flex; align-items: center; gap: 15px;">
-                <span id="user-name">تحميل...</span>
-                <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-user"></i>
+            <div>
+                <h2 id="role-title">جاري التحميل...</h2>
+                <p id="user-welcome" style="color: var(--text-muted); font-size: 0.9rem;"></p>
+            </div>
+            <div id="user-info" style="display: flex; align-items: center; gap: 15px;">
+                <span id="user-name"></span>
+                <div style="width: 45px; height: 45px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-user-shield"></i>
                 </div>
             </div>
         </header>
 
-        <section class="dashboard-area">
-            <!-- Widgets Grid -->
-            <div id="stats-area" class="stats-grid"></div>
-
-            <!-- Main Data Table -->
-            <div class="data-table-container">
-                <div style="padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between;">
-                    <h3 id="table-title">البيانات الحالية</h3>
-                    <button id="add-btn" class="hidden" style="background: var(--primary); border: none; color: white; padding: 5px 15px; border-radius: 6px; cursor: pointer;">+ إضافة جديد</button>
-                </div>
-                <table id="main-data-table">
-                    <thead id="table-head"></thead>
-                    <tbody id="table-body"></tbody>
-                </table>
-                <div id="loader" class="loading-spinner"></div>
+        <!-- خاص بالأدمن: البحث بالهوية الوطنية -->
+        <section id="admin-actions" class="hidden">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="البحث بالرقم الوطني أو الاسم...">
+                <button onclick="fetchAdminData()" style="padding: 10px 25px; border-radius: 8px; background: var(--primary); border: none; color: white; cursor: pointer;">بحث</button>
             </div>
         </section>
+
+        <div class="data-table-container">
+            <div style="padding: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <h3 id="table-title">قائمة المستخدمين</h3>
+            </div>
+            <table>
+                <thead><tr id="table-head"></tr></thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
+
+        <!-- سجل العمليات للأدمن فقط -->
+        <div id="logs-container" class="data-table-container hidden" style="margin-top: 40px;">
+            <div style="padding: 20px; border-bottom: 1px solid var(--border);">
+                <h3><i class="fas fa-history"></i> آخر العمليات الإدارية</h3>
+            </div>
+            <table id="logs-table">
+                <thead><tr><th>المشرف</th><th>العملية</th><th>التفاصيل</th><th>التاريخ</th></tr></thead>
+                <tbody id="logs-body"></tbody>
+            </table>
+        </div>
     </main>
 </div>
 
 <script type="module">
-    const supabase = supabase.createClient("https://suvpaunulhqfoclepwoz.supabase.co", "YOUR_KEY");
-
-    let currentUser = null;
+    // تهيئة سوبابيز (استبدل YOUR_KEY بمفتاحك الحقيقي)
+    const supabaseClient = supabase.createClient("https://suvpaunulhqfoclepwoz.supabase.co", "YOUR_KEY");
 
     async function checkAuth() {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            renderGuestDashboard();
-            return;
-        }
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (!user) { window.location.href = '/login'; return; }
 
-        const { data: profile } = await supabase.from('user_profile').select('*').eq('user_id', user.id).single();
-        currentUser = profile;
-        initDashboard(profile.role);
+        const { data: profile } = await supabaseClient
+            .from('user_profile')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+
+        if (profile) initDashboard(profile);
     }
 
-    function initDashboard(role) {
-        document.getElementById('loader').classList.add('hidden');
-        document.getElementById('user-name').innerText = currentUser.full_name;
+    function initDashboard(profile) {
+        document.getElementById('user-name').innerText = profile.full_name;
+        document.getElementById('user-welcome').innerText = `مرحباً، ${profile.full_name} (${profile.national_id})`;
         
         const menu = document.getElementById('dynamic-menu');
-        const stats = document.getElementById('stats-area');
         
-        if (role === 'admin') {
+        if (profile.role === 'admin') {
             document.getElementById('role-title').innerText = "لوحة تحكم الإدارة";
+            document.getElementById('admin-actions').classList.remove('hidden');
+            document.getElementById('logs-container').classList.remove('hidden');
             menu.innerHTML = `
-                <li class="nav-item active"><i class="fas fa-users"></i> إدارة المستخدمين</li>
-                <li class="nav-item"><i class="fas fa-book"></i> إدارة المقررات</li>
-                <li class="nav-item"><i class="fas fa-chart-line"></i> الإحصائيات</li>
+                <li class="nav-item active"><i class="fas fa-users-cog"></i> الإدارة العامة</li>
+                <li class="nav-item"><i class="fas fa-database"></i> السجلات</li>
             `;
-            renderAdminStats();
             fetchAdminData();
-        } 
-        else if (role === 'instructor') {
-            document.getElementById('role-title').innerText = "لوحة تحكم المدرب";
-            document.getElementById('add-btn').classList.remove('hidden');
-            menu.innerHTML = `
-                <li class="nav-item active"><i class="fas fa-chalkboard-teacher"></i> مقرراتي</li>
-                <li class="nav-item"><i class="fas fa-tasks"></i> إدارة المهام</li>
-                <li class="nav-item"><i class="fas fa-video"></i> الفيديوهات</li>
-            `;
-            renderInstructorStats();
-        }
-        else {
-            renderStudentDashboard();
+            fetchAdminLogs();
+        } else {
+            document.getElementById('role-title').innerText = "لوحة الطالب";
+            renderStudentView();
         }
     }
 
-    // --- Admin Logic ---
-    async function renderAdminStats() {
-        const { count: userCount } = await supabase.from('user_profile').select('*', { count: 'exact', head: true });
-        const { count: courseCount } = await supabase.from('courses').select('*', { count: 'exact', head: true });
+    // جلب بيانات المستخدمين مع دعم البحث
+    window.fetchAdminData = async () => {
+        const search = document.getElementById('search-input').value;
+        let query = supabaseClient.from('user_profile').select('*');
         
-        document.getElementById('stats-area').innerHTML = `
-            <div class="stat-card"><h3>إجمالي المستخدمين</h3><div class="value">${userCount}</div></div>
-            <div class="stat-card"><h3>المقررات النشطة</h3><div class="value">${courseCount}</div></div>
-            <div class="stat-card"><h3>شهادات صادرة</h3><div class="value">124</div></div>
-        `;
-    }
+        if (search) {
+            query = query.or(`national_id.ilike.%${search}%,full_name.ilike.%${search}%`);
+        }
 
-    async function fetchAdminData() {
-        const { data: users } = await supabase.from('user_profile').select('*').limit(10);
+        const { data: users } = await query.limit(10);
         const head = document.getElementById('table-head');
         const body = document.getElementById('table-body');
-        
-        head.innerHTML = `<tr><th>المستخدم</th><th>الدور</th><th>المسار</th><th>الإجراء</th></tr>`;
+
+        head.innerHTML = `<tr><th>الاسم</th><th>الهوية الوطنية</th><th>الدور</th><th>الإجراء</th></tr>`;
         body.innerHTML = users.map(u => `
             <tr>
                 <td>${u.full_name}</td>
-                <td><span class="badge ${u.role === 'admin' ? 'badge-admin' : 'badge-student'}">${u.role}</span></td>
-                <td>${u.track || '-'}</td>
-                <td><button onclick="editUser('${u.user_id}')" style="background:none; border:none; color:var(--primary); cursor:pointer;"><i class="fas fa-edit"></i></button></td>
+                <td>${u.national_id}</td>
+                <td><span class="badge badge-${u.role}">${u.role}</span></td>
+                <td>
+                    <select onchange="changeUserRole('${u.user_id}', this.value)" style="background:#0f172a; color:white; border:1px solid var(--border); padding:5px; border-radius:5px;">
+                        <option value="">تغيير الدور...</option>
+                        <option value="admin">Admin</option>
+                        <option value="instructor">Instructor</option>
+                        <option value="student">Student</option>
+                    </select>
+                </td>
+            </tr>
+        `).join('');
+    };
+
+    // تحديث الدور (سيقوم الـ Trigger بتسجيلها في admin_logs تلقائياً)
+    window.changeUserRole = async (userId, newRole) => {
+        if (!newRole) return;
+        const { error } = await supabaseClient
+            .from('user_profile')
+            .update({ role: newRole })
+            .eq('user_id', userId);
+
+        if (!error) {
+            alert("تم تحديث الصلاحيات بنجاح");
+            fetchAdminData();
+            fetchAdminLogs();
+        } else {
+            alert("فشل التحديث: " + error.message);
+        }
+    };
+
+    // جلب سجلات المراقبة
+    async function fetchAdminLogs() {
+        const { data: logs } = await supabaseClient
+            .from('admin_logs')
+            .select('*')
+            .order('action_date', { ascending: false })
+            .limit(5);
+
+        const body = document.getElementById('logs-body');
+        body.innerHTML = logs.map(l => `
+            <tr style="font-size:0.8rem; color:var(--text-muted);">
+                <td>النظام</td>
+                <td>${l.action}</td>
+                <td>${JSON.stringify(l.details)}</td>
+                <td>${new Date(l.action_date).toLocaleString('ar-EG')}</td>
             </tr>
         `).join('');
     }
 
-    // --- Guest Logic ---
-    function renderGuestDashboard() {
-        document.body.innerHTML = `<div style="text-align:center; padding:100px;">
-            <h1>مرحباً بك في CyberPath</h1>
-            <p>يجب تسجيل الدخول للوصول إلى لوحة التحكم</p>
-            <button onclick="window.location.href='/login'" style="padding:10px 20px; background:var(--primary); color:white; border:none; border-radius:5px; margin-top:20px;">تسجيل الدخول</button>
-        </div>`;
-    }
-
     window.handleLogout = async () => {
-        await supabase.auth.signOut();
+        await supabaseClient.auth.signOut();
         window.location.reload();
     };
 
