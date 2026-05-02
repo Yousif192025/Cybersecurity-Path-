@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | CyberPath</title>
+
+    <style>
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background: #0f172a;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .login-box {
+            background: #1e293b;
+            padding: 40px;
+            border-radius: 15px;
+            width: 350px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border: 1px solid #334155;
+        }
+
+        h2 { text-align: center; margin-bottom: 25px; color: #38bdf8; }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 15px;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            background: #0f172a;
+            color: white;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 25px;
+            background: #38bdf8;
+            border: none;
+            color: black;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover { background: #0ea5e9; transform: translateY(-2px); }
+
+        .google-btn {
+            background: white;
+            color: #444;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .google-btn:hover { background: #e2e8f0; }
+
+        /* تنسيق زر الضيف */
+        .guest-btn {
+            background: transparent;
+            border: 1px solid #334155;
+            color: #94a3b8;
+            margin-top: 10px;
+        }
+        .guest-btn:hover { border-color: #38bdf8; color: #38bdf8; background: rgba(56, 189, 248, 0.05); }
+
+        .divider {
+            margin: 20px 0;
+            text-align: center;
+            border-bottom: 1px solid #334155;
+            line-height: 0.1em;
+        }
+        .divider span { background: #1e293b; padding: 0 10px; color: #64748b; font-size: 12px; }
+
+        .auth-links { margin-top: 20px; text-align: center; font-size: 14px; }
+        .auth-links a { color: #94a3b8; text-decoration: none; display: block; margin-top: 10px; }
+        .auth-links a:hover { color: #38bdf8; }
+
+        #message { margin-top: 15px; text-align: center; font-size: 14px; min-height: 20px; }
+        .error-msg { color: #f87171; }
+        .success-msg { color: #4ade80; }
+
+        .loader { display: none; text-align: center; margin-top: 10px; color: #38bdf8; font-size: 14px; }
+    </style>
+</head>
+
+<body>
+
+<div class="login-box">
+    <h2>CyberPath Login</h2>
+    
+    <input id="email" type="email" placeholder="Email Address">
+    <input id="password" type="password" placeholder="Password">
+    
+    <button onclick="login()">Sign In</button>
+
+    <div class="divider"><span>OR</span></div>
+
+    <!-- الخيار 2: جوجل -->
+    <button class="google-btn" onclick="loginWithGoogle()">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" alt="Google Logo">
+        Sign in with Google
+    </button>
+
+    <!-- الخيار 4: الدخول كضيف -->
+    <button class="guest-btn" onclick="loginAsGuest()">
+        <i class="fas fa-eye"></i> Continue as Guest
+    </button>
+    
+    <div class="loader" id="loader">🔄 Authenticating...</div>
+    <p id="message"></p>
+
+    <div class="auth-links">
+        <a href="javascript:void(0)" onclick="forgotPassword()">Forgot Password?</a>
+        <a href="javascript:void(0)" onclick="createAccount()">Don't have an account? <b>Create One</b></a>
+    </div>
+</div>
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
+
+const supabase = createClient(
+    "https://suvpaunulhqfoclepwoz.supabase.co",
+    "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"
+)
+
+const message = document.getElementById("message")
+const loader = document.getElementById("loader")
+
+// --- مراقب حالة تسجيل الدخول ---
+supabase.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+        await redirectUserByRole(session.user);
+    }
+});
+
+// دالة التوجيه الذكي المحدثة لتشمل الضيف
+async function redirectUserByRole(user) {
+    if (!user) {
+        // إذا لم يوجد مستخدم (دخول كضيف)
+        window.location.href = "./dashboards/unified.html?role=guest";
+        return;
+    }
+
+    loader.style.display = "block";
+    const { data: profile, error } = await supabase
+        .from("user_profile")
+        .select("role")
+        .eq("user_id", user.id)
+        .single();
+
+    if (error || !profile) {
+        window.location.href = "./dashboards/unified.html?role=student";
+        return;
+    }
+
+    // التوجيه للوحة التحكم الموحدة مع تمرير الدور في الرابط (أو عبر SessionStorage)
+    window.location.href = `./dashboards/unified.html?role=${profile.role}`;
+}
+
+// --- تسجيل الدخول كضيف ---
+window.loginAsGuest = function() {
+    loader.style.display = "block";
+    // يتم التوجيه مباشرة للوحة الموحدة بصلاحية ضيف
+    window.location.href = "./dashboards/unified.html?role=guest";
+}
+
+// --- تسجيل الدخول بالبريد ---
+window.login = async function() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    
+    message.innerText = "";
+    if (!email || !password) {
+        message.innerText = "Please enter both email and password";
+        message.className = "error-msg";
+        return;
+    }
+
+    loader.style.display = "block";
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    
+    if (error) {
+        loader.style.display = "none";
+        message.innerText = error.message;
+        message.className = "error-msg";
+        return;
+    }
+    await redirectUserByRole(data.user);
+}
+
+// --- تسجيل الدخول بجوجل ---
+window.loginWithGoogle = async function() {
+    message.innerText = "";
+    loader.style.display = "block";
+    
+    const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+            redirectTo: window.location.origin + window.location.pathname,
+            queryParams: {
+                access_type: 'offline',
+                prompt: 'select_account',
+            }
+        }
+    });
+
+    if (error) {
+        loader.style.display = "none";
+        message.innerText = error.message;
+        message.className = "error-msg";
+    }
+}
+
+// --- بقية الدوال (Create Account, Forgot Password) تبقى كما هي دون تغيير ---
+window.createAccount = async function() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    message.innerText = "";
+    if (!email || !password) { message.innerText = "Email and password are required"; message.className = "error-msg"; return; }
+    loader.style.display = "block";
+    const { error } = await supabase.auth.signUp({ email, password });
+    loader.style.display = "none";
+    if (error) { message.innerText = error.message; message.className = "error-msg"; } 
+    else { message.className = "success-msg"; message.innerText = "Account created! Check email."; }
+}
+
+window.forgotPassword = async function() {
+    const email = document.getElementById("email").value;
+    if (!email) { message.innerText = "Please enter your email"; message.className = "error-msg"; return; }
+    loader.style.display = "block";
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + '/update-password.html' });
+    loader.style.display = "none";
+    if (error) { message.innerText = error.message; message.className = "error-msg"; } 
+    else { message.className = "success-msg"; message.innerText = "Reset link sent!"; }
+}
+</script>
+
+<!-- أيقونات FontAwesome لزر الضيف -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+</body>
+</html>
