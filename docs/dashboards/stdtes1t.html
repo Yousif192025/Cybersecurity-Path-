@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberPath | بوابة الطالب التعليمية</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #0f172a; 
+            --card-dark: #1e293b;
+            --primary: #3b82f6; 
+            --accent: #8b5cf6;
+            --text-main: #f8fafc; 
+            --text-muted: #94a3b8;
+            --border: #334155; 
+            --success: #10b981; 
+            --danger: #ef4444;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg-dark); color: var(--text-main); }
+        
+        .app-container { display: flex; min-height: 100vh; }
+        
+        /* القائمة الجانبية */
+        .sidebar { width: 260px; background: var(--card-dark); border-left: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; }
+        .logo { font-size: 1.5rem; font-weight: bold; color: var(--primary); margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+        .nav-item { padding: 12px 15px; border-radius: 8px; cursor: pointer; color: var(--text-muted); margin-bottom: 5px; transition: 0.2s; display: flex; align-items: center; gap: 12px; }
+        .nav-item:hover, .nav-item.active { background: var(--primary); color: white; }
+        
+        /* المحتوى الرئيسي */
+        .main-content { flex: 1; padding: 30px; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: var(--card-dark); padding: 20px; border-radius: 12px; border: 1px solid var(--border); }
+        
+        /* الحاويات والبطاقات */
+        .panel-card { background: var(--card-dark); border-radius: 12px; border: 1px solid var(--border); padding: 25px; margin-bottom: 30px; }
+        .panel-card h3 { color: var(--primary); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        
+        /* قائمة الاختبارات المتاحة */
+        .quiz-list-item { background: #0f172a; padding: 15px; border-radius: 8px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .btn-start { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-start:hover { background: #2563eb; }
+
+        /* منطقة محرك الاختبار */
+        .question-block { background: #0f172a; padding: 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; }
+        .option-label { display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px solid var(--border); border-radius: 6px; margin-top: 10px; cursor: pointer; transition: 0.2s; }
+        .option-label:hover { background: #1e293b; border-color: var(--accent); }
+        .option-label input { accent-color: var(--primary); }
+
+        .btn-submit { background: var(--success); color: white; border: none; padding: 14px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; width: 100%; transition: 0.2s; margin-top: 15px; }
+        .btn-submit:hover { background: #059669; }
+        
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.8); display: flex; justify-content: center; align-items: center; font-size: 1.5rem; z-index: 999; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div id="loading-screen" class="loading-overlay">
+    <div><i class="fas fa-spinner fa-spin"></i> جاري مزامنة الملف الأكاديمي للطالب...</div>
+</div>
+
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="logo"><i class="fas fa-shield-halved"></i> CyberPath</div>
+        <ul class="nav-menu">
+            <li class="nav-item active"><i class="fas fa-graduation-cap"></i> الاختبارات والتقييمات</li>
+            <li class="nav-item" onclick="alert('سجل الدرجات والشهادات قريباً!')"><i class="fas fa-award"></i> لوحة درجاتي</li>
+        </ul>
+        <div class="nav-item" onclick="handleLogout()" style="margin-top: auto; color: var(--danger);">
+            <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div>
+                <h2>منصة الطالب الرقمية</h2>
+                <p id="student-welcome" style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">مرحباً بك في مسارك التعليمي</p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span id="student-name">تحميل...</span>
+                <div style="width: 45px; height: 45px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+            </div>
+        </header>
+
+        <section id="quizzes-list-section" class="panel-card">
+            <h3><i class="fas fa-clock"></i> الاختبارات والمهام النشطة</h3>
+            <div id="quizzes-container">
+                <p class="text-muted" style="color: var(--text-muted);">جاري فحص المستودع التعليمي للمقررات...</p>
+            </div>
+        </section>
+
+        <section id="quiz-engine-section" class="panel-card hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid var(--border); padding-bottom: 15px;">
+                <div>
+                    <h3 id="active-quiz-title" style="margin-bottom:0;">اسم الاختبار النشط</h3>
+                    <p id="active-quiz-desc" style="color: var(--text-muted); font-size:0.85rem; margin-top:5px;"></p>
+                </div>
+                <button onclick="exitQuizMode()" style="background:transparent; border:1px solid var(--border); color:white; padding:6px 12px; border-radius:6px; cursor:pointer;">إلغاء والعودة</button>
+            </div>
+
+            <div id="quiz-questions-wrapper"></div>
+
+            <button class="btn-submit" onclick="gradeAndSubmitQuiz()">
+                <i class="fas fa-paper-plane"></i> تسليم الإجابات وإنهاء التقييم
+            </button>
+        </section>
+    </main>
+</div>
+
+<script type="module">
+    // 1. تهيئة اتصال سوبابيز بمشروعك
+    const supabaseClient = supabase.createClient("https://suvpaunulhqfoclepwoz.supabase.co", "YOUR_KEY_HERE");
+
+    let activeQuizId = null;
+    let activeQuestionsData = []; // لتخزين الأسئلة مع الأجوبة الصحيحة للتحقق المباشر الآمن
+
+    // 2. فحص الهوية والتأكد من دور الطالب
+    async function verifyStudentSession() {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        
+        if (!user) {
+            // كود تجريبي: تشغيل الواجهة الافتراضية محلياً عند عدم الاتصال بالـ Auth
+            document.getElementById('loading-screen').classList.add('hidden');
+            setupFallbackView();
+            return;
+        }
+
+        const { data: profile } = await supabaseClient
+            .from('user_profile')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+
+        if (profile) {
+            document.getElementById('student-name').innerText = profile.full_name;
+            document.getElementById('student-welcome').innerText = `المسار: ${profile.track || 'عام'} | الهوية الوطنية: ${profile.national_id}`;
+            document.getElementById('loading-screen').classList.add('hidden');
+            loadAvailableQuizzes();
+        }
+    }
+
+    // 3. جلب الاختبارات المتوفرة في قاعدة البيانات
+    async function loadAvailableQuizzes() {
+        const { data: quizzes, error } = await supabaseClient
+            .from('quizzes')
+            .select('quiz_id, title, description');
+
+        const container = document.getElementById('quizzes-container');
+        if (!error && quizzes.length > 0) {
+            container.innerHTML = quizzes.map(q => `
+                <div class="quiz-list-item">
+                    <div>
+                        <h4 style="color: var(--text-main); font-weight: bold;">${q.title}</h4>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">${q.description || 'لا يوجد وصف.'}</p>
+                    </div>
+                    <button class="btn-start" onclick="startQuizEngine('${q.quiz_id}')">بدء التقييم <i class="fas fa-chevron-left"></i></button>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = `<p style="color: var(--text-muted);">لا توجد اختبارات مجدولة لك حالياً في هذا المقرر.</p>`;
+        }
+    }
+
+    // تصميم محاكاة بصرية في غياب الخادم (الـ Fallback Mode)
+    function setupFallbackView() {
+        document.getElementById('student-name').innerText = "طالب تجريبي (Offline)";
+        document.getElementById('quizzes-container').innerHTML = `
+            <div class="quiz-list-item">
+                <div>
+                    <h4>اختبار التشفير الأساسي (نسخة محاكاة تجريبية)</h4>
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">يقيم هذا الاختبار مفاهيم التشفير الأساسية</p>
+                </div>
+                <button class="btn-start" onclick="alert('يرجى وضع المفتاح الـ Anon لتفعيل سحب البيانات الحية والاختبار!')">بدء التقييم</button>
+            </div>
+        `;
+    }
+
+    // 4. تشغيل محرك التقييم وسحب الأسئلة + الأجوبة (استعلام الجسر المترابط)
+    window.startQuizEngine = async (quizId) => {
+        document.getElementById('loading-screen').classList.remove('hidden');
+        activeQuizId = quizId;
+
+        // سحب الاختبار وعقدة الأسئلة والخيارات المقترنة بها في طلب واحد ذكي
+        const { data: quizData, error } = await supabaseClient
+            .from('quizzes')
+            .select(`
+                title,
+                description,
+                quiz_questions (
+                    question_id,
+                    question_text,
+                    question_type,
+                    quiz_answers (
+                        answer_id,
+                        answer_text,
+                        is_correct
+                    )
+                )
+            `)
+            .eq('quiz_id', quizId)
+            .single();
+
+        if (error || !quizData) {
+            alert("فشل محرك الاختبار في استرداد بنك الأسئلة.");
+            document.getElementById('loading-screen').classList.add('hidden');
+            return;
+        }
+
+        // تخزين البيانات محلياً للتصحيح
+        activeQuestionsData = quizData.quiz_questions;
+
+        // إعداد الواجهة وعرض الحاوية
+        document.getElementById('active-quiz-title').innerText = quizData.title;
+        document.getElementById('active-quiz-desc').innerText = quizData.description;
+        
+        const wrapper = document.getElementById('quiz-questions-wrapper');
+        wrapper.innerHTML = activeQuestionsData.map((q, index) => `
+            <div class="question-block" data-q-id="${q.question_id}">
+                <p style="font-weight: bold; margin-bottom: 12px; color: var(--accent);">سؤال ${index + 1}: ${q.question_text}</p>
+                <div class="options-zone">
+                    ${q.quiz_answers.map(ans => `
+                        <label class="option-label">
+                            <input type="radio" name="question_${q.question_id}" value="${ans.answer_id}">
+                            <span>${ans.answer_text}</span>
+                        </label>
+                    `).join('')}
+                </div>
+            </div>
+        `).join('');
+
+        // التبديل بين الشاشات
+        document.getElementById('quizzes-list-section').classList.add('hidden');
+        document.getElementById('quiz-engine-section').classList.remove('hidden');
+        document.getElementById('loading-screen').classList.add('hidden');
+    };
+
+    // 5. احتساب النتيجة تلقائياً وضخها في جدول التسليمات (quiz_submissions)
+    window.gradeAndSubmitQuiz = async () => {
+        let totalQuestions = activeQuestionsData.length;
+        let correctAnswersCount = 0;
+        let answeredQuestionsCount = 0;
+
+        // المرور على الأسئلة وتدقيق المدخلات المقارنة
+        activeQuestionsData.forEach(q => {
+            const selectedOption = document.querySelector(`input[name="question_${q.question_id}"]:checked`);
+            if (selectedOption) {
+                answeredQuestionsCount++;
+                const selectedAnswerId = selectedOption.value;
+                // ابحث في الأجوبة الأصلية عن الخيار المختار وتأكد من علامة is_correct
+                const actualAnswerObj = q.quiz_answers.find(a => a.answer_id === selectedAnswerId);
+                if (actualAnswerObj && actualAnswerObj.is_correct === true) {
+                    correctAnswersCount++;
+                }
+            }
+        });
+
+        if (answeredQuestionsCount < totalQuestions) {
+            if (!confirm("تنبيه: لم تقم بحل جميع الأسئلة الموجودة، هل تود تسليم الورقة على أية حال؟")) {
+                return;
+            }
+        }
+
+        document.getElementById('loading-screen').classList.remove('hidden');
+
+        // حساب النتيجة المئوية البسيطة
+        const finalScore = (correctAnswersCount / totalQuestions) * 100;
+
+        try {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            
+            // دفع النتيجة لجدول التسليمات الرسمي
+            const { error } = await supabaseClient
+                .from('quiz_submissions')
+                .insert([{
+                    quiz_id: activeQuizId,
+                    user_id: user.id,
+                    score: finalScore,
+                    submission_date: new Date()
+                }]);
+
+            if (error) throw error;
+
+            alert(`تم تصحيح وتسجيل تسليمك بنجاح تلقائي! درجتك المحققة هي: %${finalScore.toFixed(1)}`);
+            exitQuizMode();
+
+        } catch (err) {
+            alert("خطأ أثناء رفع وثيقة التسليم: " + err.message);
+        } finally {
+            document.getElementById('loading-screen').classList.add('hidden');
+        }
+    };
+
+    window.exitQuizMode = () => {
+        document.getElementById('quiz-engine-section').classList.add('hidden');
+        document.getElementById('quizzes-list-section').classList.remove('hidden');
+        loadAvailableQuizzes();
+    };
+
+    window.handleLogout = async () => {
+        await supabaseClient.auth.signOut();
+        window.location.reload();
+    };
+
+    verifyStudentSession();
+</script>
+</body>
+</html>
