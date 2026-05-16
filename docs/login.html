@@ -90,7 +90,7 @@
 <div class="login-box">
     <h2>CyberPath Login</h2>
     
-    <input id="email" type="email" placeholder="Email Address">
+    <input id="email" type="text" placeholder="رقم الهوية أو البريد الإلكتروني">
     <input id="password" type="password" placeholder="Password">
     
     <button onclick="login()">Sign In</button>
@@ -114,6 +114,7 @@
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
 
+// تهيئة العميل بكافة الروابط والمفاتيح الحقيقية لمشروعك
 const supabase = createClient(
     "https://suvpaunulhqfoclepwoz.supabase.co",
     "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"
@@ -123,7 +124,6 @@ const message = document.getElementById("message")
 const loader = document.getElementById("loader")
 
 // --- مراقب حالة تسجيل الدخول (خاص بجوجل) ---
-// هذا الجزء حاسم لاستقبال بيانات جوجل فور عودة المستخدم للموقع
 supabase.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session) {
         console.log("Session captured from OAuth:", session.user);
@@ -140,6 +140,8 @@ async function redirectUserByRole(user) {
         .eq("user_id", user.id)
         .single();
 
+    loader.style.display = "none";
+
     // إذا لم يكن لديه بروفايل أو حدث خطأ، نوجهه كطالب افتراضياً
     if (error || !profile) {
         window.location.href = "./dashboards/student.html";
@@ -155,20 +157,28 @@ async function redirectUserByRole(user) {
     }
 }
 
-// --- تسجيل الدخول بالبريد ---
+// --- تسجيل الدخول المطور (يدعم رقم الهوية والبريد الكامل) ---
 window.login = async function() {
-    const email = document.getElementById("email").value;
+    let emailInput = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
     
     message.innerText = "";
-    if (!email || !password) {
-        message.innerText = "Please enter both email and password";
+    if (!emailInput || !password) {
+        message.innerText = "Please enter both credentials and password";
         message.className = "error-msg";
         return;
     }
 
+    // 🔍 الفحص الذكي: إذا كان المدخل يتكون من أرقام فقط (رقم الهوية)، نقوم بتركيب النطاق الثابت
+    if (/^\d+$/.test(emailInput)) {
+        emailInput = `${emailInput}@cyberpath.edu`;
+    }
+
     loader.style.display = "block";
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ 
+        email: emailInput, 
+        password: password 
+    });
     
     if (error) {
         loader.style.display = "none";
@@ -187,11 +197,10 @@ window.loginWithGoogle = async function() {
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-            // التوجيه لنفس الصفحة الحالية لمعالجة الدخول
             redirectTo: window.location.origin + window.location.pathname,
             queryParams: {
                 access_type: 'offline',
-                prompt: 'select_account', // للسماح للمستخدم باختيار حساب مختلف دائماً
+                prompt: 'select_account',
             }
         }
     });
@@ -203,20 +212,25 @@ window.loginWithGoogle = async function() {
     }
 }
 
-// --- إنشاء حساب ---
+// --- إنشاء حساب مطور (يدعم المعالجة التلقائية لرقم الهوية) ---
 window.createAccount = async function() {
-    const email = document.getElementById("email").value;
+    let emailInput = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
 
     message.innerText = "";
-    if (!email || !password) {
-        message.innerText = "Email and password are required";
+    if (!emailInput || !password) {
+        message.innerText = "ID/Email and password are required";
         message.className = "error-msg";
         return;
     }
 
+    // 🔍 الفحص الذكي عند الإنشاء: إذا سجل الطالب برقم الهوية، ننشئ حسابه بالنطاق الجامعي مباشرة
+    if (/^\d+$/.test(emailInput)) {
+        emailInput = `${emailInput}@cyberpath.edu`;
+    }
+
     loader.style.display = "block";
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { error } = await supabase.auth.signUp({ email: emailInput, password: password });
     loader.style.display = "none";
 
     if (error) {
@@ -228,17 +242,22 @@ window.createAccount = async function() {
     }
 }
 
-// --- استعادة كلمة المرور ---
+// --- استعادة كلمة المرور المطور ---
 window.forgotPassword = async function() {
-    const email = document.getElementById("email").value;
-    if (!email) {
-        message.innerText = "Please enter your email address";
+    let emailInput = document.getElementById("email").value.trim();
+    if (!emailInput) {
+        message.innerText = "Please enter your ID or email address";
         message.className = "error-msg";
         return;
     }
 
+    // دعم استعادة الحساب حتى لو أدخل الطالب رقم هويته فقط
+    if (/^\d+$/.test(emailInput)) {
+        emailInput = `${emailInput}@cyberpath.edu`;
+    }
+
     loader.style.display = "block";
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    const { error } = await supabase.auth.resetPasswordForEmail(emailInput, {
         redirectTo: window.location.origin + '/update-password.html', 
     });
     loader.style.display = "none";
@@ -252,8 +271,6 @@ window.forgotPassword = async function() {
     }
 }
 </script>
-<!-- في نهاية الصفحة قبل إغلاق وسم body -->
-<script type="module" src="../assets/js/auth/login.js"></script>
 
 </body>
 </html>
