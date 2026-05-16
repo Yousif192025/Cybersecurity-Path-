@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberPath | لوحة تحكم المدرب</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #0f172a; 
+            --card-dark: #1e293b;
+            --primary: #3b82f6; 
+            --accent: #8b5cf6;
+            --text-main: #f8fafc; 
+            --text-muted: #94a3b8;
+            --border: #334155; 
+            --success: #10b981; 
+            --danger: #ef4444;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg-dark); color: var(--text-main); }
+        
+        .app-container { display: flex; min-height: 100vh; }
+        
+        /* القائمة الجانبية */
+        .sidebar { width: 260px; background: var(--card-dark); border-left: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; }
+        .logo { font-size: 1.5rem; font-weight: bold; color: var(--primary); margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+        .nav-item { padding: 12px 15px; border-radius: 8px; cursor: pointer; color: var(--text-muted); margin-bottom: 5px; transition: 0.2s; display: flex; align-items: center; gap: 12px; }
+        .nav-item:hover, .nav-item.active { background: var(--primary); color: white; }
+        
+        /* المحتوى الرئيسي */
+        .main-content { flex: 1; padding: 30px; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: var(--card-dark); padding: 20px; border-radius: 12px; border: 1px solid var(--border); }
+        
+        /* النماذج والحاويات */
+        .panel-card { background: var(--card-dark); border-radius: 12px; border: 1px solid var(--border); padding: 25px; margin-bottom: 30px; }
+        .panel-card h3 { color: var(--primary); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+        .form-group label { color: var(--text-muted); font-size: 0.9rem; }
+        .form-group input, .form-group select, .form-group textarea {
+            background: #0f172a; color: white; border: 1px solid var(--border); padding: 12px; border-radius: 8px; font-family: 'Tajawal', sans-serif;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); }
+        
+        .question-box { background: #0f172a; padding: 20px; border-radius: 8px; border: 1px solid var(--border); margin-top: 15px; }
+        
+        .btn-submit { background: var(--success); color: white; border: none; padding: 14px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; width: 100%; transition: 0.2s; }
+        .btn-submit:hover { background: #059669; }
+        
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.8); display: flex; justify-content: center; align-items: center; font-size: 1.5rem; z-index: 999; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div id="loading-screen" class="loading-overlay">
+    <div><i class="fas fa-spinner fa-spin"></i> جاري التحقق من صلاحيات المدرب...</div>
+</div>
+
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="logo"><i class="fas fa-shield-halved"></i> CyberPath</div>
+        <ul class="nav-menu">
+            <li class="nav-item active"><i class="fas fa-file-signature"></i> منشئ الاختبارات</li>
+            <li class="nav-item" onclick="alert('ميزة إدارة الواجبات قادمة قريباً!')"><i class="fas fa-book"></i> إدارة المقررات</li>
+        </ul>
+        <div class="nav-item" onclick="handleLogout()" style="margin-top: auto; color: var(--danger);">
+            <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div>
+                <h2>بوابة المدرب الأكاديمية</h2>
+                <p id="instructor-welcome" style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">مرحباً بك</p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span id="instructor-name">تحميل...</span>
+                <div style="width: 45px; height: 45px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-chalkboard-user"></i>
+                </div>
+            </div>
+        </header>
+
+        <section class="panel-card">
+            <h3><i class="fas fa-folder-plus"></i> بناء اختبار ديناميكي جديد</h3>
+            
+            <div style="max-width: 700px;">
+                <div class="form-group">
+                    <label>المقرر المستهدف:</label>
+                    <select id="course-select">
+                        <option value="">جاري جلب المقررات الحالية...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>عنوان الاختبار:</label>
+                    <input type="text" id="quiz-title" placeholder="مثال: اختبار مفاهيم التشفير المتقدمة">
+                </div>
+
+                <div class="form-group">
+                    <label>وصف وتوجيهات الاختبار للطلاب:</label>
+                    <textarea id="quiz-desc" placeholder="اكتب شروط الاختبار، المدة الزمنية، أو أي تعليمات إضافية..." style="height: 100px; resize: none;"></textarea>
+                </div>
+
+                <div style="margin-top: 25px; border-top: 1px solid var(--border); padding-top: 20px;">
+                    <h4 style="color: var(--accent); margin-bottom: 10px;"><i class="fas fa-question-circle"></i> إعداد السؤال التجريبي الأول (Multiple Choice)</h4>
+                    
+                    <div class="question-box">
+                        <div class="form-group">
+                            <label>نص السؤال:</label>
+                            <input type="text" id="q-text" placeholder="مثال: أي من البروتوكولات التالية يعتبر آمن لنقل الملفات؟">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>الخيارات المتاحة للحل (افصل بين كل خيار بفاصلة لإنشاء الأجوبة):</label>
+                            <input type="text" id="q-options" placeholder="مثال: FTP , SFTP , HTTP , Telnet">
+                        </div>
+
+                        <div class="form-group">
+                            <label style="color: var(--success);">الإجابة الصحيحة (يجب أن تطابق خياراً من الأعلى تماماً):</label>
+                            <input type="text" id="q-correct" placeholder="مثال: SFTP" style="border-color: rgba(16, 185, 129, 0.4);">
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <button class="btn-submit" onclick="publishQuizToDatabase()">
+                        <i class="fas fa-cloud-upload-alt"></i> اعتماد ونشر الاختبار فوراً
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script type="module">
+    // 1. تهيئة اتصال Supabase بالمشروع الخاص بك
+    // ملاحظة: استبدل الـ KEY بمفتاح الـ Anon الحقيقي الخاص بك للتشغيل الفعلي
+    const supabaseClient = supabase.createClient("https://suvpaunulhqfoclepwoz.supabase.co", "YOUR_KEY_HERE");
+
+    // 2. التحقق من هوية وصلاحية المدرب عند الدخول للملف
+    async function verifyInstructorSession() {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        
+        if (!user) {
+            // كود تجريبي: إذا لم يعثر على جلسة، سيفترض بيانات وهمية للتصميم أو يوجهك
+            document.getElementById('loading-screen').classList.add('hidden');
+            setupFallbackCourses();
+            return;
+        }
+
+        // جلب بروفايل المستخدم للتحقق من دوره (Role)
+        const { data: profile } = await supabaseClient
+            .from('user_profile')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+
+        if (profile && (profile.role === 'instructor' || profile.role === 'admin')) {
+            document.getElementById('instructor-name').innerText = profile.full_name;
+            document.getElementById('instructor-welcome').innerText = `مرحباً كابتن: ${profile.full_name} | الهوية الوطنية: ${profile.national_id}`;
+            document.getElementById('loading-screen').classList.add('hidden');
+            loadActiveCourses();
+        } else {
+            alert("عذراً، هذه البوابة مخصصة لأعضاء هيئة التدريب والمدراء فقط!");
+            await supabaseClient.auth.signOut();
+            window.location.reload();
+        }
+    }
+
+    // 3. جلب الكورسات الحقيقية من جدول المقررات لتعبئة القائمة
+    async function loadActiveCourses() {
+        const { data: courses, error } = await supabaseClient
+            .from('courses')
+            .select('course_id, title');
+
+        const selectElement = document.getElementById('course-select');
+        if (!error && courses.length > 0) {
+            selectElement.innerHTML = courses.map(c => `<option value="${c.course_id}">${c.title}</option>`).join('');
+        } else {
+            selectElement.innerHTML = `<option value="">لا توجد مقررات نشطة حالياً بقاعدة البيانات</option>`;
+        }
+    }
+
+    // حالة احتياطية للتجريب البصري إذا لم يكن السيرفر مربوطاً بعد
+    function setupFallbackCourses() {
+        document.getElementById('instructor-name').innerText = "مدرب تجريبي (بدون اتصال Auth)";
+        document.getElementById('course-select').innerHTML = `
+            <option value="demo-id-1">دورة الهندسة الاجتماعية والأمن الرقمي</option>
+            <option value="demo-id-2">مبادئ التشفير واختبار الاختراق</option>
+        `;
+    }
+
+    // 4. السكربت الذكي والمنظم لبناء الاختبار وسلاسله المرتبطة (quizzes -> questions -> answers)
+    window.publishQuizToDatabase = async () => {
+        const courseId = document.getElementById('course-select').value;
+        const title = document.getElementById('quiz-title').value;
+        const description = document.getElementById('quiz-desc').value;
+        
+        const questionText = document.getElementById('q-text').value;
+        const optionsRaw = document.getElementById('q-options').value;
+        const correctAnswer = document.getElementById('q-correct').value;
+
+        if (!courseId || !title || !questionText || !optionsRaw || !correctAnswer) {
+            alert("تنبيه: يرجى إدخال كافة حقول الاختبار والأسئلة لضمان تماسك البيانات.");
+            return;
+        }
+
+        document.getElementById('loading-screen').classList.remove('hidden');
+
+        try {
+            // أ. إنشاء سجل رأس الاختبار والحصول على الـ ID
+            const { data: quiz, error: quizError } = await supabaseClient
+                .from('quizzes')
+                .insert([{ course_id: courseId, title, description, quiz_date: new Date() }])
+                .select()
+                .single();
+
+            if (quizError) throw quizError;
+
+            // ب. إنشاء السجل الخاص بالسؤال وربطه بالاختبار عبر (quiz_id)
+            const { data: question, error: qError } = await supabaseClient
+                .from('quiz_questions')
+                .insert([{ quiz_id: quiz.quiz_id, question_text: questionText, question_type: 'multiple_choice' }])
+                .select()
+                .single();
+
+            if (qError) throw qError;
+
+            // ج. معالجة وتفكيك نص الخيارات المفصولة بالفواصل وتحويلها لمصفوفة أجوبة
+            const cleanOptions = optionsRaw.split(',').map(opt => opt.trim());
+            const answersPayload = cleanOptions.map(optionText => ({
+                question_id: question.question_id,
+                answer_text: optionText,
+                is_correct: optionText.toLowerCase() === correctAnswer.trim().toLowerCase()
+            }));
+
+            // د. إدخال الأجوبة والخيارات في جدول quiz_answers دفعة واحدة
+            const { error: ansError } = await supabaseClient
+                .from('quiz_answers')
+                .insert(answersPayload);
+
+            if (ansError) throw ansError;
+
+            alert("تهانينا! تم إنشاء الاختبار وبناء هيكلية الخيارات في بنك الأسئلة بنجاح تام.");
+            window.location.reload();
+
+        } catch (err) {
+            alert("حدث خطأ أثناء الاتصال بقاعدة البيانات: " + err.message);
+        } finally {
+            document.getElementById('loading-screen').classList.add('hidden');
+        }
+    };
+
+    window.handleLogout = async () => {
+        await supabaseClient.auth.signOut();
+        window.location.reload();
+    };
+
+    // تشغيل فحص الصلاحيات عند تحميل الصفحة فوراً
+    verifyInstructorSession();
+</script>
+</body>
+</html>
