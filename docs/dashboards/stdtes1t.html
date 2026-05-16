@@ -69,7 +69,7 @@
             <li class="nav-item active"><i class="fas fa-graduation-cap"></i> الاختبارات والتقييمات</li>
             <li class="nav-item" onclick="alert('سجل الدرجات والشهادات قريباً!')"><i class="fas fa-award"></i> لوحة درجاتي</li>
         </ul>
-        <div class="nav-item" onclick="handleLogout()" style="margin-top: auto; color: var(--danger);">
+        <div class="nav-item" id="logout-btn" style="margin-top: auto; color: var(--danger);">
             <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
         </div>
     </aside>
@@ -101,12 +101,12 @@
                     <h3 id="active-quiz-title" style="margin-bottom:0;">اسم الاختبار النشط</h3>
                     <p id="active-quiz-desc" style="color: var(--text-muted); font-size:0.85rem; margin-top:5px;"></p>
                 </div>
-                <button onclick="exitQuizMode()" style="background:transparent; border:1px solid var(--border); color:white; padding:6px 12px; border-radius:6px; cursor:pointer;">إلغاء والعودة</button>
+                <button id="exit-quiz-btn" style="background:transparent; border:1px solid var(--border); color:white; padding:6px 12px; border-radius:6px; cursor:pointer;">إلغاء والعودة</button>
             </div>
 
             <div id="quiz-questions-wrapper"></div>
 
-            <button class="btn-submit" onclick="gradeAndSubmitQuiz()">
+            <button class="btn-submit" id="submit-quiz-btn">
                 <i class="fas fa-paper-plane"></i> تسليم الإجابات وإنهاء التقييم
             </button>
         </section>
@@ -114,18 +114,20 @@
 </div>
 
 <script type="module">
-    // 1. تهيئة اتصال سوبابيز بمشروعك
-    const supabaseClient = supabase.createClient("https://suvpaunulhqfoclepwoz.supabase.co", "YOUR_KEY_HERE");
+    // 1. تهيئة اتصال سوبابيز بمشروعك الحي والمفتاح الخاص بك بشكل صحيح ومتزامن
+    const supabaseClient = supabase.createClient(
+        "https://suvpaunulhqfoclepwoz.supabase.co", 
+        "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"
+    );
 
     let activeQuizId = null;
-    let activeQuestionsData = []; // لتخزين الأسئلة مع الأجوبة الصحيحة للتحقق المباشر الآمن
+    let activeQuestionsData = [];
 
     // 2. فحص الهوية والتأكد من دور الطالب
     async function verifyStudentSession() {
         const { data: { user } } = await supabaseClient.auth.getUser();
         
         if (!user) {
-            // كود تجريبي: تشغيل الواجهة الافتراضية محلياً عند عدم الاتصال بالـ Auth
             document.getElementById('loading-screen').classList.add('hidden');
             setupFallbackView();
             return;
@@ -142,26 +144,37 @@
             document.getElementById('student-welcome').innerText = `المسار: ${profile.track || 'عام'} | الهوية الوطنية: ${profile.national_id}`;
             document.getElementById('loading-screen').classList.add('hidden');
             loadAvailableQuizzes();
+        } else {
+            document.getElementById('student-name').innerText = user.email;
+            document.getElementById('loading-screen').classList.add('hidden');
+            loadAvailableQuizzes();
         }
     }
 
-    // 3. جلب الاختبارات المتوفرة في قاعدة البيانات
+    // 3. جلب الاختبارات المتوفرة في قاعدة البيانات الحية
     async function loadAvailableQuizzes() {
         const { data: quizzes, error } = await supabaseClient
             .from('quizzes')
             .select('quiz_id, title, description');
 
         const container = document.getElementById('quizzes-container');
-        if (!error && quizzes.length > 0) {
+        if (!error && quizzes && quizzes.length > 0) {
             container.innerHTML = quizzes.map(q => `
                 <div class="quiz-list-item">
                     <div>
                         <h4 style="color: var(--text-main); font-weight: bold;">${q.title}</h4>
                         <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">${q.description || 'لا يوجد وصف.'}</p>
                     </div>
-                    <button class="btn-start" onclick="startQuizEngine('${q.quiz_id}')">بدء التقييم <i class="fas fa-chevron-left"></i></button>
+                    <button class="btn-start" data-id="${q.quiz_id}">بدء التقييم <i class="fas fa-chevron-left"></i></button>
                 </div>
             `).join('');
+
+            // ربط الأحداث ديناميكياً بدلاً من onclick العادية لتفادي مشاكل الـ Scope
+            container.querySelectorAll('.btn-start').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    startQuizEngine(btn.getAttribute('data-id'));
+                });
+            });
         } else {
             container.innerHTML = `<p style="color: var(--text-muted);">لا توجد اختبارات مجدولة لك حالياً في هذا المقرر.</p>`;
         }
@@ -176,17 +189,23 @@
                     <h4>اختبار التشفير الأساسي (نسخة محاكاة تجريبية)</h4>
                     <p style="color: var(--text-muted); font-size: 0.85rem;">يقيم هذا الاختبار مفاهيم التشفير الأساسية</p>
                 </div>
-                <button class="btn-start" onclick="alert('يرجى وضع المفتاح الـ Anon لتفعيل سحب البيانات الحية والاختبار!')">بدء التقييم</button>
+                <button class="btn-start-fallback btn-start">بدء التقييم</button>
             </div>
         `;
+        const fallbackBtn = document.querySelector('.btn-start-fallback');
+        if(fallbackBtn) {
+            fallbackBtn.addEventListener('click', () => {
+                alert('لم يتم العثور على جلسة تسجيل دخول نشطة، يرجى تسجيل الدخول أولاً كطالب لتتمكن من أداء الاختبار الحامي وسحب البيانات!');
+            });
+        }
     }
 
-    // 4. تشغيل محرك التقييم وسحب الأسئلة + الأجوبة (استعلام الجسر المترابط)
-    window.startQuizEngine = async (quizId) => {
+    // 4. تشغيل محرك التقييم وسحب الأسئلة والخيارات
+    async function startQuizEngine(quizId) {
         document.getElementById('loading-screen').classList.remove('hidden');
         activeQuizId = quizId;
 
-        // سحب الاختبار وعقدة الأسئلة والخيارات المقترنة بها في طلب واحد ذكي
+        // سحب الاختبار وعقدة الأسئلة والخيارات المقترنة بها في طلب واحد ذكي ومتكامل
         const { data: quizData, error } = await supabaseClient
             .from('quizzes')
             .select(`
@@ -207,17 +226,15 @@
             .single();
 
         if (error || !quizData) {
-            alert("فشل محرك الاختبار في استرداد بنك الأسئلة.");
+            alert("فشل محرك الاختبار في استرداد بنك الأسئلة: " + (error ? error.message : "لا توجد بيانات"));
             document.getElementById('loading-screen').classList.add('hidden');
             return;
         }
 
-        // تخزين البيانات محلياً للتصحيح
         activeQuestionsData = quizData.quiz_questions;
 
-        // إعداد الواجهة وعرض الحاوية
         document.getElementById('active-quiz-title').innerText = quizData.title;
-        document.getElementById('active-quiz-desc').innerText = quizData.description;
+        document.getElementById('active-quiz-desc').innerText = quizData.description || 'لا يوجد وصف للاختبار.';
         
         const wrapper = document.getElementById('quiz-questions-wrapper');
         wrapper.innerHTML = activeQuestionsData.map((q, index) => `
@@ -234,25 +251,24 @@
             </div>
         `).join('');
 
-        // التبديل بين الشاشات
         document.getElementById('quizzes-list-section').classList.add('hidden');
         document.getElementById('quiz-engine-section').classList.remove('hidden');
         document.getElementById('loading-screen').classList.add('hidden');
-    };
+    }
 
     // 5. احتساب النتيجة تلقائياً وضخها في جدول التسليمات (quiz_submissions)
-    window.gradeAndSubmitQuiz = async () => {
+    async function gradeAndSubmitQuiz() {
+        if (!activeQuestionsData || activeQuestionsData.length === 0) return;
+
         let totalQuestions = activeQuestionsData.length;
         let correctAnswersCount = 0;
         let answeredQuestionsCount = 0;
 
-        // المرور على الأسئلة وتدقيق المدخلات المقارنة
         activeQuestionsData.forEach(q => {
             const selectedOption = document.querySelector(`input[name="question_${q.question_id}"]:checked`);
             if (selectedOption) {
                 answeredQuestionsCount++;
                 const selectedAnswerId = selectedOption.value;
-                // ابحث في الأجوبة الأصلية عن الخيار المختار وتأكد من علامة is_correct
                 const actualAnswerObj = q.quiz_answers.find(a => a.answer_id === selectedAnswerId);
                 if (actualAnswerObj && actualAnswerObj.is_correct === true) {
                     correctAnswersCount++;
@@ -267,12 +283,11 @@
         }
 
         document.getElementById('loading-screen').classList.remove('hidden');
-
-        // حساب النتيجة المئوية البسيطة
         const finalScore = (correctAnswersCount / totalQuestions) * 100;
 
         try {
             const { data: { user } } = await supabaseClient.auth.getUser();
+            if(!user) throw new Error("لم يتم العثور على بيانات الطالب الرقمية المسجلة.");
             
             // دفع النتيجة لجدول التسليمات الرسمي
             const { error } = await supabaseClient
@@ -281,32 +296,38 @@
                     quiz_id: activeQuizId,
                     user_id: user.id,
                     score: finalScore,
-                    submission_date: new Date()
+                    submission_date: new Date().toISOString()
                 }]);
 
             if (error) throw error;
 
-            alert(`تم تصحيح وتسجيل تسليمك بنجاح تلقائي! درجتك المحققة هي: %${finalScore.toFixed(1)}`);
+            alert(`تهانينا! تم تصحيح وتسجيل تسليمك بنجاح تلقائي ومباشر. درجتك المحققة هي: %${finalScore.toFixed(1)}`);
             exitQuizMode();
 
         } catch (err) {
-            alert("خطأ أثناء رفع وثيقة التسليم: " + err.message);
+            alert("خطأ أثناء رفع وثيقة التسليم إلى السيرفر: " + err.message);
         } finally {
             document.getElementById('loading-screen').classList.add('hidden');
         }
-    };
+    }
 
-    window.exitQuizMode = () => {
+    function exitQuizMode() {
         document.getElementById('quiz-engine-section').classList.add('hidden');
         document.getElementById('quizzes-list-section').classList.remove('hidden');
         loadAvailableQuizzes();
-    };
+    }
 
-    window.handleLogout = async () => {
+    async function handleLogout() {
         await supabaseClient.auth.signOut();
         window.location.reload();
-    };
+    }
 
+    // ربط مستمعي الأحداث للعناصر الثابتة في الصفحة لتلافي مشاكل الـ type="module"
+    document.getElementById('submit-quiz-btn').addEventListener('click', gradeAndSubmitQuiz);
+    document.getElementById('exit-quiz-btn').addEventListener('click', exitQuizMode);
+    document.getElementById('logout-btn').addEventListener('click', handleLogout);
+
+    // تشغيل فحص الجلسة عند تحميل الصفحة
     verifyStudentSession();
 </script>
 </body>
