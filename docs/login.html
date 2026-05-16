@@ -134,6 +134,7 @@ supabase.auth.onAuthStateChange(async (event, session) => {
 // دالة التوجيه الذكي حسب الدور
 async function redirectUserByRole(user) {
     loader.style.display = "block";
+    
     const { data: profile, error } = await supabase
         .from("user_profile")
         .select("role")
@@ -142,13 +143,21 @@ async function redirectUserByRole(user) {
 
     loader.style.display = "none";
 
-    // إذا لم يكن لديه بروفايل أو حدث خطأ، نوجهه كطالب افتراضياً
+    // طباعة الفحص في كونسول المتصفح لمعرفة ما تراه قاعدة البيانات دقيقة بدقيقة
+    console.log("البروفايل المسترجع:", profile);
+    console.log("الخطأ إن وجد:", error);
+
+    // إذا حدث خطأ في الصلاحيات أو لم يجد البروفايل
     if (error || !profile) {
+        console.log("تعذر قراءة الدور، التوجيه الافتراضي لطالب");
         window.location.href = "./dashboards/student.html";
         return;
     }
 
+    // التوجيه الصارم
     if (profile.role === "admin") {
+        console.log("تم التعرف عليك كمسؤول نظام!");
+        // إذا لم يكن لديك صفحة admin.html مستقلة وتريد فتح لوحة المدرس، غير المسار هنا إلى instructor.html
         window.location.href = "./dashboards/admin.html";
     } else if (profile.role === "instructor") {
         window.location.href = "./dashboards/instructor.html"; 
@@ -156,7 +165,6 @@ async function redirectUserByRole(user) {
         window.location.href = "./dashboards/student.html";
     }
 }
-
 // --- تسجيل الدخول المطور (يدعم رقم الهوية والبريد الكامل) ---
 window.login = async function() {
     let emailInput = document.getElementById("email").value.trim();
