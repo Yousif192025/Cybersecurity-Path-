@@ -114,7 +114,7 @@
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
 
-// تهيئة العميل بكافة الروابط والمفاتيح الحقيقية لمشروعك
+// تهيئة المشروع بالروابط والمفاتيح الحقيقية الخاصة بك
 const supabase = createClient(
     "https://suvpaunulhqfoclepwoz.supabase.co",
     "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"
@@ -123,50 +123,73 @@ const supabase = createClient(
 const message = document.getElementById("message")
 const loader = document.getElementById("loader")
 
-// --- مراقب حالة تسجيل الدخول (خاص بجوجل) ---
+// متغير أمان فريد لمنع تصادم أو تكرار التوجيه في نفس اللحظة
+let isRedirecting = false;
+
+// --- 🔐 مراقب حالة تسجيل الدخول الذكي (منع تداخل الدخول العادي وجوجل) ---
 supabase.auth.onAuthStateChange(async (event, session) => {
-    if (event === 'SIGNED_IN' && session) {
-        console.log("Session captured from OAuth:", session.user);
-        await redirectUserByRole(session.user);
+    if (session && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
+        if (isRedirecting) return; // تجاهل الحدث إذا كان محرك التوجيه يعمل بالفعل
+        
+        console.log("🎯 تم التقاط الجلسة بنجاح، نوع الحدث الأمني:", event);
+        
+        // التحقق من طريقة الدخول: إذا كان الدخول عبر جوجل نترك التوجيه التلقائي يعمل
+        // أما إذا كان دخول عادي بكلمة مرور، ندع دالة login() تتصرف بشكل مستقل لمنع الأخطاء
+        const authMethod = session.provider; 
+        if (authMethod === 'google') {
+            console.log("الدخول المكتشف عبر جوجل.. جاري فحص الملف الأكاديمي..");
+            await redirectUserByRole(session.user);
+        }
     }
 });
 
-// دالة التوجيه الذكي حسب الدور
+// --- 🗺️ محرك التوجيه المركزي الصارم (تحديد الوجهات بناءً على الأدوار الحقيقية) ---
 async function redirectUserByRole(user) {
-    loader.style.display = "block";
+    if (isRedirecting) return;
+    isRedirecting = true; // إغلاق البوابة لمنع التداخل البرمجي أثناء النقل
     
-    const { data: profile, error } = await supabase
-        .from("user_profile")
-        .select("role")
-        .eq("user_id", user.id)
-        .single();
+    loader.style.display = "block";
+    message.innerText = "جاري فحص الصلاحيات الأكاديمية...";
+    message.className = "success-msg";
 
-    loader.style.display = "none";
+    try {
+        const { data: profile, error } = await supabase
+            .from("user_profile")
+            .select("role, full_name")
+            .eq("user_id", user.id)
+            .single();
 
-    // طباعة الفحص في كونسول المتصفح لمعرفة ما تراه قاعدة البيانات دقيقة بدقيقة
-    console.log("البروفايل المسترجع:", profile);
-    console.log("الخطأ إن وجد:", error);
+        loader.style.display = "none";
 
-    // إذا حدث خطأ في الصلاحيات أو لم يجد البروفايل
-    if (error || !profile) {
-        console.log("تعذر قراءة الدور، التوجيه الافتراضي لطالب");
-        window.location.href = "./dashboards/student.html";
-        return;
-    }
+        // التعامل الحذر والآمن في حال لم يعثر على سجل للمستخدم في جدول البروفايلات
+        if (error || !profile) {
+            console.error("❌ تعذر قراءة البروفايل أو الحساب غير مسجل بالجدول العام:", error);
+            console.log("⚠️ سيتم تحويلك تلقائياً لصفحة الطالب كإجراء أمان احتياطي.");
+            window.location.href = "./dashboards/student.html";
+            return;
+        }
 
-    // التوجيه الصارم
-    if (profile.role === "admin") {
-        console.log("تم التعرف عليك كمسؤول نظام!");
-        // إذا لم يكن لديك صفحة admin.html مستقلة وتريد فتح لوحة المدرس، غير المسار هنا إلى instructor.html
-        window.location.href = "./dashboards/admin.html";
-    } else if (profile.role === "instructor") {
-        window.location.href = "./dashboards/instructor.html"; 
-    } else {
+        console.log(`✅ تم التحقق بنجاح! أهلاً بك: ${profile.full_name} | الدور الحالي: ${profile.role}`);
+
+        // التوجيه الدقيق والمباشر حسب الصلاحية الفعلية المسجلة بيوسف الشفيع
+        if (profile.role === "admin") {
+            window.location.href = "./dashboards/admin.html";
+        } else if (profile.role === "instructor") {
+            window.location.href = "./dashboards/instructor.html"; 
+        } else {
+            window.location.href = "./dashboards/student.html";
+        }
+
+    } catch (catchedError) {
+        console.error("حدث خطأ مفاجئ في محرك التوجيه الإلكتروني:", catchedError);
         window.location.href = "./dashboards/student.html";
     }
 }
-// --- تسجيل الدخول المطور (يدعم رقم الهوية والبريد الكامل) ---
+
+// --- 📧 دالة تسجيل الدخول المطورة الذكية (تدعم الهوية الوطنية أو الإيميل الكامل) ---
 window.login = async function() {
+    if (isRedirecting) return;
+    
     let emailInput = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
     
@@ -177,12 +200,14 @@ window.login = async function() {
         return;
     }
 
-    // 🔍 الفحص الذكي: إذا كان المدخل يتكون من أرقام فقط (رقم الهوية)، نقوم بتركيب النطاق الثابت
+    // 🔍 الفحص الذكي والآلي: إذا كان النص أرقاماً فقط (رقم هوية)، نقوم بتركيب النطاق الجامعي خلف الكواليس
     if (/^\d+$/.test(emailInput)) {
         emailInput = `${emailInput}@cyberpath.edu`;
+        console.log("تمت معالجة المدخل وتجهيزه كنطاق طالب حاملي الهوية:", emailInput);
     }
 
     loader.style.display = "block";
+    
     const { data, error } = await supabase.auth.signInWithPassword({ 
         email: emailInput, 
         password: password 
@@ -194,10 +219,12 @@ window.login = async function() {
         message.className = "error-msg";
         return;
     }
+
+    console.log("🚀 نجح التحقق من كلمة المرور، جاري تشغيل التوجيه المباشر..");
     await redirectUserByRole(data.user);
 }
 
-// --- تسجيل الدخول بجوجل ---
+// --- 🌐 دالة تسجيل الدخول السريع عبر خدمات جوجل ---
 window.loginWithGoogle = async function() {
     message.innerText = "";
     loader.style.display = "block";
@@ -220,7 +247,7 @@ window.loginWithGoogle = async function() {
     }
 }
 
-// --- إنشاء حساب مطور (يدعم المعالجة التلقائية لرقم الهوية) ---
+// --- ➕ دالة إنشاء الحساب المطور للطلاب والمسؤولين ---
 window.createAccount = async function() {
     let emailInput = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
@@ -232,7 +259,7 @@ window.createAccount = async function() {
         return;
     }
 
-    // 🔍 الفحص الذكي عند الإنشاء: إذا سجل الطالب برقم الهوية، ننشئ حسابه بالنطاق الجامعي مباشرة
+    // تطبيق منطق التسهيل لحفظ حساب المتدرب بالهوية الوطنية مباشرة
     if (/^\d+$/.test(emailInput)) {
         emailInput = `${emailInput}@cyberpath.edu`;
     }
@@ -250,7 +277,7 @@ window.createAccount = async function() {
     }
 }
 
-// --- استعادة كلمة المرور المطور ---
+// --- 🔑 دالة استعادة كلمة المرور المحدثة ---
 window.forgotPassword = async function() {
     let emailInput = document.getElementById("email").value.trim();
     if (!emailInput) {
@@ -259,7 +286,7 @@ window.forgotPassword = async function() {
         return;
     }
 
-    // دعم استعادة الحساب حتى لو أدخل الطالب رقم هويته فقط
+    // دعم الاستعادة السريعة حتى لو تذكر الطالب رقم هويته فقط
     if (/^\d+$/.test(emailInput)) {
         emailInput = `${emailInput}@cyberpath.edu`;
     }
