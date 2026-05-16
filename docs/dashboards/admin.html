@@ -99,6 +99,13 @@
             margin-bottom: 20px;
             align-items: flex-end;
         }
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+            align-items: flex-end;
+        }
         .form-group {
             flex: 1 1 200px;
         }
@@ -211,13 +218,11 @@
 </head>
 <body>
     <div class="container">
-        <!-- HEADER -->
         <div class="header">
             <h1>⚡ CyberPath Admin Console</h1>
             <button class="logout-btn" onclick="logout()">🚪 Logout</button>
         </div>
 
-        <!-- STATS CARDS -->
         <div class="stats-grid" id="statsContainer">
             <div class="stat-card">
                 <h3>👥 Users</h3>
@@ -245,7 +250,6 @@
             </div>
         </div>
 
-        <!-- COURSES SECTION -->
         <div class="section">
             <div class="section-title">📚 Courses <span>add / delete</span></div>
             <div class="form-row">
@@ -265,7 +269,6 @@
             </table>
         </div>
 
-        <!-- VIDEOS SECTION -->
         <div class="section">
             <div class="section-title">🎬 Course Videos <span>upload / link</span></div>
             <div class="form-row">
@@ -289,7 +292,6 @@
             </table>
         </div>
 
-        <!-- ENROLLMENTS SECTION -->
         <div class="section">
             <div class="section-title">📝 Enrollments <span>student registrations</span></div>
             <table>
@@ -298,7 +300,6 @@
             </table>
         </div>
 
-        <!-- CERTIFICATES SECTION -->
         <div class="section">
             <div class="section-title">🏆 Certificates <span>issued</span></div>
             <table>
@@ -307,7 +308,6 @@
             </table>
         </div>
 
-        <!-- RATINGS SECTION -->
         <div class="section">
             <div class="section-title">⭐ Instructor Ratings <span>student feedback</span></div>
             <table>
@@ -316,7 +316,6 @@
             </table>
         </div>
 
-        <!-- USERS SECTION -->
         <div class="section">
             <div class="section-title">👥 Users & Roles <span>manage access</span></div>
             <table>
@@ -464,12 +463,17 @@
 
             data.forEach(e => {
                 const statusClass = e.completion_status === 'completed' ? 'badge-success' : e.completion_status === 'in_progress' ? 'badge-warning' : 'badge-info';
+                
+                // التعديل الآمن لمنع انهيار substring في حال كانت الحقول null في قاعدة البيانات
+                const shortUserId = e.user_id ? `${e.user_id.substring(0, 8)}…` : 'N/A';
+                const enrollDate = e.enrollment_date ? new Date(e.enrollment_date).toLocaleDateString() : 'غير محدد';
+
                 tbody.innerHTML += `
                     <tr>
-                        <td><code>${e.user_id.substring(0, 8)}…</code></td>
+                        <td><code>${shortUserId}</code></td>
                         <td>${e.courses?.title || 'Unknown'}</td>
-                        <td><span class="badge ${statusClass}">${e.completion_status}</span></td>
-                        <td>${new Date(e.enrollment_date).toLocaleDateString()}</td>
+                        <td><span class="badge ${statusClass}">${e.completion_status || 'N/A'}</span></td>
+                        <td>${enrollDate}</td>
                         <td><button class="btn-danger" onclick="deleteEnrollment('${e.enrollment_id}')">🗑️ Delete</button></td>
                     </tr>
                 `;
@@ -490,12 +494,16 @@
             if (!data?.length) return (tbody.innerHTML = '<tr><td colspan="5" class="empty-message">No certificates</td></tr>');
 
             data.forEach(cert => {
+                // فحص آمن لقيم الشهادات لمنع ظهور أخطاء null القاتلة
+                const shortUserId = cert.user_id ? `${cert.user_id.substring(0, 8)}…` : 'N/A';
+                const issueDate = cert.issued_at ? new Date(cert.issued_at).toLocaleDateString() : 'غير محدد';
+
                 tbody.innerHTML += `
                     <tr>
-                        <td><code>${cert.user_id.substring(0, 8)}…</code></td>
+                        <td><code>${shortUserId}</code></td>
                         <td>${cert.courses?.title || 'Unknown'}</td>
-                        <td>${new Date(cert.issued_at).toLocaleDateString()}</td>
-                        <td><a href="${cert.certificate_url}" target="_blank" style="color:#38bdf8;">🔗 PDF</a></td>
+                        <td>${issueDate}</td>
+                        <td><a href="${cert.certificate_url || '#'}" target="_blank" style="color:#38bdf8;">🔗 PDF</a></td>
                         <td><button class="btn-danger" onclick="deleteCertificate('${cert.certificate_id}')">🗑️ Delete</button></td>
                     </tr>
                 `;
@@ -516,12 +524,17 @@
             if (!data?.length) return (tbody.innerHTML = '<tr><td colspan="5" class="empty-message">No ratings</td></tr>');
 
             data.forEach(r => {
+                // فحص آمن لقيم معرفات المدرسين والطلاب وتواريخ التقييم
+                const shortInstructorId = r.instructor_id ? `${r.instructor_id.substring(0, 8)}…` : 'N/A';
+                const shortUserId = r.user_id ? `${r.user_id.substring(0, 8)}…` : 'N/A';
+                const ratingDate = r.created_at ? new Date(r.created_at).toLocaleDateString() : 'غير محدد';
+
                 tbody.innerHTML += `
                     <tr>
-                        <td><code>${r.instructor_id.substring(0, 8)}…</code></td>
-                        <td><code>${r.user_id.substring(0, 8)}…</code></td>
-                        <td>⭐ ${r.rating}</td>
-                        <td>${new Date(r.created_at).toLocaleDateString()}</td>
+                        <td><code>${shortInstructorId}</code></td>
+                        <td><code>${shortUserId}</code></td>
+                        <td>⭐ ${r.rating ?? 0}</td>
+                        <td>${ratingDate}</td>
                         <td><button class="btn-danger" onclick="deleteRating('${r.rating_id}')">🗑️ Delete</button></td>
                     </tr>
                 `;
@@ -544,8 +557,8 @@
             data.forEach(u => {
                 tbody.innerHTML += `
                     <tr>
-                        <td><code>${u.user_id}</code></td>
-                        <td>${u.role}</td>
+                        <td><code>${u.user_id || 'N/A'}</code></td>
+                        <td>${u.role || 'student'}</td>
                         <td>
                             <select onchange="updateRole('${u.user_id}', this.value)" style="width:auto;">
                                 <option value="">—</option>
