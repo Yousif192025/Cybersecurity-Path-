@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyberPath | Advanced Dashboard</title>
+    <title>CyberPath | اللوحة المشتركة المتقدمة</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* (احتفظت بنفس التنسيقات السابقة مع إضافة لمسات بسيطة) */
         :root {
             --bg-dark: #0f172a; --card-dark: #1e293b;
             --primary: #3b82f6; --accent: #8b5cf6;
@@ -27,20 +26,24 @@
         
         /* Search & Actions */
         .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
-        .search-box input { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: #0f172a; color: white; }
+        .search-box input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: #0f172a; color: white; outline: none; }
+        .search-box input:focus { border-color: var(--primary); }
         
         /* Table Styles */
         .data-table-container { background: var(--card-dark); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; margin-top: 20px; }
         table { width: 100%; border-collapse: collapse; text-align: right; }
-        th { background: #1e293b; padding: 15px; color: var(--text-muted); border-bottom: 1px solid var(--border); }
-        td { padding: 15px; border-bottom: 1px solid var(--border); }
+        th { background: #151f32; padding: 15px; color: var(--text-muted); border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
         
-        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; }
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
         .badge-admin { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
         .badge-instructor { background: rgba(16, 185, 129, 0.2); color: #10b981; }
         .badge-student { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
         
-        .hidden { display: none; }
+        .btn-action { padding: 6px 12px; border-radius: 6px; background: var(--primary); border: none; color: white; cursor: pointer; font-weight: bold; }
+        .btn-action:hover { background: #2563eb; }
+
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -49,7 +52,7 @@
     <aside class="sidebar">
         <div class="logo"><i class="fas fa-shield-halved"></i> CyberPath</div>
         <ul class="nav-menu" id="dynamic-menu"></ul>
-        <div class="nav-item" onclick="handleLogout()" style="margin-top: auto; color: var(--danger);">
+        <div class="nav-item" id="logout-btn" style="margin-top: auto; color: var(--danger);">
             <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
         </div>
     </aside>
@@ -58,158 +61,234 @@
         <header class="topbar">
             <div>
                 <h2 id="role-title">جاري التحميل...</h2>
-                <p id="user-welcome" style="color: var(--text-muted); font-size: 0.9rem;"></p>
+                <p id="user-welcome" style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;"></p>
             </div>
             <div id="user-info" style="display: flex; align-items: center; gap: 15px;">
-                <span id="user-name"></span>
+                <span id="user-name">تحميل...</span>
                 <div style="width: 45px; height: 45px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center;">
                     <i class="fas fa-user-shield"></i>
                 </div>
             </div>
         </header>
 
-        <!-- خاص بالأدمن: البحث بالهوية الوطنية -->
         <section id="admin-actions" class="hidden">
             <div class="search-box">
                 <input type="text" id="search-input" placeholder="البحث بالرقم الوطني أو الاسم...">
-                <button onclick="fetchAdminData()" style="padding: 10px 25px; border-radius: 8px; background: var(--primary); border: none; color: white; cursor: pointer;">بحث</button>
+                <button id="search-btn" style="padding: 10px 25px; border-radius: 8px; background: var(--primary); border: none; color: white; cursor: pointer; font-weight: bold;">بحث</button>
             </div>
         </section>
 
         <div class="data-table-container">
-            <div style="padding: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border);">
                 <h3 id="table-title">قائمة المستخدمين</h3>
             </div>
-            <table>
-                <thead><tr id="table-head"></tr></thead>
-                <tbody id="table-body"></tbody>
-            </table>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead><tr id="table-head"></tr></thead>
+                    <tbody id="table-body"></tbody>
+                </table>
+            </div>
         </div>
 
-        <!-- سجل العمليات للأدمن فقط -->
         <div id="logs-container" class="data-table-container hidden" style="margin-top: 40px;">
             <div style="padding: 20px; border-bottom: 1px solid var(--border);">
-                <h3><i class="fas fa-history"></i> آخر العمليات الإدارية</h3>
+                <h3><i class="fas fa-history"></i> آخر العمليات الإدارية والمراقبة</h3>
             </div>
-            <table id="logs-table">
-                <thead><tr><th>المشرف</th><th>العملية</th><th>التفاصيل</th><th>التاريخ</th></tr></thead>
-                <tbody id="logs-body"></tbody>
-            </table>
+            <div style="overflow-x: auto;">
+                <table id="logs-table">
+                    <thead><tr><th>المشرف / النظام</th><th>العملية</th><th>التفاصيل والمصفوفة</th><th>التاريخ والوقت</th></tr></thead>
+                    <tbody id="logs-body"></tbody>
+                </table>
+            </div>
         </div>
     </main>
 </div>
 
 <script type="module">
-    // تهيئة سوبابيز (استبدل YOUR_KEY بمفتاحك الحقيقي)
-    const supabaseClient = supabase.createClient("https://suvpaunulhqfoclepwoz.supabase.co", "YOUR_KEY");
+    // تهيئة سوبابيز بالربط الحي للمشروع والمفتاح العام المتزامن
+    const supabaseClient = supabase.createClient(
+        "https://suvpaunulhqfoclepwoz.supabase.co", 
+        "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"
+    );
 
     async function checkAuth() {
         const { data: { user } } = await supabaseClient.auth.getUser();
-        if (!user) { window.location.href = '/login'; return; }
+        if (!user) { window.location.href = 'login.html'; return; }
 
-        const { data: profile } = await supabaseClient
+        const { data: profile, error } = await supabaseClient
             .from('user_profile')
             .select('*')
             .eq('user_id', user.id)
-            .single();
+            .maybeSingle();
 
-        if (profile) initDashboard(profile);
+        if (profile) {
+            initDashboard(profile);
+        } else {
+            // التعامل مع الحالات الاستثنائية للبروفايلات الفارغة
+            document.getElementById('role-title').innerText = "ملف غير مكتمل";
+            document.getElementById('user-name').innerText = user.email;
+            document.getElementById('table-body').innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--danger);">لم يتم العثور على صلاحيات مرتبطة بهذا البروفايل في النظام.</td></tr>`;
+        }
     }
 
     function initDashboard(profile) {
-        document.getElementById('user-name').innerText = profile.full_name;
-        document.getElementById('user-welcome').innerText = `مرحباً، ${profile.full_name} (${profile.national_id})`;
+        document.getElementById('user-name').innerText = profile.full_name || "مستخدم نظام";
+        document.getElementById('user-welcome').innerText = `مرحباً، ${profile.full_name || ''} (${profile.national_id || 'بدون هوية مسجلة'})`;
         
         const menu = document.getElementById('dynamic-menu');
         
         if (profile.role === 'admin') {
-            document.getElementById('role-title').innerText = "لوحة تحكم الإدارة";
+            document.getElementById('role-title').innerText = "لوحة تحكم الإدارة العامة";
             document.getElementById('admin-actions').classList.remove('hidden');
             document.getElementById('logs-container').classList.remove('hidden');
             menu.innerHTML = `
-                <li class="nav-item active"><i class="fas fa-users-cog"></i> الإدارة العامة</li>
-                <li class="nav-item"><i class="fas fa-database"></i> السجلات</li>
+                <li class="nav-item active"><i class="fas fa-users-cog"></i> الإدارة والتحكم</li>
+                <li class="nav-item" id="nav-logs"><i class="fas fa-database"></i> سجل المراقبة والـ Logs</li>
             `;
             fetchAdminData();
             fetchAdminLogs();
         } else {
-            document.getElementById('role-title').innerText = "لوحة الطالب";
-            renderStudentView();
+            document.getElementById('role-title').innerText = "بوابة الطالب الأكاديمية";
+            renderStudentView(profile);
         }
     }
 
-    // جلب بيانات المستخدمين مع دعم البحث
-    window.fetchAdminData = async () => {
-        const search = document.getElementById('search-input').value;
+    // جلب بيانات المستخدمين مع دعم محرك البحث للأدمن
+    async function fetchAdminData() {
+        const search = document.getElementById('search-input').value.trim();
         let query = supabaseClient.from('user_profile').select('*');
         
         if (search) {
             query = query.or(`national_id.ilike.%${search}%,full_name.ilike.%${search}%`);
         }
 
-        const { data: users } = await query.limit(10);
+        const { data: users, error } = await query.order('created_at', { ascending: false }).limit(20);
         const head = document.getElementById('table-head');
         const body = document.getElementById('table-body');
 
-        head.innerHTML = `<tr><th>الاسم</th><th>الهوية الوطنية</th><th>الدور</th><th>الإجراء</th></tr>`;
+        head.innerHTML = `<tr><th>الاسم بالكامل</th><th>الهوية الوطنية</th><th>الدور الحالي</th><th>تعديل الصلاحية</th></tr>`;
+        
+        if (error || !users || users.length === 0) {
+            body.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">لا توجد سجلات مستخدمين تطابق البحث.</td></tr>`;
+            return;
+        }
+
         body.innerHTML = users.map(u => `
             <tr>
-                <td>${u.full_name}</td>
-                <td>${u.national_id}</td>
-                <td><span class="badge badge-${u.role}">${u.role}</span></td>
+                <td style="font-weight:bold;">${u.full_name || 'غير مدخل'}</td>
+                <td><code>${u.national_id || '---'}</code></td>
+                <td><span class="badge badge-${u.role || 'student'}">${u.role ? u.role.toUpperCase() : 'STUDENT'}</span></td>
                 <td>
-                    <select onchange="changeUserRole('${u.user_id}', this.value)" style="background:#0f172a; color:white; border:1px solid var(--border); padding:5px; border-radius:5px;">
-                        <option value="">تغيير الدور...</option>
-                        <option value="admin">Admin</option>
-                        <option value="instructor">Instructor</option>
-                        <option value="student">Student</option>
+                    <select class="role-changer" data-user-id="${u.user_id}" style="background:#0f172a; color:white; border:1px solid var(--border); padding:6px; border-radius:6px; outline:none; cursor:pointer;">
+                        <option value="">تغيير الصلاحية...</option>
+                        <option value="admin" ${u.role === 'admin' ? 'disabled' : ''}>مسؤول - Admin</option>
+                        <option value="instructor" ${u.role === 'instructor' ? 'disabled' : ''}>مدرب - Instructor</option>
+                        <option value="student" ${u.role === 'student' ? 'disabled' : ''}>طالب - Student</option>
                     </select>
                 </td>
             </tr>
         `).join('');
-    };
 
-    // تحديث الدور (سيقوم الـ Trigger بتسجيلها في admin_logs تلقائياً)
-    window.changeUserRole = async (userId, newRole) => {
-        if (!newRole) return;
+        // ربط أحداث القوائم المنسدلة ديناميكياً لتفادي مشاكل الـ Scope
+        body.querySelectorAll('.role-changer').forEach(select => {
+            select.addEventListener('change', (e) => {
+                const userId = select.getAttribute('data-user-id');
+                const newRole = e.target.value;
+                if (newRole) changeUserRole(userId, newRole);
+            });
+        });
+    }
+
+    // تحديث الدور مباشرة بقاعدة البيانات الحية
+    async function changeUserRole(userId, newRole) {
+        if (!confirm(`هل أنت متأكد من تغيير صلاحية هذا المستخدم إلى ${newRole.toUpperCase()}؟`)) {
+            fetchAdminData();
+            return;
+        }
+
         const { error } = await supabaseClient
             .from('user_profile')
             .update({ role: newRole })
             .eq('user_id', userId);
 
         if (!error) {
-            alert("تم تحديث الصلاحيات بنجاح");
+            alert("تم تحديث الصلاحيات الإدارية وضخ البيانات في المستودع بنجاح.");
             fetchAdminData();
             fetchAdminLogs();
         } else {
             alert("فشل التحديث: " + error.message);
         }
-    };
+    }
 
-    // جلب سجلات المراقبة
+    // جلب سجلات المراقبة (Admin Logs) للعمليات الإدارية
     async function fetchAdminLogs() {
-        const { data: logs } = await supabaseClient
+        const { data: logs, error } = await supabaseClient
             .from('admin_logs')
             .select('*')
             .order('action_date', { ascending: false })
-            .limit(5);
+            .limit(8);
 
         const body = document.getElementById('logs-body');
+        
+        if (error || !logs || logs.length === 0) {
+            body.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">لا توجد عمليات مراقبة مسجلة حالياً.</td></tr>`;
+            return;
+        }
+
         body.innerHTML = logs.map(l => `
-            <tr style="font-size:0.8rem; color:var(--text-muted);">
-                <td>النظام</td>
-                <td>${l.action}</td>
-                <td>${JSON.stringify(l.details)}</td>
+            <tr style="font-size:0.85rem; color:var(--text-muted);">
+                <td><span style="color:var(--accent); font-weight:bold;"><i class="fas fa-robot"></i> خادم النظام</span></td>
+                <td style="color:var(--text-main); font-weight:500;">${l.action || 'تحديث دور'}</td>
+                <td><code>${typeof l.details === 'object' ? JSON.stringify(l.details) : l.details}</code></td>
                 <td>${new Date(l.action_date).toLocaleString('ar-EG')}</td>
             </tr>
         `).join('');
     }
 
-    window.handleLogout = async () => {
+    // بناء واجهة الطالب (في حال دخول مستخدم بصلاحية طالب) لمنع انهيار اللوحة
+    async function renderStudentView(profile) {
+        document.getElementById('table-title').innerText = "مقرراتي المسجلة والمهام النشطة";
+        const head = document.getElementById('table-head');
+        const body = document.getElementById('table-body');
+        
+        const menu = document.getElementById('dynamic-menu');
+        menu.innerHTML = `
+            <li class="nav-item active"><i class="fas fa-book-reader"></i> مقرراتي الدراسية</li>
+            <li class="nav-item" onclick="window.location.href='student.html'"><i class="fas fa-graduation-cap"></i> بوابة الاختبارات حية</li>
+        `;
+
+        head.innerHTML = `<tr><th>المقرر / المسار</th><th>حالة الحساب</th><th>الخيارات</th></tr>`;
+        
+        // عرض بطاقة المسار للطالب بشكل منسق وجذاب لربطه بالـ student.html مباشرة
+        body.innerHTML = `
+            <tr>
+                <td style="font-weight:bold; color:var(--primary);"><i class="fas fa-shield-halved"></i> مسار الأمن السيبراني المتقدم (CyberPath Track)</td>
+                <td><span class="badge badge-student">نشط ومزامن</span></td>
+                <td>
+                    <button class="btn-action" onclick="window.location.href='student.html'">
+                        الذهاب لمركز الاختبارات <i class="fas fa-arrow-left" style="margin-right:5px;"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }
+
+    async function handleLogout() {
         await supabaseClient.auth.signOut();
         window.location.reload();
-    };
+    }
 
+    // ربط الأحداث للعناصر الثابتة بالصفحة بشكل برمي آمن تماماً
+    document.getElementById('search-btn').addEventListener('click', fetchAdminData);
+    document.getElementById('logout-btn').addEventListener('click', handleLogout);
+    document.getElementById('search-input').addEventListener('keypress', (e) => {
+        if(e.key === 'Enter') fetchAdminData();
+    });
+
+    // جعل بعض الدوال متاحة عالمياً فقط للاستخدام الآمن في الـ HTML المدمج
+    window.fetchAdminData = fetchAdminData;
+
+    // تشغيل نظام التحقق فور جاهزية الصفحة
     checkAuth();
 </script>
 </body>
