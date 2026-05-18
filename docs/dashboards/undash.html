@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberPath | البوابة الموحدة</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #0f172a; --card-dark: #1e293b;
+            --primary: #3b82f6; --accent: #8b5cf6;
+            --text-main: #f8fafc; --text-muted: #94a3b8;
+            --border: #334155; --success: #10b981; --danger: #ef4444;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg-dark); color: var(--text-main); }
+        .app-container { display: flex; min-height: 100vh; }
+        .sidebar { width: 260px; background: var(--card-dark); border-left: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; }
+        .logo { font-size: 1.5rem; font-weight: bold; color: var(--primary); margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+        .nav-item { padding: 12px 15px; border-radius: 8px; cursor: pointer; color: var(--text-muted); margin-bottom: 5px; transition: 0.2s; display: flex; align-items: center; gap: 12px; }
+        .nav-item:hover, .nav-item.active { background: var(--primary); color: white; }
+        .main-content { flex: 1; padding: 30px; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: var(--card-dark); padding: 20px; border-radius: 12px; border: 1px solid var(--border); }
+        
+        /* كروت الخدمات العامة */
+        .public-services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .service-card { background: var(--card-dark); border: 1px solid var(--border); padding: 20px; border-radius: 12px; transition: 0.3s; }
+        .service-card:hover { border-color: var(--primary); transform: translateY(-3px); }
+        .service-card h4 { color: var(--primary); margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        
+        .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        .search-box input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: #0f172a; color: white; }
+        
+        .data-table-container { background: var(--card-dark); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; text-align: right; }
+        th { background: #162235; padding: 15px; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+        td { padding: 15px; border-bottom: 1px solid var(--border); }
+        
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
+        .badge-admin { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .badge-instructor { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .badge-student { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+        
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="logo"><i class="fas fa-shield-halved"></i> CyberPath</div>
+        <ul class="nav-menu" id="dynamic-menu">
+            </ul>
+        <div class="nav-item" id="logout-btn" style="margin-top: auto; color: var(--danger); display: none;">
+            <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div>
+                <h2 id="role-title">بوابة الخدمات الموحدة</h2>
+                <p id="user-welcome" style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">مرحباً بك في المنصة التعليمية</p>
+            </div>
+            <div id="user-info" style="display: flex; align-items: center; gap: 15px;">
+                <span id="user-name">زائر المنصة</span>
+                <div style="width: 45px; height: 45px; border-radius: 50%; background: var(--card-dark); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-user-circle" id="user-icon" style="font-size: 1.5rem;"></i>
+                </div>
+            </div>
+        </header>
+
+        <section id="public-services-section">
+            <h3 style="margin-bottom: 15px;"><i class="fas fa-globe"></i> الخدمات العامة والمفتوحة</h3>
+            <div class="public-services-grid">
+                <div class="service-card">
+                    <h4><i class="fas fa-graduation-cap"></i> دليل المقررات السيبرانية</h4>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 5px;">استعرض الحقائب التدريبية المتاحة لشهادات Security+ و CEH.</p>
+                </div>
+                <div class="service-card">
+                    <h4><i class="fas fa-podcast"></i> البودكاست التعليمي CyberTalks</h4>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 5px;">استمع إلى حلقات النقاش المفتوحة لرفع الوعي المهني الوظيفي.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="private-services-section" class="hidden">
+            <hr style="border: 0; border-top: 1px solid var(--border); margin: 30px 0;">
+            
+            <div id="admin-actions" class="hidden">
+                <h3 style="margin-bottom: 15px;"><i class="fas fa-user-shield"></i> أدوات الرقابة والبحث الإداري</h3>
+                <div class="search-box">
+                    <input type="text" id="search-input" placeholder="البحث بالرقم الوطني أو الاسم...">
+                    <button id="search-btn" style="padding: 10px 25px; border-radius: 8px; background: var(--primary); border: none; color: white; cursor: pointer; font-weight: bold;">بحث</button>
+                </div>
+            </div>
+
+            <div class="data-table-container">
+                <div style="padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border);">
+                    <h3 id="table-title">لوحة البيانات الخاصة</h3>
+                </div>
+                <table>
+                    <thead><tr id="table-head"></tr></thead>
+                    <tbody id="table-body"></tbody>
+                </table>
+            </div>
+
+            <div id="logs-container" class="data-table-container hidden" style="margin-top: 40px;">
+                <div style="padding: 20px; border-bottom: 1px solid var(--border);">
+                    <h3><i class="fas fa-history"></i> آخر العمليات الإدارية</h3>
+                </div>
+                <table>
+                    <thead><tr><th>المشرف</th><th>العملية</th><th>التفاصيل</th><th>التاريخ</th></tr></thead>
+                    <tbody id="logs-body"></tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<script type="module">
+    // تهيئة سوبابيز بالربط المباشر
+    const supabaseClient = supabase.createClient(
+        "https://suvpaunulhqfoclepwoz.supabase.co", 
+        "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"
+    );
+
+    async function checkAuth() {
+        const menu = document.getElementById('dynamic-menu');
+        
+        // 1. فحص الجلسة
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        
+        if (!user) {
+            // [حالة الزائر / الضيف]: عرض الخدمات العامة فقط وقائمة تطلب تسجيل الدخول
+            menu.innerHTML = `
+                <li class="nav-item active"><i class="fas fa-home"></i> الخدمات العامة</li>
+                <li class="nav-item" onclick="window.location.href='login.html'"><i class="fas fa-sign-in-alt"></i> تسجيل الدخول الخاص</li>
+            `;
+            return;
+        }
+
+        // إظهار زر تسجيل الخروج للمستخدم المسجل ومساحة الخدمات الخاصة
+        document.getElementById('logout-btn').style.display = 'flex';
+        document.getElementById('private-services-section').classList.remove('hidden');
+
+        // 2. جلب بروفايل المستخدم للتحقق من رقمه التعريفي ودوره بالمنصة
+        const { data: profile } = await supabaseClient
+            .from('user_profile')
+            .select('*')
+            .eq('user_id', user.id)
+            .maybeSingle();
+
+        if (profile) {
+            initDashboard(profile);
+        } else {
+            // مستخدم مسجل ولكن لم يستكمل بيانات الهوية الرقمية بعد
+            document.getElementById('user-name').innerText = user.email;
+            document.getElementById('table-body').innerHTML = `<tr><td style="color:var(--danger); text-align:center; padding:20px;">الرجاء التواصل مع الإدارة لربط ملفك الأكاديمي برقم طالب نشط.</td></tr>`;
+        }
+    }
+
+    function initDashboard(profile) {
+        document.getElementById('user-name').innerText = profile.full_name;
+        document.getElementById('user-welcome').innerText = `مرحباً، ${profile.full_name} (رقم الحساب: ${profile.national_id})`;
+        
+        const menu = document.getElementById('dynamic-menu');
+        
+        if (profile.role === 'admin') {
+            document.getElementById('role-title').innerText = "لوحة تحكم الإدارة العامة";
+            document.getElementById('user-icon').className = "fas fa-user-shield";
+            document.getElementById('admin-actions').classList.remove('hidden');
+            document.getElementById('logs-container').classList.remove('hidden');
+            
+            menu.innerHTML = `
+                <li class="nav-item"><i class="fas fa-globe"></i> الخدمات العامة</li>
+                <li class="nav-item active"><i class="fas fa-users-cog"></i> إدارة الحسابات الخاصة</li>
+                <li class="nav-item" id="nav-logs"><i class="fas fa-database"></i> سجل النظام والـ Logs</li>
+            `;
+            fetchAdminData();
+            fetchAdminLogs();
+        } else {
+            // [حالة الطالب / المدرب الأكاديمي]
+            document.getElementById('role-title').innerText = "بوابة الطالب الخاصة";
+            document.getElementById('user-icon').className = "fas fa-user-graduate";
+            
+            menu.innerHTML = `
+                <li class="nav-item"><i class="fas fa-globe"></i> الخدمات العامة</li>
+                <li class="nav-item active"><i class="fas fa-book-reader"></i> فصلي الدراسي والاختبارات</li>
+            `;
+            renderStudentView(profile);
+        }
+    }
+
+    // جلب الطلاب والمستخدمين (خاص بالأدمن)
+    async function fetchAdminData() {
+        const search = document.getElementById('search-input').value.trim();
+        let query = supabaseClient.from('user_profile').select('*');
+        
+        if (search) {
+            query = query.or(`national_id.ilike.%${search}%,full_name.ilike.%${search}%`);
+        }
+
+        const { data: users } = await query.limit(10);
+        const head = document.getElementById('table-head');
+        const body = document.getElementById('table-body');
+
+        document.getElementById('table-title').innerText = "قائمة المشتركين والطلاب والتحكم بالصلاحيات";
+        head.innerHTML = `<tr><th>الاسم</th><th>الهوية / رقم الطالب</th><th>الدور</th><th>تغيير الصلاحية</th></tr>`;
+        
+        if (!users || users.length === 0) {
+            body.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">لا توجد نتائج مطابقة.</td></tr>`;
+            return;
+        }
+
+        body.innerHTML = users.map(u => `
+            <tr>
+                <td>${u.full_name}</td>
+                <td><code>${u.national_id}</code></td>
+                <td><span class="badge badge-${u.role}">${u.role.toUpperCase()}</span></td>
+                <td>
+                    <select class="role-changer" data-user-id="${u.user_id}" style="background:#0f172a; color:white; border:1px solid var(--border); padding:5px; border-radius:5px; cursor:pointer;">
+                        <option value="">اختر...</option>
+                        <option value="admin">Admin</option>
+                        <option value="instructor">Instructor</option>
+                        <option value="student">Student</option>
+                    </select>
+                </td>
+            </tr>
+        `).join('');
+
+        // ربط أحداث القوائم المنسدلة ديناميكياً لتجنب مشاكل الموديول
+        body.querySelectorAll('.role-changer').forEach(select => {
+            select.addEventListener('change', (e) => {
+                const userId = select.getAttribute('data-user-id');
+                const newRole = e.target.value;
+                if (newRole) changeUserRole(userId, newRole);
+            });
+        });
+    }
+
+    async function changeUserRole(userId, newRole) {
+        const { error } = await supabaseClient
+            .from('user_profile')
+            .update({ role: newRole })
+            .eq('user_id', userId);
+
+        if (!error) {
+            alert("تم تحديث الصلاحية بنجاح في قاعدة البيانات الحية.");
+            fetchAdminData();
+            fetchAdminLogs();
+        } else {
+            alert("فشل التحديث: " + error.message);
+        }
+    }
+
+    // عرض بيانات الطالب الخاصة (تتطلب التحقق من رقم هويته / حسابه المسجل)
+    function renderStudentView(profile) {
+        document.getElementById('table-title').innerText = `لوحة دراسات الطالب: ${profile.full_name}`;
+        const head = document.getElementById('table-head');
+        const body = document.getElementById('table-body');
+
+        head.innerHTML = `<tr><th>المسار التدريبي الحصري</th><th>حالة الحساب الرقمي</th><th>المركز الأكاديمي</th></tr>`;
+        body.innerHTML = `
+            <tr>
+                <td style="font-weight:bold; color:var(--primary);"><i class="fas fa-shield-halved"></i> دبلوم الأمن السيبراني والأنظمة الذكية (CIC-IDS)</td>
+                <td><span class="badge badge-student">مصرح برقم: ${profile.national_id}</span></td>
+                <td>
+                    <button id="go-exams-btn" style="padding:6px 15px; border-radius:6px; background:var(--primary); border:none; color:white; font-weight:bold; cursor:pointer;">
+                        دخول مركز الاختبارات <i class="fas fa-arrow-left" style="margin-right:5px;"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+
+        document.getElementById('go-exams-btn').addEventListener('click', () => {
+            window.location.href = 'student.html';
+        });
+    }
+
+    async function fetchAdminLogs() {
+        const { data: logs } = await supabaseClient
+            .from('admin_logs')
+            .select('*')
+            .order('action_date', { ascending: false })
+            .limit(5);
+
+        const body = document.getElementById('logs-body');
+        if (!logs || logs.length === 0) return;
+        
+        body.innerHTML = logs.map(l => `
+            <tr style="font-size:0.8rem; color:var(--text-muted);">
+                <td><i class="fas fa-shield-virus"></i> خادم النظام</td>
+                <td style="color:var(--text-main);">${l.action}</td>
+                <td><code>${JSON.stringify(l.details)}</code></td>
+                <td>${new Date(l.action_date).toLocaleString('ar-EG')}</td>
+            </tr>
+        `).join('');
+    }
+
+    async function handleLogout() {
+        await supabaseClient.auth.signOut();
+        window.location.reload();
+    }
+
+    // ربط مستمعات الأحداث الآمنة للـ Elements الثابتة
+    document.getElementById('search-btn').addEventListener('click', fetchAdminData);
+    document.getElementById('logout-btn').addEventListener('click', handleLogout);
+    document.getElementById('search-input').addEventListener('keypress', (e) => {
+        if(e.key === 'Enter') fetchAdminData();
+    });
+
+    // تشغيل محرك الفحص والفرز الفوري للخدمات عند التشغيل
+    checkAuth();
+</script>
+</body>
+</html>
