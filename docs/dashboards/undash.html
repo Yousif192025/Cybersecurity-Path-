@@ -3,178 +3,178 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>CyberPath | البوابة التعليمية الموحدة - Cyber Security Portal</title>
+    <title>CyberPath | البوابة التعليمية الموحدة</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Tajawal', sans-serif; background: #0f172a; color: #f1f5f9; }
+        :root {
+            --bg-dark: #0f172a;
+            --card-dark: #1e293b;
+            --primary: #3b82f6;
+            --accent: #8b5cf6;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg-dark); color: var(--text-main); }
+        .app-container { display: flex; min-height: 100vh; }
         
-        /* Modern Scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #1e293b; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
-        
-        .app-layout { display: flex; min-height: 100vh; }
-        
-        /* Sidebar - Glassmorphism */
-        .sidebar {
-            width: 280px;
-            background: rgba(30, 41, 59, 0.95);
-            backdrop-filter: blur(12px);
-            border-left: 1px solid rgba(51, 65, 85, 0.6);
-            padding: 1.8rem 1rem;
-            display: flex;
-            flex-direction: column;
+        /* Sidebar */
+        .sidebar { 
+            width: 280px; 
+            background: var(--card-dark); 
+            border-left: 1px solid var(--border); 
+            padding: 1.5rem; 
+            display: flex; 
+            flex-direction: column; 
             position: sticky;
             top: 0;
             height: 100vh;
-            transition: all 0.3s ease;
-            z-index: 20;
         }
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 1.6rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            margin-bottom: 2.5rem;
+        .logo { font-size: 1.5rem; font-weight: bold; color: var(--primary); margin-bottom: 2rem; display: flex; align-items: center; gap: 10px; }
+        .nav-item { 
+            padding: 12px 15px; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            color: var(--text-muted); 
+            margin-bottom: 8px; 
+            transition: 0.2s; 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            font-weight: 500; 
         }
-        .logo i { background: none; color: #3b82f6; font-size: 2rem; }
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 12px 18px;
-            margin: 6px 0;
-            border-radius: 16px;
-            color: #cbd5e1;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-        .nav-item:hover { background: rgba(59, 130, 246, 0.2); color: white; transform: translateX(-4px); }
-        .nav-item.active { background: linear-gradient(95deg, #3b82f6, #8b5cf6); color: white; box-shadow: 0 8px 20px -8px rgba(59, 130, 246, 0.4); }
+        .nav-item:hover, .nav-item.active { background: var(--primary); color: white; }
         
-        .main-content { flex: 1; padding: 1.8rem 2.2rem; overflow-x: auto; }
-        
-        /* Topbar */
-        .topbar {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 28px;
-            padding: 1rem 1.8rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 16px;
-            margin-bottom: 2rem;
-            backdrop-filter: blur(4px);
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
-        }
-        .user-badge {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            background: #0f172a;
-            padding: 6px 16px 6px 20px;
-            border-radius: 40px;
-            border: 1px solid #334155;
+        /* Main Content */
+        .main-content { flex: 1; padding: 1.5rem; overflow-x: auto; }
+        .topbar { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 2rem; 
+            background: var(--card-dark); 
+            padding: 1rem 1.5rem; 
+            border-radius: 16px; 
+            border: 1px solid var(--border); 
         }
         
         /* Cards */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-            gap: 1.2rem;
-            margin: 1.5rem 0;
+        .stats-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+            gap: 1rem; 
+            margin-bottom: 2rem; 
         }
-        .stat-card {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 24px;
-            padding: 1.2rem;
-            transition: all 0.25s;
+        .stat-card { 
+            background: var(--card-dark); 
+            border: 1px solid var(--border); 
+            padding: 1.25rem; 
+            border-radius: 16px; 
             text-align: center;
-        }
-        .stat-card:hover { transform: translateY(-5px); border-color: #3b82f6; }
-        .stat-card .stat-val { font-size: 1.7rem; font-weight: bold; color: #3b82f6; }
-        
-        .services-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.8rem;
-            margin: 1.5rem 0;
-        }
-        .service-card {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 28px;
-            padding: 1.5rem;
             transition: all 0.3s;
         }
-        .service-card:hover { border-color: #8b5cf6; transform: scale(1.01); }
+        .stat-card:hover { transform: translateY(-3px); border-color: var(--primary); }
+        .stat-card h4 { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 8px; }
+        .stat-card .val { font-size: 1.8rem; font-weight: bold; color: var(--text-main); }
         
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: #3b82f6;
-            padding: 8px 18px;
-            border-radius: 40px;
-            color: white;
-            font-weight: 600;
+        .public-services-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+            gap: 1.5rem; 
+            margin-bottom: 2rem; 
+        }
+        .service-card { 
+            background: var(--card-dark); 
+            border: 1px solid var(--border); 
+            padding: 1.5rem; 
+            border-radius: 16px; 
+            transition: 0.3s; 
+        }
+        .service-card:hover { border-color: var(--primary); transform: translateY(-3px); }
+        .service-card h4 { color: var(--primary); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 10px; }
+        
+        .btn-link { 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 5px; 
+            margin-top: 1rem; 
+            background: var(--primary); 
+            color: white; 
+            text-decoration: none; 
+            padding: 8px 16px; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            font-size: 0.85rem; 
+            transition: 0.2s; 
             border: none;
-            font-family: 'Tajawal', sans-serif;
             cursor: pointer;
-            transition: 0.2s;
         }
-        .btn-outline { background: transparent; border: 1px solid #3b82f6; }
-        .btn-accent { background: #8b5cf6; }
-        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+        .btn-link:hover { background: #2563eb; }
+        .btn-accent { background: var(--accent); }
+        .btn-accent:hover { background: #7c3aed; }
         
-        /* Table */
-        .table-wrapper {
-            background: #1e293b;
-            border-radius: 24px;
-            border: 1px solid #334155;
-            overflow-x: auto;
-            margin-top: 2rem;
+        /* Search & Table */
+        .search-box { display: flex; gap: 10px; margin-bottom: 1.5rem; }
+        .search-box input { 
+            flex: 1; 
+            padding: 12px; 
+            border-radius: 12px; 
+            border: 1px solid var(--border); 
+            background: #0f172a; 
+            color: white;
+            font-family: 'Tajawal', sans-serif;
         }
-        table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        th { text-align: right; padding: 1rem 1.2rem; background: #0f172a; color: #94a3b8; border-bottom: 1px solid #334155; }
-        td { padding: 1rem 1.2rem; border-bottom: 1px solid #2d3a4f; }
-        .badge {
-            padding: 4px 12px;
-            border-radius: 100px;
-            font-size: 0.75rem;
-            font-weight: 700;
+        .search-box button { 
+            padding: 12px 24px; 
+            border-radius: 12px; 
+            background: var(--primary); 
+            border: none; 
+            color: white; 
+            cursor: pointer; 
+            font-weight: bold;
+            font-family: 'Tajawal', sans-serif;
         }
-        .badge-admin { background: rgba(239,68,68,0.2); color: #f87171; }
-        .badge-student { background: rgba(59,130,246,0.2); color: #60a5fa; }
-        .badge-instructor { background: rgba(139,92,246,0.2); color: #a78bfa; }
+        
+        .data-table-container { 
+            background: var(--card-dark); 
+            border-radius: 16px; 
+            border: 1px solid var(--border); 
+            overflow: hidden; 
+            margin-top: 1.5rem; 
+        }
+        table { width: 100%; border-collapse: collapse; text-align: right; }
+        th { background: #162235; padding: 1rem; color: var(--text-muted); border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        td { padding: 1rem; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        
+        .badge { 
+            padding: 4px 12px; 
+            border-radius: 20px; 
+            font-size: 0.75rem; 
+            font-weight: bold; 
+            display: inline-block;
+        }
+        .badge-admin { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .badge-student { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+        .badge-instructor { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
         
         .hidden { display: none !important; }
-        .mobile-toggle { display: none; }
         
+        /* Toast */
         .toast {
             position: fixed;
-            bottom: 24px;
-            left: 24px;
-            background: #1e293b;
-            border-right: 5px solid #3b82f6;
-            padding: 12px 24px;
-            border-radius: 16px;
-            z-index: 999;
-            box-shadow: 0 20px 35px -10px black;
-            font-weight: 500;
-            backdrop-filter: blur(12px);
+            bottom: 20px;
+            left: 20px;
+            background: var(--card-dark);
+            border-right: 4px solid var(--primary);
+            padding: 12px 20px;
+            border-radius: 12px;
+            z-index: 1000;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
             animation: slideIn 0.3s ease;
         }
         @keyframes slideIn {
@@ -182,424 +182,443 @@
             to { transform: translateX(0); opacity: 1; }
         }
         
-        select, input {
-            background: #0f172a;
-            border: 1px solid #334155;
-            padding: 8px 12px;
-            border-radius: 12px;
-            color: white;
-        }
-        
+        /* Mobile */
+        .mobile-toggle { display: none; }
         @media (max-width: 768px) {
             .sidebar {
                 position: fixed;
                 right: -280px;
                 transition: 0.3s;
                 z-index: 1000;
-                top: 0;
                 height: 100%;
             }
-            .sidebar.mobile-open { right: 0; }
+            .sidebar.open { right: 0; }
             .mobile-toggle {
                 display: block;
                 position: fixed;
                 bottom: 20px;
                 left: 20px;
-                background: #3b82f6;
-                z-index: 1001;
+                background: var(--primary);
+                width: 50px;
+                height: 50px;
                 border-radius: 50%;
-                width: 48px;
-                height: 48px;
                 text-align: center;
-                line-height: 48px;
+                line-height: 50px;
                 font-size: 1.5rem;
-                box-shadow: 0 8px 20px black;
                 cursor: pointer;
+                z-index: 1001;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             }
             .main-content { padding: 1rem; }
+        }
+        
+        select {
+            background: #0f172a;
+            border: 1px solid var(--border);
+            padding: 6px 10px;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .section-title {
+            margin: 1.5rem 0 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
     </style>
 </head>
 <body>
-<div class="app-layout">
+
+<div class="app-container">
     <aside class="sidebar" id="sidebar">
-        <div class="logo"><i class="fas fa-shield-halved"></i> <span>CyberPath</span></div>
-        <div style="flex:1" id="dynamic-menu"></div>
-        <div class="nav-item" id="logoutBtn" style="color:#f87171; margin-top: auto; display: none;"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</div>
-    </aside>
-    <main class="main-content">
-        <div class="topbar">
-            <div>
-                <h2 id="dashboardTitle">CyberPath | البوابة الموحدة</h2>
-                <p id="welcomeMsg" style="color:#94a3b8; font-size:0.85rem;">منصة متكاملة للأمن السيبراني والتعليم الأكاديمي</p>
-            </div>
-            <div class="user-badge">
-                <span id="userFullName">زائر</span>
-                <i class="fas fa-user-astronaut" id="userIcon"></i>
-            </div>
+        <div class="logo"><i class="fas fa-shield-halved"></i> CyberPath</div>
+        <div id="dynamic-menu"></div>
+        <div class="nav-item" id="logout-btn" style="margin-top: auto; color: var(--danger); display: none;">
+            <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
         </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div>
+                <h2 id="role-title">بوابة الخدمات الموحدة</h2>
+                <p id="user-welcome" style="color: var(--text-muted); font-size: 0.85rem; margin-top: 5px;">مرحباً بك في المنصة التعليمية</p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span id="user-name">زائر المنصة</span>
+                <div style="width: 45px; height: 45px; border-radius: 50%; background: var(--card-dark); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-user-circle" id="user-icon" style="font-size: 1.5rem;"></i>
+                </div>
+            </div>
+        </header>
 
         <!-- القسم العمومي -->
-        <div id="publicSection">
-            <h3><i class="fas fa-globe-asia"></i> الخدمات العامة</h3>
-            <div class="services-grid">
-                <div class="service-card"><i class="fas fa-book" style="font-size:2rem; color:#3b82f6;"></i><h4>📖 دليل المقررات السيبرانية</h4><p>خطط دراسية معتمدة لشهادات الأمن السيبراني</p><button class="btn btn-outline guide-btn">استكشف <i class="fas fa-arrow-left"></i></button></div>
-                <div class="service-card"><i class="fas fa-podcast" style="font-size:2rem; color:#8b5cf6;"></i><h4>🎙️ بودكاست CyberTalks</h4><p>حلقات نقاشية مع خبراء المجال</p><button class="btn btn-outline podcast-btn">استمع الآن</button></div>
-                <div class="service-card"><i class="fas fa-link" style="font-size:2rem; color:#10b981;"></i><h4>🔗 روابط تعليمية عامة</h4><p>مكتبة ضخمة من المراجع والدورات</p><button class="btn btn-outline resources-btn">تصفح المكتبة</button></div>
-            </div>
-        </div>
-
-        <!-- القسم الخاص بالمستخدمين المسجلين -->
-        <div id="privateSection" class="hidden">
-            <!-- لوحة الطالب -->
-            <div id="studentStatsPanel" class="hidden">
-                <h3><i class="fas fa-chart-line"></i> لوحة الطالب الأكاديمية</h3>
-                <div class="stats-grid" id="statsContainer"></div>
-                <h3><i class="fas fa-road"></i> المسارات والخدمات الأكاديمية</h3>
-                <div class="services-grid">
-                    <div class="service-card"><i class="fas fa-laptop-code"></i><h4>المسار الهندسي</h4><p>هندسة أمن الشبكات واختبار الاختراق</p><button class="btn btn-accent cyber-path-btn">ابدأ المسار</button></div>
-                    <div class="service-card"><i class="fas fa-shield-virus"></i><h4>بنك الاختبارات</h4><p>اختبارات تفاعلية وشهادات معتمدة</p><button class="btn exam-bank-btn">دخول بنك الاختبارات</button></div>
-                    <div class="service-card"><i class="fas fa-chalkboard-user"></i><h4>الدورات الاحترافية</h4><p>دورات تدريبية متقدمة</p><button class="btn-outline btn courses-btn">استعرض الدورات</button></div>
+        <section id="public-services-section">
+            <h3 class="section-title"><i class="fas fa-globe"></i> الخدمات العامة والمفتوحة</h3>
+            <div class="public-services-grid">
+                <div class="service-card">
+                    <h4><i class="fas fa-graduation-cap"></i> دليل المقررات السيبرانية</h4>
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">استعرض الحقائب التدريبية المتاحة لشهادات Security+ و CEH.</p>
+                    <button class="btn-link" onclick="window.open('https://cyberpath.vercel.app/pathways/tvtc-cs-diploma.html', '_blank')">استكشف <i class="fas fa-arrow-left"></i></button>
+                </div>
+                <div class="service-card">
+                    <h4><i class="fas fa-podcast"></i> البودكاست التعليمي CyberTalks</h4>
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">استمع إلى حلقات النقاش المفتوحة لرفع الوعي المهني.</p>
+                    <button class="btn-link" onclick="showToast('🎙️ قريباً على جميع المنصات', 'info')">استمع الآن <i class="fas fa-headphones"></i></button>
+                </div>
+                <div class="service-card">
+                    <h4><i class="fas fa-link"></i> روابط تعليمية عامة</h4>
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">مكتبة من المراجع والدورات المجانية في الأمن السيبراني.</p>
+                    <button class="btn-link" onclick="showToast('📚 المكتبة قيد التحديث', 'info')">تصفح المكتبة <i class="fas fa-external-link-alt"></i></button>
                 </div>
             </div>
+        </section>
 
-            <!-- لوحة الإدارة -->
-            <div id="adminPanel" class="hidden">
-                <h3><i class="fas fa-user-cog"></i> إدارة المستخدمين والصلاحيات</h3>
-                <div style="display:flex; gap:12px; margin:1rem 0; flex-wrap:wrap;">
-                    <input type="text" id="adminSearch" placeholder="🔍 بحث بالاسم أو رقم الهوية" style="flex:1;">
-                    <button id="searchAdminBtn" class="btn"><i class="fas fa-search"></i> بحث</button>
+        <!-- القسم الخاص -->
+        <section id="private-services-section" class="hidden">
+            <div id="admin-actions" class="hidden">
+                <h3 class="section-title"><i class="fas fa-user-shield"></i> أدوات الرقابة الإدارية</h3>
+                <div class="search-box">
+                    <input type="text" id="search-input" placeholder="البحث بالاسم أو رقم الهوية...">
+                    <button id="search-btn"><i class="fas fa-search"></i> بحث</button>
                 </div>
-                <div class="table-wrapper">
-                    <table>
-                        <thead><tr><th>الاسم</th><th>رقم الهوية</th><th>الدور الحالي</th><th>تغيير الصلاحية</th></tr></thead>
-                        <tbody id="adminTableBody"><tr><td colspan="4" style="text-align:center;">جاري التحميل...</td></tr></tbody>
-                    </table>
-                </div>
-                <div class="table-wrapper">
-                    <h4 style="margin:1rem 0.5rem;"><i class="fas fa-history"></i> سجل الإجراءات الإدارية</h4>
-                    <table>
-                        <thead><tr><th>المشرف</th><th>الإجراء</th><th>التفاصيل</th><th>التاريخ</th></tr></thead>
-                        <tbody id="logsTableBody"><tr><td colspan="4">جاري التحميل...</td></tr></tbody>
-                    </table>
+            </div>
+
+            <div id="student-analytics-cards" class="hidden">
+                <h3 class="section-title"><i class="fas fa-chart-pie"></i> لوحة المتابعة الأكاديمية</h3>
+                <div class="stats-grid" id="stats-grid"></div>
+
+                <h3 class="section-title"><i class="fas fa-link"></i> المسارات والروابط الأكاديمية</h3>
+                <div class="public-services-grid">
+                    <div class="service-card">
+                        <h4><i class="fas fa-laptop-code"></i> دبلوم علوم الحاسب</h4>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">المسار التدريبي المعتمد لعلوم الحاسب.</p>
+                        <button class="btn-link" onclick="window.open('https://cyberpath.vercel.app/pathways/tvtc-cs-diploma.html', '_blank')">فتح المسار <i class="fas fa-external-link-alt"></i></button>
+                    </div>
+                    <div class="service-card">
+                        <h4><i class="fas fa-user-lock"></i> مسارات الأمن السيبراني</h4>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">الحقائب المهنية لتعليم الحماية واختبار الاختراق.</p>
+                        <button class="btn-link" onclick="window.open('https://cyberpath.vercel.app/pathways/tvtc-cs-security.html', '_blank')">فتح المسار <i class="fas fa-external-link-alt"></i></button>
+                    </div>
+                    <div class="service-card">
+                        <h4><i class="fas fa-vial"></i> اختبارات المهارات الرقمية</h4>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">بنك الاختبارات والتقييمات الشامل.</p>
+                        <button class="btn-link btn-accent" onclick="window.open('https://cyberpath.vercel.app/self-tests/quiz-bank.html', '_blank')">دخول بنك الاختبارات <i class="fas fa-vial"></i></button>
+                    </div>
+                    <div class="service-card">
+                        <h4><i class="fas fa-window-restore"></i> لوحة تحكم الطالب</h4>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">بوابتك الأكاديمية لمراجعة التقييمات.</p>
+                        <button class="btn-link" onclick="window.open('https://cyberpath.vercel.app/academy/student-dashboard.html', '_blank')">دخول اللوحة <i class="fas fa-external-link-alt"></i></button>
+                    </div>
+                    <div class="service-card">
+                        <h4><i class="fas fa-certificate"></i> الدورات الاحترافية</h4>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">مستودع الكورسات والبرامج المتقدمة.</p>
+                        <button class="btn-link" onclick="window.open('https://cyberpath.vercel.app/courses/coursesnms/train/indexlist.html', '_blank')">استعراض الدورات <i class="fas fa-external-link-alt"></i></button>
+                    </div>
                 </div>
             </div>
 
             <!-- الجدول الأكاديمي -->
-            <div class="table-wrapper" id="academicTableWrapper">
-                <h3 style="padding:1rem 1rem 0;"><i class="fas fa-calendar-week"></i> 📅 الجدول الأكاديمي الأسبوعي</h3>
-                <div style="overflow-x:auto;">
-                    <table id="studentScheduleTable"><thead id="scheduleHead"></thead><tbody id="scheduleBody"></tbody></table>
+            <div class="data-table-container">
+                <div style="padding: 1rem; border-bottom: 1px solid var(--border);">
+                    <h3 id="table-title"><i class="fas fa-calendar-alt"></i> 📅 الجدول الأكاديمي الأسبوعي</h3>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead id="table-head"></thead>
+                        <tbody id="table-body"></tbody>
+                    </table>
                 </div>
             </div>
-        </div>
+
+            <!-- سجل الإدارة -->
+            <div id="logs-container" class="data-table-container hidden" style="margin-top: 2rem;">
+                <div style="padding: 1rem; border-bottom: 1px solid var(--border);">
+                    <h3><i class="fas fa-history"></i> آخر العمليات الإدارية</h3>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead><tr><th>المشرف</th><th>العملية</th><th>التفاصيل</th><th>التاريخ</th></tr></thead>
+                        <tbody id="logs-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
     </main>
-    <div class="mobile-toggle" id="mobileToggle"><i class="fas fa-bars"></i></div>
 </div>
 
+<div class="mobile-toggle" id="mobileToggle"><i class="fas fa-bars"></i></div>
+
 <script>
-    (function() {
-        // تهيئة Supabase
-        const SUPABASE_URL = "https://suvpaunulhqfoclepwoz.supabase.co";
-        const SUPABASE_KEY = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
-        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// ==================== تهيئة Supabase ====================
+const SUPABASE_URL = "https://suvpaunulhqfoclepwoz.supabase.co";
+const SUPABASE_KEY = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentProfile = null;
+
+// ==================== Toast Notifications ====================
+function showToast(message, type = "success") {
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i> ${message}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+// ==================== التحقق من المصادقة ====================
+async function checkAuth() {
+    const { data: { user }, error } = await supabaseClient.auth.getUser();
+    const menuDiv = document.getElementById('dynamic-menu');
+    
+    if (!user) {
+        // وضع الزائر
+        menuDiv.innerHTML = `
+            <div class="nav-item active"><i class="fas fa-home"></i> الخدمات العامة</div>
+            <div class="nav-item" id="login-trigger"><i class="fas fa-sign-in-alt"></i> تسجيل الدخول</div>
+        `;
+        document.getElementById('public-services-section').classList.remove('hidden');
+        document.getElementById('private-services-section').classList.add('hidden');
+        document.getElementById('user-name').innerText = "زائر المنصة";
+        document.getElementById('logout-btn').style.display = 'none';
         
-        let currentProfile = null;
-
-        // دالة الإشعارات
-        function showToast(msg, type = "info") {
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i> ${msg}`;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        }
-
-        // التحقق من حالة تسجيل الدخول
-        async function checkAuth() {
-            const { data: { user } } = await sb.auth.getUser();
-            const menuDiv = document.getElementById('dynamic-menu');
-            
-            if (!user) {
-                // وضع الزائر
-                menuDiv.innerHTML = `<div class="nav-item active"><i class="fas fa-home"></i> الخدمات العامة</div>
-                                     <div class="nav-item" id="guestLoginBtn"><i class="fas fa-sign-in-alt"></i> تسجيل الدخول</div>`;
-                document.getElementById('publicSection').classList.remove('hidden');
-                document.getElementById('privateSection').classList.add('hidden');
-                document.getElementById('userFullName').innerText = "👤 ضيف المنصة";
-                document.getElementById('userIcon').className = "fas fa-user-secret";
-                document.getElementById('welcomeMsg').innerHTML = "مرحباً بك! سجل دخولك للوصول إلى الخدمات الخاصة والجدول الأكاديمي";
-                document.getElementById('logoutBtn').style.display = 'none';
-                document.getElementById('guestLoginBtn')?.addEventListener('click', () => {
-                    showToast("⚠️ يرجى تسجيل الدخول باستخدام حساب في Supabase Auth للوصول الكامل", "info");
-                });
-                return;
-            }
-            
-            // مستخدم مسجل
-            document.getElementById('logoutBtn').style.display = 'flex';
-            document.getElementById('publicSection').classList.add('hidden');
-            document.getElementById('privateSection').classList.remove('hidden');
-            
-            // جلب بيانات المستخدم من جدول user_profile
-            const { data: profile } = await sb
-                .from('user_profile')
-                .select('*')
-                .eq('user_id', user.id)
-                .single();
-            
-            if (profile) {
-                currentProfile = profile;
-                renderRoleBasedContent(profile);
-            } else {
-                // إذا لم يكن هناك ملف شخصي، نستخدم بيانات افتراضية
-                currentProfile = { role: "student", full_name: user.email?.split('@')[0] || "مستخدم", national_id: "غير محدد" };
-                renderRoleBasedContent(currentProfile);
-                showToast("تم تسجيل الدخول بنجاح! يمكنك الآن الوصول إلى الخدمات الخاصة", "success");
-            }
-        }
-
-        // عرض المحتوى حسب الدور
-        function renderRoleBasedContent(profile) {
-            const role = profile.role || 'student';
-            const menuDiv = document.getElementById('dynamic-menu');
-            
-            document.getElementById('welcomeMsg').innerHTML = `مرحباً ${profile.full_name} · ${role === 'admin' ? 'مدير النظام' : role === 'instructor' ? 'مدرب معتمد' : 'طالب'} | رقم الهوية: ${profile.national_id}`;
-            document.getElementById('userFullName').innerHTML = profile.full_name;
-            document.getElementById('userIcon').className = role === 'admin' ? 'fas fa-user-shield' : 'fas fa-user-graduate';
-            document.getElementById('dashboardTitle').innerHTML = role === 'admin' ? '🛡️ لوحة تحكم الإدارة' : '📚 لوحة الطالب الخاصة';
-            
-            // بناء القائمة الجانبية
-            menuDiv.innerHTML = `
-                <div class="nav-item active" data-view="dashboard"><i class="fas fa-tachometer-alt"></i> لوحة التحكم</div>
-                <div class="nav-item" data-view="academic"><i class="fas fa-calendar-alt"></i> الجدول الأكاديمي</div>
-            `;
-            
-            // إضافة أحداث التنقل
-            document.querySelectorAll('[data-view]').forEach(el => {
-                el.addEventListener('click', () => {
-                    const view = el.getAttribute('data-view');
-                    const academicWrapper = document.getElementById('academicTableWrapper');
-                    if (view === 'academic') {
-                        academicWrapper.classList.remove('hidden');
-                        renderStudentSchedule();
-                    } else {
-                        academicWrapper.classList.add('hidden');
-                    }
-                    document.querySelectorAll('[data-view]').forEach(item => item.classList.remove('active'));
-                    el.classList.add('active');
-                });
-            });
-            
-            // عرض المحتوى حسب الدور
-            if (role === 'admin') {
-                document.getElementById('adminPanel').classList.remove('hidden');
-                document.getElementById('studentStatsPanel').classList.add('hidden');
-                fetchAdminData();
-                fetchAdminLogs();
-                document.getElementById('searchAdminBtn').onclick = () => fetchAdminData();
-                document.getElementById('adminSearch').onkeypress = (e) => { if(e.key === 'Enter') fetchAdminData(); };
-            } else {
-                document.getElementById('adminPanel').classList.add('hidden');
-                document.getElementById('studentStatsPanel').classList.remove('hidden');
-                renderStudentDashboard();
-                renderStudentSchedule();
-                
-                // ربط أزرار الطالب
-                document.querySelector('.exam-bank-btn')?.addEventListener('click', () => window.open('https://cyberpath.vercel.app/self-tests/quiz-bank.html', '_blank'));
-                document.querySelector('.courses-btn')?.addEventListener('click', () => window.open('https://cyberpath.vercel.app/courses/coursesnms/train/indexlist.html', '_blank'));
-                document.querySelector('.cyber-path-btn')?.addEventListener('click', () => window.open('https://cyberpath.vercel.app/pathways/tvtc-cs-security.html', '_blank'));
-            }
-            
-            // ربط أزرار الخدمات العامة
-            document.querySelector('.guide-btn')?.addEventListener('click', () => window.open('https://cyberpath.vercel.app/pathways/tvtc-cs-diploma.html', '_blank'));
-            document.querySelector('.podcast-btn')?.addEventListener('click', () => showToast("🎙️ قريباً: بودكاست CyberTalks على جميع المنصات", "info"));
-            document.querySelector('.resources-btn')?.addEventListener('click', () => showToast("📚 المكتبة التعليمية قيد التحديث المستمر", "info"));
-        }
-
-        // عرض لوحة الطالب مع إحصائيات متحركة
-        function renderStudentDashboard() {
-            const statsContainer = document.getElementById('statsContainer');
-            const statsData = [
-                { label: "📚 عدد الكورسات المسجلة", value: 12, icon: "fa-book" },
-                { label: "📈 نسبة التقدم الإجمالية", value: 85, icon: "fa-chart-line" },
-                { label: "📝 الاختبارات المنجزة", value: 7, icon: "fa-pen-to-square" },
-                { label: "🎓 الشهادات المحصلة", value: 4, icon: "fa-certificate" },
-                { label: "⚠️ التنبيهات الجديدة", value: 2, icon: "fa-bell" }
-            ];
-            
-            statsContainer.innerHTML = statsData.map(s => `
-                <div class="stat-card">
-                    <i class="fas ${s.icon}" style="font-size: 2rem; color: #3b82f6;"></i>
-                    <h4 style="margin: 10px 0 5px;">${s.label}</h4>
-                    <div class="stat-val" data-target="${s.value}">0</div>
-                </div>
-            `).join('');
-            
-            // تشغيل العداد المتحرك
-            const counters = document.querySelectorAll('.stat-val');
-            counters.forEach(counter => {
-                const target = parseInt(counter.getAttribute('data-target'));
-                let current = 0;
-                const step = Math.ceil(target / 30);
-                const interval = setInterval(() => {
-                    current += step;
-                    if (current >= target) {
-                        current = target;
-                        clearInterval(interval);
-                    }
-                    counter.innerText = current;
-                }, 20);
-            });
-        }
-
-        // عرض الجدول الأكاديمي
-        function renderStudentSchedule() {
-            const scheduleHead = document.getElementById('scheduleHead');
-            const scheduleBody = document.getElementById('scheduleBody');
-            
-            scheduleHead.innerHTML = `<tr><th>📅 اليوم</th><th>📖 المقرر الدراسي</th><th>⏰ الوقت</th><th>🏛️ القاعة</th><th>⚡ الإجراء</th></tr>`;
-            
-            const scheduleRows = [
-                { day: "الأحد", course: "أساسيات الأمن السيبراني", time: "10:00 - 12:00", room: "قاعة A1 - المبنى الرئيسي", hasExam: true },
-                { day: "الإثنين", course: "اختبار الاختراق الأخلاقي", time: "12:30 - 14:30", room: "معمل الأمن الرقمي - مبنى B", hasExam: true },
-                { day: "الثلاثاء", course: "تحليل الثغرات المتقدم", time: "09:00 - 11:00", room: "قاعة B2 - مركز الابتكار", hasExam: false },
-                { day: "الأربعاء", course: "التشفير وأمن الشبكات", time: "13:00 - 15:00", room: "قاعة C - معمل الشبكات", hasExam: true },
-                { day: "الخميس", course: "التقييم العملي الشامل", time: "09:00 - 14:00", room: "منصة الاختبارات الإلكترونية", hasExam: true }
-            ];
-            
-            scheduleBody.innerHTML = scheduleRows.map(row => `
-                <tr>
-                    <td><span class="badge" style="background: #2d3a5f;">${row.day}</span></td>
-                    <td><i class="fas fa-shield-halved" style="color: #8b5cf6; margin-left: 8px;"></i>${row.course}</td>
-                    <td>${row.time}</td>
-                    <td>${row.room}</td>
-                    <td>${row.hasExam ? `<button class="exam-entry-btn" data-course="${row.course}" style="background: #3b82f6; border: none; padding: 6px 16px; border-radius: 30px; color: white; cursor: pointer; transition: 0.2s;"><i class="fas fa-vial"></i> دخول الاختبار</button>` : '<span style="color: #94a3b8;">— لا يوجد اختبار —</span>'}</td>
-                </tr>
-            `).join('');
-            
-            // ربط أزرار دخول الاختبار
-            document.querySelectorAll('.exam-entry-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const course = btn.getAttribute('data-course');
-                    showToast(`🚀 جاري توجيهك لاختبار "${course}"`, "success");
-                    setTimeout(() => {
-                        window.open('https://cyberpath.vercel.app/self-tests/quiz-bank.html', '_blank');
-                    }, 500);
-                });
-            });
-        }
-
-        // وظائف الإدارة
-        async function fetchAdminData() {
-            try {
-                let query = sb.from('user_profile').select('*');
-                const searchTerm = document.getElementById('adminSearch')?.value.trim();
-                if (searchTerm) {
-                    query = query.or(`full_name.ilike.%${searchTerm}%,national_id.ilike.%${searchTerm}%`);
-                }
-                const { data: users, error } = await query.order('created_at', { ascending: false }).limit(20);
-                
-                const tbody = document.getElementById('adminTableBody');
-                if (error || !users || users.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center;">❌ لا توجد بيانات أو خطأ في الاتصال</td></tr>`;
-                    return;
-                }
-                
-                tbody.innerHTML = users.map(u => `
-                    <tr>
-                        <td>${u.full_name || 'غير محدد'}</td>
-                        <td>${u.national_id || 'غير محدد'}</td>
-                        <td><span class="badge badge-${u.role || 'student'}">${u.role || 'student'}</span></td>
-                        <td>
-                            <select class="role-change-select" data-userid="${u.user_id}" style="padding: 6px 12px; border-radius: 12px;">
-                                <option value="">تغيير الدور</option>
-                                <option value="admin">👑 Admin</option>
-                                <option value="instructor">👨‍🏫 Instructor</option>
-                                <option value="student">🎓 Student</option>
-                            </select>
-                        </td>
-                    </tr>
-                `).join('');
-                
-                // ربط أحداث تغيير الصلاحية
-                document.querySelectorAll('.role-change-select').forEach(select => {
-                    select.onchange = async (e) => {
-                        const newRole = e.target.value;
-                        if (!newRole) return;
-                        const userId = select.getAttribute('data-userid');
-                        const { error: updateError } = await sb.from('user_profile').update({ role: newRole }).eq('user_id', userId);
-                        if (!updateError) {
-                            showToast(`✅ تم تغيير صلاحية المستخدم إلى ${newRole} بنجاح`, "success");
-                            fetchAdminData();
-                            // تسجيل العملية
-                            await sb.from('admin_logs').insert({
-                                admin_id: userId,
-                                action: "تغيير صلاحية",
-                                details: `تم تغيير الدور إلى ${newRole}`,
-                                action_date: new Date()
-                            });
-                            fetchAdminLogs();
-                        } else {
-                            showToast(`❌ فشل تغيير الصلاحية: ${updateError.message}`, "error");
-                        }
-                        select.value = '';
-                    };
-                });
-            } catch (err) {
-                console.error("Error fetching admin data:", err);
-                document.getElementById('adminTableBody').innerHTML = `<tr><td colspan="4" style="text-align: center;">⚠️ خطأ في تحميل البيانات</td></tr>`;
-            }
-        }
-
-        async function fetchAdminLogs() {
-            try {
-                const { data: logs, error } = await sb.from('admin_logs').select('*').order('action_date', { ascending: false }).limit(10);
-                const logsBody = document.getElementById('logsTableBody');
-                if (error || !logs || logs.length === 0) {
-                    logsBody.innerHTML = `<tr><td colspan="4" style="text-align: center;">📭 لا توجد سجلات إدارية بعد</td></tr>`;
-                    return;
-                }
-                logsBody.innerHTML = logs.map(l => `
-                    <tr>
-                        <td><i class="fas fa-user-shield"></i> مدير النظام</td>
-                        <td>${l.action || 'إجراء'}</td>
-                        <td>${l.details || '—'}</td>
-                        <td>${new Date(l.action_date).toLocaleString('ar-EG')}</td>
-                    </tr>
-                `).join('');
-            } catch (err) {
-                console.error("Error fetching logs:", err);
-                document.getElementById('logsTableBody').innerHTML = `<tr><td colspan="4">⚠️ خطأ في تحميل السجلات</td></tr>`;
-            }
-        }
-
-        // تسجيل الخروج
-        async function handleLogout() {
-            await sb.auth.signOut();
-            showToast("👋 تم تسجيل الخروج بنجاح", "success");
-            setTimeout(() => window.location.reload(), 600);
-        }
-
-        // ربط الأحداث
-        document.getElementById('logoutBtn')?.addEventListener('click', handleLogout);
-        document.getElementById('mobileToggle')?.addEventListener('click', () => {
-            document.getElementById('sidebar').classList.toggle('mobile-open');
+        document.getElementById('login-trigger')?.addEventListener('click', () => {
+            showToast("⚠️ الرجاء تسجيل الدخول باستخدام حساب في Supabase Auth", "info");
         });
-        
-        // تصدير الدوال للنطاق العام
-        window.changeUserRole = async (userId, newRole) => {
-            await sb.from('user_profile').update({ role: newRole }).eq('user_id', userId);
-            fetchAdminData();
-        };
-        window.initDashboard = renderRoleBasedContent;
-        window.fetchAdminData = fetchAdminData;
-        window.fetchAdminLogs = fetchAdminLogs;
-        window.renderStudentView = renderStudentDashboard;
-        
-        // بدء التطبيق
-        checkAuth();
-    })();
+        return;
+    }
+    
+    // مستخدم مسجل
+    document.getElementById('logout-btn').style.display = 'flex';
+    document.getElementById('public-services-section').classList.add('hidden');
+    document.getElementById('private-services-section').classList.remove('hidden');
+    
+    // جلب بيانات المستخدم
+    const { data: profile } = await supabaseClient
+        .from('user_profile')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+    
+    if (profile) {
+        currentProfile = profile;
+        initDashboard(profile);
+    } else {
+        currentProfile = { role: 'student', full_name: user.email?.split('@')[0] || 'مستخدم', national_id: 'غير محدد' };
+        initDashboard(currentProfile);
+        showToast("تم تسجيل الدخول بنجاح", "success");
+    }
+}
+
+// ==================== تهيئة لوحة التحكم ====================
+function initDashboard(profile) {
+    const role = profile.role || 'student';
+    
+    document.getElementById('user-name').innerText = profile.full_name;
+    document.getElementById('user-welcome').innerHTML = `مرحباً ${profile.full_name} · ${role === 'admin' ? 'مدير النظام' : 'طالب'} | رقم الطالب: ${profile.national_id}`;
+    document.getElementById('role-title').innerHTML = role === 'admin' ? '🛡️ لوحة تحكم الإدارة' : '📚 بوابة الطالب الخاصة';
+    document.getElementById('user-icon').className = role === 'admin' ? 'fas fa-user-shield' : 'fas fa-user-graduate';
+    
+    // بناء القائمة الجانبية
+    const menuDiv = document.getElementById('dynamic-menu');
+    menuDiv.innerHTML = `
+        <div class="nav-item active" data-section="dashboard"><i class="fas fa-tachometer-alt"></i> لوحة التحكم</div>
+        <div class="nav-item" data-section="schedule"><i class="fas fa-calendar-alt"></i> الجدول الأكاديمي</div>
+    `;
+    
+    // إضافة حدث التنقل
+    document.querySelectorAll('[data-section]').forEach(item => {
+        item.addEventListener('click', () => {
+            const section = item.getAttribute('data-section');
+            document.querySelectorAll('[data-section]').forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            
+            if (section === 'schedule') {
+                document.getElementById('student-analytics-cards').classList.add('hidden');
+                document.querySelector('.data-table-container').classList.remove('hidden');
+            } else {
+                document.getElementById('student-analytics-cards').classList.remove('hidden');
+                document.querySelector('.data-table-container').classList.add('hidden');
+            }
+        });
+    });
+    
+    if (role === 'admin') {
+        document.getElementById('admin-actions').classList.remove('hidden');
+        document.getElementById('student-analytics-cards').classList.add('hidden');
+        document.getElementById('logs-container').classList.remove('hidden');
+        document.querySelector('.data-table-container').classList.remove('hidden');
+        fetchAdminData();
+        fetchAdminLogs();
+    } else {
+        document.getElementById('admin-actions').classList.add('hidden');
+        document.getElementById('student-analytics-cards').classList.remove('hidden');
+        document.getElementById('logs-container').classList.add('hidden');
+        renderStudentView(profile);
+        renderStudentSchedule();
+    }
+}
+
+// ==================== عرض بيانات الطالب ====================
+function renderStudentView(profile) {
+    const statsGrid = document.getElementById('stats-grid');
+    const stats = [
+        { label: "📚 عدد الكورسات", value: 12, color: "#3b82f6" },
+        { label: "📈 نسبة التقدم", value: "85%", color: "#10b981" },
+        { label: "📝 الاختبارات", value: 7, color: "#f59e0b" },
+        { label: "🎓 الشهادات", value: 4, color: "#8b5cf6" },
+        { label: "🔔 التنبيهات", value: 2, color: "#ef4444" }
+    ];
+    
+    statsGrid.innerHTML = stats.map(s => `
+        <div class="stat-card">
+            <h4>${s.label}</h4>
+            <div class="val" style="color: ${s.color}">${s.value}</div>
+        </div>
+    `).join('');
+}
+
+// ==================== الجدول الأكاديمي ====================
+function renderStudentSchedule() {
+    const tableHead = document.getElementById('table-head');
+    const tableBody = document.getElementById('table-body');
+    
+    tableHead.innerHTML = `<tr><th>اليوم</th><th>المقرر</th><th>الوقت</th><th>القاعة</th><th>الإجراء</th></tr>`;
+    
+    const schedule = [
+        { day: "الأحد", course: "أساسيات الأمن السيبراني", time: "10:00 - 12:00", room: "قاعة A1", exam: true },
+        { day: "الإثنين", course: "اختبار الاختراق", time: "12:30 - 14:30", room: "معمل الأمن", exam: true },
+        { day: "الثلاثاء", course: "تحليل الثغرات", time: "09:00 - 11:00", room: "قاعة B2", exam: false },
+        { day: "الأربعاء", course: "التشفير وأمن الشبكات", time: "13:00 - 15:00", room: "قاعة C", exam: true },
+        { day: "الخميس", course: "تقييم المهارات العملي", time: "مرن", room: "منصة الاختبارات", exam: true }
+    ];
+    
+    tableBody.innerHTML = schedule.map(row => `
+        <tr>
+            <td><span class="badge" style="background: #2d3a5f;">${row.day}</span></td>
+            <td><i class="fas fa-shield-halved" style="color: #8b5cf6; margin-left: 8px;"></i>${row.course}</td>
+            <td>${row.time}</td>
+            <td>${row.room}</td>
+            <td>${row.exam ? `<button class="exam-btn" style="background: #3b82f6; border: none; padding: 6px 16px; border-radius: 20px; color: white; cursor: pointer;"><i class="fas fa-vial"></i> دخول الاختبار</button>` : '<span style="color: #94a3b8;">—</span>'}</td>
+        </tr>
+    `).join('');
+    
+    document.querySelectorAll('.exam-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            showToast("🚀 جاري التوجيه إلى بنك الاختبارات", "success");
+            window.open('https://cyberpath.vercel.app/self-tests/quiz-bank.html', '_blank');
+        });
+    });
+}
+
+// ==================== وظائف الإدارة ====================
+async function fetchAdminData() {
+    let query = supabaseClient.from('user_profile').select('*');
+    const searchTerm = document.getElementById('search-input')?.value.trim();
+    if (searchTerm) {
+        query = query.or(`full_name.ilike.%${searchTerm}%,national_id.ilike.%${searchTerm}%`);
+    }
+    const { data: users, error } = await query.limit(20);
+    
+    const tableBody = document.getElementById('table-body');
+    const tableHead = document.getElementById('table-head');
+    
+    if (error || !users?.length) {
+        tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: var(--text-muted);">لا توجد نتائج</td></tr>`;
+        return;
+    }
+    
+    tableHead.innerHTML = `<tr><th>الاسم</th><th>رقم الهوية</th><th>الدور</th><th>تغيير الصلاحية</th></tr>`;
+    tableBody.innerHTML = users.map(u => `
+        <tr>
+            <td>${u.full_name || 'غير محدد'}</td>
+            <td><code>${u.national_id || 'غير محدد'}</code></td>
+            <td><span class="badge badge-${u.role || 'student'}">${u.role || 'student'}</span></td>
+            <td>
+                <select class="role-changer" data-user="${u.user_id}">
+                    <option value="">اختر...</option>
+                    <option value="admin">Admin</option>
+                    <option value="instructor">Instructor</option>
+                    <option value="student">Student</option>
+                </select>
+            </td>
+        </tr>
+    `).join('');
+    
+    document.querySelectorAll('.role-changer').forEach(select => {
+        select.addEventListener('change', async (e) => {
+            const newRole = e.target.value;
+            if (!newRole) return;
+            const userId = select.getAttribute('data-user');
+            await changeUserRole(userId, newRole);
+            select.value = '';
+        });
+    });
+}
+
+async function changeUserRole(userId, newRole) {
+    const { error } = await supabaseClient
+        .from('user_profile')
+        .update({ role: newRole })
+        .eq('user_id', userId);
+    
+    if (!error) {
+        showToast(`✅ تم تغيير الصلاحية إلى ${newRole}`, "success");
+        fetchAdminData();
+        // تسجيل العملية
+        await supabaseClient.from('admin_logs').insert({
+            admin_id: userId,
+            action: "تغيير صلاحية",
+            details: `تم تغيير الدور إلى ${newRole}`,
+            action_date: new Date()
+        });
+        fetchAdminLogs();
+    } else {
+        showToast(`❌ فشل التغيير: ${error.message}`, "error");
+    }
+}
+
+async function fetchAdminLogs() {
+    const { data: logs, error } = await supabaseClient
+        .from('admin_logs')
+        .select('*')
+        .order('action_date', { ascending: false })
+        .limit(8);
+    
+    const logsBody = document.getElementById('logs-body');
+    if (error || !logs?.length) {
+        logsBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">لا توجد سجلات</td></tr>`;
+        return;
+    }
+    
+    logsBody.innerHTML = logs.map(l => `
+        <tr>
+            <td><i class="fas fa-user-shield"></i> مدير النظام</td>
+            <td>${l.action || 'إجراء'}</td>
+            <td>${l.details || '—'}</td>
+            <td>${new Date(l.action_date).toLocaleString('ar-EG')}</td>
+        </tr>
+    `).join('');
+}
+
+// ==================== تسجيل الخروج ====================
+async function handleLogout() {
+    await supabaseClient.auth.signOut();
+    showToast("👋 تم تسجيل الخروج", "success");
+    setTimeout(() => window.location.reload(), 500);
+}
+
+// ==================== ربط الأحداث ====================
+document.getElementById('logout-btn')?.addEventListener('click', handleLogout);
+document.getElementById('search-btn')?.addEventListener('click', fetchAdminData);
+document.getElementById('mobileToggle')?.addEventListener('click', () => {
+    document.getElementById('sidebar').classList.toggle('open');
+});
+
+// ==================== تشغيل التطبيق ====================
+checkAuth();
 </script>
 </body>
 </html>
