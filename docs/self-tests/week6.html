@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>CyberPath Lab | اليوم الأول - أساسيات Zenmap (معمل تفاعلي احترافي)</title>
+<title>CyberPath Lab | اليوم الأول - أساسيات Zenmap - معمل تفاعلي احترافي</title>
 <!-- Google Fonts + Font Awesome -->
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <style>
   * {
@@ -14,8 +14,21 @@
     box-sizing: border-box;
   }
 
+  :root {
+    --background: 222 47% 6%;
+    --foreground: 210 40% 96%;
+    --card: 222 40% 10%;
+    --card-foreground: 210 40% 96%;
+    --primary: 187 92% 41%;
+    --primary-foreground: 222 47% 6%;
+    --secondary: 215 50% 18%;
+    --muted: 215 40% 14%;
+    --accent: 187 92% 41%;
+    --border: 215 30% 18%;
+  }
+
   body {
-    font-family: 'Cairo', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-family: 'Tajawal', 'Segoe UI', system-ui, sans-serif;
     background: #0a0f1a;
     color: #edf2ff;
     line-height: 1.7;
@@ -23,13 +36,12 @@
     font-weight: 400;
   }
 
-  /* تحسين عرض النصوص العربية والإنجليزية معًا */
   .container, p, li, h1, h2, h3, h4, span, div, button, input, textarea {
-    font-family: 'Cairo', 'Segoe UI', 'Roboto', sans-serif;
+    font-family: 'Tajawal', 'Segoe UI', sans-serif;
   }
 
-  .code-block, .scan-output, .inline-code, .command-text {
-    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  .code-block, .scan-output, .inline-code, .command-text, .terminal-text {
+    font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
     direction: ltr;
     text-align: left;
     letter-spacing: 0.3px;
@@ -40,12 +52,68 @@
     margin: 0 auto;
   }
 
+  /* شريط التقدم العلوي */
+  .progress-bar-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: rgba(10, 15, 26, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+    padding: 8px 20px;
+  }
+
+  .progress-stats {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1300px;
+    margin: 0 auto;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+
+  .progress-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #94a3d8;
+  }
+
+  .progress-bar-bg {
+    flex: 1;
+    height: 6px;
+    background: #1e293b;
+    border-radius: 10px;
+    overflow: hidden;
+    min-width: 150px;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0ea5e9, #3b82f6);
+    border-radius: 10px;
+    transition: width 0.5s ease;
+    width: 0%;
+  }
+
+  .progress-count {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #0ea5e9;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
   /* Hero section premium */
   .hero-premium {
     background: radial-gradient(ellipse at 80% 20%, #0f1a2f, #060b14);
     border: 1px solid rgba(59, 130, 246, 0.4);
     border-radius: 2rem;
     padding: 2.5rem;
+    margin-top: 60px;
     margin-bottom: 2rem;
     position: relative;
     overflow: hidden;
@@ -175,7 +243,7 @@
     margin-left: 12px;
     margin-bottom: 12px;
     font-size: 0.9rem;
-    font-family: 'Cairo', sans-serif;
+    font-family: 'Tajawal', sans-serif;
   }
 
   .btn-cyber i {
@@ -189,11 +257,20 @@
     box-shadow: 0 4px 12px rgba(0,160,255,0.2);
   }
 
+  .btn-complete {
+    background: linear-gradient(95deg, #0f3b2d, #0a2a1f);
+    border-color: #2ecc71;
+  }
+
+  .btn-complete:hover {
+    background: #1a5c42;
+  }
+
   .scan-output {
     background: #03060e;
     border-radius: 24px;
     padding: 1.2rem;
-    font-family: monospace;
+    font-family: 'JetBrains Mono', monospace;
     color: #b2f0ff;
     margin-top: 1.2rem;
     border: 1px solid #2c4f74;
@@ -231,7 +308,20 @@
     margin: 1.2rem 0;
   }
 
-  /* form inputs arabic friendly */
+  .achievement-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #facc15, #eab308);
+    color: #0a0f1a;
+    padding: 8px 16px;
+    border-radius: 40px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-top: 15px;
+  }
+
+  /* form inputs */
   input, textarea {
     background: #0a1122;
     border: 1px solid #2c5282;
@@ -240,13 +330,18 @@
     color: #ffffff;
     width: 100%;
     margin: 6px 0 12px 0;
-    font-family: 'Cairo', monospace;
+    font-family: 'Tajawal', monospace;
     font-size: 0.9rem;
+  }
+
+  input:focus, textarea:focus {
+    outline: none;
+    border-color: #0ea5e9;
+    box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2);
   }
 
   textarea {
     border-radius: 24px;
-    font-family: 'Cairo', monospace;
     resize: vertical;
   }
 
@@ -265,6 +360,44 @@
     font-weight: 500;
   }
 
+  .checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .checklist-item:hover {
+    background: rgba(59, 130, 246, 0.1);
+  }
+
+  .checklist-item.completed {
+    opacity: 0.7;
+    text-decoration: line-through;
+  }
+
+  .checklist-checkbox {
+    width: 22px;
+    height: 22px;
+    border: 2px solid #3b82f6;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .checklist-checkbox.checked {
+    background: #3b82f6;
+    color: white;
+  }
+
   footer {
     text-align: center;
     padding: 2rem;
@@ -273,19 +406,49 @@
     margin-top: 1rem;
   }
 
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .fade-in {
+    animation: fadeIn 0.5s ease;
+  }
+
   @media (max-width: 680px) {
     body { padding: 12px; }
     h1 { font-size: 2rem; }
     .hero-sub { max-width: 100%; }
     .btn-cyber { padding: 6px 16px; font-size: 0.8rem; }
+    .progress-stats { flex-direction: column; align-items: stretch; }
   }
 </style>
 </head>
 <body>
 
+<!-- شريط التقدم العلوي -->
+<div class="progress-bar-container">
+  <div class="progress-stats">
+    <div class="progress-label">
+      <i class="fas fa-chart-line"></i>
+      <span>التقدم في التجارب</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="globalProgressFill"></div>
+    </div>
+    <div class="progress-count">
+      <span id="completedCount">0</span>/<span id="totalCount">10</span>
+    </div>
+    <div class="progress-label">
+      <i class="fas fa-trophy"></i>
+      <span id="achievementMessage">ابدأ التجارب!</span>
+    </div>
+  </div>
+</div>
+
 <div class="container">
 
-  <!-- Hero section مطورة -->
+  <!-- Hero section -->
   <div class="hero-premium">
     <div class="badge-cyber"><i class="fas fa-shield-haltered"></i> CYBERPATH LAB | معمل تفاعلي</div>
     <h1><i class="fas fa-network-wired"></i> اليوم الأول — أساسيات Zenmap & Nmap</h1>
@@ -298,7 +461,7 @@
     </div>
   </div>
 
-  <!-- أهداف المعلم -->
+  <!-- أهداف المعمل -->
   <div class="card-glass">
     <h2><i class="fas fa-bullseye"></i> أهداف المعمل العملي</h2>
     <div class="flex-grid">
@@ -324,42 +487,32 @@
     </div>
   </div>
 
-  <!-- محاكاة تفاعلية متطورة -->
+  <!-- محاكاة تفاعلية -->
   <div class="card-glass">
     <h2><i class="fas fa-laptop-code"></i> 🧪 معمل Zenmap التفاعلي (محاكي حي)</h2>
     <p>جرب أوامر المسح بشكل تفاعلي! اضغط على الأزرار لترى نتائج محاكاة احترافية تشبه بيئة Nmap الحقيقية.</p>
     <div class="sim-panel">
-      <button class="btn-cyber" id="simLocalBtn"><i class="fas fa-desktop"></i> فحص localhost (127.0.0.1)</button>
-      <button class="btn-cyber" id="simNetworkSnBtn"><i class="fas fa-wifi"></i> اكتشاف الأجهزة -sn 192.168.1.0/24</button>
+      <button class="btn-cyber" id="simLocalBtn"><i class="fas fa-desktop"></i> فحص localhost</button>
+      <button class="btn-cyber" id="simNetworkSnBtn"><i class="fas fa-wifi"></i> اكتشاف الأجهزة -sn</button>
       <button class="btn-cyber" id="simPortsTableBtn"><i class="fas fa-table-list"></i> عرض المنافذ المشهورة</button>
+      <button class="btn-cyber" id="simVersionBtn"><i class="fas fa-code-branch"></i> فحص الإصدارات -sV</button>
       <div id="interactiveOutput" class="scan-output">
         ⚡ مرحباً بك في محاكي Zenmap — اضغط على أي زر لعرض ناتج الفحص التخيلي.
       </div>
     </div>
   </div>
 
-  <!-- التجارب الأساسية مع أوامر حقيقية -->
-  <div class="card-glass">
-    <h2><i class="fas fa-terminal"></i> التجربة الأولى — معرفة الـ IP (ipconfig)</h2>
-    <p>افتح <strong class="inline-code">CMD</strong> أو <strong class="inline-code">Terminal</strong> واكتب:</p>
-    <div class="code-block">ipconfig   # لنظام Windows<br>ifconfig  # لنظام Linux/Mac</div>
-    <p><strong>المطلوب:</strong> ابحث عن <span class="inline-code">IPv4 Address</span> و <span class="inline-code">Default Gateway</span> وسجلهم في نموذج الواجب أدناه.</p>
-    <div class="note-box"><i class="fas fa-ip"></i> مثال: IPv4: 192.168.1.100 | Gateway: 192.168.1.1</div>
+  <!-- قائمة التجارب التفاعلية -->
+  <div class="card-glass" id="labs-section">
+    <h2><i class="fas fa-flask"></i> 🧪 التجارب العملية</h2>
+    <p class="hero-sub" style="margin-bottom: 1.5rem;">نفّذ كل تجربة وحدد إنجازك لمتابعة التقدم</p>
+    
+    <div id="labs-container">
+      <!-- سيتم تعبئة التجارب ديناميكياً عبر JS -->
+    </div>
   </div>
 
-  <div class="card-glass">
-    <h2><i class="fas fa-chart-simple"></i> التجربة الثانية — فحص الجهاز المحلي (nmap localhost)</h2>
-    <div class="code-block">nmap 127.0.0.1<br># أو nmap localhost</div>
-    <p>يقوم هذا الأمر بفحص المنافذ المفتوحة على جهازك الحالي، ستلاحظ منافذ مثل <strong class="inline-code">135/tcp</strong>، <strong class="inline-code">445/tcp</strong>، <strong class="inline-code">5040/tcp</strong> حسب الخدمات.</p>
-  </div>
-
-  <div class="card-glass">
-    <h2><i class="fas fa-globe"></i> التجربة الثالثة — اكتشاف الأجهزة بالشبكة</h2>
-    <div class="code-block">nmap -sn 192.168.1.0/24</div>
-    <p>الأمر <span class="inline-code">-sn</span> يكتشف الأجهزة الحية عبر Ping sweep بدون فحص المنافذ. يظهر لك عدد الأجهزة المتصلة في شبكتك المحلية.</p>
-  </div>
-
-  <!-- جدول المنافذ الأشهر -->
+  <!-- جدول المنافذ -->
   <div class="card-glass">
     <h2><i class="fas fa-plug"></i> أشهر المنافذ وخدماتها</h2>
     <table class="table-modern">
@@ -386,10 +539,10 @@
     </table>
   </div>
 
-  <!-- الواجب العملي الكامل مع حقول تفاعلية وحفظ -->
+  <!-- الواجب العملي -->
   <div class="card-glass" id="assignment">
     <h2><i class="fas fa-pen-ruler"></i> 📝 الواجب العملي — سجل إجاباتك</h2>
-    <p>قم بملء الحقول بناءً على نتائج التجارب الحقيقية على جهازك (أو باستخدام المحاكي). سيتم حفظ إجاباتك محلياً لتتمكن من متابعة تقدمك.</p>
+    <p>قم بملء الحقول بناءً على نتائج التجارب الحقيقية على جهازك (أو باستخدام المحاكي). سيتم حفظ إجاباتك محلياً.</p>
     
     <div style="background: #050c18; padding: 1.5rem; border-radius: 1.5rem; margin-top: 1rem;">
       <h3><i class="fas fa-key"></i> المطلوب الأول: ipconfig</h3>
@@ -401,9 +554,9 @@
       <h3>⚙️ المطلوب الثاني: nmap localhost</h3>
       <label>عدد المنافذ المفتوحة:</label>
       <input type="text" id="portCountField" placeholder="مثال: 6" />
-      <label>أرقام المنافذ (مثال: 135,445,5040):</label>
-      <input type="text" id="portsNumField" placeholder="135, 445, 7680" />
-      <label>الخدمات التي اكتشفتها:</label>
+      <label>أرقام المنافذ:</label>
+      <input type="text" id="portsNumField" placeholder="135, 445, 5040" />
+      <label>الخدمات المكتشفة:</label>
       <input type="text" id="servicesField" placeholder="msrpc, microsoft-ds" />
 
       <h3>📡 المطلوب الثالث: nmap -sn 192.168.1.0/24</h3>
@@ -416,9 +569,9 @@
       <textarea id="portsFuncField" rows="2" placeholder="80 → خدمات الويب, 443 → ويب آمن, 21 → FTP, 22 → SSH, 445 → SMB"></textarea>
 
       <h3>📸 المطلوب الخامس: لقطة شاشة أو وصف</h3>
-      <input type="text" id="screenshotField" placeholder="اربط صورة أو اشرح ملاحظاتك حول نتائج Zenmap" />
+      <input type="text" id="screenshotField" placeholder="اربط صورة أو اشرح ملاحظاتك" />
 
-      <h3>✨ المطلوب السادس (نشاط إضافي): Quick Scan vs Regular Scan</h3>
+      <h3>✨ المطلوب السادس: Quick Scan vs Regular Scan</h3>
       <input type="text" id="quickScanField" placeholder="هل أصبح أسرع؟ وهل اختلفت النتائج؟" />
 
       <div style="display: flex; gap: 12px; margin-top: 25px; flex-wrap: wrap;">
@@ -429,7 +582,7 @@
     </div>
   </div>
 
-  <!-- أسئلة تقييم ذاتي محسنة -->
+  <!-- أسئلة تقييم ذاتي -->
   <div class="card-glass">
     <h2><i class="fas fa-question-circle"></i> أسئلة التقييم الذاتي</h2>
     <ol style="padding-right: 1.8rem; margin-bottom: 0.5rem;">
@@ -442,11 +595,18 @@
     <div class="note-box"><i class="fas fa-edit"></i> ناقش إجاباتك مع زملائك أو مدربك لتعميق الفهم.</div>
   </div>
 
-  <!-- صورة توضيحية إضافية لنتائج Zenmap SVG -->
+  <!-- الإنجازات -->
+  <div class="card-glass" id="achievements-section">
+    <h2><i class="fas fa-medal"></i> 🏆 الإنجازات</h2>
+    <div id="achievements-container" style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 15px;">
+      <!-- سيتم تعبئة الإنجازات ديناميكياً -->
+    </div>
+  </div>
+
+  <!-- صورة توضيحية -->
   <div class="card-glass" style="text-align: center;">
-    <h2><i class="fas fa-chart-network"></i> نموذج لنتائج Zenmap (محاكاة مرئية)</h2>
-    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 560 190'%3E%3Crect width='560' height='190' fill='%230e1325'/%3E%3Ctext x='20' y='35' fill='%2386efdf' font-size='13' font-family='monospace'%3E$ nmap -sV 192.168.1.0/24%3C/text%3E%3Ctext x='20' y='65' fill='%23b9f3ff' font-size='11'%3ENmap scan report for 192.168.1.1 (Router)%3C/text%3E%3Ctext x='20' y='90' fill='%23facc15'%3E80/tcp open http | 443/tcp open https%3C/text%3E%3Ctext x='20' y='115' fill='%2395d0ff'%3ENmap scan report for 192.168.1.15 (Student-PC)%3C/text%3E%3Ctext x='20' y='140' fill='%237dd3fc'%3E445/tcp open microsoft-ds | 135/tcp open msrpc%3C/text%3E%3Ctext x='20' y='170' fill='%2380c4e9'%3EHosts discovered: 6 live hosts%3C/text%3E%3C/svg%3E" alt="Zenmap results simulation" style="width:100%; max-width:560px; border-radius: 20px; border:1px solid #2e4a76; margin-top: 12px;">
-    <p class="note-box" style="margin-top: 15px;">شكل توضيحي لمخرجات فحص الشبكة باستخدام Nmap / Zenmap مع المنافذ المفتوحة.</p>
+    <h2><i class="fas fa-chart-network"></i> نموذج لنتائج Zenmap</h2>
+    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 560 190'%3E%3Crect width='560' height='190' fill='%230e1325'/%3E%3Ctext x='20' y='35' fill='%2386efdf' font-size='13' font-family='monospace'%3E$ nmap -sV 192.168.1.0/24%3C/text%3E%3Ctext x='20' y='65' fill='%23b9f3ff' font-size='11'%3ENmap scan report for 192.168.1.1 (Router)%3C/text%3E%3Ctext x='20' y='90' fill='%23facc15'%3E80/tcp open http | 443/tcp open https%3C/text%3E%3Ctext x='20' y='115' fill='%2395d0ff'%3ENmap scan report for 192.168.1.15 (Student-PC)%3C/text%3E%3Ctext x='20' y='140' fill='%237dd3fc'%3E445/tcp open microsoft-ds | 135/tcp open msrpc%3C/text%3E%3Ctext x='20' y='170' fill='%2380c4e9'%3EHosts discovered: 6 live hosts%3C/text%3E%3C/svg%3E" alt="Zenmap results" style="width:100%; max-width:560px; border-radius: 20px; border:1px solid #2e4a76; margin-top: 12px;">
   </div>
 
   <footer>
@@ -455,15 +615,100 @@
 </div>
 
 <script>
+  // قائمة التجارب
+  const labsData = [
+    { title: 'اعرف عنوان IP الخاص بجهازك', command: 'ipconfig', description: 'تعلم كيفية معرفة عنوان جهازك في الشبكة' },
+    { title: 'تنفيذ أول Scan باستخدام Zenmap', command: 'nmap 127.0.0.1', description: 'تنفيذ أول عملية فحص باستخدام Nmap' },
+    { title: 'اكتشاف الأجهزة بالشبكة', command: 'nmap -sn 192.168.1.0/24', description: 'اكتشاف جميع الأجهزة المتصلة بشبكتك' },
+    { title: 'فحص جهاز محدد', command: 'nmap 192.168.1.1', description: 'فحص جهاز واحد بالتفصيل' },
+    { title: 'فحص الجهاز المحلي', command: 'nmap localhost', description: 'فحص جهازك الشخصي' },
+    { title: 'فحص سريع Quick Scan', command: 'nmap -F 192.168.1.1', description: 'تعلم الفرق بين الفحص العادي والفحص السريع' },
+    { title: 'اكتشاف نظام التشغيل', command: 'nmap -O 192.168.1.1', description: 'محاولة معرفة نظام التشغيل' },
+    { title: 'معرفة الخدمات والإصدارات', command: 'nmap -sV 192.168.1.1', description: 'فحص متقدم للخدمات والإصدارات' },
+    { title: 'فحص منفذ محدد', command: 'nmap -p 80 192.168.1.1', description: 'فحص منفذ واحد بعينه' },
+    { title: 'فحص عدة منافذ', command: 'nmap -p 80,443,22 192.168.1.1', description: 'فحص مجموعة محددة من المنافذ' }
+  ];
+
+  // تحميل حالة التجارب
+  let completedLabs = JSON.parse(localStorage.getItem('completedLabs')) || {};
+
+  // تحديث واجهة التقدم
+  function updateProgress() {
+    const total = labsData.length;
+    const completed = Object.values(completedLabs).filter(v => v === true).length;
+    const percent = (completed / total) * 100;
+    
+    document.getElementById('globalProgressFill').style.width = `${percent}%`;
+    document.getElementById('completedCount').textContent = completed;
+    document.getElementById('totalCount').textContent = total;
+    
+    // رسائل الإنجاز
+    const msgEl = document.getElementById('achievementMessage');
+    if (completed === total) {
+      msgEl.innerHTML = '🎉 مذهل! أكملت جميع التجارب! 🎉';
+    } else if (completed >= 5) {
+      msgEl.innerHTML = '🌟 ممتاز! أنت في منتصف الطريق! 🌟';
+    } else if (completed >= 2) {
+      msgEl.innerHTML = '👍 بداية جيدة! استمر!';
+    } else {
+      msgEl.innerHTML = '🚀 ابدأ التجارب الأولى!';
+    }
+    
+    // تحديث الإنجازات
+    renderAchievements(completed);
+  }
+  
+  // عرض الإنجازات
+  function renderAchievements(completed) {
+    const achievements = [
+      { name: 'المبتدئ', icon: '🌱', requirement: 1, achieved: completed >= 1 },
+      { name: 'المستكشف', icon: '🔍', requirement: 3, achieved: completed >= 3 },
+      { name: 'المحلل', icon: '📊', requirement: 5, achieved: completed >= 5 },
+      { name: 'الخبير', icon: '🎯', requirement: 7, achieved: completed >= 7 },
+      { name: 'السايبر مستر', icon: '🏆', requirement: 10, achieved: completed >= 10 }
+    ];
+    
+    const container = document.getElementById('achievements-container');
+    container.innerHTML = achievements.map(ach => `
+      <div class="achievement-badge" style="${ach.achieved ? '' : 'opacity:0.4; filter:grayscale(0.5);'}">
+        ${ach.icon} ${ach.name} ${ach.achieved ? '✅' : '🔒'}
+      </div>
+    `).join('');
+  }
+  
+  // تبديل حالة تجربة
+  function toggleLab(index) {
+    completedLabs[index] = !completedLabs[index];
+    localStorage.setItem('completedLabs', JSON.stringify(completedLabs));
+    renderLabs();
+    updateProgress();
+  }
+  
+  // عرض التجارب
+  function renderLabs() {
+    const container = document.getElementById('labs-container');
+    container.innerHTML = labsData.map((lab, idx) => `
+      <div class="checklist-item ${completedLabs[idx] ? 'completed' : ''}" style="margin-bottom: 15px; padding: 15px; background: rgba(15,23,42,0.6); border-radius: 16px;">
+        <div class="checklist-checkbox ${completedLabs[idx] ? 'checked' : ''}" onclick="toggleLab(${idx})">
+          ${completedLabs[idx] ? '<i class="fas fa-check"></i>' : ''}
+        </div>
+        <div style="flex:1">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+            <h3 style="margin: 0; font-size: 1.2rem;">${lab.title}</h3>
+            <span class="inline-code" style="font-size: 0.75rem;">${lab.command}</span>
+          </div>
+          <p style="margin: 8px 0 0 0; font-size: 0.9rem; color: #94a3d8;">${lab.description}</p>
+        </div>
+      </div>
+    `).join('');
+  }
+  
   // محاكاة الأوامر التفاعلية
   const outputDiv = document.getElementById('interactiveOutput');
-  const simLocal = document.getElementById('simLocalBtn');
-  const simNet = document.getElementById('simNetworkSnBtn');
-  const simPorts = document.getElementById('simPortsTableBtn');
-
-  simLocal.addEventListener('click', () => {
+  
+  document.getElementById('simLocalBtn').addEventListener('click', () => {
     outputDiv.innerHTML = `<i class="fas fa-microchip"></i> <strong>🔍 Nmap scan report for localhost (127.0.0.1)</strong><br>
-    Starting Nmap 7.95 at ...<br>
+    Starting Nmap 7.95 ...<br>
     Host is up (0.0012s latency).<br>
     <span style="color:#7dd3fc;">PORT      STATE    SERVICE</span><br>
     135/tcp   open     msrpc<br>
@@ -471,10 +716,10 @@
     5040/tcp  open     unknown<br>
     7680/tcp  open     pando-pub<br>
     49664/tcp open     unknown<br>
-    <br>✅ تم اكتشاف 5 منافذ مفتوحة. تختلف النتائج حسب نظام التشغيل والخدمات المثبتة.`;
+    <br>✅ تم اكتشاف 5 منافذ مفتوحة.`;
   });
-
-  simNet.addEventListener('click', () => {
+  
+  document.getElementById('simNetworkSnBtn').addEventListener('click', () => {
     outputDiv.innerHTML = `<i class="fas fa-network-wired"></i> <strong>nmap -sn 192.168.1.0/24 (Ping Scan)</strong><br>
     Nmap scan report for 192.168.1.1 (Gateway)<br>
     Host is up (0.003s latency).<br>
@@ -482,12 +727,10 @@
     Host is up (0.011s latency).<br>
     Nmap scan report for 192.168.1.107 (Laptop-Lab)<br>
     Host is up (0.009s latency).<br>
-    Nmap scan report for 192.168.1.120 (Printer)<br>
-    Host is up (0.027s latency).<br>
-    <span style="color:#facc15;">🌟 عدد الأجهزة النشطة: 4 أجهزة + الراوتر = 5 أجهزة.</span>`;
+    <span style="color:#facc15;">🌟 عدد الأجهزة النشطة: 3 أجهزة + الراوتر = 4 أجهزة.</span>`;
   });
-
-  simPorts.addEventListener('click', () => {
+  
+  document.getElementById('simPortsTableBtn').addEventListener('click', () => {
     outputDiv.innerHTML = `<i class="fas fa-table-list"></i> <strong>📌 أشهر المنافذ وأهميتها:</strong><br>
     80/tcp   -> HTTP (تصفح الويب)<br>
     443/tcp  -> HTTPS (تصفح آمن)<br>
@@ -497,12 +740,21 @@
     3389/tcp -> RDP (سطح المكتب البعيد)<br>
     💡 معرفة هذه المنافذ أساسية لتحليل الشبكات.`;
   });
-
-  // حفظ وإدارة الواجب في localStorage
+  
+  document.getElementById('simVersionBtn').addEventListener('click', () => {
+    outputDiv.innerHTML = `<i class="fas fa-code-branch"></i> <strong>nmap -sV 192.168.1.1 (Service Version)</strong><br>
+    PORT    STATE    SERVICE    VERSION<br>
+    80/tcp  open     http       nginx 1.18.0<br>
+    443/tcp open     https      OpenSSL 1.1.1<br>
+    22/tcp  open     ssh        OpenSSH 8.2p1<br>
+    <br>✅ تم تحديد إصدارات الخدمات بنجاح.`;
+  });
+  
+  // حفظ وإدارة الواجب
   const saveBtn = document.getElementById('saveAssignmentBtn');
   const resetBtn = document.getElementById('resetAssignmentBtn');
   const statusMsg = document.getElementById('saveMsg');
-
+  
   function saveAssignment() {
     const data = {
       ipv4: document.getElementById('ipv4Field').value,
@@ -516,13 +768,13 @@
       screenshot: document.getElementById('screenshotField').value,
       quickScan: document.getElementById('quickScanField').value
     };
-    localStorage.setItem('zenmapDynamicLab', JSON.stringify(data));
-    statusMsg.innerHTML = '✅ تم حفظ جميع إجابات الواجب بنجاح في متصفحك.';
-    setTimeout(() => { if(statusMsg) statusMsg.innerHTML = ''; }, 3000);
+    localStorage.setItem('zenmapAssignment', JSON.stringify(data));
+    statusMsg.innerHTML = '✅ تم حفظ جميع إجابات الواجب بنجاح!';
+    setTimeout(() => { statusMsg.innerHTML = ''; }, 3000);
   }
-
+  
   function loadAssignment() {
-    const saved = localStorage.getItem('zenmapDynamicLab');
+    const saved = localStorage.getItem('zenmapAssignment');
     if(saved) {
       const d = JSON.parse(saved);
       document.getElementById('ipv4Field').value = d.ipv4 || '';
@@ -535,30 +787,27 @@
       document.getElementById('portsFuncField').value = d.portsFunction || '';
       document.getElementById('screenshotField').value = d.screenshot || '';
       document.getElementById('quickScanField').value = d.quickScan || '';
-      statusMsg.innerHTML = '📀 تم تحميل إجاباتك السابقة تلقائياً.';
-      setTimeout(() => { if(statusMsg) statusMsg.innerHTML = ''; }, 2000);
     }
   }
-
+  
   function resetAssignment() {
-    document.getElementById('ipv4Field').value = '';
-    document.getElementById('gatewayField').value = '';
-    document.getElementById('portCountField').value = '';
-    document.getElementById('portsNumField').value = '';
-    document.getElementById('servicesField').value = '';
-    document.getElementById('devicesCountField').value = '';
-    document.getElementById('twoIpsField').value = '';
-    document.getElementById('portsFuncField').value = '';
-    document.getElementById('screenshotField').value = '';
-    document.getElementById('quickScanField').value = '';
-    localStorage.removeItem('zenmapDynamicLab');
-    statusMsg.innerHTML = '♻️ تم مسح جميع الإجابات. يمكنك إعادة كتابتها.';
-    setTimeout(() => { if(statusMsg) statusMsg.innerHTML = ''; }, 2000);
+    const fields = ['ipv4Field', 'gatewayField', 'portCountField', 'portsNumField', 'servicesField', 'devicesCountField', 'twoIpsField', 'portsFuncField', 'screenshotField', 'quickScanField'];
+    fields.forEach(field => document.getElementById(field).value = '');
+    localStorage.removeItem('zenmapAssignment');
+    statusMsg.innerHTML = '♻️ تم مسح جميع الإجابات.';
+    setTimeout(() => { statusMsg.innerHTML = ''; }, 2000);
   }
-
+  
   saveBtn.addEventListener('click', saveAssignment);
   resetBtn.addEventListener('click', resetAssignment);
-  window.addEventListener('DOMContentLoaded', loadAssignment);
+  
+  // ربط toggleLab بالـ window
+  window.toggleLab = toggleLab;
+  
+  // تهيئة الصفحة
+  renderLabs();
+  loadAssignment();
+  updateProgress();
 </script>
 
 </body>
