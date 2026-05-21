@@ -18,6 +18,7 @@
             --border: #334155;
             --success: #10b981;
             --danger: #ef4444;
+            --warning: #f59e0b;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Tajawal', sans-serif; background: var(--bg-dark); color: var(--text-main); }
@@ -163,8 +164,20 @@
         .badge-admin { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
         .badge-student { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
         .badge-instructor { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
+        .badge-guest { background: rgba(148, 163, 184, 0.2); color: #94a3b8; }
         
         .hidden { display: none !important; }
+        
+        /* Restricted Info Card */
+        .restricted-card {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger);
+            padding: 2rem;
+            border-radius: 16px;
+            text-align: center;
+            margin-top: 2rem;
+        }
+        .restricted-card i { font-size: 3rem; color: var(--danger); margin-bottom: 1rem; }
         
         /* Toast */
         .toast {
@@ -266,7 +279,7 @@
             <div class="public-services-grid">
                 <div class="service-card">
                     <h4><i class="fas fa-graduation-cap"></i> دليل المقررات السيبرانية</h4>
-                    <p style="color: var(--text-muted); font-size: 0.85rem;">استعرض الحقائب التدريبية المتاحة لشهادات Security+ و CEH.</p>
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">استعرض الحقائب التدريبية المتاحة لشهادات +Security و CEH.</p>
                     <button class="btn-link" onclick="window.open('https://cyberpath.vercel.app/pathways/tvtc-cs-diploma.html', '_blank')">استكشف <i class="fas fa-arrow-left"></i></button>
                 </div>
                 <div class="service-card">
@@ -283,6 +296,7 @@
         </section>
 
         <section id="private-services-section" class="hidden">
+            
             <div id="admin-actions" class="hidden">
                 <h3 class="section-title"><i class="fas fa-user-shield"></i> أدوات الرقابة الإدارية</h3>
                 <div class="search-box">
@@ -291,8 +305,24 @@
                 </div>
             </div>
 
+            <div id="instructor-actions" class="hidden">
+                <h3 class="section-title"><i class="fas fa-chalkboard-teacher"></i> الصلاحيات الأكاديمية للمدرس</h3>
+                <div class="public-services-grid">
+                    <div class="service-card">
+                        <h4><i class="fas fa-file-medical"></i> إدارة الواجبات وبنوك الأسئلة</h4>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">تعديل وتحديث أسئلة التقييمات الشاملة المتاحة للطلاب.</p>
+                        <button class="btn-link" onclick="showToast('🛠️ واجهة تعديل البنوك قيد التهيئة الفنية', 'info')">تحديث المحتوى <i class="fas fa-edit"></i></button>
+                    </div>
+                    <div class="service-card">
+                        <h4><i class="fas fa-chart-line"></i> تقارير أداء المجموعات</h4>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">متابعة نسب إنجاز الطلاب في الربع الأكاديمي الحالي.</p>
+                        <button class="btn-link btn-accent" onclick="showToast('📊 جاري تصدير التقارير الإحصائية للطلاب', 'success')">معاينة التقييمات <i class="fas fa-chart-bar"></i></button>
+                    </div>
+                </div>
+            </div>
+
             <div id="student-analytics-cards" class="hidden">
-                <h3 class="section-title"><i class="fas fa-chart-pie"></i> لوحة المتابعة الأكاديمية</h3>
+                <h3 class="section-title" id="analytics-title"><i class="fas fa-chart-pie"></i> لوحة المتابعة الأكاديمية</h3>
                 <div class="stats-grid" id="stats-grid"></div>
 
                 <h3 class="section-title"><i class="fas fa-link"></i> المسارات والروابط الأكاديمية</h3>
@@ -339,14 +369,23 @@
 
             <div id="logs-container" class="data-table-container hidden" style="margin-top: 2rem;">
                 <div style="padding: 1rem; border-bottom: 1px solid var(--border);">
-                    <h3><i class="fas fa-history"></i> آخر العمليات الإدارية</h3>
+                    <h3 id="logs-title"><i class="fas fa-history"></i> آخر العمليات الإدارية</h3>
                 </div>
                 <div style="overflow-x: auto;">
                     <table>
-                        <thead><tr><th>المشرف</th><th>العملية</th><th>التفاصيل</th><th>التاريخ</th></tr></thead>
+                        <thead><tr><th>المشرف/المدرس</th><th>العملية</th><th>التفاصيل</th><th>التاريخ</th></tr></thead>
                         <tbody id="logs-body"></tbody>
                     </table>
                 </div>
+            </div>
+        </section>
+
+        <section id="guest-restricted-block" class="hidden">
+            <div class="restricted-card">
+                <i class="fas fa-lock"></i>
+                <h3>بوابة المقررات ومعلومات الطلاب مغلقة</h3>
+                <p style="color: var(--text-muted); margin-top: 0.5rem; margin-bottom: 1.5rem;">لقد قمت بالدخول بصفتك زائر. يرجى تسجيل الدخول لفتح الأكاديمية والوصول إلى لوحات التحكم، الجداول الأكاديمية، والدرجات.</p>
+                <button class="btn-link btn-accent" onclick="showToast('ℹ️ يرجى تسجيل الدخول عبر بوابة سوبابيز الخاصة بك.', 'info')"><i class="fas fa-key"></i> الانتقال لصفحة تسجيل الدخول</button>
             </div>
         </section>
     </main>
@@ -374,20 +413,26 @@ async function checkAuth() {
     const menuDiv = document.getElementById('dynamic-menu');
     
     if (!user) {
+        // تهيئة واجهة وقائمة الزائر المفتوحة فقط وحجب الباقي
         menuDiv.innerHTML = `
-            <div class="nav-item active"><i class="fas fa-home"></i> الخدمات العامة</div>
-            <div class="nav-item" onclick="showToast('⚠️ الرجاء تسجيل الدخول أولاً عبر بوابة سوبابيز الخاصة لفتح الميزات المغلقة.', 'info')"><i class="fas fa-sign-in-alt"></i> تسجيل الدخول</div>
+            <div class="nav-item active" data-nav="public"><i class="fas fa-home"></i> الخدمات العامة</div>
+            <div class="nav-item" data-nav="restricted-trigger"><i class="fas fa-graduation-cap"></i> المقررات والطلاب</div>
+            <div class="nav-item" onclick="showToast('⚠️ الرجاء تسجيل الدخول أولاً عبر بوابة سوبابيز لفتح الميزات المغلقة.', 'info')"><i class="fas fa-sign-in-alt"></i> تسجيل الدخول</div>
         `;
+        
+        // ربط تفعيل وضع الحجب اللحظي للزائر عند التنقل
+        setupGuestNavigation();
+        
         document.getElementById('public-services-section').classList.remove('hidden');
         document.getElementById('private-services-section').classList.add('hidden');
+        document.getElementById('guest-restricted-block').classList.add('hidden');
         document.getElementById('user-name').innerText = "زائر المنصة";
         document.getElementById('logout-btn').style.display = 'none';
         return;
     }
     
     document.getElementById('logout-btn').style.display = 'flex';
-    document.getElementById('public-services-section').classList.add('hidden');
-    document.getElementById('private-services-section').classList.remove('hidden');
+    document.getElementById('guest-restricted-block').classList.add('hidden');
     
     const { data: profile } = await supabaseClient
         .from('user_profile')
@@ -403,69 +448,195 @@ async function checkAuth() {
     initDashboard(currentProfile);
 }
 
+function setupGuestNavigation() {
+    document.querySelectorAll('[data-nav]').forEach(item => {
+        item.addEventListener('click', () => {
+            const targetNav = item.getAttribute('data-nav');
+            document.querySelectorAll('[data-nav]').forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            
+            if (targetNav === 'restricted-trigger') {
+                document.getElementById('public-services-section').classList.add('hidden');
+                document.getElementById('private-services-section').classList.add('hidden');
+                document.getElementById('guest-restricted-block').classList.remove('hidden');
+                showToast("🔒 هذه المنطقة محمية وتتطلب صلاحيات مستخدم مسجل", "error");
+            } else {
+                document.getElementById('public-services-section').classList.remove('hidden');
+                document.getElementById('private-services-section').classList.add('hidden');
+                document.getElementById('guest-restricted-block').classList.add('hidden');
+            }
+        });
+    });
+}
+
 function initDashboard(profile) {
     const role = profile.role || 'student';
-    
-    document.getElementById('user-name').innerText = profile.full_name;
-    document.getElementById('user-welcome').innerHTML = `مرحباً ${profile.full_name} · ${role === 'admin' ? 'مدير النظام' : 'طالب'} | رقم الطالب: ${profile.national_id}`;
-    document.getElementById('role-title').innerHTML = role === 'admin' ? '🛡️ لوحة تحكم الإدارة العامة' : '📚 بوابة الطالب الخاصة';
-    document.getElementById('user-icon').className = role === 'admin' ? 'fas fa-user-shield' : 'fas fa-user-graduate';
-    
     const menuDiv = document.getElementById('dynamic-menu');
     
+    document.getElementById('user-name').innerText = profile.full_name;
+    document.getElementById('logout-btn').style.display = 'flex';
+    
+    // إخفاء كرت حجب الزوار تلقائياً للمسجلين
+    document.getElementById('guest-restricted-block').classList.add('hidden');
+
+    // 1. هيكلة اللوحة بناءً على دور (الأدمن)
     if (role === 'admin') {
+        document.getElementById('user-welcome').innerHTML = `مرحباً ${profile.full_name} · <span class="badge badge-admin">مدير النظام</span>`;
+        document.getElementById('role-title').innerHTML = '🛡️ لوحة تحكم الإدارة العامة';
+        document.getElementById('user-icon').className = 'fas fa-user-shield';
+        
         menuDiv.innerHTML = `
-            <div class="nav-item active" data-section="admin-dashboard"><i class="fas fa-users-cog"></i> إدارة الحسابات</div>
+            <div class="nav-item active" data-section="admin-users"><i class="fas fa-users-cog"></i> إدارة الحسابات</div>
+            <div class="nav-item" data-section="admin-logs"><i class="fas fa-history"></i> سجل العمليات</div>
         `;
+        
+        document.getElementById('private-services-section').classList.remove('hidden');
+        document.getElementById('public-services-section').classList.add('hidden');
         document.getElementById('admin-actions').classList.remove('hidden');
+        document.getElementById('instructor-actions').classList.add('hidden');
         document.getElementById('student-analytics-cards').classList.add('hidden');
-        document.getElementById('logs-container').classList.remove('hidden');
         document.getElementById('main-table-container').classList.remove('hidden');
+        document.getElementById('logs-container').classList.remove('hidden');
+        
+        setupAdminNavigation();
         fetchAdminData();
-        fetchAdminLogs();
-    } else {
+        fetchAdminLogs('admin_logs');
+    } 
+    // 2. هيكلة اللوحة بناءً على دور (المدرس)
+    else if (role === 'instructor') {
+        document.getElementById('user-welcome').innerHTML = `مرحباً د. ${profile.full_name} · <span class="badge badge-instructor">هيئة التدريس</span>`;
+        document.getElementById('role-title').innerHTML = '👨‍🏫 بوابة عضو هيئة التدريس الأكاديمية';
+        document.getElementById('user-icon').className = 'fas fa-user-tie';
+        
+        menuDiv.innerHTML = `
+            <div class="nav-item active" data-section="instructor-dash"><i class="fas fa-chalkboard-teacher"></i> لوحة الإشراف</div>
+            <div class="nav-item" data-section="instructor-students"><i class="fas fa-user-graduate"></i> استعراض الطلاب</div>
+        `;
+        
+        document.getElementById('private-services-section').classList.remove('hidden');
+        document.getElementById('public-services-section').classList.add('hidden');
+        document.getElementById('admin-actions').classList.add('hidden');
+        document.getElementById('instructor-actions').classList.remove('hidden');
+        document.getElementById('student-analytics-cards').classList.remove('hidden');
+        document.getElementById('main-table-container').classList.add('hidden'); // يظهر عند التنقل لجدول الطلاب
+        document.getElementById('logs-container').classList.add('hidden');
+        
+        document.getElementById('analytics-title').innerHTML = `<i class="fas fa-chart-bar"></i> نظرة عامة على المقررات المسندة`;
+        renderInstructorAnalytics();
+        setupInstructorNavigation();
+    } 
+    // 3. هيكلة اللوحة بناءً على دور (الطالب)
+    else {
+        document.getElementById('user-welcome').innerHTML = `مرحباً ${profile.full_name} · <span class="badge badge-student">طالب الأكاديمية</span> | رقم الهوية: ${profile.national_id}`;
+        document.getElementById('role-title').innerHTML = '📚 بوابة الطالب الخاصة';
+        document.getElementById('user-icon').className = 'fas fa-user-graduate';
+        
         menuDiv.innerHTML = `
             <div class="nav-item active" data-section="dashboard"><i class="fas fa-tachometer-alt"></i> لوحة التحكم</div>
             <div class="nav-item" data-section="schedule"><i class="fas fa-calendar-alt"></i> الجدول الأكاديمي</div>
         `;
         
-        // تفعيل التنقل والفلترة الخاصة بالطالب
-        document.querySelectorAll('[data-section]').forEach(item => {
-            item.addEventListener('click', () => {
-                const section = item.getAttribute('data-section');
-                document.querySelectorAll('[data-section]').forEach(i => i.classList.remove('active'));
-                item.classList.add('active');
-                
-                if (section === 'schedule') {
-                    document.getElementById('student-analytics-cards').classList.add('hidden');
-                    document.getElementById('main-table-container').classList.remove('hidden');
-                    renderStudentSchedule();
-                } else {
-                    document.getElementById('student-analytics-cards').classList.remove('hidden');
-                    document.getElementById('main-table-container').classList.add('hidden');
-                }
-            });
-        });
-        
+        document.getElementById('private-services-section').classList.remove('hidden');
+        document.getElementById('public-services-section').classList.add('hidden');
         document.getElementById('admin-actions').classList.add('hidden');
+        document.getElementById('instructor-actions').classList.add('hidden');
         document.getElementById('student-analytics-cards').classList.remove('hidden');
+        document.getElementById('main-table-container').classList.add('hidden'); 
         document.getElementById('logs-container').classList.add('hidden');
-        document.getElementById('main-table-container').classList.add('hidden'); // إخفاءه تلقائياً في الشاشة الأولى للطالب
+        
+        setupStudentNavigation();
         renderStudentView(profile);
     }
+}
+
+// أجهزة التنقل المخصصة لكل دور لضمان عدم حدوث تداخل تجميلي
+function setupAdminNavigation() {
+    document.querySelectorAll('[data-section]').forEach(item => {
+        item.addEventListener('click', () => {
+            const section = item.getAttribute('data-section');
+            document.querySelectorAll('[data-section]').forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            
+            if (section === 'admin-logs') {
+                document.getElementById('admin-actions').classList.add('hidden');
+                document.getElementById('main-table-container').classList.add('hidden');
+                document.getElementById('logs-container').classList.remove('hidden');
+            } else {
+                document.getElementById('admin-actions').classList.remove('hidden');
+                document.getElementById('main-table-container').classList.remove('hidden');
+                document.getElementById('logs-container').classList.remove('hidden');
+                fetchAdminData();
+            }
+        });
+    });
+}
+
+function setupInstructorNavigation() {
+    document.querySelectorAll('[data-section]').forEach(item => {
+        item.addEventListener('click', () => {
+            const section = item.getAttribute('data-section');
+            document.querySelectorAll('[data-section]').forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            
+            if (section === 'instructor-students') {
+                document.getElementById('instructor-actions').classList.add('hidden');
+                document.getElementById('student-analytics-cards').classList.add('hidden');
+                document.getElementById('main-table-container').classList.remove('hidden');
+                fetchInstructorStudentsData();
+            } else {
+                document.getElementById('instructor-actions').classList.remove('hidden');
+                document.getElementById('student-analytics-cards').classList.remove('hidden');
+                document.getElementById('main-table-container').classList.add('hidden');
+            }
+        });
+    });
+}
+
+function setupStudentNavigation() {
+    document.querySelectorAll('[data-section]').forEach(item => {
+        item.addEventListener('click', () => {
+            const section = item.getAttribute('data-section');
+            document.querySelectorAll('[data-section]').forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            
+            if (section === 'schedule') {
+                document.getElementById('student-analytics-cards').classList.add('hidden');
+                document.getElementById('main-table-container').classList.remove('hidden');
+                renderStudentSchedule();
+            } else {
+                document.getElementById('student-analytics-cards').classList.remove('hidden');
+                document.getElementById('main-table-container').classList.add('hidden');
+            }
+        });
+    });
 }
 
 function renderStudentView(profile) {
     const statsGrid = document.getElementById('stats-grid');
     const stats = [
-        { label: "Available Courses", value: 12, color: "#3b82f6" },
-        { label: "My Progress", value: "85%", color: "#10b981" },
-        { label: "Assignments", value: "2 متبقي", color: "#f59e0b" },
-        { label: "Quizzes", value: "100%", color: "#8b5cf6" },
-        { label: "Certificates", value: "3 جاهزة", color: "#eab308" },
-        { label: "Alerts", value: "1 جديد", color: "#ef4444" }
+        { label: "المقررات المتاحة", value: 12, color: "#3b82f6" },
+        { label: "نسبة الإنجاز الحالية", value: "85%", color: "#10b981" },
+        { label: "الواجبات والمشاريع", value: "2 متبقي", color: "#f59e0b" },
+        { label: "معدل التقييمات الشامل", value: "100%", color: "#8b5cf6" },
+        { label: "الشهادات الرقمية", value: "3 جاهزة", color: "#eab308" },
+        { label: "التنبيهات الأكاديمية", value: "1 جديد", color: "#ef4444" }
     ];
-    
+    statsGrid.innerHTML = stats.map(s => `
+        <div class="stat-card">
+            <h4>${s.label}</h4>
+            <div class="val" style="color: ${s.color}">${s.value}</div>
+        </div>
+    `).join('');
+}
+
+function renderInstructorAnalytics() {
+    const statsGrid = document.getElementById('stats-grid');
+    const stats = [
+        { label: "الشعب الدراسية الفعالة", value: 4, color: "#8b5cf6" },
+        { label: "إجمالي الطلاب المشرف عليهم", value: "142 طالب", color: "#3b82f6" },
+        { label: "مشاريع التخرج للدبلوما", value: "6 مشاريع", color: "#10b981" },
+        { label: "طلبات المراجعة المعلقة", value: "5 طلبات", color: "#ef4444" }
+    ];
     statsGrid.innerHTML = stats.map(s => `
         <div class="stat-card">
             <h4>${s.label}</h4>
@@ -475,16 +646,16 @@ function renderStudentView(profile) {
 }
 
 function renderStudentSchedule() {
-    document.getElementById('table-title').innerHTML = `<i class="fas fa-calendar-day"></i> الجدول الدراسي والمحاضرات الحالية`;
+    document.getElementById('table-title').innerHTML = `<i class="fas fa-calendar-day"></i> الجدول الدراسي والمحاضرات الحالية للربع الأكاديمي`;
     const tableHead = document.getElementById('table-head');
     const tableBody = document.getElementById('table-body');
     
-    tableHead.innerHTML = `<tr><th>اليوم</th><th>المقرر</th><th>الوقت</th><th>القاعة</th><th>الإجراء</th></tr>`;
+    tableHead.innerHTML = `<tr><th>اليوم</th><th>المقرر الدراسي</th><th>الوقت والمدة</th><th>الموقع / القاعة</th><th>الإجراء المتاح</th></tr>`;
     
     const schedule = [
-        { day: "الأحد والأربعاء", course: "الأمن السيبراني وتأمين الشبكات", time: "08:00 - 10:30", room: "المختبر رقم 3", exam: true },
-        { day: "الإثنين والثلاثاء", course: "علوم الحاسب وهياكل البيانات", time: "11:00 - 01:30", room: "قاعة المحاضرات 1", exam: false },
-        { day: "الخميس", course: "تقييم المهارات الرقمية الموحد", time: "مرن (طوال اليوم)", room: "منصة الاختبارات", exam: true }
+        { day: "الأحد والأربعاء", course: "الأمن السيبراني وتأمين الشبكات", time: "08:00 - 10:30", room: "المختبر السيبراني رقم 3", exam: true },
+        { day: "الإثنين والثلاثاء", course: "علوم الحاسب وهياكل البيانات", time: "11:00 - 01:30", room: "قاعة المحاضرات العامة 1", exam: false },
+        { day: "الخميس", course: "تقييم المهارات الرقمية الموحد", time: "مرن (طوال اليوم)", room: "منصة التقييمات الذاتية", exam: true }
     ];
     
     tableBody.innerHTML = schedule.map(row => `
@@ -499,14 +670,14 @@ function renderStudentSchedule() {
     
     tableBody.querySelectorAll('.exam-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            showToast("🚀 جاري توجيهك إلى بنك التقييمات...", "success");
+            showToast("🚀 جاري توجيهك الآمن إلى بنك التقييمات...", "success");
             setTimeout(() => window.open('https://cyberpath.vercel.app/self-tests/quiz-bank.html', '_blank'), 800);
         });
     });
 }
 
 async function fetchAdminData() {
-    document.getElementById('table-title').innerHTML = `<i class="fas fa-users"></i> إدارة المشتركين والطلاب والتحكم بالصلاحيات`;
+    document.getElementById('table-title').innerHTML = `<i class="fas fa-users"></i> إدارة المشتركين والتحكم بمراتب الصلاحيات (نظام الرقابة الحية)`;
     let query = supabaseClient.from('user_profile').select('*');
     const searchTerm = document.getElementById('search-input')?.value.trim();
     if (searchTerm) {
@@ -517,23 +688,24 @@ async function fetchAdminData() {
     const tableBody = document.getElementById('table-body');
     const tableHead = document.getElementById('table-head');
     
+    tableHead.innerHTML = `<tr><th>الاسم المشترك</th><th>رقم الهوية / المعرف الأكاديمي</th><th>الدور الفعلي</th><th>تعديل الصلاحية الرقابية</th></tr>`;
+    
     if (error || !users?.length) {
-        tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: var(--text-muted); padding: 20px;">لا توجد سجلات مطابقة في قاعدة البيانات الحية.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: var(--text-muted); padding: 20px;">لا توجد سجلات مطابقة في قاعدة البيانات الحية الحالية.</td></tr>`;
         return;
     }
     
-    tableHead.innerHTML = `<tr><th>الاسم المشترك</th><th>الهوية / رقم الطالب</th><th>الدور الحالي</th><th>تغيير الصلاحية</th></tr>`;
     tableBody.innerHTML = users.map(u => `
         <tr>
-            <td><b>${u.full_name || 'غير محدد'}</b></td>
+            <td><b>${u.full_name || 'مستخدم جديد'}</b></td>
             <td><code>${u.national_id || 'غير محدد'}</code></td>
             <td><span class="badge badge-${u.role || 'student'}">${(u.role || 'student').toUpperCase()}</span></td>
             <td>
                 <select class="role-changer" data-user="${u.user_id}">
-                    <option value="">اختر دوراً جديداً...</option>
-                    <option value="admin">Admin</option>
-                    <option value="instructor">Instructor</option>
-                    <option value="student">Student</option>
+                    <option value="">اختر دوراً مستهدفاً...</option>
+                    <option value="admin">Admin (مدير نظام)</option>
+                    <option value="instructor">Instructor (مدرس)</option>
+                    <option value="student">Student (طالب دبلوم)</option>
                 </select>
             </td>
         </tr>
@@ -549,6 +721,32 @@ async function fetchAdminData() {
     });
 }
 
+async function fetchInstructorStudentsData() {
+    document.getElementById('table-title').innerHTML = `<i class="fas fa-id-card-alt"></i> سجل طلاب الدبلوم والمجموعات التابعة لك`;
+    const { data: students, error } = await supabaseClient.from('user_profile').select('*').eq('role', 'student').limit(20);
+    
+    const tableBody = document.getElementById('table-body');
+    const tableHead = document.getElementById('table-head');
+    
+    tableHead.innerHTML = `<tr><th>اسم الطالب</th><th>الرقم الأكاديمي للتحقق</th><th>حالة الحساب</th><th>التحكم والمراجعة</th></tr>`;
+    
+    if (error || !students?.length) {
+        tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: var(--text-muted); padding: 20px;">لا يوجد طلاب مقيدين في شعبك التدريبية حالياً.</td></tr>`;
+        return;
+    }
+    
+    tableBody.innerHTML = students.map(s => `
+        <tr>
+            <td><b>${s.full_name}</b></td>
+            <td><code>${s.national_id || '—'}</code></td>
+            <td><span class="badge badge-student">نشط أكاديمياً</span></td>
+            <td>
+                <button class="btn-link" style="margin-top:0; padding:4px 10px;" onclick="showToast('📋 استعراض التقدم الشامل للطالب ${s.full_name}', 'success')">عرض الملف الأكاديمي</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
 async function changeUserRole(userId, newRole) {
     const { error } = await supabaseClient
         .from('user_profile')
@@ -556,22 +754,23 @@ async function changeUserRole(userId, newRole) {
         .eq('user_id', userId);
     
     if (!error) {
-        showToast(`✅ تم تحديث الرتبة في الخادم إلى: ${newRole}`, "success");
-        fetchAdminData();
-        
-        // تصحيح كتابة مصفوفة الـ insert للـ Logs
-        await supabaseClient.from('admin_logs').insert([{
-            admin_id: currentProfile?.user_id || userId,
-            action: "تعديل صلاحية مستخدم",
-            details: `تغيير دور المعرف التقني ${userId} إلى الرتبة المعينة ${newRole}`
-        }]);
-        fetchAdminLogs();
+        showToast(`✅ تم تحديث المرتبة الأمنية بنجاح إلى: ${newRole}`, "success");
+        if(currentProfile.role === 'admin') {
+            fetchAdminData();
+            await supabaseClient.from('admin_logs').insert([{
+                admin_id: currentProfile?.user_id,
+                action: "تعديل صلاحية مستخدم",
+                details: `تغيير دور المعرف التقني ${userId} إلى الرتبة المعينة ${newRole}`
+            }]);
+            fetchAdminLogs();
+        }
     } else {
-        showToast(`❌ تعذر الإجراء: ${error.message}`, "error");
+        showToast(`❌ تعذر الإجراء القياسي: ${error.message}`, "error");
     }
 }
 
 async function fetchAdminLogs() {
+    document.getElementById('logs-title').innerHTML = `<i class="fas fa-history"></i> آخر العمليات وسجلات الرقابة للنظام الموحد`;
     const { data: logs, error } = await supabaseClient
         .from('admin_logs')
         .select('*')
@@ -580,14 +779,14 @@ async function fetchAdminLogs() {
     
     const logsBody = document.getElementById('logs-body');
     if (error || !logs?.length) {
-        logsBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:15px; color:var(--text-muted);">لا توجد عمليات مسجلة حالياً.</td></tr>`;
+        logsBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:15px; color:var(--text-muted);">لا توجد عمليات إدارية مسجلة في السيرفر حالياً.</td></tr>`;
         return;
     }
     
     logsBody.innerHTML = logs.map(l => `
         <tr style="font-size:0.85rem; color:var(--text-muted)">
-            <td><i class="fas fa-shield-virus"></i> مشرف النظام</td>
-            <td style="color:var(--text-main)"><b>${l.action || 'إجراء تعديل'}</b></td>
+            <td><i class="fas fa-user-shield"></i> مشرف المنصة</td>
+            <td style="color:var(--text-main)"><b>${l.action || 'إجراء نظام'}</b></td>
             <td><code>${typeof l.details === 'object' ? JSON.stringify(l.details) : l.details}</code></td>
             <td>${new Date(l.action_date || Date.now()).toLocaleString('ar-EG')}</td>
         </tr>
@@ -596,7 +795,7 @@ async function fetchAdminLogs() {
 
 async function handleLogout() {
     await supabaseClient.auth.signOut();
-    showToast("👋 تم تسجيل الخروج بنجاح.. جاري إعادة التحديث", "success");
+    showToast("👋 تم تسجيل الخروج بنجاح.. جاري تهيئة بوابة الزوار المفتوحة", "success");
     setTimeout(() => window.location.reload(), 800);
 }
 
@@ -607,6 +806,7 @@ document.getElementById('mobileToggle')?.addEventListener('click', () => {
     document.getElementById('sidebar').classList.toggle('open');
 });
 
+// تفعيل خط الدفاع الأول والفحص الفوري
 checkAuth();
 </script>
 </body>
