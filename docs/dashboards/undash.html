@@ -6,7 +6,7 @@
     <title>CyberPath | البوابة التعليمية الموحدة</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
             --bg-dark: #0f172a;
@@ -34,6 +34,7 @@
             position: sticky;
             top: 0;
             height: 100vh;
+            transition: 0.3s;
         }
         .logo { font-size: 1.5rem; font-weight: bold; color: var(--primary); margin-bottom: 2rem; display: flex; align-items: center; gap: 10px; }
         .nav-item { 
@@ -113,6 +114,7 @@
             transition: 0.2s; 
             border: none;
             cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
         }
         .btn-link:hover { background: #2563eb; }
         .btn-accent { background: var(--accent); }
@@ -173,9 +175,12 @@
             border-right: 4px solid var(--primary);
             padding: 12px 20px;
             border-radius: 12px;
-            z-index: 1000;
+            z-index: 2000;
             box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
             animation: slideIn 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         @keyframes slideIn {
             from { transform: translateX(-100px); opacity: 0; }
@@ -208,6 +213,7 @@
                 cursor: pointer;
                 z-index: 1001;
                 box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+                color: white;
             }
             .main-content { padding: 1rem; }
         }
@@ -219,6 +225,7 @@
             border-radius: 8px;
             color: white;
             cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
         }
         
         .section-title {
@@ -254,7 +261,6 @@
             </div>
         </header>
 
-        <!-- القسم العمومي -->
         <section id="public-services-section">
             <h3 class="section-title"><i class="fas fa-globe"></i> الخدمات العامة والمفتوحة</h3>
             <div class="public-services-grid">
@@ -276,7 +282,6 @@
             </div>
         </section>
 
-        <!-- القسم الخاص -->
         <section id="private-services-section" class="hidden">
             <div id="admin-actions" class="hidden">
                 <h3 class="section-title"><i class="fas fa-user-shield"></i> أدوات الرقابة الإدارية</h3>
@@ -320,10 +325,9 @@
                 </div>
             </div>
 
-            <!-- الجدول الأكاديمي -->
-            <div class="data-table-container">
+            <div class="data-table-container" id="main-table-container">
                 <div style="padding: 1rem; border-bottom: 1px solid var(--border);">
-                    <h3 id="table-title"><i class="fas fa-calendar-alt"></i> 📅 الجدول الأكاديمي الأسبوعي</h3>
+                    <h3 id="table-title"><i class="fas fa-calendar-alt"></i> الجدول الأكاديمي الأسبوعي</h3>
                 </div>
                 <div style="overflow-x: auto;">
                     <table>
@@ -333,7 +337,6 @@
                 </div>
             </div>
 
-            <!-- سجل الإدارة -->
             <div id="logs-container" class="data-table-container hidden" style="margin-top: 2rem;">
                 <div style="padding: 1rem; border-bottom: 1px solid var(--border);">
                     <h3><i class="fas fa-history"></i> آخر العمليات الإدارية</h3>
@@ -352,50 +355,40 @@
 <div class="mobile-toggle" id="mobileToggle"><i class="fas fa-bars"></i></div>
 
 <script>
-// ==================== تهيئة Supabase ====================
 const SUPABASE_URL = "https://suvpaunulhqfoclepwoz.supabase.co";
 const SUPABASE_KEY = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentProfile = null;
 
-// ==================== Toast Notifications ====================
 function showToast(message, type = "success") {
     const toast = document.createElement("div");
     toast.className = "toast";
-    toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i> ${message}`;
+    toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i> <span>${message}</span>`;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 }
 
-// ==================== التحقق من المصادقة ====================
 async function checkAuth() {
-    const { data: { user }, error } = await supabaseClient.auth.getUser();
+    const { data: { user } } = await supabaseClient.auth.getUser();
     const menuDiv = document.getElementById('dynamic-menu');
     
     if (!user) {
-        // وضع الزائر
         menuDiv.innerHTML = `
             <div class="nav-item active"><i class="fas fa-home"></i> الخدمات العامة</div>
-            <div class="nav-item" id="login-trigger"><i class="fas fa-sign-in-alt"></i> تسجيل الدخول</div>
+            <div class="nav-item" onclick="showToast('⚠️ الرجاء تسجيل الدخول أولاً عبر بوابة سوبابيز الخاصة لفتح الميزات المغلقة.', 'info')"><i class="fas fa-sign-in-alt"></i> تسجيل الدخول</div>
         `;
         document.getElementById('public-services-section').classList.remove('hidden');
         document.getElementById('private-services-section').classList.add('hidden');
         document.getElementById('user-name').innerText = "زائر المنصة";
         document.getElementById('logout-btn').style.display = 'none';
-        
-        document.getElementById('login-trigger')?.addEventListener('click', () => {
-            showToast("⚠️ الرجاء تسجيل الدخول باستخدام حساب في Supabase Auth", "info");
-        });
         return;
     }
     
-    // مستخدم مسجل
     document.getElementById('logout-btn').style.display = 'flex';
     document.getElementById('public-services-section').classList.add('hidden');
     document.getElementById('private-services-section').classList.remove('hidden');
     
-    // جلب بيانات المستخدم
     const { data: profile } = await supabaseClient
         .from('user_profile')
         .select('*')
@@ -404,72 +397,73 @@ async function checkAuth() {
     
     if (profile) {
         currentProfile = profile;
-        initDashboard(profile);
     } else {
-        currentProfile = { role: 'student', full_name: user.email?.split('@')[0] || 'مستخدم', national_id: 'غير محدد' };
-        initDashboard(currentProfile);
-        showToast("تم تسجيل الدخول بنجاح", "success");
+        currentProfile = { user_id: user.id, role: 'student', full_name: user.email?.split('@')[0] || 'مستخدم', national_id: 'غير محدد' };
     }
+    initDashboard(currentProfile);
 }
 
-// ==================== تهيئة لوحة التحكم ====================
 function initDashboard(profile) {
     const role = profile.role || 'student';
     
     document.getElementById('user-name').innerText = profile.full_name;
     document.getElementById('user-welcome').innerHTML = `مرحباً ${profile.full_name} · ${role === 'admin' ? 'مدير النظام' : 'طالب'} | رقم الطالب: ${profile.national_id}`;
-    document.getElementById('role-title').innerHTML = role === 'admin' ? '🛡️ لوحة تحكم الإدارة' : '📚 بوابة الطالب الخاصة';
+    document.getElementById('role-title').innerHTML = role === 'admin' ? '🛡️ لوحة تحكم الإدارة العامة' : '📚 بوابة الطالب الخاصة';
     document.getElementById('user-icon').className = role === 'admin' ? 'fas fa-user-shield' : 'fas fa-user-graduate';
     
-    // بناء القائمة الجانبية
     const menuDiv = document.getElementById('dynamic-menu');
-    menuDiv.innerHTML = `
-        <div class="nav-item active" data-section="dashboard"><i class="fas fa-tachometer-alt"></i> لوحة التحكم</div>
-        <div class="nav-item" data-section="schedule"><i class="fas fa-calendar-alt"></i> الجدول الأكاديمي</div>
-    `;
-    
-    // إضافة حدث التنقل
-    document.querySelectorAll('[data-section]').forEach(item => {
-        item.addEventListener('click', () => {
-            const section = item.getAttribute('data-section');
-            document.querySelectorAll('[data-section]').forEach(i => i.classList.remove('active'));
-            item.classList.add('active');
-            
-            if (section === 'schedule') {
-                document.getElementById('student-analytics-cards').classList.add('hidden');
-                document.querySelector('.data-table-container').classList.remove('hidden');
-            } else {
-                document.getElementById('student-analytics-cards').classList.remove('hidden');
-                document.querySelector('.data-table-container').classList.add('hidden');
-            }
-        });
-    });
     
     if (role === 'admin') {
+        menuDiv.innerHTML = `
+            <div class="nav-item active" data-section="admin-dashboard"><i class="fas fa-users-cog"></i> إدارة الحسابات</div>
+        `;
         document.getElementById('admin-actions').classList.remove('hidden');
         document.getElementById('student-analytics-cards').classList.add('hidden');
         document.getElementById('logs-container').classList.remove('hidden');
-        document.querySelector('.data-table-container').classList.remove('hidden');
+        document.getElementById('main-table-container').classList.remove('hidden');
         fetchAdminData();
         fetchAdminLogs();
     } else {
+        menuDiv.innerHTML = `
+            <div class="nav-item active" data-section="dashboard"><i class="fas fa-tachometer-alt"></i> لوحة التحكم</div>
+            <div class="nav-item" data-section="schedule"><i class="fas fa-calendar-alt"></i> الجدول الأكاديمي</div>
+        `;
+        
+        // تفعيل التنقل والفلترة الخاصة بالطالب
+        document.querySelectorAll('[data-section]').forEach(item => {
+            item.addEventListener('click', () => {
+                const section = item.getAttribute('data-section');
+                document.querySelectorAll('[data-section]').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                
+                if (section === 'schedule') {
+                    document.getElementById('student-analytics-cards').classList.add('hidden');
+                    document.getElementById('main-table-container').classList.remove('hidden');
+                    renderStudentSchedule();
+                } else {
+                    document.getElementById('student-analytics-cards').classList.remove('hidden');
+                    document.getElementById('main-table-container').classList.add('hidden');
+                }
+            });
+        });
+        
         document.getElementById('admin-actions').classList.add('hidden');
         document.getElementById('student-analytics-cards').classList.remove('hidden');
         document.getElementById('logs-container').classList.add('hidden');
+        document.getElementById('main-table-container').classList.add('hidden'); // إخفاءه تلقائياً في الشاشة الأولى للطالب
         renderStudentView(profile);
-        renderStudentSchedule();
     }
 }
 
-// ==================== عرض بيانات الطالب ====================
 function renderStudentView(profile) {
     const statsGrid = document.getElementById('stats-grid');
     const stats = [
-        { label: "📚 عدد الكورسات", value: 12, color: "#3b82f6" },
-        { label: "📈 نسبة التقدم", value: "85%", color: "#10b981" },
-        { label: "📝 الاختبارات", value: 7, color: "#f59e0b" },
-        { label: "🎓 الشهادات", value: 4, color: "#8b5cf6" },
-        { label: "🔔 التنبيهات", value: 2, color: "#ef4444" }
+        { label: "Available Courses", value: 12, color: "#3b82f6" },
+        { label: "My Progress", value: "85%", color: "#10b981" },
+        { label: "Assignments", value: "2 متبقي", color: "#f59e0b" },
+        { label: "Quizzes", value: "100%", color: "#8b5cf6" },
+        { label: "Certificates", value: "3 جاهزة", color: "#eab308" },
+        { label: "Alerts", value: "1 جديد", color: "#ef4444" }
     ];
     
     statsGrid.innerHTML = stats.map(s => `
@@ -480,41 +474,39 @@ function renderStudentView(profile) {
     `).join('');
 }
 
-// ==================== الجدول الأكاديمي ====================
 function renderStudentSchedule() {
+    document.getElementById('table-title').innerHTML = `<i class="fas fa-calendar-day"></i> الجدول الدراسي والمحاضرات الحالية`;
     const tableHead = document.getElementById('table-head');
     const tableBody = document.getElementById('table-body');
     
     tableHead.innerHTML = `<tr><th>اليوم</th><th>المقرر</th><th>الوقت</th><th>القاعة</th><th>الإجراء</th></tr>`;
     
     const schedule = [
-        { day: "الأحد", course: "أساسيات الأمن السيبراني", time: "10:00 - 12:00", room: "قاعة A1", exam: true },
-        { day: "الإثنين", course: "اختبار الاختراق", time: "12:30 - 14:30", room: "معمل الأمن", exam: true },
-        { day: "الثلاثاء", course: "تحليل الثغرات", time: "09:00 - 11:00", room: "قاعة B2", exam: false },
-        { day: "الأربعاء", course: "التشفير وأمن الشبكات", time: "13:00 - 15:00", room: "قاعة C", exam: true },
-        { day: "الخميس", course: "تقييم المهارات العملي", time: "مرن", room: "منصة الاختبارات", exam: true }
+        { day: "الأحد والأربعاء", course: "الأمن السيبراني وتأمين الشبكات", time: "08:00 - 10:30", room: "المختبر رقم 3", exam: true },
+        { day: "الإثنين والثلاثاء", course: "علوم الحاسب وهياكل البيانات", time: "11:00 - 01:30", room: "قاعة المحاضرات 1", exam: false },
+        { day: "الخميس", course: "تقييم المهارات الرقمية الموحد", time: "مرن (طوال اليوم)", room: "منصة الاختبارات", exam: true }
     ];
     
     tableBody.innerHTML = schedule.map(row => `
         <tr>
-            <td><span class="badge" style="background: #2d3a5f;">${row.day}</span></td>
-            <td><i class="fas fa-shield-halved" style="color: #8b5cf6; margin-left: 8px;"></i>${row.course}</td>
-            <td>${row.time}</td>
+            <td><span class="badge" style="background: #2d3a5f; color: #f8fafc;">${row.day}</span></td>
+            <td><i class="fas fa-shield-halved" style="color: #8b5cf6; margin-left: 8px;"></i><b>${row.course}</b></td>
+            <td><code>${row.time}</code></td>
             <td>${row.room}</td>
-            <td>${row.exam ? `<button class="exam-btn" style="background: #3b82f6; border: none; padding: 6px 16px; border-radius: 20px; color: white; cursor: pointer;"><i class="fas fa-vial"></i> دخول الاختبار</button>` : '<span style="color: #94a3b8;">—</span>'}</td>
+            <td>${row.exam ? `<button class="exam-btn" style="background: var(--primary); border: none; padding: 6px 14px; border-radius: 8px; color: white; cursor: pointer; font-family:'Tajawal'; font-weight:bold; font-size:0.8rem;"><i class="fas fa-vial"></i> دخول التقييم</button>` : '<span style="color: var(--text-muted);">—</span>'}</td>
         </tr>
     `).join('');
     
-    document.querySelectorAll('.exam-btn').forEach(btn => {
+    tableBody.querySelectorAll('.exam-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            showToast("🚀 جاري التوجيه إلى بنك الاختبارات", "success");
-            window.open('https://cyberpath.vercel.app/self-tests/quiz-bank.html', '_blank');
+            showToast("🚀 جاري توجيهك إلى بنك التقييمات...", "success");
+            setTimeout(() => window.open('https://cyberpath.vercel.app/self-tests/quiz-bank.html', '_blank'), 800);
         });
     });
 }
 
-// ==================== وظائف الإدارة ====================
 async function fetchAdminData() {
+    document.getElementById('table-title').innerHTML = `<i class="fas fa-users"></i> إدارة المشتركين والطلاب والتحكم بالصلاحيات`;
     let query = supabaseClient.from('user_profile').select('*');
     const searchTerm = document.getElementById('search-input')?.value.trim();
     if (searchTerm) {
@@ -526,19 +518,19 @@ async function fetchAdminData() {
     const tableHead = document.getElementById('table-head');
     
     if (error || !users?.length) {
-        tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: var(--text-muted);">لا توجد نتائج</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: var(--text-muted); padding: 20px;">لا توجد سجلات مطابقة في قاعدة البيانات الحية.</td></tr>`;
         return;
     }
     
-    tableHead.innerHTML = `<tr><th>الاسم</th><th>رقم الهوية</th><th>الدور</th><th>تغيير الصلاحية</th></tr>`;
+    tableHead.innerHTML = `<tr><th>الاسم المشترك</th><th>الهوية / رقم الطالب</th><th>الدور الحالي</th><th>تغيير الصلاحية</th></tr>`;
     tableBody.innerHTML = users.map(u => `
         <tr>
-            <td>${u.full_name || 'غير محدد'}</td>
+            <td><b>${u.full_name || 'غير محدد'}</b></td>
             <td><code>${u.national_id || 'غير محدد'}</code></td>
-            <td><span class="badge badge-${u.role || 'student'}">${u.role || 'student'}</span></td>
+            <td><span class="badge badge-${u.role || 'student'}">${(u.role || 'student').toUpperCase()}</span></td>
             <td>
                 <select class="role-changer" data-user="${u.user_id}">
-                    <option value="">اختر...</option>
+                    <option value="">اختر دوراً جديداً...</option>
                     <option value="admin">Admin</option>
                     <option value="instructor">Instructor</option>
                     <option value="student">Student</option>
@@ -547,13 +539,12 @@ async function fetchAdminData() {
         </tr>
     `).join('');
     
-    document.querySelectorAll('.role-changer').forEach(select => {
+    tableBody.querySelectorAll('.role-changer').forEach(select => {
         select.addEventListener('change', async (e) => {
             const newRole = e.target.value;
             if (!newRole) return;
             const userId = select.getAttribute('data-user');
             await changeUserRole(userId, newRole);
-            select.value = '';
         });
     });
 }
@@ -565,18 +556,18 @@ async function changeUserRole(userId, newRole) {
         .eq('user_id', userId);
     
     if (!error) {
-        showToast(`✅ تم تغيير الصلاحية إلى ${newRole}`, "success");
+        showToast(`✅ تم تحديث الرتبة في الخادم إلى: ${newRole}`, "success");
         fetchAdminData();
-        // تسجيل العملية
-        await supabaseClient.from('admin_logs').insert({
-            admin_id: userId,
-            action: "تغيير صلاحية",
-            details: `تم تغيير الدور إلى ${newRole}`,
-            action_date: new Date()
-        });
+        
+        // تصحيح كتابة مصفوفة الـ insert للـ Logs
+        await supabaseClient.from('admin_logs').insert([{
+            admin_id: currentProfile?.user_id || userId,
+            action: "تعديل صلاحية مستخدم",
+            details: `تغيير دور المعرف التقني ${userId} إلى الرتبة المعينة ${newRole}`
+        }]);
         fetchAdminLogs();
     } else {
-        showToast(`❌ فشل التغيير: ${error.message}`, "error");
+        showToast(`❌ تعذر الإجراء: ${error.message}`, "error");
     }
 }
 
@@ -585,39 +576,37 @@ async function fetchAdminLogs() {
         .from('admin_logs')
         .select('*')
         .order('action_date', { ascending: false })
-        .limit(8);
+        .limit(5);
     
     const logsBody = document.getElementById('logs-body');
     if (error || !logs?.length) {
-        logsBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">لا توجد سجلات</td></tr>`;
+        logsBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:15px; color:var(--text-muted);">لا توجد عمليات مسجلة حالياً.</td></tr>`;
         return;
     }
     
     logsBody.innerHTML = logs.map(l => `
-        <tr>
-            <td><i class="fas fa-user-shield"></i> مدير النظام</td>
-            <td>${l.action || 'إجراء'}</td>
-            <td>${l.details || '—'}</td>
-            <td>${new Date(l.action_date).toLocaleString('ar-EG')}</td>
+        <tr style="font-size:0.85rem; color:var(--text-muted)">
+            <td><i class="fas fa-shield-virus"></i> مشرف النظام</td>
+            <td style="color:var(--text-main)"><b>${l.action || 'إجراء تعديل'}</b></td>
+            <td><code>${typeof l.details === 'object' ? JSON.stringify(l.details) : l.details}</code></td>
+            <td>${new Date(l.action_date || Date.now()).toLocaleString('ar-EG')}</td>
         </tr>
     `).join('');
 }
 
-// ==================== تسجيل الخروج ====================
 async function handleLogout() {
     await supabaseClient.auth.signOut();
-    showToast("👋 تم تسجيل الخروج", "success");
-    setTimeout(() => window.location.reload(), 500);
+    showToast("👋 تم تسجيل الخروج بنجاح.. جاري إعادة التحديث", "success");
+    setTimeout(() => window.location.reload(), 800);
 }
 
-// ==================== ربط الأحداث ====================
 document.getElementById('logout-btn')?.addEventListener('click', handleLogout);
 document.getElementById('search-btn')?.addEventListener('click', fetchAdminData);
+document.getElementById('search-input')?.addEventListener('keypress', (e) => { if(e.key === 'Enter') fetchAdminData(); });
 document.getElementById('mobileToggle')?.addEventListener('click', () => {
     document.getElementById('sidebar').classList.toggle('open');
 });
 
-// ==================== تشغيل التطبيق ====================
 checkAuth();
 </script>
 </body>
