@@ -6,7 +6,7 @@
 function initGuestDashboard() {
     console.log('🌐 جاري تهيئة واجهة الزائر العام المفتوحة...');
     
-    // التحقق من وجود عناصر واجهة الضيف في الـ DOM
+    // التحقق من وجود عناصر واجهة الضيف في الـ DOM قبل التنفيذ
     if (!document.getElementById('public-content-section')) {
         console.warn('⚠️ عناصر واجهة الضيف لم تكتمل في الـ DOM بعد، إعادة المحاولة...');
         setTimeout(initGuestDashboard, 100);
@@ -22,7 +22,7 @@ function initGuestDashboard() {
 
         const avatarElement = document.getElementById('user-avatar');
         if (avatarElement) {
-            avatarElement.textContent = 'G'; // Guest
+            avatarElement.textContent = 'G';
         }
 
         console.log('✅ تم تهيئة واجهة الضيف بنجاح. تصفح آمن ومحدود متاح الآن.');
@@ -34,6 +34,7 @@ function initGuestDashboard() {
 // تصدير الدالة للنطاق العالمي ليتم استدعاؤها من المتحكم المركزي
 window.initGuestDashboard = initGuestDashboard;
 
+// التنفيذ الآمن عند اكتمال تحميل عناصر الصفحة
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initGuestDashboard);
 } else {
