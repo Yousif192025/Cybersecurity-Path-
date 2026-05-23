@@ -1,5 +1,5 @@
 /**
- * وحدة الطالب (Student Dashboard) - النسخة المدمجة
+ * وحدة الطالب (Student Dashboard) - النسخة المدمجة والمصححة
  * يتم تحميلها ديناميكياً عند التبديل إلى واجهة الطالب
  * 
  * تم الدمج مع:
@@ -233,7 +233,7 @@ async function loadStudentCourses() {
                 schedule: enroll.courses?.schedule || 'مرن',
                 assessment: getAssessmentStatus(enroll.progress),
                 progress: enroll.progress || 0,
-                action: enroll.progress >= 100 ? 'مراجعة' : 'متابعة'
+                action: enroll.progress >= 100 ? 'مراجعة' : 'دخول الصف'
             }));
         }
         
@@ -248,18 +248,18 @@ async function loadStudentCourses() {
                     <td><span style="color: ${course.progress >= 70 ? 'var(--success)' : 'var(--warning)'}">${course.assessment}</span></td>
                     <td>
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div class="progress-container" style="flex: 1;">
+                            <span style="font-size: 0.8rem; min-width: 30px;">${course.progress}%</span>
+                            <div class="progress-container" style="flex: 1; margin: 0; height: 6px;">
                                 <div class="progress-bar" style="width: ${course.progress}%;"></div>
                             </div>
-                            <span style="font-size: 0.8rem;">${course.progress}%</span>
                         </div>
-                     </td>
+                    </td>
                     <td>
-                        <button class="btn-link" style="margin:0;" onclick="showToast('🚀 جاري فتح ${course.name}', 'info')">
-                            ${course.action} <i class="fas fa-arrow-left"></i>
+                        <button class="btn-action-small" style="background: var(--success);" onclick="showToast('🚀 جاري فتح ${course.name}...', 'success')">
+                            ${course.action}
                         </button>
-                     </td>
-                 </>
+                    </td>
+                </tr>
             `).join('');
         } else {
             tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem;">📖 لا توجد مقررات مسجلة حالياً. تواصل مع المشرف الخاص بك.</td></tr>';
@@ -276,10 +276,8 @@ async function loadStudentCourses() {
  */
 function getDefaultCourses() {
     return [
-        { name: 'أمن الشبكات المتقدم', schedule: 'الأحد والثلاثاء 10:00 ص', assessment: 'امتحان البنية التحتية نشط', progress: 85, action: 'دخول المختبر' },
-        { name: 'تطوير الويب الآمن', schedule: 'الخميس 01:00 م', assessment: 'تم تسليم التمارين', progress: 92, action: 'استعراض المادة' },
-        { name: 'اختبار الاختراق الأخلاقي', schedule: 'الثلاثاء 03:00 م', assessment: 'مختبر حي قيد التقدم', progress: 45, action: 'متابعة المختبر' },
-        { name: 'تحليل البرمجيات الضارة', schedule: 'الإثنين 02:00 م', assessment: 'لم يبدأ بعد', progress: 0, action: 'بدء المقرر' }
+        { name: 'أمن الشبكات والاتصالات', schedule: 'الأحد والثلاثاء 10:00 ص', assessment: 'كويز أساسيات التشفير', progress: 75, action: 'دخول الصف' },
+        { name: 'بناء جدران الحماية وتحليل الثغرات', schedule: 'الإثنين والخميس 01:00 م', assessment: 'لا توجد اختبارات معلقة', progress: 40, action: 'دخول الصف' }
     ];
 }
 
@@ -318,24 +316,26 @@ async function loadStudentAssignments() {
             assignmentsList = assignments.map(ass => ({
                 name: ass.title,
                 dueDate: ass.due_date,
-                grade: `${ass.max_score} درجة`,
-                status: ass.submitted ? 'تم التسليم' : 'مستحق'
+                grade: `${ass.max_score} درجات`,
+                status: ass.submitted ? 'تم التسليم' : 'بانتظار الحل'
             }));
         }
         
         if (assignmentsList.length > 0) {
             tableBody.innerHTML = assignmentsList.map(assignment => `
                 <tr>
-                    <td><i class="fas fa-file-alt" style="color: var(--primary); margin-left: 8px;"></i> ${assignment.name}</td>
+                    <td><strong>${assignment.name}</strong></td>
                     <td>📅 ${assignment.dueDate}</td>
                     <td>⭐ ${assignment.grade}</td>
-                    <td><span class="role-tag" style="background: ${assignment.status === 'مستحق' ? 'var(--warning)' : 'var(--success)'}">
-                        ${assignment.status === 'مستحق' ? '⏳ قيد الانتظار' : '✅ تم التسليم'}
-                    </span></td>
+                    <td>
+                        <span class="role-tag" style="background: ${assignment.status === 'بانتظار الحل' ? 'var(--warning)' : 'var(--success)'}; color: #fff;">
+                            ${assignment.status}
+                        </span>
+                    </td>
                 </tr>
             `).join('');
         } else {
-            tableBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">🎉 لا توجد مهام مستحقة! أنت في الموعد النهائي.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 2rem;">🎉 لا توجد مهام مستحقة! أنت في الموعد النهائي.</td></tr>';
         }
         
     } catch (err) {
@@ -349,8 +349,8 @@ async function loadStudentAssignments() {
  */
 function getDefaultAssignments() {
     return [
-        { name: 'تحليل حزمة بيانات مشبوهة', dueDate: '2026-05-25', grade: '15 درجة', status: 'قيد التقييم' },
-        { name: 'تطبيق جدار حماية محاكي', dueDate: '2026-05-30', grade: '25 درجة', status: 'مستحق' }
+        { name: 'تحليل وحظر هجمات الحرمان من الخدمة (DDoS)', dueDate: '2026-05-28', grade: '10 درجات', status: 'بانتظار الحل' },
+        { name: 'إعداد أدوات الفحص والتشخيص الإدارية (netstat & nslookup)', dueDate: '2026-06-02', grade: '5 درجات', status: 'بانتظار الحل' }
     ];
 }
 
@@ -363,7 +363,7 @@ async function loadStudentAchievements() {
 }
 
 /**
- * عرض رسالة للمستخدم غير مصرح له
+ * عرض رسالة للمخدم غير مصرح له
  */
 function showUnauthorizedMessage() {
     const statsGrid = document.getElementById('student-stats-grid');
@@ -389,12 +389,12 @@ function showUnauthorizedMessage() {
  * تحديث بيانات الطالب يدوياً (زر التحديث)
  */
 async function refreshStudentData() {
-    showToast('🔄 جاري تحديث بياناتك...', 'info');
+    if (typeof showToast === 'function') showToast('🔄 جاري تحديث بياناتك...', 'info');
     await loadStudentData();
     renderStudentStats();
     await loadStudentCourses();
     await loadStudentAssignments();
-    showToast('✅ تم تحديث بيانات الطالب بنجاح', 'success');
+    if (typeof showToast === 'function') showToast('✅ تم تحديث بيانات الطالب بنجاح', 'success');
 }
 
 /**
@@ -403,14 +403,14 @@ async function refreshStudentData() {
 window.handleStudentLogout = async function() {
     const { error } = await supabase.auth.signOut();
     if (!error) {
-        showToast('🔒 تم تسجيل الخروج بنجاح', 'success');
+        if (typeof showToast === 'function') showToast('🔒 تم تسجيل الخروج بنجاح', 'success');
         setTimeout(() => {
             if (window.updateUIForRole) {
                 window.updateUIForRole('guest', 'زائر المنصة');
             }
         }, 500);
     } else {
-        showToast('❌ فشل تسجيل الخروج: ' + error.message, 'error');
+        if (typeof showToast === 'function') showToast('❌ فشل تسجيل الخروج: ' + error.message, 'error');
     }
 };
 
