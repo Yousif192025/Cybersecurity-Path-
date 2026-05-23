@@ -752,7 +752,7 @@
     </style>
 </head>
 <body>
-    <!-- بنر الترحيب بالضيف الذكي (يظهر ديناميكياً فقط عند تصفح زائر غير مسجل) -->
+    <!-- بنر الترحيب بالضيف الذكي -->
     <div id="guestBanner" class="guest-welcome-banner" style="display: none;">
         <span id="bannerText">أنت تتصفح حالياً كـ "ضيف". لتتمكن من الانضمام للمسارات، حفظ تقدمك الدراسي وحل الاختبارات، يمكنك</span>
         <a href="./academy/enrollment.html" id="bannerLink">إنشاء حساب مجاني الآن</a>
@@ -881,7 +881,7 @@
                 <i data-lucide="arrow-left"></i>
             </a>
             <!-- 7 (protected) -->
-            <a href="./academy/student-dashboard.html" class="service-card reveal protected-link">
+            <a href="./dashboards/student.html" class="service-card reveal protected-link">
                 <div class="service-icon"><i data-lucide="layout-dashboard"></i></div>
                 <h3 data-text="student-dashboard">لوحة تحكم الطالب</h3>
                 <p data-text="student-dashboard-desc">تابع تقدمك، وادخل إلى دوراتك وشهاداتك.</p>
@@ -1214,7 +1214,6 @@
                     }
                 });
                 
-                // تحديث نصوص بنر الضيف يدوياً لتطابق اللغة المحددة
                 const bannerText = document.getElementById('bannerText');
                 const bannerLink = document.getElementById('bannerLink');
                 if (bannerText && bannerLink) {
@@ -1280,7 +1279,6 @@
             bottomBtn.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
         }
 
-        // بدء التشغيل الأساسي للواجهات
         document.addEventListener('DOMContentLoaded', () => {
             langManager.init();
             initMobileMenu();
@@ -1293,26 +1291,21 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-        // إعدادات ومفاتيح اتصال Supabase الخاص بمنصتك
         const SUPABASE_URL = 'https://suvpaunulhqfoclepwoz.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // التحقق من حالة المستخدم الحالي وضبط أزرار الـ CTA واللوحات والبنرات
         async function checkUserAuth() {
             const { data: { user } } = await supabaseClient.auth.getUser();
             const loginBtn = document.getElementById('main-cta-btn');
             const dashboardLinks = document.querySelectorAll('[data-text="student-dashboard-nav"]');
             const guestBanner = document.getElementById('guestBanner');
             
-            // قراءة حالة وضع التصفح كضيف من سياق الجلسة
             const isGuest = sessionStorage.getItem('guest_mode') === 'true';
 
             if (user) {
-                // إخفاء بنر الضيف تماماً إذا كان المستخدم مسجلاً رسمياً
                 if (guestBanner) guestBanner.style.display = 'none';
 
-                // جلب الصلاحيات والتحقق من نوع الحساب الخاص بالمستخدم
                 const { data: profile } = await supabaseClient
                     .from('user_profile')
                     .select('role')
@@ -1325,25 +1318,22 @@
                     loginBtn.onclick = () => {
                         if (userRole === 'admin') window.location.href = './admin/dashboard.html';
                         else if (userRole === 'coach') window.location.href = './coach/dashboard.html';
-                        else window.location.href = './academy/student-dashboard.html';
+                        else window.location.href = './dashboards/student.html';
                     };
                 }
 
                 dashboardLinks.forEach(link => {
                     if (userRole === 'admin') link.href = './admin/dashboard.html';
                     else if (userRole === 'coach') link.href = './coach/dashboard.html';
+                    else link.href = './dashboards/student.html';
                 });
             } else if (isGuest) {
-                // إظهار بنر التصفح الحر للضيف المعتمد بدلاً من قفله
                 if (guestBanner) guestBanner.style.display = 'flex';
-
-                // تعديل زر الحث للتحول لحساب كامل في حال كان يتصفح كضيف
                 if (loginBtn) {
                     loginBtn.textContent = langManager.currentLang === 'ar' ? 'سجل الآن للحصول على المزايا كاملة' : 'Register for Full Access';
                     loginBtn.onclick = () => window.location.href = './academy/enrollment.html';
                 }
             } else {
-                // الوضع الافتراضي لزائر جديد تماماً لم يختر تفعيل وضع الضيف بعد
                 if (guestBanner) guestBanner.style.display = 'none';
                 if (loginBtn) {
                     loginBtn.textContent = langManager.currentLang === 'ar' ? 'ابدأ التعلم مجاناً' : 'Start Free';
@@ -1352,7 +1342,7 @@
             }
         }
 
-        // إعداد تصفح الروابط وجعل التسجيل اختيارياً بالكامل دون أي إجبار
+        // إعداد هندسة حماية الروابط للفصل الذكي بين المحتوى العام والمحتوى الحساس الخاص بالطلاب
         async function setupProtectedLinks() {
             const { data: { user } } = await supabaseClient.auth.getUser();
             const protectedLinks = document.querySelectorAll('.protected-link');
@@ -1363,38 +1353,48 @@
             });
 
             function protectHandler(e) {
+                // إذا كان هناك مستخدم مسجل دخول بالفعل، يُسمح بالعبور الفوري لكل الروابط
+                if (user) return;
+
+                const targetHref = this.getAttribute('href');
                 const isGuest = sessionStorage.getItem('guest_mode') === 'true';
 
-                // إذا لم يكن المستخدم مسجلاً، ولم يُفعّل وضع الضيف مسبقاً (زائر أول مرة ينقر رابط محمي)
-                if (!user && !isGuest) {
-                    // نقوم بتفعيل وضع الضيف وحفظه مؤقتاً في الجلسة تلقائياً لتمكينه من التصفح الحر دون أي رسائل مقاطعة
-                    sessionStorage.setItem('guest_mode', 'true');
-                    
-                    // نقوم بتحديث الواجهة فوراً لعرض بنر الضيف العلوي الخفيف وتحديث الـ CTA
-                    checkUserAuth();
-                    
-                    // نسمح له بالعبور والتصفح الحر للصفحة التي طلبها فوراً دون أي إلغاء أو إجبار
-                    return;
-                } 
-                
-                // إذا كان يتصفح كضيف معتمد (isGuest === true)، نتركه ينتقل ويتصفح الروابط بحرية كاملة
-                if (!user && isGuest) {
-                    // التصفح مسموح بالكامل لعرض الخطط والمحتويات، ولن يمنع أو يجبر على التسجيل إلا برغبته
+                // مصفوفة الكلمات الدلالية للصفحات الحساسة واللوحات الشخصية التي يمنع الضيف من عبورها نهائياً
+                const strictlyPrivatePaths = ['dashboard', 'student.html', 'quiz-bank.html', 'self-tests'];
+
+                // فحص ما إذا كان الرابط المطلوب ينتمي للأقسام الحساسة واللوحات الشخصية
+                const isStrictlyPrivate = strictlyPrivatePaths.some(path => targetHref.includes(path));
+
+                if (isStrictlyPrivate) {
+                    // حظر الوصول تماماً وإجبار الضيف على التوجه لصفحة التسجيل لحماية لوحات البيانات والاختبارات
+                    e.preventDefault();
+                    alert(langManager.currentLang === 'ar' 
+                        ? 'عذراً، هذا القسم مخصص للطلاب المسجلين فقط لحفظ تقدمهم الدراسي وإصدار الشهادات. يرجى إنشاء حساب كامل وموثق.' 
+                        : 'Sorry, this section is for registered students only to track progress and issue certificates. Please create a full verified account.');
+                    window.location.href = './academy/enrollment.html';
                     return;
                 }
+
+                // أما إذا كان الرابط لصفحة تعليمية عامة (مثل المسارات أو قائمة الدورات)
+                if (!isGuest) {
+                    // إذا كان زائر جديد لأول مرة، نفعّل له وضع الضيف تلقائياً في الجلسة ونعرض البنر التشجيعي
+                    sessionStorage.setItem('guest_mode', 'true');
+                    checkUserAuth();
+                    // ونسمح له بالعبور للتصفح دون أي قفل أو رسائل إجبارية
+                    return;
+                }
+                
+                // إذا كان ضيفاً معتمداً مسبقاً والصفحة عامة، يمر بسلام وبحرية مطلقة
             }
         }
 
-        // تحميل والتحقق عند جهوزية الـ DOM
         document.addEventListener('DOMContentLoaded', () => {
             checkUserAuth();
             setupProtectedLinks();
         });
 
-        // مراقبة أحداث الجلسات الحية من Supabase
         supabaseClient.auth.onAuthStateChange((event, session) => {
             if (session?.user) {
-                // إزالة الجلسة المؤقتة للضيف بمجرد التعرف على تسجيل دخول رسمي ناجح
                 sessionStorage.removeItem('guest_mode');
             }
             checkUserAuth();
