@@ -84,6 +84,18 @@
             border-right: 4px solid var(--primary);
         }
 
+        .logout-item {
+            color: var(--danger);
+            margin-top: 1rem;
+            border-top: 1px solid var(--border);
+            padding-top: 1rem;
+        }
+        .logout-item:hover {
+            background-color: rgba(239, 68, 68, 0.1);
+            border-right: 4px solid var(--danger);
+            color: #ff8080;
+        }
+
         #main-wrapper {
             flex-grow: 1;
             display: flex;
@@ -307,6 +319,77 @@
             background-color: rgba(255,255,255,0.02);
         }
 
+        /* --- واجهة تسجيل الدخول المنبثقة Login Modal --- */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(9, 13, 22, 0.85);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            width: 400px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        .login-card h3 {
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            text-align: center;
+            font-size: 1.6rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .form-group input {
+            width: 100%;
+            background-color: var(--bg-main);
+            border: 1px solid var(--border);
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            color: var(--text-main);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary);
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            margin-top: 0.5rem;
+        }
+
+        .btn-submit:hover {
+            opacity: 0.9;
+        }
+
         /* محاكي تبديل الأدوار السريع للتطوير والاختبار */
         .dev-role-switcher {
             margin-top: auto;
@@ -386,6 +469,25 @@
         <div class="loader"></div>
     </div>
 
+    <!-- نافذة تسجيل الدخول المنبثقة Login Modal -->
+    <div id="login-modal" class="modal-overlay hidden">
+        <div class="login-card">
+            <h3>تسجيل الدخول للمنصة</h3>
+            <form id="login-form" onsubmit="handleLoginSubmit(event)">
+                <div class="form-group">
+                    <label for="login-email">البريد الإلكتروني للأكاديمية</label>
+                    <input type="email" id="login-email" required placeholder="name@academy.edu">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">كلمة المرور</label>
+                    <input type="password" id="login-password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn-submit">دخول آمن</button>
+                <button type="button" class="btn-link" style="width:100%; text-align:center; margin-top:0.8rem;" onclick="toggleLoginModal(false)">إلغاء وعودة كضيف</button>
+            </form>
+        </div>
+    </div>
+
     <!-- نظام التنبيهات الموحد -->
     <div id="toast-container"></div>
 
@@ -399,9 +501,16 @@
         <!-- القوائم الديناميكية المبنية حسب الأدوار تعبأ بواسطة السكريبت -->
         <nav class="nav-menu" id="dynamic-menu"></nav>
 
+        <!-- زر تسجيل الخروج الحقيقي المقيد والمقتبس -->
+        <div id="logout-zone" class="hidden">
+            <div class="nav-item logout-item" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> <span>تسجيل الخروج</span>
+            </div>
+        </div>
+
         <!-- محاكي الأدوار الذكي المطور للاختبار الفوري لبيئة Supabase قبل الدمج النهائي -->
         <div class="dev-role-switcher">
-            <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:5px;">محاكاة الصلاحية الحالية:</label>
+            <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:5px;">محاكاة الصلاحية (للتطوير):</label>
             <select id="role-selector" onchange="simulateRoleChange(this.value)">
                 <option value="guest">ضيف / زائر عام</option>
                 <option value="student">طالب مستقل</option>
@@ -440,19 +549,18 @@
             </div>
         </header>
 
-        <!-- 3. Dynamic Content Area Areas (استخدام نظام data-view الفعلي والمقترح بدلا من الإخفاء العشوائي) -->
+        <!-- 3. Dynamic Content Area Areas -->
         <section id="content-area">
 
             <!-- أ) واجهة تجربة الضيف والزائر (Guest View) -->
             <div data-view="public" class="hidden">
-                <!-- قسم البطل المطور (Hero Section لرفع معدل التحويل) -->
                 <div class="service-card" style="margin-bottom:2rem; text-align:center; padding:3rem; background: linear-gradient(135deg, #1e293b, #0f172a); border-color: var(--primary);">
                     <h2 style="font-size:2.2rem; margin-bottom:1rem; color: var(--primary)">منصة CyberPath التعليمية</h2>
                     <p style="color:var(--text-muted); max-width:700px; margin:auto; line-height:1.8;">
                         بوابتك الاحترافية المعتمدة لتعلم تقنيات الدفاع الرقمي، البرمجة، والتحليل الأمني المتقدم خطوة بخطوة مع بيئات محاكاة عملية.
                     </p>
-                    <button class="btn-link btn-accent" style="margin-top:1.5rem; background: var(--accent); color: white; padding: 10px 24px; border-radius: 6px;" onclick="simulateRoleChange('student')">
-                        ابدأ التعلم مجاناً الآن <i class="fas fa-arrow-left"></i>
+                    <button class="btn-link btn-accent" style="margin-top:1.5rem; background: var(--primary); color: white; padding: 12px 24px; border-radius: 6px;" onclick="toggleLoginModal(true)">
+                        سجل دخولك الآن للبدء <i class="fas fa-sign-in-alt"></i>
                     </button>
                 </div>
 
@@ -464,11 +572,8 @@
 
             <!-- ب) واجهة تجربة الطالب (Student Dashboard) -->
             <div data-view="student-dash" class="hidden">
-                <div class="stats-grid" id="student-stats-grid">
-                    <!-- تعبأ ديناميكياً بواسطة السكريبت مع كروت التلعيب المتطورة (Gamification) وشريط التقدم المطور -->
-                </div>
+                <div class="stats-grid" id="student-stats-grid"></div>
 
-                <!-- تحسين لوحة الطالب: قسم تتبع ومتابعة التعلم السريع المتكامل للشبكات والمختبرات -->
                 <div class="service-card">
                     <h4><i class="fas fa-play-circle"></i> متابعة التعلم الأكاديمي المستمر</h4>
                     <p style="color:var(--text-muted)">
@@ -488,12 +593,11 @@
                         <div class="val">42 طالب</div>
                     </div>
                     <div class="stat-card">
-                        <h4>المقررات الفعالة</h4>
-                        <div class="val">3 مقررات للحلول</div>
+                        <h4>المقررات الفعال رصدها</h4>
+                        <div class="val">3 مقررات</div>
                     </div>
                 </div>
 
-                <!-- تحسين لوحة المدرس: إضافة المهام المعلقة Pending Reviews للتصحيح المباشر والدائم -->
                 <div class="service-card">
                     <h4><i class="fas fa-clock"></i> مهام وتقييمات بانتظار المراجعة والاعتماد</h4>
                     <p style="color:var(--text-muted)">
@@ -507,7 +611,6 @@
 
             <!-- د) واجهة تجربة مسؤول النظام والأدمن (Admin Dashboard) -->
             <div data-view="admin-dash" class="hidden">
-                <!-- تحسين لوحة الأدمن: إضافة كروت ملخص النظام الكلي (System Overview Grid) المطور قبل الجداول -->
                 <h3 style="margin-bottom:1rem; font-size:1.1rem; color:var(--text-muted);">نظرة عامة على صحة وأمان النظام الكلي</h3>
                 <div class="stats-grid" id="admin-system-stats"></div>
 
@@ -515,7 +618,6 @@
                     <h4><i class="fas fa-user-shield"></i> لوحة التحكم في الصلاحيات والمستخدمين النشطين</h4>
                     <p style="color: var(--text-muted); margin-bottom: 1rem;">إدارة حسابات سوبابيز، رفع الصلاحيات، ومتابعة سجل الرقابة الموحد (Audit Trail) الأمني.</p>
                     
-                    <!-- استخدام المكون الجدولي الموحد Reusable Table Renderer لمنع تكرار الأكواد البنائية -->
                     <div class="table-container">
                         <table>
                             <thead id="table-head"></thead>
@@ -525,37 +627,163 @@
                 </div>
             </div>
 
-            <!-- هـ) الممرات والمناطق المحجوبة المحمية أمنياً (Restricted / Private View Trigger) -->
+            <!-- هـ) الممرات والمناطق المحجوبة المحمية أمنياً -->
             <div data-view="restricted" class="hidden">
                 <div class="service-card" style="border:1px dashed var(--danger); text-align:center;">
                     <h3 style="color:var(--danger); margin-bottom: 1rem;"><i class="fas fa-lock"></i> منطقة محمية ومحجوبة أمنياً</h3>
-                    <p style="color:var(--text-muted)">المحتوى أو الخدمة المطلوبة مخصصة للمشتركين الحقيقيين أو المقيدين بصلاحيات أكاديمية عليا داخل المنصة.</p>
-                    <button class="btn-link" style="color:var(--accent);" onclick="simulateRoleChange('student')">طلب ترقية الحساب أو محاكاة الدخول</button>
+                    <p style="color:var(--text-muted)">المحتوى أو الخدمة المطلوبة مخصصة للمشتركين المسجلين في النظام بصلاحيات أكاديمية صحيحة.</p>
+                    <button class="btn-link" style="color:var(--accent);" onclick="toggleLoginModal(true)">تسجيل الدخول للمنصة</button>
                 </div>
             </div>
 
         </section>
     </main>
 
-    <!-- --- الأكواد البرمجية والمتحكمات الهندسية الشاملة للمنصة --- -->
+    <!-- تضمين مكتبة سوبابيز الرسمية للاتصال وتوثيق الهويات -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <script>
-        // 1. App State Manager: منظم ومدير الحالة العام والموحد لملف المنصة
+        // 1) ربط وبناء عميل Supabase الحقيقي للمشروع
+        // يرجى استبدال هذه القيم بالقيم الفعلية لمشروعك من لوحة تحكم Supabase
+        const supabaseUrl = "YOUR_SUPABASE_URL";
+        const supabaseKey = "YOUR_SUPABASE_ANON_KEY";
+        
+        let supabaseClient = null;
+        if (supabaseUrl !== "YOUR_SUPABASE_URL") {
+            supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+        }
+
+        // App State Manager
         const appState = {
-            currentUser: { name: 'مهندس زائر', uid: 'guest_007' },
+            currentUser: null,
             currentRole: 'guest',
             activeView: 'public',
             notifications: [
                 { id: 1, text: "تحديث أمني: تم رصد محاولة وصول من جهاز جديد" },
-                { id: 2, text: "واجب أساسيات الشبكات بانتظار الاعتماد والمراجعة" },
-                { id: 3, text: "تمت إضافة شهادة جديدة لمسار التشفير السيبراني المتقدم" }
+                { id: 2, text: "واجب أساسيات الشبكات بانتظار الاعتماد والمراجعة" }
             ],
             stats: {
                 student: { progress: 85, rank: 'صائد ثغرات مبتدئ', xp: '2450 نقطة', completedQuizzes: '12 / 14' }
-            },
-            sidebarOpen: false
+            }
         };
 
-        // 2. View Controller & Rendering Router: محرك المظهر العام الديناميكي الذكي لمنع الـ classList.add العشوائي
+        // 2) نظام واجهة وحساب تسجيل الدخول الفعلي (Login)
+        function toggleLoginModal(show) {
+            const modal = document.getElementById('login-modal');
+            if (show) modal.classList.remove('hidden');
+            else modal.classList.add('hidden');
+        }
+
+        async function handleLoginSubmit(event) {
+            event.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            if (!supabaseClient) {
+                showToast('⚠️ لم يتم إدخال مفاتيح Supabase الحقيقية بالكود. جاري الانتقال لوضع المحاكاة التلقائي للمعاينة.', 'warning');
+                toggleLoginModal(false);
+                simulateRoleChange('student');
+                return;
+            }
+
+            showLoader();
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            hideLoader();
+
+            if (error) {
+                showToast(`❌ ${error.message}`, 'error');
+                return;
+            }
+
+            showToast('🔐 تم تسجيل الدخول بنجاح وتأمين الجلسة التوكن', 'success');
+            toggleLoginModal(false);
+            loadCurrentUser();
+        }
+
+        // 3) جلب وثيقة وصلاحية المستخدم الحالي بعد فحص الـ Authentication
+        async function loadCurrentUser() {
+            if (!supabaseClient) return;
+
+            const { data: { user } } = await supabaseClient.auth.getUser();
+
+            if (!user) {
+                // في حال عدم وجود مستخدم نشط، العودة لطور الضيف الآمن
+                document.getElementById('logout-zone').classList.add('hidden');
+                updateUIForRole('guest', 'زائر المنصة');
+                return;
+            }
+
+            appState.currentUser = user;
+            document.getElementById('user-display-name').textContent = user.email;
+            document.getElementById('logout-zone').classList.remove('hidden');
+            
+            // جلب حقول الصلاحية من جدول الملامح العام المستهدف في قاعدة البيانات (profiles)
+            loadUserProfile(user.id);
+        }
+
+        async function loadUserProfile(userId) {
+            showLoader();
+            // الافتراض الافتراضي الحامي هو دور الطالب في حال لم يحدد الجدول خلاف ذلك
+            let assignedRole = 'student'; 
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('profiles')
+                    .select('role, full_name')
+                    .eq('id', userId)
+                    .single();
+
+                if (data && data.role) {
+                    assignedRole = data.role;
+                    if(data.full_name) document.getElementById('user-display-name').textContent = data.full_name;
+                }
+            } catch (e) {
+                console.log("سيتم اعتماد التعيين الافتراضي بسبب غياب جدول التمكين Profiles");
+            }
+
+            hideLoader();
+            updateUIForRole(assignedRole, document.getElementById('user-display-name').textContent);
+        }
+
+        // زر ومحرك تسجيل الخروج الفعلي والموثق (Sign Out)
+        async function logout() {
+            if (supabaseClient) {
+                showLoader();
+                await supabaseClient.auth.signOut();
+                hideLoader();
+            }
+            showToast('🔒 تم تسجيل الخروج بنجاح وإبطال حزمة التوثيق الـ Token.', 'info');
+            appState.currentUser = null;
+            document.getElementById('logout-zone').classList.add('hidden');
+            updateUIForRole('guest', 'زائر المنصة');
+        }
+
+        // تحويل وتحديث واجهات النظام بناء على الأدوار الممررة من المصادقة الفعالة
+        function updateUIForRole(role, displayName) {
+            appState.currentRole = role;
+            document.getElementById('user-role-tag').textContent = role;
+            document.getElementById('notification-count').textContent = appState.notifications.length;
+            
+            const avatarChar = displayName ? displayName.charAt(0).toUpperCase() : 'U';
+            document.getElementById('user-avatar').textContent = avatarChar;
+
+            renderSidebarMenu(role);
+
+            if (role === 'guest') {
+                switchView('public');
+            } else if (role === 'student') {
+                renderStudentView();
+                switchView('student-dash');
+            } else if (role === 'instructor') {
+                switchView('instructor-dash');
+            } else if (role === 'admin') {
+                renderAdminStats();
+                populateAdminUserTable();
+                switchView('admin-dash');
+            }
+        }
+
+        // محرك التحكم والتبديل الهيكلي بين الـ Views
         function hideAllSections() {
             document.querySelectorAll('[data-view]').forEach(el => {
                 el.classList.add('hidden');
@@ -568,62 +796,43 @@
             if (target) {
                 target.classList.remove('hidden');
                 appState.activeView = viewName;
-                console.log(`[View Manager] Switched view actively to: ${viewName}`);
-            } else {
-                console.error(`[View Manager] Target view "${viewName}" not identified in DOM layouts.`);
             }
         }
 
-        // 3. Dynamic Sidebar Menu Generator: بناء روابط القائمة الجانبية الموحدة المظهر والمتغيرة الوظيفة تبعاً للأدوار
+        // إنشاء القوائم الجانبية بناء على مصفوفة الأدوار والـ Shell الموحد
         function renderSidebarMenu(role) {
             const menuDiv = document.getElementById('dynamic-menu');
-            
             const menus = {
                 admin: [
                     { icon: "fa-chart-line", text: "الرئيسية والإحصائيات", view: "admin-dash" },
-                    { icon: "fa-users-cog", text: "إدارة الحسابات والصلاحيات", view: "admin-dash" },
-                    { icon: "fa-history", text: "سجل الرقابة والأمان (Logs)", view: "admin-dash" }
+                    { icon: "fa-users-cog", text: "إدارة الحسابات والصلاحيات", view: "admin-dash" }
                 ],
                 instructor: [
                     { icon: "fa-home", text: "الرئيسية (نظرة عامة)", view: "instructor-dash" },
-                    { icon: "fa-user-graduate", text: "استعراض وإشراف الطلاب", view: "instructor-dash" },
-                    { icon: "fa-file-signature", text: "إدارة التقييمات والأكواد", view: "instructor-dash" }
+                    { icon: "fa-user-graduate", text: "استعراض وإشراف الطلاب", view: "instructor-dash" }
                 ],
                 student: [
                     { icon: "fa-tachometer-alt", text: "لوحة التحكم الشخصية", view: "student-dash" },
-                    { icon: "fa-trophy", text: "لوحة الصدارة والشارات", view: "student-dash" },
-                    { icon: "fa-lock-open", text: "المختبرات والتقييمات", view: "student-dash" }
+                    { icon: "fa-trophy", text: "لوحة الصدارة والشارات", view: "student-dash" }
                 ],
                 guest: [
                     { icon: "fa-home", text: "الرئيسية (الخدمات العامة)", view: "public" },
-                    { icon: "fa-graduation-cap", text: "المقررات الأكاديمية (محجوب)", view: "restricted" },
-                    { icon: "fa-user-plus", text: "طلب إنشاء حساب", view: "public", action: "register" }
+                    { icon: "fa-graduation-cap", text: "المقررات الأكاديمية (محجوب)", view: "restricted" }
                 ]
             };
 
             const currentMenu = menus[role] || menus['guest'];
-            
             menuDiv.innerHTML = currentMenu.map(item => {
-                return `<div class="nav-item" onclick="handleNavigation('${item.view}', '${item.action || ''}')">
+                return `<div class="nav-item" onclick="switchView('${item.view}')">
                             <i class="fas ${item.icon}"></i> <span>${item.text}</span>
                         </div>`;
             }).join('');
         }
 
-        function handleNavigation(view, action) {
-            if (action === 'register') {
-                showToast('ℹ️ للتسجيل، يرجى ملء نموذج المصادقة وسيربط بحساب Supabase الخاص بك.', 'info');
-                return;
-            }
-            switchView(view);
-        }
-
-        // 4. Enhanced Rendering Modules: تحسين واجهة ومكونات الطالب (Gamification + Progress Bar)
         function renderStudentView() {
             const statsGrid = document.getElementById('student-stats-grid');
             const data = appState.stats.student;
 
-            // بناء المكونات الأساسية الثلاث المضافة ديناميكياً
             let htmlContent = `
                 <div class="stat-card">
                     <h4>الرتبة السيبرانية التراكمية</h4>
@@ -633,14 +842,6 @@
                     <h4>النقاط المحرزة (XP)</h4>
                     <div class="val" style="color: var(--warning);">${data.xp}</div>
                 </div>
-                <div class="stat-card">
-                    <h4>الاختبارات والتقييمات المجتازة</h4>
-                    <div class="val" style="color: var(--success);">${data.completedQuizzes}</div>
-                </div>
-            `;
-
-            // خطوة (5): دمج الـ Progress Bar الاحترافية المقترحة أسفل مصفوفة الطلاب المضافة ديناميكياً
-            htmlContent += `
                 <div class="stat-card" style="grid-column: 1 / -1;">
                     <h4>التقدم العام بالمسارات التعليمية</h4>
                     <div class="val">${data.progress}%</div>
@@ -649,20 +850,16 @@
                     </div>
                 </div>
             `;
-
             statsGrid.innerHTML = htmlContent;
         }
 
-        // 7. System Overview Card Renderer: تحسين وعرض لوحة إحصائيات الأدمن (System Overview)
         function renderAdminStats() {
             const container = document.getElementById('admin-system-stats');
             const stats = [
                 { label: 'المستخدمون النشطون بالدبلوم', value: '245' },
                 { label: 'جلسات المختبرات المفتوحة حياً', value: '31' },
-                { label: 'محاولات الدخول الفاشلة المرصودة', value: '2', alert: true },
-                { label: 'الدورات والمسارات الشغالة', value: '18' }
+                { label: 'محاولات الدخول الفاشلة المرصودة', value: '2', alert: true }
             ];
-
             container.innerHTML = stats.map(s => `
                 <div class="stat-card" style="${s.alert ? 'border-color: var(--danger);' : ''}">
                     <h4 style="${s.alert ? 'color: var(--danger);' : ''}">${s.label}</h4>
@@ -671,11 +868,9 @@
             `).join('');
         }
 
-        // 10. Reusable Table Renderer: المحرك والمنظف العام لمنع تكرار بناء عناصر الجداول HTML بالمنصة
         function renderTable(headers, rows) {
             const tableHead = document.getElementById('table-head');
             const tableBody = document.getElementById('table-body');
-
             if(tableHead && tableBody) {
                 tableHead.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
                 tableBody.innerHTML = rows.join('');
@@ -686,10 +881,8 @@
             const headers = ["معرف المستخدم", "الاسم الكامل", "الدور الوظيفي", "الحالة الأمنية", "الإجراء المتخذ"];
             const rawData = [
                 { id: "USR-99", name: "أحمد الشمري", role: "Student", status: "نشط", action: "تعديل لـ Instructor" },
-                { id: "USR-102", name: "د. خالد العتيبي", role: "Instructor", status: "نشط", action: "تخفيض الصلاحية" },
                 { id: "USR-404", name: "روبوت فحص مجهول", role: "Guest", status: "محظور", action: "فك الحظر" }
             ];
-
             const rows = rawData.map(r => `
                 <tr>
                     <td><strong>${r.id}</strong></td>
@@ -699,11 +892,18 @@
                     <td><button class="btn-link btn-accent" style="margin:0; font-size:0.85rem;" onclick="changeUserRole('${r.id}', 'admin')">${r.action}</button></td>
                 </tr>
             `);
-
             renderTable(headers, rows);
         }
 
-        // 11. Search Optimization Debounce System: تحسين استهلاك المعالج وتأخير الإرسال لمنع التضارب
+        function changeUserRole(targetUserId, currentProfileRole) {
+            if (appState.currentRole !== 'admin') {
+                showToast('🚫 لا تملك صلاحيات التعديل البرمجية لإدارة هذا الأمر الأمني الصارم!', 'error');
+                return;
+            }
+            showToast(`✅ [Audit Trail] تم توثيق تعديل صلاحيات الحساب ${targetUserId} بنجاح.`, 'success');
+        }
+
+        // Debounce لعمليات البحث
         function debounce(func, delay = 400) {
             let timeout;
             return (...args) => {
@@ -711,32 +911,17 @@
                 timeout = setTimeout(() => func(...args), delay);
             };
         }
-
         const executeDebouncedSearch = debounce((searchQuery) => {
-            console.log(`[Debounce Engine] Dispatching secure API/Supabase search request for query: ${searchQuery}`);
-            showToast(`🔎 تم تحديث نتائج الفحص والبحث عن: "${searchQuery}"`, 'info');
+            console.log(`[Debounce Engine] Search request dispatched for: ${searchQuery}`);
+            showToast(`🔎 نتائج البحث تحديثات لـ: "${searchQuery}"`, 'info');
         }, 500);
 
-        // 12. Security Enforcement: منع تضارب الصلاحيات وبصمة الـ Audit Trail الأمنية الصارمة لحماية دالتك
-        function changeUserRole(targetUserId, currentProfileRole) {
-            // منع تضارب وتقييد الصلاحيات الحساسة فورياً
-            if (appState.currentRole !== 'admin') {
-                showToast('🚫 لا تملك صلاحيات التعديل البرمجية لإدارة هذا الأمر الأمني الصارم!', 'error');
-                console.warn(`[Security Breach Alert] Unauthorized modification attempt on target: ${targetUserId}`);
-                return;
-            }
-            
-            showToast(`✅ [Audit Trail Registered] تم تعديل وتوثيق صلاحيات الحساب ${targetUserId} بنجاح.`, 'success');
-        }
-
-        // 13. Toast Notification Alert Manager: نظام التنبيهات الموقوت المرن المحسن بصرياً
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = `toast toast-${type}`;
             toast.innerHTML = message;
             container.appendChild(toast);
-
             setTimeout(() => {
                 toast.style.opacity = '0';
                 toast.style.transform = 'translateY(10px)';
@@ -744,64 +929,42 @@
             }, 4000);
         }
 
-        // 14. Global Synchronous Loading Controls: دوال إدارة شاشات التحميل ومزامنة العمليات
-        function showLoader() {
-            document.getElementById('global-loader').classList.remove('hidden');
-        }
+        function showLoader() { document.getElementById('global-loader').classList.remove('hidden'); }
+        function hideLoader() { document.getElementById('global-loader').classList.add('hidden'); }
 
-        function hideLoader() {
-            document.getElementById('global-loader').classList.add('hidden');
-        }
-
-        // 0. Simulation Routing Core: تابع محاكاة تحول وتبادل الأدوار البرمجية الحية (لتجربة المنصة فورياً)
+        // دالة المحاكاة المحدثة للاستخدام أثناء عدم توفر مفاتيح Supabase حية
         function simulateRoleChange(newRole) {
             showLoader();
-            
             setTimeout(() => {
-                appState.currentRole = newRole;
-                
-                // تحديث العناصر البصرية بالهيدر العلوي بشكل متزامن
-                document.getElementById('user-role-tag').textContent = newRole;
-                document.getElementById('notification-count').textContent = appState.notifications.length;
-                
-                if(newRole === 'guest') {
-                    document.getElementById('user-display-name').textContent = "زائر المنصة";
-                    document.getElementById('user-avatar').textContent = "G";
-                    renderSidebarMenu('guest');
-                    switchView('public');
-                } else if(newRole === 'student') {
-                    document.getElementById('user-display-name').textContent = "م. سلمان الحربي";
-                    document.getElementById('user-avatar').textContent = "S";
-                    renderSidebarMenu('student');
-                    renderStudentView();
-                    switchView('student-dash');
-                } else if(newRole === 'instructor') {
-                    document.getElementById('user-display-name').textContent = "أ.د. عبد الله الماجد";
-                    document.getElementById('user-avatar').textContent = "I";
-                    renderSidebarMenu('instructor');
-                    switchView('instructor-dash');
-                } else if(newRole === 'admin') {
-                    document.getElementById('user-display-name').textContent = "مُهندس النظام (جذر)";
-                    document.getElementById('user-avatar').textContent = "A";
-                    renderSidebarMenu('admin');
-                    renderAdminStats();
-                    populateAdminUserTable();
-                    switchView('admin-dash');
-                }
-                
+                updateUIForRole(newRole, newRole === 'guest' ? 'زائر المنصة' : `مستخدم محاكى [${newRole.toUpperCase()}]`);
+                if(newRole !== 'guest') document.getElementById('logout-zone').classList.remove('hidden');
+                else document.getElementById('logout-zone').classList.add('hidden');
                 hideLoader();
-                showToast(`🔒 تمت محاكاة الصلاحية والتحويل لطابع الـ [${newRole.toUpperCase()}] الموحد بنجاح.`, 'success');
-            }, 600);
+                showToast(`🔒 تمت محاكاة الطابع [${newRole.toUpperCase()}] بنجاح.`, 'success');
+            }, 400);
         }
 
-        // الاستماع لمدخلات البحث وربطها بمحرك الـ Debounce المحسن
         document.getElementById('global-search').addEventListener('input', (e) => {
             executeDebouncedSearch(e.target.value);
         });
 
-        // التشغيل المبدئي الفوري للمنصة عند التحميل الأول للصفحة
+        // تشغيل المصادقة وفحص الجلسة عند بدء تحميل الصفحة بالمتصفح
         document.addEventListener('DOMContentLoaded', () => {
-            simulateRoleChange('guest');
+            if (supabaseClient) {
+                loadCurrentUser();
+                // ربط مستمع للأحداث التلقائية للتوكن في Supabase (مثل انتهاء الجلسة أو تسجيل الخروج من جهاز آخر)
+                supabaseClient.auth.onAuthStateChange((event, session) => {
+                    if (event === 'SIGNED_OUT') {
+                        updateUIForRole('guest', 'زائر المنصة');
+                        document.getElementById('logout-zone').classList.add('hidden');
+                    } else if (session) {
+                        loadCurrentUser();
+                    }
+                });
+            } else {
+                // تفعيل وضع الزائر التلقائي في حال عدم تهيئة المفاتيح بعد
+                updateUIForRole('guest', 'زائر المنصة');
+            }
         });
     </script>
 </body>
