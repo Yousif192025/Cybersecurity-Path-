@@ -192,7 +192,6 @@ window.updateUserRoleFromAdmin = async function(userId, newRole) {
 function setupAdminSearchListener() {
     const searchInput = document.getElementById('global-search');
     if (searchInput) {
-        // إزالة المستمع القديم إذا وجد لتجنب التكرار وتراكم الأحداث
         const oldListener = searchInput._adminSearchListener;
         if (oldListener) {
             searchInput.removeEventListener('input', oldListener);
