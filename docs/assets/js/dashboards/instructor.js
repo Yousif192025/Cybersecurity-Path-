@@ -1,85 +1,110 @@
 /**
- * وحدة المدرس (Instructor Dashboard)
- * يتم تحميلها ديناميكياً عند التبديل إلى واجهة المدرس
+ * وحدة المدير (Admin Dashboard)
+ * النسخة المتوافقة مع نظام Lazy Loading
  */
 
-// دالة التهيئة الرئيسية
-function initInstructorDashboard() {
-    console.log('👨‍🏫 جاري تهيئة لوحة تحكم المدرس...');
-    
-    // تحديث الإحصائيات
-    updateInstructorStats();
-    
-    // تحميل قائمة الطلاب
-    loadInstructorStudents();
-    
-    // تحديث عداد التمارين غير المصححة
-    updatePendingAssignmentsCount();
-}
+// ============================================
+// 1. متغيرات عامة
+// ============================================
+let isAdminInitialized = false;
 
-// تحديث كروت الإحصائيات
-function updateInstructorStats() {
-    const studentsCount = document.getElementById('instructor-students-count');
-    const coursesCount = document.getElementById('instructor-courses-count');
-    
-    if (studentsCount) studentsCount.textContent = '42 طالب';
-    if (coursesCount) coursesCount.textContent = '3 مقررات';
-}
+// ============================================
+// 2. الدوال الرئيسية
+// ============================================
 
-// تحديث عدد التمارين غير المصححة
-function updatePendingAssignmentsCount() {
-    const pendingElement = document.getElementById('instructor-pending-count');
-    if (pendingElement) {
-        // محاكاة جلب عدد التمارين غير المصححة من قاعدة البيانات
-        const pendingCount = 8;
-        pendingElement.textContent = `${pendingCount} تمرين`;
-        if (pendingCount > 5) {
-            pendingElement.style.color = 'var(--danger)';
+/**
+ * دالة التهيئة الرئيسية لوحة الأدمن
+ */
+function initAdminDashboard() {
+    console.log('🛡️ جاري تهيئة لوحة تحكم المدير...');
+    
+    // التحقق من وجود العناصر
+    if (!document.getElementById('admin-system-stats')) {
+        console.warn('⚠️ عناصر واجهة الأدمن غير موجودة بعد، تأجيل التهيئة...');
+        setTimeout(initAdminDashboard, 100);
+        return;
+    }
+    
+    if (isAdminInitialized) {
+        console.log('ℹ️ لوحة الأدمن تم تهيئتها مسبقاً');
+        return;
+    }
+    
+    try {
+        // تحديث إحصائيات النظام
+        if (typeof window.renderAdminStats === 'function') {
+            window.renderAdminStats();
+        } else {
+            renderAdminStatsFallback();
         }
+        
+        // تحديث جدول المستخدمين
+        if (typeof window.populateAdminUserTable === 'function') {
+            window.populateAdminUserTable();
+        } else {
+            console.warn('⚠️ populateAdminUserTable غير موجودة في النطاق العام');
+        }
+        
+        isAdminInitialized = true;
+        console.log('✅ تم تهيئة لوحة تحكم المدير بنجاح');
+    } catch (error) {
+        console.error('❌ خطأ في تهيئة لوحة الأدمن:', error);
     }
 }
 
-// تحميل قائمة الطلاب
-async function loadInstructorStudents() {
-    const tableBody = document.getElementById('instructor-students-table');
-    if (!tableBody) return;
+/**
+ * دالة احتياطية لعرض إحصائيات النظام
+ */
+function renderAdminStatsFallback() {
+    const container = document.getElementById('admin-system-stats');
+    if (!container) return;
     
-    // بيانات تجريبية - سيتم جلبها من Supabase لاحقاً
-    const students = [
-        { name: 'خالد بن عبدالله', group: 'المجموعة السيبرانية أ', grade: '92 / 100', lastActivity: 'اليوم', canEdit: true },
-        { name: 'سارة الأحمد', group: 'المجموعة السيبرانية ب', grade: '88 / 100', lastActivity: 'أمس', canEdit: true },
-        { name: 'محمد العتيبي', group: 'المجموعة السيبرانية أ', grade: '76 / 100', lastActivity: 'منذ يومين', canEdit: true },
-        { name: 'نورة القحطاني', group: 'المجموعة السيبرانية ب', grade: '95 / 100', lastActivity: 'اليوم', canEdit: true }
+    const stats = [
+        { label: 'المستخدمون النشطون', value: '245', alert: false },
+        { label: 'جلسات المختبرات المفتوحة', value: '31', alert: false },
+        { label: 'محاولات الدخول الفاشلة', value: '2', alert: true }
     ];
     
-    if (students.length > 0) {
-        tableBody.innerHTML = students.map(student => `
-            <tr>
-                <td><strong>${student.name}</strong></td>
-                <td>${student.group}</td>
-                <td>${student.grade}</td>
-                <td>${student.lastActivity}</td>
-                <td>
-                    <button class="btn-action-small" style="background: var(--primary);" onclick="showToast('✏️ تعديل تقييم الطالب ${student.name}', 'info')">
-                        <i class="fas fa-edit"></i> تعديل
-                    </button>
-                    <button class="btn-action-small" style="background: var(--accent);" onclick="showToast('📧 إرسال ملاحظات للطالب ${student.name}', 'info')">
-                        <i class="fas fa-comment"></i> ملاحظات
-                    </button>
-                </td>
-            </tr>
-        `).join('');
-    } else {
-        tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">لا يوجد طلاب مسجلين بعد</td></tr>';
+    container.innerHTML = stats.map(s => `
+        <div class="stat-card" style="${s.alert ? 'border-color: var(--danger);' : ''}">
+            <h4 style="${s.alert ? 'color: var(--danger);' : ''}">${s.label}</h4>
+            <div class="val" style="${s.alert ? 'color: var(--danger);' : ''}">${s.value}</div>
+        </div>
+    `).join('');
+}
+
+/**
+ * دالة لتصدير تقرير المستخدمين
+ */
+function exportUsersReport() {
+    if (window.showToast) {
+        window.showToast('📊 جاري تحضير تقرير المستخدمين...', 'info');
+        setTimeout(() => {
+            window.showToast('✅ تم تصدير تقرير المستخدمين بصيغة CSV', 'success');
+        }, 1500);
     }
 }
 
-// التصدير للاستخدام العالمي
-window.initInstructorDashboard = initInstructorDashboard;
-
-// تشغيل التهيئة تلقائياً
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initInstructorDashboard);
-} else {
-    initInstructorDashboard();
+/**
+ * دالة لعرض صحة النظام
+ */
+function showSystemHealth() {
+    if (window.showToast) {
+        window.showToast(`
+            🖥️ صحة النظام:
+            • قاعدة البيانات: تعمل بشكل طبيعي
+            • جلسات المستخدمين النشطة: 156
+            • متوسط وقت الاستجابة: 0.3 ثانية
+        `, 'info');
+    }
 }
+
+// ============================================
+// 3. التصدير للاستخدام العالمي
+// ============================================
+
+window.initAdminDashboard = initAdminDashboard;
+window.exportUsersReport = exportUsersReport;
+window.showSystemHealth = showSystemHealth;
+
+console.log('📦 وحدة Admin Dashboard جاهزة للتحميل (في وضع الانتظار)');
