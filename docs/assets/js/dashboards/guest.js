@@ -1,7 +1,6 @@
 /**
  * وحدة الضيف والزائر العام (Guest Dashboard)
  * يتم تحميلها تلقائياً عند زيارة المنصة أو تسجيل الخروج
- *
  */
 
 function initGuestDashboard() {
