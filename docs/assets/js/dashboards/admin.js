@@ -1,30 +1,22 @@
 /**
  * نظام القيادة والربط المباشر المطور للوحة الأدمن العليا - منصة CyberPath
- * معالجة ذكية ومؤمنة لخطأ تداخل الـ Supabase Client
  */
 
 (function () {
-    // 1. محاولة التقاط الكلاينت بكافة الأشكال المحتملة في النطاق العام للمشروع
-    let supabase = window.supabaseClient || window.supabase || (window.supabaseInstance ? window.supabaseInstance.client : null);
+    // التقاط الكلاينت الموحد والمشترك من النطاق العام لمنع التكرار والتنبيهات
+    let supabase = window.supabaseClient || window.supabase;
     
-    // 2. خطة الدفاع الأمني البديلة: إذا لم يكن الكلاينت جاهزاً أو يفتقد دالة from، نقوم ببنائه ذاتياً فوراً لضمان عدم انهيار اللوحة
+    // خطة الطوارئ البديلة فقط إذا لم يُعثر عليه نهائياً (لمنع انهيار اللوحة)
     if (!supabase || typeof supabase.from !== 'function') {
-        console.warn("⚠️ لم يتم العثور على عميل Supabase نشط في النطاق العام، يجري تهيئة اتصال مستقل ومباشر للوحة الأدمن...");
-        
         try {
-            // استخدام الطريقة الكلاسيكية الآمنة للنسخ الحديثة
             if (window.supabase && typeof window.supabase.createClient === 'function') {
                 supabase = window.supabase.createClient(
                     'https://suvpaunulhqfoclepwoz.supabase.co',
                     'sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b'
                 );
-            } else {
-                // إذا تم استيرادها كـ Module، ننشئ كائن محلي مؤمن عبر آليات النوافذ أو نعتمد على الرابط المباشر
-                // لتجنب أي تعارض، سنقوم بإنشاء العميل بديناميكية تامة
-                console.error("🚨 تعذر الوصول لدالة createClient. تأكد من استيراد Supabase بشكل صحيح في الصفحة الأم.");
             }
         } catch (e) {
-            console.error("🚨 خطأ أثناء محاولة بناء العميل المستقل للوحة الأدمن:", e);
+            console.error("🚨 خطأ في الاتصال الاحتياطي:", e);
         }
     }
     
@@ -32,17 +24,12 @@
     window.initAdminDashboard = async function () {
         console.log("⚡ تم تفعيل ممرات لوحة الأدمن العليا الحية حباً وكرامة.");
         
-        // إعادة الفحص والـ Fallback الأخير داخل نطاق التشغيل الحقيقي
-        if (!supabase || typeof supabase.from !== 'function') {
-            // محاولة أخيرة لالتقاط الكائن الفعلي من الصفحة الأم (index.html أو undashboard.html)
-            supabase = window.supabaseClient || window.supabase;
-            if(!supabase || typeof supabase.from !== 'function') {
-                alert("🚨 خطأ ربط حرج: لم نتمكن من الوصول لقاعدة بيانات Supabase. يرجى التحقق من لوحة المطورين.");
-                return;
-            }
+        // إعادة التحقق من الكائن العام الموحد لضمان قراءة الجلسة الصحيحة
+        if (window.supabaseClient) {
+            supabase = window.supabaseClient;
         }
 
-        // إتاحة ميزة التحديث العام في النطاق الدولي للمنصة لربط الأزرار العلوية
+        // ميزة التحديث العام
         window.refreshAllAdminData = async function() {
             try {
                 await Promise.all([
@@ -68,6 +55,8 @@
     // 📊 1. جلب الإحصائيات الست الحية (Stats Engine)
     // ==========================================
     async function loadAdminStats() {
+        if (!supabase || typeof supabase.from !== 'function') return;
+        
         const { count: users } = await supabase.from('user_profile').select('*', { count: 'exact', head: true });
         const { count: courses } = await supabase.from('courses').select('*', { count: 'exact', head: true });
         const { count: videos } = await supabase.from('course_videos').select('*', { count: 'exact', head: true });
