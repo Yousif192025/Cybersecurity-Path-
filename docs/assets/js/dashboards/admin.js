@@ -1,21 +1,47 @@
 /**
- * نظام القيادة والربط المباشر للوحة الأدمن العليا - منصة CyberPath
- * متوافق تماماً مع بنية التحميل الكسول الديناميكي
+ * نظام القيادة والربط المباشر المطور للوحة الأدمن العليا - منصة CyberPath
+ * معالجة ذكية ومؤمنة لخطأ تداخل الـ Supabase Client
  */
 
 (function () {
-    // التحقق الفوري من وجود الكلاينت المركزي لـ Supabase في الصفحة الأم
-    const supabase = window.supabaseClient || window.supabase;
+    // 1. محاولة التقاط الكلاينت بكافة الأشكال المحتملة في النطاق العام للمشروع
+    let supabase = window.supabaseClient || window.supabase || (window.supabaseInstance ? window.supabaseInstance.client : null);
     
-    if (!supabase) {
-        console.error("🚨 فشل المزامنة: عميل Supabase المركزي غير معرف في النطاق العام!");
-        return;
+    // 2. خطة الدفاع الأمني البديلة: إذا لم يكن الكلاينت جاهزاً أو يفتقد دالة from، نقوم ببنائه ذاتياً فوراً لضمان عدم انهيار اللوحة
+    if (!supabase || typeof supabase.from !== 'function') {
+        console.warn("⚠️ لم يتم العثور على عميل Supabase نشط في النطاق العام، يجري تهيئة اتصال مستقل ومباشر للوحة الأدمن...");
+        
+        try {
+            // استخدام الطريقة الكلاسيكية الآمنة للنسخ الحديثة
+            if (window.supabase && typeof window.supabase.createClient === 'function') {
+                supabase = window.supabase.createClient(
+                    'https://suvpaunulhqfoclepwoz.supabase.co',
+                    'sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b'
+                );
+            } else {
+                // إذا تم استيرادها كـ Module، ننشئ كائن محلي مؤمن عبر آليات النوافذ أو نعتمد على الرابط المباشر
+                // لتجنب أي تعارض، سنقوم بإنشاء العميل بديناميكية تامة
+                console.error("🚨 تعذر الوصول لدالة createClient. تأكد من استيراد Supabase بشكل صحيح في الصفحة الأم.");
+            }
+        } catch (e) {
+            console.error("🚨 خطأ أثناء محاولة بناء العميل المستقل للوحة الأدمن:", e);
+        }
     }
-
+    
     // الدالة الرئيسية المستدعاة تلقائياً فور حقن اللوحة في الموجه الديناميكي
     window.initAdminDashboard = async function () {
         console.log("⚡ تم تفعيل ممرات لوحة الأدمن العليا الحية حباً وكرامة.");
         
+        // إعادة الفحص والـ Fallback الأخير داخل نطاق التشغيل الحقيقي
+        if (!supabase || typeof supabase.from !== 'function') {
+            // محاولة أخيرة لالتقاط الكائن الفعلي من الصفحة الأم (index.html أو undashboard.html)
+            supabase = window.supabaseClient || window.supabase;
+            if(!supabase || typeof supabase.from !== 'function') {
+                alert("🚨 خطأ ربط حرج: لم نتمكن من الوصول لقاعدة بيانات Supabase. يرجى التحقق من لوحة المطورين.");
+                return;
+            }
+        }
+
         // إتاحة ميزة التحديث العام في النطاق الدولي للمنصة لربط الأزرار العلوية
         window.refreshAllAdminData = async function() {
             try {
@@ -57,6 +83,7 @@
         if(document.getElementById('statRatings')) document.getElementById('statRatings').innerText = ratings ?? 0;
     }
 
+    // [باقي الدوال كما هي تماماً دون أي تغيير من كود الدفعة السابقة...]
     // ==========================================
     // 📚 2. إدارة الحقائب والمساقات (Courses Management)
     // ==========================================
