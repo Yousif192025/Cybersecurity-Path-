@@ -1,6 +1,5 @@
 /**
  * نظام التحكم والتبديل المركزي (Dynamic Dashboard Router)
- * 
  * الوظيفة:
  * 1. مراقبة حالة تسجيل الدخول عبر Supabase Auth.
  * 2. جلب دور المستخدم (Role) من جدول user_profile.
