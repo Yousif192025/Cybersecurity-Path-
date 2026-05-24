@@ -1,271 +1,347 @@
 /**
- * وحدة المدير (Admin Dashboard) - النسخة المدمجة والمطورة
- * يتم تحميلها ديناميكياً عند التبديل إلى واجهة الأدمن
- * 
- *
- * تم الدمج مع:
- * - الاتصال الآمن بـ Supabase (استراتيجية النسخة الواحدة)
- * - جلب وتحديث أدوار وصلاحيات المستخدمين من جدول user_profile
- * - معالجة عمليات البحث الفوري وآلية الـ Debounce
+ * نظام القيادة والربط المباشر للوحة الأدمن العليا - منصة CyberPath
+ * متوافق تماماً مع بنية التحميل الكسول الديناميكي
  */
 
-// ============================================
-// 1. تهيئة اتصال Supabase (نسخة واحدة فقط)
-// ============================================
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
-
-const supabaseUrl = "https://suvpaunulhqfoclepwoz.supabase.co";
-const supabaseKey = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
-
-// استخدام استراتيجية النسخة الواحدة لضمان استقرار الاتصال
-if (!window.supabaseClient) {
-    window.supabaseClient = createClient(supabaseUrl, supabaseKey);
-}
-const supabase = window.supabaseClient;
-
-// ============================================
-// 2. متغيرات عامة وإدارة الحالة
-// ============================================
-let isAdminInitialized = false;
-
-// ============================================
-// 3. الدوال الرئيسية لواجهة الأدمن
-// ============================================
-
-/**
- * دالة التهيئة الرئيسية للوحة التحكم الخاصة بالمدير
- */
-function initAdminDashboard() {
-    console.log('🛡️ جاري تهيئة لوحة تحكم المدير...');
+(function () {
+    // التحقق الفوري من وجود الكلاينت المركزي لـ Supabase في الصفحة الأم
+    const supabase = window.supabaseClient || window.supabase;
     
-    // التحقق من وجود عناصر الواجهة المصممة في الـ DOM قبل التنفيذ
-    if (!document.getElementById('admin-users-table')) {
-        console.warn('⚠️ عناصر واجهة الأدمن لم تكتمل في الـ DOM بعد، إعادة المحاولة...');
-        setTimeout(initAdminDashboard, 100);
+    if (!supabase) {
+        console.error("🚨 فشل المزامنة: عميل Supabase المركزي غير معرف في النطاق العام!");
         return;
     }
-    
-    try {
-        // 1. تحديث الإحصائيات العامة للنظام
-        renderAdminStats();
+
+    // الدالة الرئيسية المستدعاة تلقائياً فور حقن اللوحة في الموجه الديناميكي
+    window.initAdminDashboard = async function () {
+        console.log("⚡ تم تفعيل ممرات لوحة الأدمن العليا الحية حباً وكرامة.");
         
-        // 2. جلب وتعبئة جدول إدارة المستخدمين
-        populateAdminUserTable();
-        
-        // 3. ربط مستمع حدث البحث الفوري المطور
-        setupAdminSearchListener();
-        
-        isAdminInitialized = true;
-        console.log('✅ تم تهيئة لوحة تحكم المدير بنجاح');
-    } catch (error) {
-        console.error('❌ خطأ في تهيئة لوحة الأدمن:', error);
-    }
-}
-
-/**
- * جلب وتحديث كروت الإحصائيات الخاصة بالنظام
- */
-async function renderAdminStats() {
-    const container = document.getElementById('admin-system-stats');
-    if (!container) return;
-
-    try {
-        // محاولة جلب أعداد حقيقية من قاعدة البيانات مستقبلاً
-        const totalUsers = 245;
-        const activeLabs = 31;
-        const failedAttempts = 2;
-
-        container.innerHTML = `
-            <div class="stat-card">
-                <h4><i class="fas fa-users"></i> إجمالي المستخدمين</h4>
-                <div class="val">${totalUsers}</div>
-            </div>
-            <div class="stat-card">
-                <h4><i class="fas fa-laptop-code"></i> جلسات المختبرات النشطة</h4>
-                <div class="val" style="color: var(--success);">${activeLabs}</div>
-            </div>
-            <div class="stat-card" style="border-color: var(--danger);">
-                <h4 style="color: var(--danger);"><i class="fas fa-exclamation-triangle"></i> محاولات دخول مشبوهة</h4>
-                <div class="val" style="color: var(--danger);">${failedAttempts}</div>
-            </div>
-        `;
-    } catch (err) {
-        console.error('❌ خطأ في معالجة إحصائيات النظام:', err);
-    }
-}
-
-/**
- * جلب وعرض المستخدمين في جدول الإدارة مع دعم البحث الفوري
- * @param {string} searchQuery نص البحث المدخل لتصفية النتائج
- */
-async function populateAdminUserTable(searchQuery = '') {
-    const tableBody = document.getElementById('admin-users-table');
-    if (!tableBody) return;
-
-    try {
-        // بناء الاستعلام الأساسي من جدول الملفات الشخصية
-        let query = supabase
-            .from('user_profile')
-            .select('user_id, full_name, national_id, role, status');
-
-        // إذا كان هناك نص بحث، يتم التصفية بناءً على الاسم أو الهوية الوطنية
-        if (searchQuery.trim() !== '') {
-            query = query.or(`full_name.ilike.%${searchQuery}%,national_id.ilike.%${searchQuery}%`);
-        }
-
-        const { data: users, error } = await query.order('full_name', { ascending: true });
-
-        let usersList = [];
-
-        if (error || !users || users.length === 0) {
-            if (searchQuery) {
-                tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem;">🔍 لم يتم العثور على نتائج تطابق بحثك.</td></tr>';
-                return;
+        // إتاحة ميزة التحديث العام في النطاق الدولي للمنصة لربط الأزرار العلوية
+        window.refreshAllAdminData = async function() {
+            try {
+                await Promise.all([
+                    loadAdminStats(),
+                    loadAdminCourses(),
+                    loadAdminVideos(),
+                    loadAdminEnrollments(),
+                    loadAdminCertificates(),
+                    loadAdminRatings(),
+                    loadAdminUsers()
+                ]);
+                console.log("✅ تمت مزامنة قاعدة البيانات وتحديث السجلات بنجاح تام.");
+            } catch (err) {
+                console.error("🚨 خطأ أثناء جلب تحديثات الأدمن الحية:", err);
             }
-            console.log('ℹ️ استخدام البيانات التجريبية لإدارة المستخدمين في نظام الأدمن');
-            usersList = getDefaultAdminUsers();
-        } else {
-            usersList = users;
+        };
+
+        // إجراء الاستدعاء الأولي الفوري للبيانات حياً
+        window.refreshAllAdminData();
+    };
+
+    // ==========================================
+    // 📊 1. جلب الإحصائيات الست الحية (Stats Engine)
+    // ==========================================
+    async function loadAdminStats() {
+        const { count: users } = await supabase.from('user_profile').select('*', { count: 'exact', head: true });
+        const { count: courses } = await supabase.from('courses').select('*', { count: 'exact', head: true });
+        const { count: videos } = await supabase.from('course_videos').select('*', { count: 'exact', head: true });
+        const { count: enrollments } = await supabase.from('enrollments').select('*', { count: 'exact', head: true });
+        const { count: certificates } = await supabase.from('certificates').select('*', { count: 'exact', head: true });
+        const { count: ratings } = await supabase.from('instructor_ratings').select('*', { count: 'exact', head: true });
+
+        if(document.getElementById('statUsers')) document.getElementById('statUsers').innerText = users ?? 0;
+        if(document.getElementById('statCourses')) document.getElementById('statCourses').innerText = courses ?? 0;
+        if(document.getElementById('statVideos')) document.getElementById('statVideos').innerText = videos ?? 0;
+        if(document.getElementById('statEnrollments')) document.getElementById('statEnrollments').innerText = enrollments ?? 0;
+        if(document.getElementById('statCertificates')) document.getElementById('statCertificates').innerText = certificates ?? 0;
+        if(document.getElementById('statRatings')) document.getElementById('statRatings').innerText = ratings ?? 0;
+    }
+
+    // ==========================================
+    // 📚 2. إدارة الحقائب والمساقات (Courses Management)
+    // ==========================================
+    async function loadAdminCourses() {
+        const { data, error } = await supabase.from('courses').select('*');
+        const tbody = document.getElementById('coursesTable');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+        if (error || !data?.length) {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--text-muted);">لا توجد مساقات تدريبية مدرجة حالياً.</td></tr>';
+            return;
         }
 
-        tableBody.innerHTML = usersList.map(user => `
-            <tr>
-                <td><strong>${user.full_name}</strong></td>
-                <td><code>${user.national_id || '---'}</code></td>
+        data.forEach(c => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${c.title}</strong></td>
+                <td><small style="color:var(--text-muted);">${c.description || 'لا يوجد وصف متاح'}</small></td>
+                <td><button class="btn-link btn-danger" style="margin:0; padding:6px 12px; font-size:12px;" onclick="window.deleteAdminCourse('${c.course_id}')"><i class="fas fa-trash-alt"></i> شطب المساق</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        // تعبئة قائمة اختيار المساقات الفرعية لربط المحاضرات المرئية بذكاء
+        const select = document.getElementById('videoCourseSelect');
+        if (select) {
+            select.innerHTML = '<option value="">-- اختر المساق الحاضن --</option>' +
+                data.map(c => `<option value="${c.course_id}">${c.title}</option>`).join('');
+        }
+    }
+
+    window.addAdminCourse = async function () {
+        const titleInput = document.getElementById('courseTitle');
+        const descInput = document.getElementById('courseDesc');
+        const title = titleInput.value.trim();
+        const desc = descInput.value.trim();
+
+        if (!title) return alert('خطأ: يرجى كتابة عنوان المساق أولاً لتمكين البناء التعليمي!');
+
+        // جلب معرف الأدمن الحالي لربطه كمالك ومشرف للمساق
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return alert('تعذر التحقق من الهوية الإدارية الموثقة.');
+
+        const { error } = await supabase.from('courses').insert({ title, description: desc, instructor_id: user.id });
+        if (error) {
+            alert('فشل الإدراج: ' + error.message);
+        } else {
+            titleInput.value = '';
+            descInput.value = '';
+            window.refreshAllAdminData();
+        }
+    };
+
+    window.deleteAdminCourse = async function (id) {
+        if (!confirm('🚨 تحذير أمني عالي الخطورة:\nهل أنت متأكد تماماً من شطب هذا المساق نهائياً؟ سيؤدي هذا الإجراء لحذف كافة الفيديوهات والتسجيلات المرتبطة به فوراً!')) return;
+        await supabase.from('courses').delete().eq('course_id', id);
+        window.refreshAllAdminData();
+    };
+
+    // ==========================================
+    // 🎬 3. إدارة بنك المحاضرات (Videos Management)
+    // ==========================================
+    async function loadAdminVideos() {
+        const { data, error } = await supabase.from('course_videos').select('*, courses(title)');
+        const tbody = document.getElementById('videosTable');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+        if (error || !data?.length) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">لا توجد محاضرات أو مقاطع عمل مرصودة.</td></tr>';
+            return;
+        }
+
+        data.forEach(v => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${v.video_title}</td>
+                <td><span class="badge" style="background:var(--bg-dark); color:var(--primary); padding:4px 8px; border-radius:6px;">${v.courses?.title || 'غير محدد'}</span></td>
+                <td><a href="${v.video_url}" target="_blank" style="color:var(--primary); text-decoration:none;"><i class="fas fa-external-link-alt"></i> فتح الممر 🔗</a></td>
+                <td><button class="btn-link btn-danger" style="margin:0; padding:6px 12px; font-size:12px;" onclick="window.deleteAdminVideo('${v.video_id}')"><i class="fas fa-video-slash"></i> إزالة</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    window.addAdminVideo = function () {
+        const courseSelect = document.getElementById('videoCourseSelect');
+        const titleInput = document.getElementById('videoTitle');
+        const urlInput = document.getElementById('videoUrl');
+
+        const courseId = courseSelect ? courseSelect.value : '';
+        const title = titleInput ? titleInput.value.trim() : '';
+        const url = urlInput ? urlInput.value.trim() : '';
+
+        if (!courseId || !title || !url) return alert('تنبيه: يرجى استكمال كافة الحقول (المساق، العنوان، والرابط المباشر) بنجاح!');
+
+        supabase.from('course_videos').insert({ course_id: courseId, video_title: title, video_url: url })
+            .then(({ error }) => {
+                if (error) {
+                    alert(error.message);
+                } else {
+                    if (titleInput) titleInput.value = '';
+                    if (urlInput) urlInput.value = '';
+                    window.refreshAllAdminData();
+                }
+            });
+    };
+
+    window.deleteAdminVideo = async function (id) {
+        if (!confirm('هل تود إزالة ارتباط هذا المقطع المرئي من المساق الحالي؟')) return;
+        await supabase.from('course_videos').delete().eq('video_id', id);
+        window.refreshAllAdminData();
+    };
+
+    // ==========================================
+    // 📝 4. حركة التسجيلات (Enrollments Cluster)
+    // ==========================================
+    async function loadAdminEnrollments() {
+        const { data, error } = await supabase.from('enrollments').select('*, courses(title)');
+        const tbody = document.getElementById('enrollmentsTable');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+        if (error || !data?.length) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">لا توجد حركات تسجيل نشطة حالياً.</td></tr>';
+            return;
+        }
+
+        data.forEach(e => {
+            const shortId = e.user_id ? `${e.user_id.substring(0, 8)}…` : 'N/A';
+            let badgeStyle = "background: rgba(234, 179, 8, 0.1); color: #eab308;";
+            let statusText = "قيد الدراسة";
+
+            if (e.completion_status === 'completed') {
+                badgeStyle = "background: rgba(34, 197, 94, 0.1); color: var(--success);";
+                statusText = "مكتمل وناجح";
+            }
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><code style="font-size:11px;">${shortId}</code></td>
+                <td>${e.courses?.title || 'غير معروف'}</td>
+                <td><span style="padding:4px 8px; border-radius:20px; font-size:11px; ${badgeStyle}">${statusText}</span></td>
+                <td><button class="btn-link btn-danger" style="margin:0; padding:4px 8px; font-size:11px;" onclick="window.deleteAdminEnrollment('${e.enrollment_id}')"><i class="fas fa-user-minus"></i> إلغاء</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    window.deleteAdminEnrollment = async function (id) {
+        if (!confirm('هل تود شطب تسجيل هذا الطالب وإلغاء إدراجه من هذا المساق التدريبي؟')) return;
+        await supabase.from('enrollments').delete().eq('enrollment_id', id);
+        window.refreshAllAdminData();
+    };
+
+    // ==========================================
+    // 🏆 5. سجل الشهادات المصدرة (Certificates Log)
+    // ==========================================
+    async function loadAdminCertificates() {
+        const { data, error } = await supabase.from('certificates').select('*, courses(title)');
+        const tbody = document.getElementById('certificatesTable');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+        if (error || !data?.length) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">لم يتم إصدار أي شهادات تخرج رقمية بعد.</td></tr>';
+            return;
+        }
+
+        data.forEach(cert => {
+            const shortId = cert.user_id ? `${cert.user_id.substring(0, 8)}…` : 'N/A';
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><code style="font-size:11px;">${shortId}</code></td>
+                <td>${cert.courses?.title || 'غير معروف'}</td>
+                <td><a href="${cert.certificate_url || '#'}" target="_blank" style="color:var(--success); text-decoration:none;"><i class="fas fa-file-pdf"></i> استعراض الـ PDF</a></td>
+                <td><button class="btn-link btn-danger" style="margin:0; padding:4px 8px; font-size:11px;" onclick="window.revokeAdminCertificate('${cert.certificate_id}')"><i class="fas fa-ban"></i> إبطال السند</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    window.revokeAdminCertificate = async function (id) {
+        if (!confirm('🚨 إلغاء سند تخرج أكاديمي:\nهل تود سحب وإبطال مفعول هذه الشهادة الرقمية بشكل دائم؟')) return;
+        await supabase.from('certificates').delete().eq('certificate_id', id);
+        window.refreshAllAdminData();
+    };
+
+    // ==========================================
+    // ⭐ 6. مراجعة جودة المعلمين (Ratings Engine)
+    // ==========================================
+    async function loadAdminRatings() {
+        const { data, error } = await supabase.from('instructor_ratings').select('*');
+        const tbody = document.getElementById('ratingsTable');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+        if (error || !data?.length) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">لا توجد مراجعات جودة أو تقييمات مسجلة حالياً.</td></tr>';
+            return;
+        }
+
+        data.forEach(r => {
+            const teacherId = r.instructor_id ? `${r.instructor_id.substring(0, 8)}…` : 'N/A';
+            const studentId = r.user_id ? `${r.user_id.substring(0, 8)}…` : 'N/A';
+            const stars = '⭐'.repeat(r.rating ?? 0);
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><code>${teacherId}</code></td>
+                <td><code>${studentId}</code></td>
+                <td style="color:#eab308;">${stars} (${r.rating}/5)</td>
+                <td><button class="btn-link btn-danger" style="margin:0; padding:4px 8px; font-size:11px;" onclick="window.deleteAdminRating('${r.rating_id}')"><i class="fas fa-eraser"></i> شطب</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    window.deleteAdminRating = async function (id) {
+        if (!confirm('هل تود حذف هذا التقييم والمراجعة من سجل جودة التعليم العام؟')) return;
+        await supabase.from('instructor_ratings').delete().eq('rating_id', id);
+        window.refreshAllAdminData();
+    };
+
+    // ==========================================
+    // 👥 7. مصفوفة الرتب وصلاحيات التمكين (Users Cluster)
+    // ==========================================
+    async function loadAdminUsers() {
+        const { data, error } = await supabase.from('user_profile').select('*');
+        const tbody = document.getElementById('usersTable');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+        if (error || !data?.length) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">تعذر استدعاء مصفوفة الصلاحيات العليا الحية.</td></tr>';
+            return;
+        }
+
+        data.forEach(u => {
+            const tr = document.createElement('tr');
+            // ترجمة الأدوار للعربية للعرض الاحترافي المنسق
+            let roleLabel = "طالب مستقل";
+            if(u.role === 'instructor') roleLabel = "مشرف أكاديمي / معلم";
+            if(u.role === 'admin') roleLabel = "مدير نظام أعلى";
+
+            tr.innerHTML = `
+                <td><code style="font-size:12px; color:var(--primary);">${u.user_id || 'N/A'}</code></td>
+                <td><span style="font-weight:500;">${roleLabel}</span></td>
                 <td>
-                    <select class="admin-role-select" 
-                        style="background: #090d16; color: var(--text-main); border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 4px;"
-                        onchange="window.updateUserRoleFromAdmin('${user.user_id || user.id}', this.value)">
-                        <option value="student" ${user.role === 'student' ? 'selected' : ''}>طالب / متدرب</option>
-                        <option value="instructor" ${user.role === 'instructor' ? 'selected' : ''}>مدرب / مشرف</option>
-                        <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>مدير النظام</option>
+                    <select onchange="window.updateAdminUserRole('${u.user_id}', this.value)" style="padding:6px 10px; background:var(--bg-dark); border:1px solid var(--border); border-radius:6px; color:white; font-size:12px; cursor:pointer;">
+                        <option value="">— اختر رتبة الترقية —</option>
+                        <option value="student" ${u.role === 'student' ? 'selected' : ''}>طالب (Student)</option>
+                        <option value="instructor" ${u.role === 'instructor' ? 'selected' : ''}>مشرف/معلم (Instructor)</option>
+                        <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>مدير نظام أعلى (Admin)</option>
                     </select>
                 </td>
                 <td>
-                    <span class="role-tag" style="background: ${user.status === 'نشط' || user.status === 'active' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}; color: ${user.status === 'نشط' || user.status === 'active' ? 'var(--success)' : 'var(--danger)'};">
-                        ${user.status === 'active' || user.status === 'نشط' ? 'نشط' : 'موقوف'}
-                    </span>
-                </td>
-                <td>
-                    <button class="btn-action-small" style="background: var(--danger);" 
-                        onclick="if(typeof showToast === 'function') showToast('🔒 تم إرسال طلب إعادة تعيين كلمة المرور للمستخدم', 'warning')">
-                        <i class="fas fa-key"></i> تعيين
+                    <button class="btn-link btn-danger" style="margin:0; padding:6px 12px; font-size:12px;" onclick="window.deleteAdminUserProfile('${u.user_id}')">
+                        <i class="fas fa-user-times"></i> حذف الملف الشخصي
                     </button>
                 </td>
-            </tr>
-        `).join('');
-
-    } catch (err) {
-        console.error('❌ خطأ في جلب مستخدمي لوحة الإدارة:', err);
-        tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--danger);">⚠️ تعذر تحميل جدول المستخدمين حالياً.</td></tr>';
-    }
-}
-
-/**
- * تحديث صلاحيات وأدوار المستخدمين مباشرة في Supabase
- */
-window.updateUserRoleFromAdmin = async function(userId, newRole) {
-    if (!userId || userId === 'undefined') {
-        if (typeof showToast === 'function') showToast('🔄 تحديث محلي للمحاكاة: تم تغيير الدور بنجاح', 'success');
-        return;
+            `;
+            tbody.appendChild(tr);
+        });
     }
 
-    try {
-        if (typeof showToast === 'function') showToast('⏳ جاري تحديث الصلاحيات الحقيقية...', 'info');
-        
-        const { error } = await supabase
-            .from('user_profile')
-            .update({ role: newRole })
-            .eq('user_id', userId);
-
-        if (error) throw error;
-        
-        if (typeof showToast === 'function') showToast('✅ تم تحديث دور المستخدم في قاعدة البيانات بنجاح', 'success');
-    } catch (err) {
-        console.error('❌ خطأ في تحديث دور المستخدم:', err.message);
-        if (typeof showToast === 'function') showToast('❌ فشل التحديث: تأكد من صلاحيات الـ RLS لديك', 'error');
-    }
-};
-
-/**
- * إعداد مستمع البحث الخاص بلوحة الأدمن
- */
-function setupAdminSearchListener() {
-    const searchInput = document.getElementById('global-search');
-    if (searchInput) {
-        const oldListener = searchInput._adminSearchListener;
-        if (oldListener) {
-            searchInput.removeEventListener('input', oldListener);
+    window.updateAdminUserRole = async function (uid, newRole) {
+        if (!newRole) return;
+        if (!confirm(`⚠️ ترفيع وتعديل أمني للرتب:\nهل تود تأكيد تغيير الدور الأمني للمستخدم إلى رتبة [${newRole}] حياً؟`)) {
+            window.refreshAllAdminData();
+            return;
         }
         
-        const debouncedSearch = debounce((query) => {
-            populateAdminUserTable(query);
-        }, 300);
-        
-        const listener = (e) => debouncedSearch(e.target.value);
-        searchInput.addEventListener('input', listener);
-        searchInput._adminSearchListener = listener;
-    }
-}
-
-/**
- * دالة debounce مساعدة لمنع استهلاك العمليات أثناء الكتابة المستمرة
- */
-function debounce(func, delay) {
-    let timeout;
-    return function(...args) {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(this, args), delay);
+        const { error } = await supabase.from('user_profile').update({ role: newRole }).eq('user_id', uid);
+        if (error) {
+            alert('فشل تحديث الرتبة الأمنية: ' + error.message);
+        }
+        window.refreshAllAdminData();
     };
-}
 
-/**
- * دالة لتصدير تقرير المستخدمين (CSV)
- */
-function exportUsersReport() {
-    if (typeof showToast === 'function') {
-        showToast('📊 جاري تصدير وتحضير تقرير المستخدمين من قاعدة البيانات...', 'info');
-        setTimeout(() => {
-            showToast('✅ تم تصدير تقرير المستخدمين بصيغة CSV بنجاح', 'success');
-        }, 1500);
-    }
-}
+    window.deleteAdminUserProfile = async function (id) {
+        if (!confirm('🛑 قرار إداري صارم:\nهل تود حذف سجل هذا المستخدم نهائياً من مصفوفة `user_profile`؟\n(ملاحظة: هذا الإجراء يحذف خصائصه الأكاديمية فقط، ويبقى حساب الدخول Auth محفوظاً ما لم يُحذف من الكونسول الرئيسي)')) return;
+        await supabase.from('user_profile').delete().eq('user_id', id);
+        window.refreshAllAdminData();
+    };
 
-/**
- * دالة لعرض صحة ومراقبة أداء النظام والأمن السيبراني للمنصة
- */
-function showSystemHealth() {
-    if (typeof showToast === 'function') {
-        showToast(`
-            🖥️ تقرير صحة المنصة والنظام:
-            • قاعدة البيانات وسوبابيز: متصلة وتعمل بشكل مستقر
-            • جلسات المستخدمين المفتوحة: 156 جلسة نشطة
-            • متوسط وقت استجابة الـ API: 0.3 ثانية
-            • تخزين الملفات والمختبرات المرفوعة: 45%
-        `, 'info');
-    }
-}
-
-// ============================================
-// 4. البيانات الافتراضية والاحتياطية
-// ============================================
-function getDefaultAdminUsers() {
-    return [
-        { id: '1', full_name: 'أحمد علي الناصر', national_id: '1023948576', role: 'student', status: 'نشط' },
-        { id: '2', full_name: 'د. عبد الله الشمري', national_id: '1092837465', role: 'instructor', status: 'نشط' },
-        { id: '3', full_name: 'م. فهد القحطاني', national_id: '1039485761', role: 'admin', status: 'نشط' }
-    ];
-}
-
-// ============================================
-// 5. التصدير والتهيئة التلقائية للملف
-// ============================================
-window.initAdminDashboard = initAdminDashboard;
-window.exportUsersReport = exportUsersReport;
-window.showSystemHealth = showSystemHealth;
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initAdminDashboard);
-} else {
-    setTimeout(initAdminDashboard, 100);
-}
+})();
