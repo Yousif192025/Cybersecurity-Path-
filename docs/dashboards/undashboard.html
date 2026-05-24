@@ -81,8 +81,6 @@
         .form-group input:focus { border-color: var(--primary); }
         .btn-submit { width: 100%; background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; border: none; padding: 0.75rem; border-radius: 6px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; margin-top: 0.5rem; }
         .btn-submit:hover { opacity: 0.9; }
-        .dev-role-switcher { margin-top: auto; border-top: 1px solid var(--border); padding-top: 1rem; }
-        .dev-role-switcher select { width: 100%; background: var(--bg-main); color: white; border: 1px solid var(--border); padding: 8px; border-radius: 4px; }
         #toast-container { position: fixed; bottom: 20px; left: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; }
         .toast { background-color: var(--bg-card); color: var(--text-main); padding: 1rem 1.5rem; border-radius: 6px; border-right: 5px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.5); min-width: 250px; animation: slideIn 0.3s ease-out; }
         .toast-success { border-right-color: var(--success); }
@@ -115,16 +113,7 @@
         <div class="brand"><i class="fas fa-shield-halved"></i><span>CyberPath</span></div>
         <nav class="nav-menu" id="dynamic-menu"></nav>
         <div id="logout-zone" class="hidden"><div class="nav-item logout-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> <span>تسجيل الخروج</span></div></div>
-        <div class="dev-role-switcher">
-            <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:5px;">محاكاة الصلاحية (للتطوير):</label>
-            <select id="role-selector" onchange="simulateRoleChange(this.value)">
-                <option value="guest">ضيف / زائر عام</option>
-                <option value="student">طالب مستقل</option>
-                <option value="instructor">مدرس / مشرف أكاديمي</option>
-                <option value="admin">مدير النظام (أدمن)</option>
-            </select>
-        </div>
-    </aside>
+        </aside>
 
     <main id="main-wrapper">
         <header id="topbar">
@@ -175,7 +164,7 @@
         const supabaseKey = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
         const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-        // 🌟 تدويل العميل للنطاق العام فوراً لتتشارك به كافة الـ Dashboards الفرعية وتفادي الـ Multiple GoTrue instances warning
+        // تدويل العميل للنطاق العام فوراً لتتشارك به كافة الـ Dashboards الفرعية
         window.supabaseClient = supabaseClient;
 
         // --- App State ---
@@ -205,8 +194,14 @@
         function toggleLoginModal(show) { const modal = document.getElementById('login-modal'); show ? modal.classList.remove('hidden') : modal.classList.add('hidden'); }
         function hideAllSections() { document.querySelectorAll('[data-view]').forEach(el => el.classList.add('hidden')); }
 
-        // === الدالة الأساسية: Lazy Loading للوحات التحكم المقسمة وملفات الجافاسكريبت ===
+        // === الدالة الأساسية: Lazy Loading للوحات التحكم وملفات الجافاسكريبت ===
         async function switchView(viewName) {
+            // 🛡️ فحص حماية فوري: إذا حاول الزائر الانتقال لرابط مباشر في واجهة الأدمن دون امتلاك رتبة صحيحة
+            if (viewName === 'redirect-external') {
+                window.location.href = "https://cyberpath.vercel.app/index";
+                return;
+            }
+
             hideAllSections();
             let target = document.querySelector(`[data-view="${viewName}"]`);
             
@@ -217,12 +212,10 @@
                 if (isDynamicDashboard && !appState.loadedDashboards[dashboardKey]) {
                     showLoader();
                     try {
-                        // 1. جلب ملف HTML من المسار المخصص المتناسق مع بنية مجلداتك
                         const htmlResponse = await fetch(`./${dashboardKey}.html`);
-                        if (!htmlResponse.ok) throw new Error(`لم يتم العثور على ملف HTML لـ ${dashboardKey} في مسار الحالي`);
+                        if (!htmlResponse.ok) throw new Error(`لم يتم العثور على ملف HTML لـ ${dashboardKey}`);
                         target.innerHTML = await htmlResponse.text();
                         
-                        // 2. إنشاء وتضمين ملف الجافاسكريبت المستقل ديناميكياً
                         const script = document.createElement('script');
                         script.src = `../../assets/js/dashboards/${dashboardKey}.js`;
                         script.type = 'text/javascript';
@@ -230,8 +223,6 @@
                         
                         script.onload = () => {
                             console.log(`✅ تم تحميل وتفعيل وحدة: ${dashboardKey}.js بنجاح.`);
-                            
-                            // استدعاء دالات الـ init المخصصة الموزعة بالملفات المنفصلة
                             if (typeof window[`init${dashboardKey.charAt(0).toUpperCase() + dashboardKey.slice(1)}Dashboard`] === 'function') {
                                 window[`init${dashboardKey.charAt(0).toUpperCase() + dashboardKey.slice(1)}Dashboard`]();
                             }
@@ -247,17 +238,13 @@
                         };
                         
                         script.onerror = () => {
-                            console.error(`❌ فشل تحميل ملف الجافاسكريبت: ${dashboardKey}.js`);
-                            showToast(`❌ فشل تحميل وظائف لوحة ${dashboardKey}. يُرجى مراجعة المسار.`, 'error');
                             target.innerHTML = `<div class="service-card" style="text-align:center;color:var(--danger);"><i class="fas fa-exclamation-triangle"></i> حدث خطأ في تحميل واجهة الجافاسكريبت المخصصة لـ ${dashboardKey}.</div>`;
                             hideLoader();
                         };
                         
                         document.body.appendChild(script);
                     } catch (err) {
-                        console.error("🚨 خطأ أثناء تحميل الوحدات المنفصلة:", err);
-                        showToast(`❌ فشل تحميل جزء من الواجهة: ${err.message}`, 'error');
-                        target.innerHTML = `<div class="service-card" style="text-align:center;color:var(--danger);"><i class="fas fa-database"></i> تعذر تحميل المحتوى. يرجى التحقق من اتصال الشبكة ومسار الملفات.</div>`;
+                        target.innerHTML = `<div class="service-card" style="text-align:center;color:var(--danger);"><i class="fas fa-database"></i> تعذر تحميل المحتوى. يرجى التحقق من مسار الملفات.</div>`;
                         hideLoader();
                     }
                 }
@@ -268,7 +255,7 @@
             }
         }
 
-        // --- ربط حقل البحث العلوي للعمل التفاعلي السريع مع الجداول ---
+        // --- ربط حقل البحث العلوي ---
         document.getElementById('global-search').addEventListener('input', function(e) {
             const query = e.target.value.trim();
             if (appState.activeView === 'admin-dash' && typeof window.populateAdminUserTable === 'function') {
@@ -312,7 +299,7 @@
                     if (data.role) assignedRole = data.role;
                     if (data.full_name) document.getElementById('user-display-name').textContent = data.full_name;
                 }
-            } catch (e) { console.log("سيتم اعتماد التعيين الافتراضي بسبب غياب جدول التمكين user_profile"); }
+            } catch (e) { console.log("اعتماد التعيين الافتراضي للغياب المؤقت للبروفايل"); }
             hideLoader();
             updateUIForRole(assignedRole, document.getElementById('user-display-name').textContent);
         }
@@ -333,7 +320,6 @@
             document.getElementById('notification-count').textContent = appState.notifications.length;
             const avatarChar = displayName ? displayName.charAt(0).toUpperCase() : 'U';
             document.getElementById('user-avatar').textContent = avatarChar;
-            document.getElementById('role-selector').value = role;
             renderSidebarMenu(role);
             
             if (role === 'guest') { switchView('public'); }
@@ -342,12 +328,7 @@
             else if (role === 'admin') { switchView('admin-dash'); }
         }
 
-        function simulateRoleChange(selectedRole) {
-            showToast(`⚙️ جاري محاكاة بيئة التحميل لدور: ${selectedRole.toUpperCase()}`, 'info');
-            updateUIForRole(selectedRole, selectedRole === 'guest' ? 'زائر المنصة' : `مطور (${selectedRole})`);
-        }
-
-        // --- القائمة الجانبية الديناميكية ---
+        // --- القائمة الجانبية الديناميكية المحدثة بالكامل مع الممرات الحقيقية والقيود المنظمة ---
         function renderSidebarMenu(role) {
             const menuDiv = document.getElementById('dynamic-menu');
             const menus = {
@@ -372,7 +353,8 @@
                     { icon: "fa-certificate", text: "الشهادات والدعم المعرفي", view: "student-dash" }
                 ],
                 guest: [
-                    { icon: "fa-home", text: "الرئيسية والصفحات العامة", view: "public" },
+                    // 🌟 عند الضغط عليها يتم تحويل الضيف تلقائياً وبأمان تام إلى ممر الرابط المباشر للمنصة
+                    { icon: "fa-home", text: "الرئيسية والصفحات العامة", view: "redirect-external" },
                     { icon: "fa-graduation-cap", text: "الدورات المتاحة للعرض", view: "public" },
                     { icon: "fa-user-plus", text: "التسجيل بالنظام", view: "restricted" }
                 ]
@@ -423,7 +405,7 @@
             statsGrid.innerHTML = `<div class="stat-card"><h4>الرتبة السيبرانية التراكمية</h4><div class="val" style="color: var(--accent); font-size:1.4rem;">${data.rank}</div></div><div class="stat-card"><h4>النقاط المحرزة (XP)</h4><div class="val" style="color: var(--warning);">${data.xp}</div></div><div class="stat-card" style="grid-column: 1 / -1;"><h4>التقدم العام بالمسارات التعليمية المعتمدة</h4><div class="val">${data.progress}%</div><div class="progress-container"><div class="progress-bar" style="width:${data.progress}%"></div></div></div>`;
         };
 
-        // --- دوال الإدارة (Admin Actions) المكتملة والمصححة والمؤمنة بالكامل ---
+        // --- دوال الإدارة الأمنية الكاملة ---
         window.changeUserRole = async function(targetUserId) {
             if (appState.currentRole !== 'admin') { showToast('🚫 لا تملك صلاحيات التعديل!', 'error'); return; }
             const newRole = prompt("أدخل الدور الجديد (admin, instructor, student, guest):");
@@ -435,7 +417,6 @@
                 showToast(`✅ تم تغيير الصلاحية بنجاح إلى ${newRole.toUpperCase()}`, 'success');
                 populateAdminUserTable();
             } catch (err) {
-                console.error(err);
                 showToast(`❌ حدث خطأ أثناء تغيير الدور: ${err.message}`, 'error');
             } finally {
                 hideLoader();
@@ -452,7 +433,6 @@
                 showToast(nextStatus ? '🔒 تم تجميد الحساب بنجاح' : '🔓 تم إلغاء تجميد الحساب بنجاح', 'success');
                 populateAdminUserTable();
             } catch (err) {
-                console.error(err);
                 showToast(`❌ فشل تعديل حالة الحساب: ${err.message}`, 'error');
             } finally {
                 hideLoader();
@@ -469,14 +449,12 @@
                 showToast('🗑️ تم حذف السجل الشخصي بنجاح تام', 'success');
                 populateAdminUserTable();
             } catch (err) {
-                console.error(err);
                 showToast(`❌ خطأ أثناء عملية الحذف: ${err.message}`, 'error');
             } finally {
                 hideLoader();
             }
         };
 
-        // التشغيل التلقائي عند بدء تحميل الصفحة الموحدة للمنصة
         window.onload = function() {
             loadCurrentUser();
         };
