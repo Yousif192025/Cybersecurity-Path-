@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CyberPath | البوابة التعليمية الموحدة</title>
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -137,7 +136,6 @@
         </header>
 
         <section id="content-area">
-            <!-- واجهة الضيف العامة -->
             <div data-view="public" class="hidden">
                 <div class="service-card" style="margin-bottom:2rem; text-align:center; padding:3rem; background: linear-gradient(135deg, #1e293b, #0f172a); border-color: var(--primary);">
                     <h2 style="font-size:2.2rem; margin-bottom:1rem; color: var(--primary)">منصة CyberPath التعليمية</h2>
@@ -156,12 +154,10 @@
                 </div>
             </div>
 
-            <!-- الحاويات الديناميكية المستوردة من المسارات الخارجية -->
             <div data-view="student-dash" id="student-container" class="hidden"></div>
             <div data-view="instructor-dash" id="instructor-container" class="hidden"></div>
             <div data-view="admin-dash" id="admin-container" class="hidden"></div>
             
-            <!-- واجهة المناطق المحجوبة -->
             <div data-view="restricted" class="hidden">
                 <div class="service-card" style="border:1px dashed var(--danger); text-align:center;">
                     <h3 style="color:var(--danger); margin-bottom: 1rem;"><i class="fas fa-lock"></i> منطقة محمية ومحجوبة أمنياً</h3>
@@ -178,6 +174,9 @@
         const supabaseUrl = "https://suvpaunulhqfoclepwoz.supabase.co";
         const supabaseKey = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
         const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // 🌟 تدويل العميل للنطاق العام فوراً لتتشارك به كافة الـ Dashboards الفرعية وتفادي الـ Multiple GoTrue instances warning
+        window.supabaseClient = supabaseClient;
 
         // --- App State ---
         const appState = {
@@ -220,7 +219,7 @@
                     try {
                         // 1. جلب ملف HTML من المسار المخصص المتناسق مع بنية مجلداتك
                         const htmlResponse = await fetch(`./${dashboardKey}.html`);
-                        if (!htmlResponse.ok) throw new Error(`لم يتم العثور على ملف HTML لـ ${dashboardKey} في مسار ./docs/dashboards/`);
+                        if (!htmlResponse.ok) throw new Error(`لم يتم العثور على ملف HTML لـ ${dashboardKey} في مسار الحالي`);
                         target.innerHTML = await htmlResponse.text();
                         
                         // 2. إنشاء وتضمين ملف الجافاسكريبت المستقل ديناميكياً
@@ -404,14 +403,14 @@
             if(!tableBody || !tableHead) return;
             
             if(users && users.length > 0) {
-                const rows = users.map(u => `<tr><td><strong>${u.full_name || 'بلا اسم'}</strong></td><td><code>${u.national_id || u.user_id.substring(0,8)}</code></td><td><span class="role-tag">${u.role}</span></td><td style="color:${u.is_frozen ? 'var(--warning)' : 'var(--success)'}">${u.is_frozen ? 'حساب مجمد' : 'نشط التزامن'}</td><td><button class="btn-action-small" style="background:var(--primary);" onclick="changeUserRole('${u.user_id}', 'admin')">تغيير دور</button> <button class="btn-action-small" style="background:var(--warning);" onclick="toggleFreezeUser('${u.user_id}', ${u.is_frozen || false})">تجميد</button> <button class="btn-action-small" style="background:var(--danger);" onclick="deleteUser('${u.user_id}')"><i class="fas fa-trash"></i></button></td></tr>`);
+                const rows = users.map(u => `<tr><td><strong>${u.full_name || 'بلا اسم'}</strong></td><td><code>${u.national_id || u.user_id.substring(0,8)}</code></td><td><span class="role-tag">${u.role}</span></td><td style="color:${u.is_frozen ? 'var(--warning)' : 'var(--success)'}">${u.is_frozen ? 'حساب مجمد' : 'نشط التزامن'}</td><td><button class="btn-action-small" style="background:var(--primary);" onclick="changeUserRole('${u.user_id}')">تغيير دور</button> <button class="btn-action-small" style="background:var(--warning);" onclick="toggleFreezeUser('${u.user_id}', ${u.is_frozen || false})">تجميد</button> <button class="btn-action-small" style="background:var(--danger);" onclick="deleteUser('${u.user_id}')"><i class="fas fa-trash"></i></button></td></tr>`);
                 tableHead.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
                 tableBody.innerHTML = rows.join('');
             } else {
                 const fallbackData = [{ name: "أحمد الشمري", id: "1029384755", role: "student", status: "نشط" },{ name: "أستاذ فيصل الحربي", id: "1094837266", role: "instructor", status: "نشط" },{ name: "عبدالله العتيبي (تجريبي)", id: "1102938474", role: "guest", status: "حساب مجمد" }];
                 const filteredFallback = fallbackData.filter(item => item.name.includes(filterQuery) || item.id.includes(filterQuery));
                 if(filteredFallback.length === 0) { tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">لا توجد سجلات مطابقة للبحث</td></tr>`; return; }
-                const rows = filteredFallback.map(r => `<tr><td><strong>${r.name}</strong></td><td><code>${r.id}</code></td><td><span class="role-tag">${r.role}</span></td><td style="color:${r.status === 'حساب مجمد' ? 'var(--warning)' : 'var(--success)'}">${r.status}</td><td><button class="btn-action-small" style="background:var(--primary);" onclick="changeUserRole('${r.id}', 'admin')">تغيير دور</button> <button class="btn-action-small" style="background:var(--warning);" onclick="toggleFreezeUser('${r.id}', ${r.status === 'حساب مجمد'})">تبديل التجميد</button> <button class="btn-action-small" style="background:var(--danger);" onclick="deleteUser('${r.id}')"><i class="fas fa-trash"></i></button></td></tr>`);
+                const rows = filteredFallback.map(r => `<tr><td><strong>${r.name}</strong></td><td><code>${r.id}</code></td><td><span class="role-tag">${r.role}</span></td><td style="color:${r.status === 'حساب مجمد' ? 'var(--warning)' : 'var(--success)'}">${r.status}</td><td><button class="btn-action-small" style="background:var(--primary);" onclick="changeUserRole('${r.id}')">تغيير دور</button> <button class="btn-action-small" style="background:var(--warning);" onclick="toggleFreezeUser('${r.id}', ${r.status === 'حساب مجمد'})">تبديل التجميد</button> <button class="btn-action-small" style="background:var(--danger);" onclick="deleteUser('${r.id}')"><i class="fas fa-trash"></i></button></td></tr>`);
                 tableHead.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
                 tableBody.innerHTML = rows.join('');
             }
@@ -424,47 +423,60 @@
             statsGrid.innerHTML = `<div class="stat-card"><h4>الرتبة السيبرانية التراكمية</h4><div class="val" style="color: var(--accent); font-size:1.4rem;">${data.rank}</div></div><div class="stat-card"><h4>النقاط المحرزة (XP)</h4><div class="val" style="color: var(--warning);">${data.xp}</div></div><div class="stat-card" style="grid-column: 1 / -1;"><h4>التقدم العام بالمسارات التعليمية المعتمدة</h4><div class="val">${data.progress}%</div><div class="progress-container"><div class="progress-bar" style="width:${data.progress}%"></div></div></div>`;
         };
 
-        // --- دوال الإدارة (Admin Actions) المكتملة والمؤمنة ---
+        // --- دوال الإدارة (Admin Actions) المكتملة والمصححة والمؤمنة بالكامل ---
         window.changeUserRole = async function(targetUserId) {
             if (appState.currentRole !== 'admin') { showToast('🚫 لا تملك صلاحيات التعديل!', 'error'); return; }
             const newRole = prompt("أدخل الدور الجديد (admin, instructor, student, guest):");
             if(!newRole) return;
             showLoader();
             try {
-                await supabaseClient.from('user_profile').update({ role: newRole }).eq('user_id', targetUserId);
+                const { error } = await supabaseClient.from('user_profile').update({ role: newRole }).eq('user_id', targetUserId);
+                if (error) throw error;
                 showToast(`✅ تم تغيير الصلاحية بنجاح إلى ${newRole.toUpperCase()}`, 'success');
                 populateAdminUserTable();
             } catch (err) {
-                showToast('❌ تعذر تحديث قاعدة البيانات الرقمية حالياً', 'error');
-            } finally { hideLoader(); }
+                console.error(err);
+                showToast(`❌ حدث خطأ أثناء تغيير الدور: ${err.message}`, 'error');
+            } finally {
+                hideLoader();
+            }
         };
 
-        window.toggleFreezeUser = async function(userId, currentStatus) {
-            if (appState.currentRole !== 'admin') { showToast('🚫 عذراً، التحكم بحالة الحساب متاح للأدمن فقط!', 'error'); return; }
+        window.toggleFreezeUser = async function(targetUserId, currentStatus) {
+            if (appState.currentRole !== 'admin') { showToast('🚫 لا تملك صلاحيات التحكم!', 'error'); return; }
+            const nextStatus = !currentStatus;
             showLoader();
             try {
-                await supabaseClient.from('user_profile').update({ is_frozen: !currentStatus }).eq('user_id', userId);
-                showToast(currentStatus ? '🔓 تم إلغاء تجميد الحساب بنجاح' : '❄️ تم تجميد الحساب بنجاح وتقييد التزامن', 'success');
+                const { error } = await supabaseClient.from('user_profile').update({ is_frozen: nextStatus }).eq('user_id', targetUserId);
+                if (error) throw error;
+                showToast(nextStatus ? '🔒 تم تجميد الحساب بنجاح' : '🔓 تم إلغاء تجميد الحساب بنجاح', 'success');
                 populateAdminUserTable();
             } catch (err) {
-                showToast('❌ فشل تنفيذ عملية التجميد الرقمي', 'error');
-            } finally { hideLoader(); }
+                console.error(err);
+                showToast(`❌ فشل تعديل حالة الحساب: ${err.message}`, 'error');
+            } finally {
+                hideLoader();
+            }
         };
 
-        window.deleteUser = async function(userId) {
-            if (appState.currentRole !== 'admin') { showToast('🚫 صلاحية الحذف محجوبة أمنياً وعليا!', 'error'); return; }
-            if (!confirm('⚠️ هل أنت متأكد تماماً من حذف هذا السجل بشكل نهائي من خوادم سوبابيز؟')) return;
+        window.deleteUser = async function(targetUserId) {
+            if (appState.currentRole !== 'admin') { showToast('🚫 صلاحية مرفوضة!', 'error'); return; }
+            if (!confirm("🚨 هل أنت متأكد تماماً من حذف هذا الحساب نهائياً من سجلات المنصة؟ لا يمكن التراجع!")) return;
             showLoader();
             try {
-                await supabaseClient.from('user_profile').delete().eq('user_id', userId);
-                showToast('🗑️ تم حذف السجل ومسح الهوية بنجاح', 'success');
+                const { error } = await supabaseClient.from('user_profile').delete().eq('user_id', targetUserId);
+                if (error) throw error;
+                showToast('🗑️ تم حذف السجل الشخصي بنجاح تام', 'success');
                 populateAdminUserTable();
             } catch (err) {
-                showToast('❌ فشل حذف المستخدم من النظام', 'error');
-            } finally { hideLoader(); }
+                console.error(err);
+                showToast(`❌ خطأ أثناء عملية الحذف: ${err.message}`, 'error');
+            } finally {
+                hideLoader();
+            }
         };
 
-        // تشغيل التهيئة عند بدء تحميل البوابة لربط جلسة سوبابيز الحية فورياً
+        // التشغيل التلقائي عند بدء تحميل الصفحة الموحدة للمنصة
         window.onload = function() {
             loadCurrentUser();
         };
