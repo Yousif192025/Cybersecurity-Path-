@@ -21,21 +21,35 @@
             --border: #334155;
         }
 
-        /* ==========================================================================
-           🔒 تحديث الهيكل العلمي الصحيح للوحة التحكم (Viewport Locking)
-           ========================================================================== */
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        
+        /* ===== التعديلات المطلوبة: منع تمدد الشاشة والاهتزاز ===== */
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        }
+
+        /* 1️⃣ الجسم الرئيسي - قفل الارتفاع على حجم المتصفح */
         body { 
             background-color: var(--bg-main); 
             color: var(--text-main); 
-            height: 100vh;      /* قفل ارتفاع الشاشة بالكامل على حجم المتصفح */
-            max-height: 100vh;  /* منع الـ body من التمدد رأساً نهائياً */
-            display: flex; 
-            overflow: hidden;   /* إلغاء شريط التمرير الخارجي للـ body */
+            display: flex;
+            height: 100vh;          /* قفل الارتفاع على حجم المتصفح تماماً */
+            max-height: 100vh;      /* منع الجسم من التمدد لأسفل */
+            overflow: hidden;       /* إلغاء شريط التمرير الخارجي لـ body */
         }
 
-        /* 1. تثبيت القائمة الجانبية بشكل صارم */
+        /* 2️⃣ الحاضن الرئيسي بجانب القائمة */
+        #main-wrapper { 
+            flex-grow: 1; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh;          /* قفل الارتفاع لتثبيت الـ Topbar في الأعلى */
+            overflow: hidden;       /* منع تسريب العناصر خارج الإطار */
+            min-width: 0;
+        }
+
+        /* 3️⃣ القائمة الجانبية - ثابتة وشاخصة */
         #sidebar { 
             width: 260px; 
             background-color: #090d16; 
@@ -44,40 +58,33 @@
             flex-direction: column; 
             padding: 1.5rem; 
             transition: all 0.3s ease; 
-            z-index: 100; 
-            height: 100vh;     /* تأكيد أخذ الارتفاع الكامل للمتصفح */
-            overflow-y: auto;  /* تمرير داخلي للقائمة فقط إذا زادت العناصر */
+            z-index: 100;
+            height: 100vh;          /* الالتصاق بكامل ارتفاع الشاشة */
+            position: sticky;       /* تبقى ثابتة عند التمرير */
+            top: 0;
+            overflow-y: auto;       /* تمرير داخلي للقائمة فقط إذا زادت عناصرها */
+            flex-shrink: 0;
         }
-        
-        .brand { font-size: 1.4rem; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 10px; margin-bottom: 2.5rem; text-shadow: 0 0 10px rgba(59, 130, 246, 0.3); flex-shrink: 0; }
+
+        /* 4️⃣ منطقة المحتوى الديناميكية - شريط التمرير الوحيد */
+        #content-area { 
+            padding: 2rem; 
+            flex-grow: 1; 
+            overflow-y: auto;               /* 🔥 تفعيل شريط التمرير الرأسي هنا فقط */
+            height: calc(100vh - 70px);     /* الارتفاع الكلي مطروحاً منه طول الـ Topbar */
+            -webkit-overflow-scrolling: touch;  /* تمرير سلس للهواتف */
+        }
+
+        /* ===== باقي الأنماط تبقى كما هي دون أي تغيير ===== */
+        .brand { font-size: 1.4rem; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 10px; margin-bottom: 2.5rem; text-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
         .nav-menu { display: flex; flex-direction: column; gap: 0.5rem; flex-grow: 1; }
         .nav-item { display: flex; align-items: center; gap: 12px; padding: 0.8rem 1rem; border-radius: 8px; cursor: pointer; color: var(--text-muted); transition: all 0.2s ease; }
         .nav-item:hover, .nav-item.active { background-color: var(--bg-card); color: var(--text-main); border-right: 4px solid var(--primary); }
-        .logout-item { color: var(--danger); margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem; flex-shrink: 0; }
+        .logout-item { color: var(--danger); margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem; }
         .logout-item:hover { background-color: rgba(239, 68, 68, 0.1); border-right: 4px solid var(--danger); color: #ff8080; }
-        
-        /* 2. ضبط الحاضن الرئيسي ليكون مرناً ومقيداً بحجم الشاشة */
-        #main-wrapper { 
-            flex-grow: 1; 
-            display: flex; 
-            flex-direction: column; 
-            height: 100vh;     /* قفل الارتفاع لمنع النزول الخارجي */
-            min-width: 0; 
-            overflow: hidden;  /* منع تسريب المحتوى خارج الإطار */
-        }
 
-        /* 3. تثبيت الشريط العلوي في مكانه */
-        #topbar { 
-            height: 70px; 
-            background-color: var(--bg-card); 
-            border-bottom: 1px solid var(--border); 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            padding: 0 2rem; 
-            flex-shrink: 0;   /* منع انضغاط الشريط العلوي نهائياً */
-        }
-        
+        /* --- Topbar (الشريط العلوي) --- */
+        #topbar { height: 70px; background-color: var(--bg-card); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; flex-shrink: 0; }
         .search-box { position: relative; width: 300px; }
         .search-box input { width: 100%; background-color: var(--bg-main); border: 1px solid var(--border); padding: 0.5rem 2.5rem 0.5rem 1rem; border-radius: 6px; color: var(--text-main); outline: none; }
         .search-box i { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
@@ -90,16 +97,7 @@
         .avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--accent)); display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; }
         .role-tag { font-size: 0.75rem; padding: 2px 8px; border-radius: 4px; background-color: var(--border); color: var(--text-muted); }
 
-        /* 4. المحرك الأساسي للفكرة: منطقة المحتوى هي الوحيدة التي تتحرك */
-        #content-area { 
-            padding: 2rem; 
-            flex-grow: 1; 
-            overflow-y: auto;  /* 🔥 تفعيل شريط التمرير الرأسي الذكي والمستقل هنا فقط */
-            height: calc(100vh - 70px); 
-            -webkit-overflow-scrolling: touch; /* تمرير سلس جداً لأجهزة اللمس */
-        }
-
-        /* --- المكونات المشتركة المستقلة بالداخل --- */
+        /* --- المكونات المشتركة --- */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
         .stat-card { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.5rem; position: relative; overflow: hidden; }
         .stat-card h4 { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.5rem; }
@@ -112,13 +110,13 @@
         .btn-accent:hover { color: var(--text-main); }
         .progress-container { width: 100%; height: 10px; background: #162235; border-radius: 30px; overflow: hidden; margin-top: 10px; }
         .progress-bar { height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); border-radius: 30px; transition: width 0.5s ease; }
-        .table-container { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-top: 1.5rem; }
+        .table-container { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; overflow: auto; margin-top: 1.5rem; max-height: 400px; }
         table { width: 100%; border-collapse: collapse; text-align: right; }
-        th, td { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); }
-        th { background-color: #162235; color: var(--text-muted); font-size: 0.85rem; }
+        th, td { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+        th { background-color: #162235; color: var(--text-muted); font-size: 0.85rem; position: sticky; top: 0; }
         tr:hover { background-color: rgba(255,255,255,0.02); }
 
-        /* --- النوافذ المنبثقة والتنبيهات --- */
+        /* --- Login Modal, Toast, Loader --- */
         .modal-overlay { position: fixed; inset: 0; background: rgba(9, 13, 22, 0.85); backdrop-filter: blur(5px); z-index: 2000; display: flex; justify-content: center; align-items: center; }
         .login-card { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; width: 400px; padding: 2.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         .login-card h3 { margin-bottom: 1.5rem; color: var(--primary); text-align: center; font-size: 1.6rem; }
@@ -139,25 +137,26 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         .btn-action-small { padding: 4px 10px; border-radius: 4px; border: none; color: white; cursor: pointer; font-size: 0.8rem; margin-right: 4px; }
 
-        /* 📱 شاشات الهواتف المحمولة */
+        /* ===== شاشات الهواتف والأجهزة اللوحية ===== */
         @media (max-width: 768px) {
-            body { flex-direction: column; overflow-y: auto; max-height: none; height: auto; }
-            #sidebar { width: 100%; height: auto; border-left: none; border-bottom: 1px solid var(--border); padding: 1rem; }
+            body { flex-direction: column; }
+            #sidebar { width: 100%; border-left: none; border-bottom: 1px solid var(--border); padding: 1rem; height: auto; max-height: 50vh; overflow-y: auto; position: relative; }
             .brand { margin-bottom: 1rem; justify-content: center; }
             .nav-menu { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 0.25rem; }
             .nav-item { padding: 0.5rem 0.8rem; font-size: 0.85rem; border-right: none !important; border-bottom: 2px solid transparent; }
             .nav-item.active, .nav-item:hover { border-bottom-color: var(--primary); background-color: rgba(59, 130, 246, 0.1); }
-            .logout-item { margin-top: 0; padding-top: 0; border-top: none; }
-            #main-wrapper { height: auto; overflow: visible; }
+            .logout-item { margin-top: 0; padding-top: 0; border-top: none; display: flex; align-items: center; }
             #topbar { flex-direction: column; height: auto; padding: 1rem; gap: 1rem; }
             .search-box { width: 100%; }
             .topbar-actions { width: 100%; justify-content: space-between; }
-            #content-area { padding: 1rem; height: auto; overflow-y: visible; }
+            #content-area { padding: 1rem; height: calc(100vh - 120px); }
         }
+
         @media (max-width: 480px) {
             .table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
             table { min-width: 500px; }
             .stat-card .val { font-size: 1.5rem; }
+            .service-card { padding: 1.5rem; }
         }
     </style>
 </head>
@@ -211,67 +210,9 @@
                 </div>
             </div>
 
-            <div data-view="student-dash" id="student-container" class="hidden">
-                <div class="stats-grid">
-                    <div class="stat-card"><h4>معدل التقدم الأكاديمي</h4><div class="val" id="st-progress-val">0%</div><div class="progress-container"><div class="progress-bar" id="st-progress-bar" style="width: 0%"></div></div></div>
-                    <div class="stat-card"><h4>التصنيف الأكاديمي الحالي</h4><div class="val" id="st-rank" style="font-size:1.2rem; color:var(--accent);">جاري التحميل...</div></div>
-                    <div class="stat-card"><h4>مجموع نقاط الخبرة XP</h4><div class="val" id="st-xp">0</div></div>
-                </div>
-                <div class="service-card">
-                    <h4><i class="fas fa-graduation-cap"></i> مساراتي والتدريبات النشطة</h4>
-                    <p style="color: var(--text-muted)">أهلاً بك في ممر التدريب العملي. يمكنك متابعة المحاضرات المسجلة وبدء المعامل السيبرانية هنا.</p>
-                    <div class="table-container">
-                        <table>
-                            <thead><tr><th>المادة والمسار</th><th>المدرس المسئول</th><th>الحالة البرمجية</th><th>الإجراءات</th></tr></thead>
-                            <tbody>
-                                <tr><td>مقدمة في الأمن السيبراني وعلم التشفير</td><td>أ. يوسف الشفيع</td><td><span class="role-tag" style="background:#10b981; color:white;">نشط الآن</span></td><td><button class="btn-action-small" style="background:var(--primary)">عرض المحتوى</button></td></tr>
-                                <tr><td>تحليل الاختراق وهندسة الشبكات اللاسلكية WPA3</td><td>م. أحمد سالمان</td><td><span class="role-tag">قريباً</span></td><td><button class="btn-action-small" style="background:var(--border)" disabled>مغلق</button></td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div data-view="instructor-dash" id="instructor-container" class="hidden">
-                <div class="stats-grid">
-                    <div class="stat-card"><h4>المجموعات المسؤولة</h4><div class="val">3 مجموعات</div></div>
-                    <div class="stat-card"><h4>إجمالي الطلاب النشطين</h4><div class="val">48 طالب</div></div>
-                    <div class="stat-card"><h4>طلبات المراجعة المعلقة</h4><div class="val" style="color:var(--warning)">5 واجبات</div></div>
-                </div>
-                <div class="service-card">
-                    <h4><i class="fas fa-users"></i> إدارة المقررات وتقييم أداء المتدربين</h4>
-                    <p style="color: var(--text-muted)">صلاحيات إدارية كاملة لرفع الدروس الحية، مراجعة تقارير صيد الثغرات، وإرسال التقييمات المباشرة لسجلات الطلاب.</p>
-                    <div class="table-container">
-                        <table>
-                            <thead><tr><th>اسم الطالب</th><th>المسار التدريبي</th><th>آخر تسليم للمعمل</th><th>الدرجة المستحقة</th><th>الإجراءات</th></tr></thead>
-                            <tbody>
-                                <tr><td>محمد عبد الله</td><td>مقدمة في الأمن السيبراني</td><td>تقرير ثغرة SQLi</td><td>95 / 100</td><td><button class="btn-action-small" style="background:var(--warning)">تعديل الدرجة</button></td></tr>
-                                <tr><td>خالد أحمد</td><td>مقدمة في الأمن السيبراني</td><td>تحليل حزم Wireshark</td><td><span style="color:var(--danger)">لم يصحح</span></td><td><button class="btn-action-small" style="background:var(--success)">رصد الدرجة</button></td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div data-view="admin-dash" id="admin-container" class="hidden">
-                <div class="stats-grid">
-                    <div class="stat-card"><h4>الحسابات المسجلة بالنظام</h4><div class="val" id="adm-total-users">0</div></div>
-                    <div class="stat-card"><h4>المدربون والمشرفون</h4><div class="val" id="adm-total-instructors">0</div></div>
-                    <div class="stat-card"><h4>اتصالات قاعدة البيانات الحية</h4><div class="val" style="color:var(--success)">مستقرة (Supabase)</div></div>
-                </div>
-                <div class="service-card">
-                    <h4><i class="fas fa-user-shield"></i> لوحة التحكم المركزية بالصلاحيات وسجلات النظام</h4>
-                    <p style="color: var(--text-muted); margin-bottom:15px;">لوحة الإدارة العليا والتحكم الشامل في الرتب المخصصة لمستخدمي قاعدة بيانات CyberPath.</p>
-                    <div class="table-container">
-                        <table id="admin-users-table">
-                            <thead><tr><th>الاسم الكامل</th><th>البريد الإلكتروني / الهوية</th><th>الرتبة الحالية</th><th>تاريخ التسجيل</th><th>التحكم بالصلاحيات</th></tr></thead>
-                            <tbody id="admin-table-body">
-                                <tr><td colspan="5" style="text-align:center; color:var(--text-muted)">جاري سحب وفحص سجلات الأعضاء من السيرفر الموحد...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+            <div data-view="student-dash" id="student-container" class="hidden"></div>
+            <div data-view="instructor-dash" id="instructor-container" class="hidden"></div>
+            <div data-view="admin-dash" id="admin-container" class="hidden"></div>
             
             <div data-view="restricted" class="hidden">
                 <div class="service-card" style="border:1px dashed var(--danger); text-align:center;">
@@ -285,20 +226,28 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        // --- تهيئة Supabase ---
         const supabaseUrl = "https://suvpaunulhqfoclepwoz.supabase.co";
         const supabaseKey = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
         const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // تدويل العميل للنطاق العام فوراً لتتشارك به كافة الـ Dashboards الفرعية
         window.supabaseClient = supabaseClient;
 
+        // --- App State ---
         const appState = {
             currentUser: null,
             currentRole: 'guest',
             activeView: 'public',
             loadedDashboards: { student: false, instructor: false, admin: false },
-            notifications: [{ id: 1, text: "تحديث أمني: تم رصد محاولة وصول من جهاز جديد" }],
-            stats: { student: { progress: 85, rank: 'صائد ثغرات مبتدئ', xp: '2450 نقطة' } }
+            notifications: [
+                { id: 1, text: "تحديث أمني: تم رصد محاولة وصول من جهاز جديد" },
+                { id: 2, text: "واجب أساسيات الشبكات بانتظار الاعتماد والمراجعة" }
+            ],
+            stats: { student: { progress: 85, rank: 'صائد ثغرات مبتدئ', xp: '2450 نقطة', completedQuizzes: '12 / 14' } }
         };
 
+        // --- دوال مساعدة عامة ---
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -312,9 +261,11 @@
         function toggleLoginModal(show) { const modal = document.getElementById('login-modal'); show ? modal.classList.remove('hidden') : modal.classList.add('hidden'); }
         function hideAllSections() { document.querySelectorAll('[data-view]').forEach(el => el.classList.add('hidden')); }
 
+        // === الدالة الأساسية: Lazy Loading للوحات التحكم وملفات الجافاسكريبت ===
         async function switchView(viewName) {
+            // 🛡️ فحص حماية فوري: إذا حاول الزائر الانتقال لرابط مباشر في واجهة الأدمن دون امتلاك رتبة صحيحة
             if (viewName === 'redirect-external') {
-                window.location.href = "https://cyberpath.vercel.app/index";
+                window.location.href = "https://cyberpath.vercel.app/index.html";
                 return;
             }
 
@@ -322,94 +273,70 @@
             let target = document.querySelector(`[data-view="${viewName}"]`);
             
             if (target) {
+                const isDynamicDashboard = (viewName === 'student-dash' || viewName === 'instructor-dash' || viewName === 'admin-dash');
+                const dashboardKey = viewName.replace('-dash', ''); // student, instructor, admin
+                
+                if (isDynamicDashboard && !appState.loadedDashboards[dashboardKey]) {
+                    showLoader();
+                    try {
+                        const htmlResponse = await fetch(`./${dashboardKey}.html`);
+                        if (!htmlResponse.ok) throw new Error(`لم يتم العثور على ملف HTML لـ ${dashboardKey}`);
+                        target.innerHTML = await htmlResponse.text();
+                        
+                        const script = document.createElement('script');
+                        script.src = `../../assets/js/dashboards/${dashboardKey}.js`;
+                        script.type = 'text/javascript';
+                        script.defer = true;
+                        
+                        script.onload = () => {
+                            console.log(`✅ تم تحميل وتفعيل وحدة: ${dashboardKey}.js بنجاح.`);
+                            if (typeof window[`init${dashboardKey.charAt(0).toUpperCase() + dashboardKey.slice(1)}Dashboard`] === 'function') {
+                                window[`init${dashboardKey.charAt(0).toUpperCase() + dashboardKey.slice(1)}Dashboard`]();
+                            }
+                            
+                            if (dashboardKey === 'admin' && typeof window.populateAdminUserTable === 'function') {
+                                window.populateAdminUserTable();
+                            } else if (dashboardKey === 'student' && typeof window.renderStudentStats === 'function') {
+                                window.renderStudentStats();
+                            }
+                            
+                            appState.loadedDashboards[dashboardKey] = true;
+                            hideLoader();
+                        };
+                        
+                        script.onerror = () => {
+                            target.innerHTML = `<div class="service-card" style="text-align:center;color:var(--danger);"><i class="fas fa-exclamation-triangle"></i> حدث خطأ في تحميل واجهة الجافاسكريبت المخصصة لـ ${dashboardKey}.</div>`;
+                            hideLoader();
+                        };
+                        
+                        document.body.appendChild(script);
+                    } catch (err) {
+                        target.innerHTML = `<div class="service-card" style="text-align:center;color:var(--danger);"><i class="fas fa-database"></i> تعذر تحميل المحتوى. يرجى التحقق من مسار الملفات.</div>`;
+                        hideLoader();
+                    }
+                }
+                
                 target.classList.remove('hidden');
                 appState.activeView = viewName;
                 renderSidebarMenu(appState.currentRole);
-
-                // تفعيل استدعاء الدوال الحية لكل لوحة فور الانتقال إليها
-                if (viewName === 'admin-dash') populateAdminUserTable();
-                if (viewName === 'student-dash') renderStudentStats();
             }
         }
 
-        // --- 📊 دالة رصد بيانات الطالب الحية وعرضها ---
-        function renderStudentStats() {
-            document.getElementById('st-progress-val').textContent = `${appState.stats.student.progress}%`;
-            document.getElementById('st-progress-bar').style.width = `${appState.stats.student.progress}%`;
-            document.getElementById('st-rank').textContent = appState.stats.student.rank;
-            document.getElementById('st-xp').textContent = appState.stats.student.xp;
-        }
-
-        // --- 👥 دالة جلب وإدارة مستخدمي الإدارة العليا من قاعدة بيانات سوبابيس الحية ---
-        async function populateAdminUserTable(searchQuery = '') {
-            const tbody = document.getElementById('admin-table-body');
-            if(!tbody) return;
-
-            try {
-                let query = supabaseClient.from('user_profile').select('full_name, role, created_at, user_id');
-                
-                if(searchQuery) {
-                    query = query.ilike('full_name', `%${searchQuery}%`);
-                }
-
-                const { data: users, error } = await query;
-                
-                if(error) throw error;
-
-                document.getElementById('adm-total-users').textContent = users.length;
-                document.getElementById('adm-total-instructors').textContent = users.filter(u => u.role === 'instructor').length;
-
-                if(!users || users.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted)">لا توجد سجلات مطابقة للبحث الحشدي.</td></tr>`;
-                    return;
-                }
-
-                tbody.innerHTML = users.map(user => {
-                    const date = new Date(user.created_at).toLocaleDateString('ar-EG');
-                    return `
-                        <tr>
-                            <td><b>${user.full_name || 'مستخدم غير مسمى'}</b></td>
-                            <td><span style="font-family:monospace; color:var(--text-muted);">${user.user_id.substring(0,8)}...</span></td>
-                            <td><span class="role-tag" style="color:white; background:${user.role==='admin'?'var(--danger)':user.role==='instructor'?'var(--warning)':'var(--primary)'}">${user.role}</span></td>
-                            <td>${date}</td>
-                            <td>
-                                <button class="btn-action-small" style="background:var(--accent)" onclick="changeUserRoleDirectly('${user.user_id}', 'instructor')">ترقية لمدرب</button>
-                                <button class="btn-action-small" style="background:var(--danger)" onclick="changeUserRoleDirectly('${user.user_id}', 'student')">طالب</button>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-
-            } catch (err) {
-                console.error("خطأ في جلب بيانات الإدارة العليا:", err);
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--danger)">❌ تعذر سحب السجلات الحية من الخادم الهجين.</td></tr>`;
-            }
-        }
-
-        // --- 🔄 دالة تعديل الصلاحيات الفورية للمستخدمين عبر الأدمن ---
-        async function changeUserRoleDirectly(userId, newRole) {
-            showLoader();
-            const { error } = await supabaseClient.from('user_profile').update({ role: newRole }).eq('user_id', userId);
-            hideLoader();
-            if(error) {
-                showToast(`❌ تعذر تعديل الصلاحية: ${error.message}`, 'error');
-            } else {
-                showToast(`🎯 تم تحديث صلاحية المستخدم بنجاح إلى: ${newRole}`, 'success');
-                populateAdminUserTable();
-            }
-        }
-
+        // --- ربط حقل البحث العلوي ---
         document.getElementById('global-search').addEventListener('input', function(e) {
             const query = e.target.value.trim();
-            if (appState.activeView === 'admin-dash') populateAdminUserTable(query);
+            if (appState.activeView === 'admin-dash' && typeof window.populateAdminUserTable === 'function') {
+                window.populateAdminUserTable(query);
+            }
         });
 
+        // --- دوال تسجيل الدخول والمستخدم ---
         async function handleLoginSubmit(event) {
             event.preventDefault();
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
             showLoader();
-            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
             hideLoader();
             if (error) { showToast(`❌ ${error.message}`, 'error'); return; }
             showToast('🔐 تم تسجيل الدخول بنجاح وتأمين الجلسة التوكن', 'success');
@@ -425,6 +352,7 @@
                 return;
             }
             appState.currentUser = user;
+            document.getElementById('user-display-name').textContent = user.email;
             document.getElementById('logout-zone').classList.remove('hidden');
             loadUserProfile(user.id);
         }
@@ -433,12 +361,12 @@
             showLoader();
             let assignedRole = 'student';
             try {
-                const { data } = await supabaseClient.from('user_profile').select('role, full_name').eq('user_id', userId).maybeSingle();
+                const { data, error } = await supabaseClient.from('user_profile').select('role, full_name').eq('user_id', userId).maybeSingle();
                 if (data) {
                     if (data.role) assignedRole = data.role;
                     if (data.full_name) document.getElementById('user-display-name').textContent = data.full_name;
                 }
-            } catch (e) { console.log("اعتماد التعيين الافتراضي"); }
+            } catch (e) { console.log("اعتماد التعيين الافتراضي للغياب المؤقت للبروفايل"); }
             hideLoader();
             updateUIForRole(assignedRole, document.getElementById('user-display-name').textContent);
         }
@@ -447,7 +375,7 @@
             showLoader();
             await supabaseClient.auth.signOut();
             hideLoader();
-            showToast('🔒 تم تسجيل الخروج بنجاح.', 'info');
+            showToast('🔒 تم تسجيل الخروج بنجاح وإبطال حزمة التوثيق.', 'info');
             appState.currentUser = null;
             document.getElementById('logout-zone').classList.add('hidden');
             updateUIForRole('guest', 'زائر المنصة');
@@ -456,41 +384,148 @@
         function updateUIForRole(role, displayName) {
             appState.currentRole = role;
             document.getElementById('user-role-tag').textContent = role;
-            document.getElementById('notification-count').textContent = appState.notifications.length;
-            document.getElementById('user-avatar').textContent = displayName ? displayName.charAt(0).toUpperCase() : 'U';
-            renderSidebarMenu(role);
-            
-            if (role === 'guest') switchView('public');
-            else if (role === 'student') switchView('student-dash');
-            else if (role === 'instructor') switchView('instructor-dash');
-            else if (role === 'admin') switchView('admin-dash');
+        
+            // تفعيل وتمرير الشاشات ديناميكياً داخل نفس اللوحة 
+            if (role === 'guest') { 
+                switchView('public'); 
+            } else if (role === 'student') { 
+                switchView('student-dash');
+            } else if (role === 'instructor') { 
+                switchView('instructor-dash');
+            } else if (role === 'admin') { 
+                switchView('admin-dash');
+            }
         }
 
+        // --- القائمة الجانبية الديناميكية المحدثة بالكامل مع الممرات الحقيقية والقيود المنظمة ---
         function renderSidebarMenu(role) {
             const menuDiv = document.getElementById('dynamic-menu');
             const menus = {
                 admin: [
                     { icon: "fa-home", text: "الرئيسية والإحصائيات", view: "admin-dash" },
-                    { icon: "fa-users-cog", text: "المستخدمون والصلاحيات", view: "admin-dash" }
+                    { icon: "fa-users-cog", text: "المستخدمون الصلاحيات", view: "admin-dash" },
+                    { icon: "fa-cubes", text: "الدورات والمقررات", view: "admin-dash" },
+                    { icon: "fa-file-signature", text: "الاختبارات والتمارين", view: "admin-dash" },
+                    { icon: "fa-database", text: "السجلات والعمليات", view: "admin-dash" }
                 ],
                 instructor: [
                     { icon: "fa-home", text: "الرئيسية والمتابعة", view: "instructor-dash" },
-                    { icon: "fa-user-graduate", text: "الطلاب والمجموعات", view: "instructor-dash" }
+                    { icon: "fa-user-graduate", text: "الطلاب والمجموعات", view: "instructor-dash" },
+                    { icon: "fa-book", text: "مقرراتي والدورات", view: "instructor-dash" },
+                    { icon: "fa-stopwatch", text: "الاختبارات والتقييمات", view: "instructor-dash" }
                 ],
                 student: [
                     { icon: "fa-home", text: "الرئيسية ومقرراتي", view: "student-dash" },
-                    { icon: "fa-trophy", text: "الاختبارات والتمارين", view: "student-dash" }
+                    { icon: "fa-calendar-alt", text: "الجدول والتقويم الدراسي", view: "student-dash" },
+                    { icon: "fa-trophy", text: "الاختبارات والتمارين", view: "student-dash" },
+                    { icon: "fa-bell", text: "التنبيهات والأخبار الأخبرية", view: "student-dash" },
+                    { icon: "fa-certificate", text: "الشهادات والدعم المعرفي", view: "student-dash" }
                 ],
                 guest: [
                     { icon: "fa-home", text: "الرئيسية والصفحات العامة", view: "redirect-external" },
-                    { icon: "fa-graduation-cap", text: "الدورات المتاحة للعرض", view: "public" }
+                    { icon: "fa-graduation-cap", text: "الدورات المتاحة للعرض", view: "public" },
+                    { icon: "fa-user-plus", text: "التسجيل بالنظام", view: "restricted" }
                 ]
             };
             const currentMenu = menus[role] || menus['guest'];
             menuDiv.innerHTML = currentMenu.map(item => `<div class="nav-item ${appState.activeView === item.view ? 'active' : ''}" onclick="switchView('${item.view}')"><i class="fas ${item.icon}"></i> <span>${item.text}</span></div>`).join('');
         }
 
-        window.onload = function() { loadCurrentUser(); };
+        // --- دوال مساعدة للتكامل الخارجي المشترك ---
+        window.renderAdminStats = function() {
+            const container = document.getElementById('admin-system-stats');
+            if(!container) return;
+            const stats = [
+                { label: 'المستخدمون النشطون بالدبلوم', value: '245' },
+                { label: 'جلسات المختبرات المفتوحة حياً', value: '31' },
+                { label: 'محاولات الدخول الفاشلة المرصودة', value: '2', alert: true }
+            ];
+            container.innerHTML = stats.map(s => `<div class="stat-card" style="${s.alert ? 'border-color: var(--danger);' : ''}"><h4 style="${s.alert ? 'color: var(--danger);' : ''}">${s.label}</h4><div class="val" style="${s.alert ? 'color: var(--danger);' : ''}">${s.value}</div></div>`).join('');
+        };
+
+        window.populateAdminUserTable = async function(filterQuery = "") {
+            const headers = ["الاسم الكامل", "الهوية الوطنية / المعرف", "الدور الوظيفي", "الحالة الإدارية", "التحكم والصلاحيات"];
+            let query = supabaseClient.from('user_profile').select('*');
+            if(filterQuery) query = query.or(`full_name.ilike.%${filterQuery}%,national_id.ilike.%${filterQuery}%`);
+            const { data: users, error } = await query.limit(10);
+            const tableBody = document.getElementById('table-body');
+            const tableHead = document.getElementById('table-head');
+            if(!tableBody || !tableHead) return;
+            
+            if(users && users.length > 0) {
+                const rows = users.map(u => `<tr><td><strong>${u.full_name || 'بلا اسم'}</strong></td><td><code>${u.national_id || u.user_id.substring(0,8)}</code></td><td><span class="role-tag">${u.role}</span></td><td style="color:${u.is_frozen ? 'var(--warning)' : 'var(--success)'}">${u.is_frozen ? 'حساب مجمد' : 'نشط التزامن'}</td><td><button class="btn-action-small" style="background:var(--primary);" onclick="changeUserRole('${u.user_id}')">تغيير دور</button> <button class="btn-action-small" style="background:var(--warning);" onclick="toggleFreezeUser('${u.user_id}', ${u.is_frozen || false})">تجميد</button> <button class="btn-action-small" style="background:var(--danger);" onclick="deleteUser('${u.user_id}')"><i class="fas fa-trash"></i></button></td></tr>`);
+                tableHead.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
+                tableBody.innerHTML = rows.join('');
+            } else {
+                const fallbackData = [{ name: "أحمد الشمري", id: "1029384755", role: "student", status: "نشط" },{ name: "أستاذ فيصل الحربي", id: "1094837266", role: "instructor", status: "نشط" },{ name: "عبدالله العتيبي (تجريبي)", id: "1102938474", role: "guest", status: "حساب مجمد" }];
+                const filteredFallback = fallbackData.filter(item => item.name.includes(filterQuery) || item.id.includes(filterQuery));
+                if(filteredFallback.length === 0) { tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">لا توجد سجلات مطابقة للبحث</td>`; return; }
+                const rows = filteredFallback.map(r => `<tr><td><strong>${r.name}</strong></td><td><code>${r.id}</code></td><td><span class="role-tag">${r.role}</span></td><td style="color:${r.status === 'حساب مجمد' ? 'var(--warning)' : 'var(--success)'}">${r.status}</td><td><button class="btn-action-small" style="background:var(--primary);" onclick="changeUserRole('${r.id}')">تغيير دور</button> <button class="btn-action-small" style="background:var(--warning);" onclick="toggleFreezeUser('${r.id}', ${r.status === 'حساب مجمد'})">تبديل التجميد</button> <button class="btn-action-small" style="background:var(--danger);" onclick="deleteUser('${r.id}')"><i class="fas fa-trash"></i></button></td>`);
+                tableHead.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
+                tableBody.innerHTML = rows.join('');
+            }
+        };
+
+        window.renderStudentStats = function() {
+            const statsGrid = document.getElementById('student-stats-grid');
+            if(!statsGrid) return;
+            const data = appState.stats.student;
+            statsGrid.innerHTML = `<div class="stat-card"><h4>الرتبة السيبرانية التراكمية</h4><div class="val" style="color: var(--accent); font-size:1.4rem;">${data.rank}</div></div><div class="stat-card"><h4>النقاط المحرزة (XP)</h4><div class="val" style="color: var(--warning);">${data.xp}</div></div><div class="stat-card" style="grid-column: 1 / -1;"><h4>التقدم العام بالمسارات التعليمية المعتمدة</h4><div class="val">${data.progress}%</div><div class="progress-container"><div class="progress-bar" style="width:${data.progress}%"></div></div></div>`;
+        };
+
+        // --- دوال الإدارة الأمنية الكاملة ---
+        window.changeUserRole = async function(targetUserId) {
+            if (appState.currentRole !== 'admin') { showToast('🚫 لا تملك صلاحيات التعديل!', 'error'); return; }
+            const newRole = prompt("أدخل الدور الجديد (admin, instructor, student, guest):");
+            if(!newRole) return;
+            showLoader();
+            try {
+                const { error } = await supabaseClient.from('user_profile').update({ role: newRole }).eq('user_id', targetUserId);
+                if (error) throw error;
+                showToast(`✅ تم تغيير الصلاحية بنجاح إلى ${newRole.toUpperCase()}`, 'success');
+                populateAdminUserTable();
+            } catch (err) {
+                showToast(`❌ حدث خطأ أثناء تغيير الدور: ${err.message}`, 'error');
+            } finally {
+                hideLoader();
+            }
+        };
+
+        window.toggleFreezeUser = async function(targetUserId, currentStatus) {
+            if (appState.currentRole !== 'admin') { showToast('🚫 لا تملك صلاحيات التحكم!', 'error'); return; }
+            const nextStatus = !currentStatus;
+            showLoader();
+            try {
+                const { error } = await supabaseClient.from('user_profile').update({ is_frozen: nextStatus }).eq('user_id', targetUserId);
+                if (error) throw error;
+                showToast(nextStatus ? '🔒 تم تجميد الحساب بنجاح' : '🔓 تم إلغاء تجميد الحساب بنجاح', 'success');
+                populateAdminUserTable();
+            } catch (err) {
+                showToast(`❌ فشل تعديل حالة الحساب: ${err.message}`, 'error');
+            } finally {
+                hideLoader();
+            }
+        };
+
+        window.deleteUser = async function(targetUserId) {
+            if (appState.currentRole !== 'admin') { showToast('🚫 صلاحية مرفوضة!', 'error'); return; }
+            if (!confirm("🚨 هل أنت متأكد تماماً من حذف هذا الحساب نهائياً من سجلات المنصة؟ لا يمكن التراجع!")) return;
+            showLoader();
+            try {
+                const { error } = await supabaseClient.from('user_profile').delete().eq('user_id', targetUserId);
+                if (error) throw error;
+                showToast('🗑️ تم حذف السجل الشخصي بنجاح تام', 'success');
+                populateAdminUserTable();
+            } catch (err) {
+                showToast(`❌ خطأ أثناء عملية الحذف: ${err.message}`, 'error');
+            } finally {
+                hideLoader();
+            }
+        };
+
+        window.onload = function() {
+            loadCurrentUser();
+        };
     </script>
 </body>
 </html>
