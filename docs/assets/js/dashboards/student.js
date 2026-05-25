@@ -117,15 +117,22 @@ window.updateStudentTopUI = function(profile) {
 // ============================================
 // 4. دالة التنقل والتبديل الذكي بين تبويبات الطالب
 // ============================================
+// دالة التنقل والتبديل الذكي والمضمون بين تبويبات الطالب
 window.switchStudentTab = function(tabName, clickedBtn) {
-    // 1. إخفاء كافة شاشات لوحة تحكم الطالب
-    document.querySelectorAll('.student-pane').forEach(pane => pane.classList.add('hidden'));
+    // 1. إخفاء كافة شاشات لوحة تحكم الطالب وإلغاء عرضها بالـ CSS
+    document.querySelectorAll('.student-pane').forEach(pane => {
+        pane.classList.add('hidden');
+        pane.style.display = 'none';
+    });
     
-    // 2. تفعيل الشاشة المختارة فوراً
+    // 2. تفعيل الشاشة المختارة فوراً وإظهارها للعرض
     const targetPane = document.getElementById(`student-pane-${tabName}`);
-    if (targetPane) targetPane.classList.remove('hidden');
+    if (targetPane) {
+        targetPane.classList.remove('hidden');
+        targetPane.style.display = 'block';
+    }
     
-    // 3. إعادة تنسيق ومظهر أزرار التنقل بشكل متوافق ومريح للعين
+    // 3. إعادة تنسيق ومظهر أزرار التنقل لتبدو نشطة وسلسة للعين
     if (clickedBtn && clickedBtn.parentElement) {
         clickedBtn.parentElement.querySelectorAll('.student-tab-btn').forEach(btn => {
             btn.style.background = 'var(--bg-card)';
@@ -137,7 +144,7 @@ window.switchStudentTab = function(tabName, clickedBtn) {
         clickedBtn.style.color = 'white';
     }
     
-    // 4. جلب ديناميكي فوري ومحدث للبيانات بناءً على التبويب النشط
+    // 4. استدعاء ديناميكي مباشر ومحدث للبيانات الحقيقية من السيرفر
     if (tabName === 'courses') {
         window.fetchAndRenderStudentCourses();
     } else if (tabName === 'progress') {
