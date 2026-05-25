@@ -292,19 +292,18 @@
         }
 
         // --- ربط حقل البحث العلوي وتحديثه ليعمل مع زر Enter أو الإدخال الديناميكي ---
-       // --- ربط حقل البحث العلوي وتحديثه ليعمل مع زر Enter أو الإدخال الديناميكي ---
-      document.getElementById('global-search').addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') {
-          e.preventDefault();
-          const query = e.target.value.trim();
-          showToast(`🔍 جاري البحث عن: ${query}`, 'info');
-        
-         // إذا كان الأدمن في واجهة المستخدمين، يتم الفلترة فوراً
-        if (appState.activeView === 'admin-dash' && typeof window.populateAdminUserTable === 'function') {
-            window.populateAdminUserTable(query);
-          }
-        }
-    });
+        document.getElementById('global-search').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const query = e.target.value.trim();
+                showToast(`🔍 جاري البحث عن: ${query}`, 'info');
+                
+                // إذا كان الأدمن في واجهة المستخدمين، يتم الفلترة فوراً
+                if (appState.activeView === 'admin-dash' && typeof window.populateAdminUserTable === 'function') {
+                    window.populateAdminUserTable(query);
+                }
+            }
+        });
 
         // === الدالة الأساسية المحدثة بالكامل لتدعم الـ Lazy loading والـ Iframes بالتزامن ===
         async function switchView(viewName) {
@@ -323,17 +322,15 @@
                 if (isDynamicDashboard && !appState.loadedDashboards[dashboardKey]) {
                     showLoader();
                     try {
-                        const htmlResponse = await fetch(`./${dashboardKey}.html`);
+                        // ✅ المسار الصحيح لملفات HTML
+                        const htmlResponse = await fetch(`./docs/dashboards/${dashboardKey}.html`);
                         if (!htmlResponse.ok) throw new Error(`لم يتم العثور على ملف HTML لـ ${dashboardKey}`);
                         target.innerHTML = await htmlResponse.text();
                         
-                       const script = document.createElement('script');
-                       script.src = `../../assets/js/dashboards/${dashboardKey}.js`;
-
-                       // التعديل هنا:
-                       script.type = 'module'; 
-                       script.defer = true;
-                       document.body.appendChild(script);
+                        // ✅ المسار الصحيح لملفات JavaScript
+                        const script = document.createElement('script');
+                        script.src = `./docs/assets/js/dashboards/${dashboardKey}.js`;
+                        script.defer = true;
                         
                         script.onload = () => {
                             console.log(`✅ تم تحميل وتفعيل وحدة: ${dashboardKey}.js بنجاح.`);
@@ -352,12 +349,14 @@
                         };
                         
                         script.onerror = () => {
+                            console.error(`❌ فشل تحميل السكريبت: ${dashboardKey}.js`);
                             target.innerHTML = `<div class="service-card" style="text-align:center;color:var(--danger);"><i class="fas fa-exclamation-triangle"></i> حدث خطأ في تحميل واجهة الجافاسكريبت المخصصة لـ ${dashboardKey}.</div>`;
                             hideLoader();
                         };
                         
                         document.body.appendChild(script);
                     } catch (err) {
+                        console.error("🚨 خطأ في التحميل:", err);
                         target.innerHTML = `<div class="service-card" style="text-align:center;color:var(--danger);"><i class="fas fa-database"></i> تعذر تحميل المحتوى. يرجى التحقق من مسار الملفات.</div>`;
                         hideLoader();
                     }
@@ -497,14 +496,41 @@
             if(!tableBody || !tableHead) return;
             
             if(users && users.length > 0) {
-                const rows = users.map(u => `<tr><td><strong>${u.full_name || 'بلا اسم'}</strong></td><td><code>${u.national_id || u.user_id.substring(0,8)}</code></td><td><span class="role-tag">${u.role}</span></td><td style="color:${u.is_frozen ? 'var(--warning)' : 'var(--success)'}">${u.is_frozen ? 'حساب مجمد' : 'نشط التزامن'}</td><td><button class="btn-action-small" style="background:var(--primary);" onclick="changeUserRole('${u.user_id}')">تغيير دور</button> <button class="btn-action-small" style="background:var(--warning);" onclick="toggleFreezeUser('${u.user_id}', ${u.is_frozen || false})">تجميد</button> <button class="btn-action-small" style="background:var(--danger);" onclick="deleteUser('${u.user_id}')"><i class="fas fa-trash"></i></button></td></tr>`);
+                const rows = users.map(u => `<tr>
+                    <td><strong>${u.full_name || 'بلا اسم'}</strong></td>
+                    <td><code>${u.national_id || u.user_id.substring(0,8)}</code></td>
+                    <td><span class="role-tag">${u.role}</span></td>
+                    <td style="color:${u.is_frozen ? 'var(--warning)' : 'var(--success)'}">${u.is_frozen ? 'حساب مجمد' : 'نشط التزامن'}</td>
+                    <td>
+                        <button class="btn-action-small" style="background:var(--primary);" onclick="changeUserRole('${u.user_id}')">تغيير دور</button>
+                        <button class="btn-action-small" style="background:var(--warning);" onclick="toggleFreezeUser('${u.user_id}', ${u.is_frozen || false})">تجميد</button>
+                        <button class="btn-action-small" style="background:var(--danger);" onclick="deleteUser('${u.user_id}')"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>`);
                 tableHead.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
                 tableBody.innerHTML = rows.join('');
             } else {
-                const fallbackData = [{ name: "أحمد الشمري", id: "1029384755", role: "student", status: "نشط" },{ name: "أستاذ فيصل الحربي", id: "1094837266", role: "instructor", status: "نشط" },{ name: "عبدالله العتيبي (تجريبي)", id: "1102938474", role: "guest", status: "حساب مجمد" }];
+                const fallbackData = [
+                    { name: "أحمد الشمري", id: "1029384755", role: "student", status: "نشط" },
+                    { name: "أستاذ فيصل الحربي", id: "1094837266", role: "instructor", status: "نشط" },
+                    { name: "عبدالله العتيبي (تجريبي)", id: "1102938474", role: "guest", status: "حساب مجمد" }
+                ];
                 const filteredFallback = fallbackData.filter(item => item.name.includes(filterQuery) || item.id.includes(filterQuery));
-                if(filteredFallback.length === 0) { tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">لا توجد سجلات مطابقة للبحث</td></tr>`; return; }
-                const rows = filteredFallback.map(r => `<tr><td><strong>${r.name}</strong></td><td><code>${r.id}</code></td><td><span class="role-tag">${r.role}</span></td><td style="color:${r.status === 'حساب مجمد' ? 'var(--warning)' : 'var(--success)'}">${r.status}</td><td><button class="btn-action-small" style="background:var(--primary);" onclick="changeUserRole('${r.id}')">تغيير دور</button> <button class="btn-action-small" style="background:var(--warning);" onclick="toggleFreezeUser('${r.id}', ${r.status === 'حساب مجمد'})">تبديل التجميد</button> <button class="btn-action-small" style="background:var(--danger);" onclick="deleteUser('${r.id}')"><i class="fas fa-trash"></i></button></td></tr>`);
+                if(filteredFallback.length === 0) { 
+                    tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">لا توجد سجلات مطابقة للبحث</td></tr>`; 
+                    return; 
+                }
+                const rows = filteredFallback.map(r => `<tr>
+                    <td><strong>${r.name}</strong></td>
+                    <td><code>${r.id}</code></td>
+                    <td><span class="role-tag">${r.role}</span></td>
+                    <td style="color:${r.status === 'حساب مجمد' ? 'var(--warning)' : 'var(--success)'}">${r.status}</td>
+                    <td>
+                        <button class="btn-action-small" style="background:var(--primary);" onclick="changeUserRole('${r.id}')">تغيير دور</button>
+                        <button class="btn-action-small" style="background:var(--warning);" onclick="toggleFreezeUser('${r.id}', ${r.status === 'حساب مجمد'})">تبديل التجميد</button>
+                        <button class="btn-action-small" style="background:var(--danger);" onclick="deleteUser('${r.id}')"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>`);
                 tableHead.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
                 tableBody.innerHTML = rows.join('');
             }
@@ -566,6 +592,7 @@
                 hideLoader();
             }
         };
+        
         window.onload = function() {
             loadCurrentUser();
         };
