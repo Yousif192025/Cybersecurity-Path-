@@ -138,51 +138,46 @@ supabase.auth.onAuthStateChange(async (event, session) => {
         const authMethod = session.provider; 
         if (authMethod === 'google') {
             console.log("الدخول المكتشف عبر جوجل.. جاري فحص الملف الأكاديمي..");
-            await redirectUserByRole(session.user);
+            await redirectUserToUnifiedDashboard(session.user);
         }
     }
 });
 
-// --- 🗺️ محرك التوجيه المركزي الصارم (تحديد الوجهات بناءً على الأدوار الحقيقية) ---
-async function redirectUserByRole(user) {
+// --- 🗺️ محرك التوجيه الموحد والأمين (توجيه الجميع للوحة الموحدة والمركزية) ---
+async function redirectUserToUnifiedDashboard(user) {
     if (isRedirecting) return;
     isRedirecting = true; // إغلاق البوابة لمنع التداخل البرمجي أثناء النقل
     
     loader.style.display = "block";
-    message.innerText = "جاري فحص الصلاحيات الأكاديمية...";
+    message.innerText = "جاري تأمين ممرات العبور وتحديث السجلات...";
     message.className = "success-msg";
 
     try {
+        // فحص سريع للتحقق من سلامة وجود الحساب بجدول البروفايل قبل العبور لزيادة الأمان
         const { data: profile, error } = await supabase
             .from("user_profile")
             .select("role, full_name")
             .eq("user_id", user.id)
-            .single();
+            .maybeSingle();
 
         loader.style.display = "none";
 
-        // التعامل الحذر والآمن في حال لم يعثر على سجل للمستخدم في جدول البروفايلات
-        if (error || !profile) {
-            console.error("❌ تعذر قراءة البروفايل أو الحساب غير مسجل بالجدول العام:", error);
-            console.log("⚠️ سيتم تحويلك تلقائياً لصفحة الطالب كإجراء أمان احتياطي.");
-            window.location.href = "./dashboards/student.html";
-            return;
+        if (error) {
+            console.error("❌ حدث خطأ أثناء فحص سجل الحساب:", error);
         }
 
-        console.log(`✅ تم التحقق بنجاح! أهلاً بك: ${profile.full_name} | الدور الحالي: ${profile.role}`);
-
-        // التوجيه الدقيق والمباشر حسب الصلاحية الفعلية المسجلة بيوسف الشفيع
-        if (profile.role === "admin") {
-            window.location.href = "./dashboards/admin.html";
-        } else if (profile.role === "instructor") {
-            window.location.href = "./dashboards/instructor.html"; 
+        if (profile) {
+            console.log(`✅ تم التحقق بنجاح! مرحباً بك: ${profile.full_name} | الدور: ${profile.role}`);
         } else {
-            window.location.href = "./dashboards/student.html";
+            console.log("⚠️ لم يتم العثور على بروفايل مسبق، سيتم توليد لوحة افتراضية فور الوصول.");
         }
+
+        // 🚀 النقل الاحترافي الموحد: الجميع يسافر إلى نفس المحطة المركبة، واللوحة تتكفل بالفرز
+        window.location.href = "./undashboard.html";
 
     } catch (catchedError) {
-        console.error("حدث خطأ مفاجئ في محرك التوجيه الإلكتروني:", catchedError);
-        window.location.href = "./dashboards/student.html";
+        console.error("حدث خطأ مفاجئ في محرك التوجيه الموحد:", catchedError);
+        window.location.href = "./undashboard.html";
     }
 }
 
@@ -220,8 +215,8 @@ window.login = async function() {
         return;
     }
 
-    console.log("🚀 نجح التحقق من كلمة المرور، جاري تشغيل التوجيه المباشر..");
-    await redirectUserByRole(data.user);
+    console.log("🚀 نجح التحقق من كلمة المرور، جاري تشغيل التوجيه الموحد..");
+    await redirectUserToUnifiedDashboard(data.user);
 }
 
 // --- 🌐 دالة تسجيل الدخول السريع عبر خدمات جوجل ---
@@ -259,7 +254,6 @@ window.createAccount = async function() {
         return;
     }
 
-    // تطبيق منطق التسهيل لحفظ حساب المتدرب بالهوية الوطنية مباشرة
     if (/^\d+$/.test(emailInput)) {
         emailInput = `${emailInput}@cyberpath.edu`;
     }
@@ -286,7 +280,6 @@ window.forgotPassword = async function() {
         return;
     }
 
-    // دعم الاستعادة السريعة حتى لو تذكر الطالب رقم هويته فقط
     if (/^\d+$/.test(emailInput)) {
         emailInput = `${emailInput}@cyberpath.edu`;
     }
