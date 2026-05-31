@@ -1,40 +1,20 @@
 /**
  * 🎯 وحدة الطالب المطورة (Student Dashboard Module) - النسخة المدمجة والنهائية
- * يتم تحميلها ديناميكياً لتشغيل واجهة الطالب الحية وإدارتها بالكامل
  */
 
 // ============================================
-// 1. انتظار تحميل Supabase من الـ CDN
+// 1. انتظار تحميل Supabase من الـ CDN (بدون تعريف مكرر)
 // ============================================
-let supabase;
 
-function waitForSupabase() {
-    return new Promise((resolve) => {
-        if (window.supabaseClient) {
-            supabase = window.supabaseClient;
-            resolve();
-            return;
-        }
-        const checkInterval = setInterval(() => {
-            if (window.supabaseClient) {
-                supabase = window.supabaseClient;
-                clearInterval(checkInterval);
-                resolve();
-            }
-        }, 50);
-        setTimeout(() => {
-            clearInterval(checkInterval);
-            if (!supabase) {
-                console.warn("⚠️ Supabase not found, creating new client");
-                const supabaseUrl = "https://suvpaunulhqfoclepwoz.supabase.co";
-                const supabaseKey = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
-                window.supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-                supabase = window.supabaseClient;
-            }
-            resolve();
-        }, 3000);
-    });
+// تأكد من عدم وجود let supabase مكرر في بداية الملف
+if (typeof window.supabaseClient === 'undefined') {
+    const supabaseUrl = "https://suvpaunulhqfoclepwoz.supabase.co";
+    const supabaseKey = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
+    window.supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 }
+
+// استخدام الـ client الموجود (لا نعيد تعريف supabase كـ let أو const جديدة)
+const supabaseClient = window.supabaseClient;
 
 // ============================================
 // 2. المتغيرات العامة لنطاق الطالب
@@ -47,7 +27,6 @@ let currentStudentProfile = null;
 // ============================================
 window.initStudentDashboard = async function() {
     console.log('🎓 جاري تفعيل المزامنة الرقمية وجلب بيانات الطالب...');
-    await waitForSupabase();
     
     const isAuthenticated = await window.loadStudentData();
     
@@ -63,7 +42,7 @@ window.initStudentDashboard = async function() {
  */
 window.loadStudentData = async function() {
     try {
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
 
         if (authError || !user) {
             console.warn("⚠️ لم يتم العثور على جلسة صالحة للتحقق الرقمي.");
@@ -73,7 +52,7 @@ window.loadStudentData = async function() {
         currentUser = user;
         console.log(`✅ تم تأمين اتصال الحساب: ${user.email}`);
 
-        const { data: profile, error: profileError } = await supabase
+        const { data: profile, error: profileError } = await supabaseClient
             .from('user_profile')
             .select('*')
             .eq('user_id', user.id)
@@ -129,6 +108,8 @@ window.updateStudentTopUI = function(profile) {
 // 4. دالة التنقل والتبديل الذكي بين تبويبات الطالب
 // ============================================
 window.switchStudentTab = function(tabName, clickedBtn) {
+    console.log('🔄 تبديل التبويب إلى:', tabName);
+    
     // إخفاء كافة شاشات لوحة تحكم الطالب
     document.querySelectorAll('.student-pane').forEach(pane => {
         pane.classList.add('hidden');
@@ -143,15 +124,19 @@ window.switchStudentTab = function(tabName, clickedBtn) {
     }
     
     // تحديث مظهر أزرار التنقل
-    if (clickedBtn && clickedBtn.parentElement) {
-        clickedBtn.parentElement.querySelectorAll('.student-tab-btn').forEach(btn => {
-            btn.style.background = 'var(--bg-card)';
-            btn.style.borderColor = 'var(--border)';
-            btn.style.color = 'var(--text-muted)';
-        });
+    const allBtns = document.querySelectorAll('.student-tab-btn');
+    allBtns.forEach(btn => {
+        btn.style.background = 'var(--bg-card)';
+        btn.style.borderColor = 'var(--border)';
+        btn.style.color = 'var(--text-muted)';
+        btn.classList.remove('active-tab');
+    });
+    
+    if (clickedBtn) {
         clickedBtn.style.background = 'var(--primary)';
         clickedBtn.style.borderColor = 'var(--primary)';
         clickedBtn.style.color = 'white';
+        clickedBtn.classList.add('active-tab');
     }
     
     // استدعاء البيانات حسب التبويب
@@ -171,15 +156,15 @@ window.fetchAndRenderStudentCourses = async function() {
 
     try {
         if (!currentUser) {
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await supabaseClient.auth.getUser();
             if (!user) return;
             currentUser = user;
         }
 
-        const { data: allCourses, error: errCourses } = await supabase.from("courses").select("*");
+        const { data: allCourses, error: errCourses } = await supabaseClient.from("courses").select("*");
         if (errCourses) throw errCourses;
 
-        const { data: myEnrollments, error: errEnrolls } = await supabase
+        const { data: myEnrollments, error: errEnrolls } = await supabaseClient
             .from("enrollments")
             .select("course_id, completion_percentage")
             .eq("user_id", currentUser.id);
@@ -222,19 +207,19 @@ window.fetchAndRenderStudentCourses = async function() {
             const percent = isEnrolled ? enrollment.percentage : 0;
 
             return `
-                <div class="stat-card" style="display:flex; flex-direction:column; justify-content:space-between; border:1px solid var(--border); background-color:rgba(30,41,59,0.4); padding:1.5rem; border-radius:10px; transition:all 0.3s ease;">
+                <div class="stat-card" style="display:flex; flex-direction:column; justify-content:space-between; border:1px solid var(--border); background-color:rgba(30,41,59,0.4); padding:1.5rem; border-radius:10px;">
                     <div>
-                        <h3 style="color:var(--text-main); font-size:1.2rem; margin-bottom:8px; display:flex; align-items:center; gap:8px; text-align:right;">
+                        <h3 style="color:var(--text-main); font-size:1.2rem; margin-bottom:8px; display:flex; align-items:center; gap:8px;">
                             <i class="fas fa-bookmark" style="color:${isEnrolled ? 'var(--success)' : 'var(--primary)'}"></i> ${course.title}
                         </h3>
-                        <p style="color:var(--text-muted); font-size:0.85rem; line-height:1.5; margin-bottom:15px; text-align:right;">
-                            ${course.description || 'مسار مهني متكامل وموجه لتطوير مهارات الدفاع الرقمي والتصدي للثغرات البرمجية.'}
+                        <p style="color:var(--text-muted); font-size:0.85rem; line-height:1.5; margin-bottom:15px;">
+                            ${course.description || 'مسار مهني متكامل وموجه لتطوير مهارات الدفاع الرقمي.'}
                         </p>
                     </div>
                     <div>
                         ${isEnrolled ? `
-                            <div style="margin-bottom:12px; dir:ltr;">
-                                <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:4px; direction:rtl;">
+                            <div style="margin-bottom:12px;">
+                                <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:4px;">
                                     <span style="color:var(--success)">✓ مسجل ومستمر</span>
                                     <span>${percent}%</span>
                                 </div>
@@ -271,7 +256,7 @@ window.fetchAndRenderStudentProgressTable = async function() {
     try {
         if (!currentUser) return;
 
-        const { data: enrollments, error } = await supabase
+        const { data: enrollments, error } = await supabaseClient
             .from("enrollments")
             .select(`*, courses(title, course_id)`)
             .eq("user_id", currentUser.id);
@@ -288,15 +273,15 @@ window.fetchAndRenderStudentProgressTable = async function() {
                 <td style="padding:12px;"><strong>${e.courses ? e.courses.title : 'مسار أمني غير معرف'}</strong></td>
                 <td style="padding:12px;"><span class="role-tag" style="background:rgba(16,185,129,0.1); color:var(--success); padding:3px 8px; border-radius:4px;">${e.completion_status || 'قيد الدراسة'}</span></td>
                 <td style="padding:12px;">
-                    <div style="display:flex; align-items:center; gap:8px; direction:ltr;">
-                        <span style="font-weight:bold; min-width:35px; text-align:right;">${e.completion_percentage || 0}%</span>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-weight:bold; min-width:35px;">${e.completion_percentage || 0}%</span>
                         <div class="progress-container" style="margin:0; height:6px; flex-grow:1; background:var(--border);">
                             <div class="progress-bar" style="width:${e.completion_percentage || 0}%;"></div>
                         </div>
                     </div>
                 </td>
                 <td style="padding:12px;">
-                    <button class="btn-action-small" style="background:var(--primary); padding:6px 12px; color:white; border:none; border-radius:4px; cursor:pointer; font-size:0.85rem;" onclick="window.redirectStudentToPlayer('${e.courses ? e.courses.course_id : ''}')">
+                    <button class="btn-action-small" style="background:var(--primary); padding:6px 12px; color:white; border:none; border-radius:4px; cursor:pointer;" onclick="window.redirectStudentToPlayer('${e.courses ? e.courses.course_id : ''}')">
                         <i class="fas fa-external-link-alt"></i> فتح المشغل
                     </button>
                 </td>
@@ -305,26 +290,26 @@ window.fetchAndRenderStudentProgressTable = async function() {
 
     } catch (err) {
         console.error(err);
-        tableBody.innerHTML = `<tr><td colspan="4" style="color:var(--danger); text-align:center;">❌ حدث خطأ داخلي أثناء تحديث تقارير التقدم التزامنية.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="4" style="color:var(--danger); text-align:center;">❌ حدث خطأ داخلي أثناء تحديث تقارير التقدم.</td></td>`;
     }
 };
 
 // ============================================
-// 7. دالة معالجة طلب الاشتراك والانضمام الفوري بكورس جديد
+// 7. دالة معالجة طلب الاشتراك
 // ============================================
 window.handleStudentEnrollment = async function(courseId) {
     if (!courseId) return;
 
     try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await supabaseClient.auth.getUser();
         if (!user) {
-            if (typeof window.showToast === 'function') window.showToast("🛑 يجب تسجيل الدخول للنظام أولاً لتتمكن من الانضمام.", "error");
+            if (typeof window.showToast === 'function') window.showToast("🛑 يجب تسجيل الدخول للنظام أولاً.", "error");
             return;
         }
 
         if (typeof window.showLoader === 'function') window.showLoader();
 
-        const { error } = await supabase.from("enrollments").insert({
+        const { error } = await supabaseClient.from("enrollments").insert({
             user_id: user.id,
             course_id: courseId,
             completion_status: 'in_progress',
@@ -334,50 +319,40 @@ window.handleStudentEnrollment = async function(courseId) {
         if (typeof window.hideLoader === 'function') window.hideLoader();
 
         if (error) {
-            if (typeof window.showToast === 'function') window.showToast(`❌ تعذر الالتحاق بالمسار: ${error.message}`, 'error');
+            if (typeof window.showToast === 'function') window.showToast(`❌ تعذر الالتحاق: ${error.message}`, 'error');
             return;
         }
 
-        if (typeof window.showToast === 'function') window.showToast("🎉 مبروك! تم تسجيلك بالمسار التعليمي بنجاح تام.", "success");
+        if (typeof window.showToast === 'function') window.showToast("🎉 تم تسجيلك بالمسار التعليمي بنجاح!", "success");
         
         window.fetchAndRenderStudentCourses();
         setTimeout(() => {
             window.fetchAndRenderStudentProgressTable();
-            const progressBtn = document.querySelector('button[onclick*="progress"]');
-            if (progressBtn) window.switchStudentTab('progress', progressBtn);
         }, 400);
 
     } catch (e) {
         if (typeof window.hideLoader === 'function') window.hideLoader();
-        console.error("Enrollment crash:", e);
+        console.error("Enrollment error:", e);
     }
 };
 
 // ============================================
-// 8. التوجيه لمشغل الفيديو والبيئات المعملية الآمنة
+// 8. التوجيه لمشغل الفيديو
 // ============================================
 window.redirectStudentToPlayer = function(courseId) {
     if (!courseId) return;
-    if (typeof window.showToast === 'function') window.showToast("🎬 جاري تحضير البث الآمن وفتح المعامل الرقمية...", "success");
-    
-    setTimeout(() => {
-        window.location.href = `../pages/course-player.html?course_id=${courseId}`;
-    }, 500);
+    window.location.href = `../pages/course-player.html?course_id=${courseId}`;
 };
 
-/**
- * دالة إظهار رسالة الأمان للمستخدمين غير المسجلين
- */
 window.showUnauthorizedMessage = function() {
     const gridContainer = document.getElementById('dynamic-courses-grid');
     if (gridContainer) {
         gridContainer.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; border: 1px dashed var(--warning); border-radius:8px; background: rgba(245,158,11,0.02);">
+            <div style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
                 <i class="fas fa-lock" style="font-size: 2.5rem; color: var(--warning); margin-bottom: 1rem;"></i>
-                <h3 style="color:var(--text-main); margin-bottom:0.5rem;">🛑 يرجى تسجيل الدخول أولاً</h3>
-                <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size:0.9rem;">يتطلب عرض مسارك التمكيني والاشتراك بالدورات تسجيل الدخول والتحقق من الهوية السيبرانية للمنصة.</p>
+                <h3>🛑 يرجى تسجيل الدخول أولاً</h3>
                 <button class="btn-action-small" style="background: var(--primary); padding: 8px 20px; color:white; border:none; border-radius:5px; cursor:pointer;" onclick="window.location.href='../login.html'">
-                    <i class="fas fa-sign-in-alt"></i> الانتقال لصفحة تسجيل الدخول
+                    <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
                 </button>
             </div>
         `;
@@ -385,10 +360,12 @@ window.showUnauthorizedMessage = function() {
 };
 
 // ============================================
-// 9. تشغيل وقائي وتلقائي متزامن للموديول
+// 9. التشغيل التلقائي
 // ============================================
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', window.initStudentDashboard);
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(window.initStudentDashboard, 100);
+    });
 } else {
-    setTimeout(window.initStudentDashboard, 150);
+    setTimeout(window.initStudentDashboard, 100);
 }
