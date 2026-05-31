@@ -10,18 +10,18 @@
             </p>
         </div>
 
-        <!-- أزرار التبويبات -->
+        <!-- أزرار التبويبات - تم إصلاح الـ onclick -->
         <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="student-tabs-container">
-            <button class="btn-action-small student-tab-btn active-tab" data-tab="courses">
+            <button class="btn-action-small student-tab-btn active-tab" onclick="window.switchStudentTab('courses', this)">
                 <i class="fas fa-book-open"></i> 📚 المقررات المتاحة
             </button>
-            <button class="btn-action-small student-tab-btn" data-tab="progress">
+            <button class="btn-action-small student-tab-btn" onclick="window.switchStudentTab('progress', this)">
                 <i class="fas fa-chart-line"></i> 📊 تقدمي الدراسي
             </button>
-            <button class="btn-action-small student-tab-btn" data-tab="assignments">
+            <button class="btn-action-small student-tab-btn" onclick="window.switchStudentTab('assignments', this)">
                 <i class="fas fa-tasks"></i> 📝 الواجبات والاختبارات
             </button>
-            <button class="btn-action-small student-tab-btn" data-tab="certificates">
+            <button class="btn-action-small student-tab-btn" onclick="window.switchStudentTab('certificates', this)">
                 <i class="fas fa-certificate"></i> 🏆 الشهادات
             </button>
         </div>
@@ -77,12 +77,12 @@
             <div class="service-card">
                 <h4 style="color: var(--text-main);"><i class="fas fa-chart-pie"></i> تفاصيل معدلات الإنجاز</h4>
                 <div class="table-container">
-                    <table>
+                    <table style="width: 100%; border-collapse: collapse;">
                         <thead>
-                            <tr><th>المقرر الدراسي</th><th>الحالة</th><th>نسبة الإنجاز</th><th>المتابعة</th></tr>
+                            <tr><th style="padding: 12px; text-align: right;">المقرر الدراسي</th><th style="padding: 12px;">الحالة</th><th style="padding: 12px;">نسبة الإنجاز</th><th style="padding: 12px;">المتابعة</th></tr>
                         </thead>
                         <tbody id="dynamic-progress-table-body">
-                            <tr><td colspan="4" style="text-align:center;">جاري التحميل...</td></tr>
+                            <tr><td colspan="4" style="text-align:center; padding: 2rem;">جاري التحميل...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -94,13 +94,23 @@
             <div class="service-card">
                 <h4><i class="fas fa-tasks"></i> التمارين والاختبارات</h4>
                 <div class="table-container">
-                    <table>
+                    <table style="width: 100%; border-collapse: collapse;">
                         <thead>
-                            <tr><th>التمرين</th><th>تاريخ التسليم</th><th>الدرجة</th><th>الحالة</th></tr>
+                            <tr><th style="padding: 12px;">التمرين</th><th style="padding: 12px;">تاريخ التسليم</th><th style="padding: 12px;">الدرجة</th><th style="padding: 12px;">الحالة</th></tr>
                         </thead>
                         <tbody id="student-assignments-table-body">
-                            <tr><td>تحليل هجمات DDoS</td><td>28 مايو 2026</td><td>10</td><td><span class="role-tag" style="background:var(--warning);">⏳ بانتظار الحل</span></td></tr>
-                            <tr><td>إعداد أدوات التشخيص</td><td>02 يونيو 2026</td><td>5</td><td><span class="role-tag" style="background:var(--warning);">⏳ بانتظار الحل</span></td></tr>
+                            <tr>
+                                <td style="padding: 12px;"><strong>تحليل هجمات DDoS</strong></td>
+                                <td style="padding: 12px;">28 مايو 2026</td>
+                                <td style="padding: 12px;">10</td>
+                                <td style="padding: 12px;"><span class="role-tag" style="background:var(--warning); color:#000;">⏳ بانتظار الحل</span></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 12px;"><strong>إعداد أدوات التشخيص</strong></td>
+                                <td style="padding: 12px;">02 يونيو 2026</td>
+                                <td style="padding: 12px;">5</td>
+                                <td style="padding: 12px;"><span class="role-tag" style="background:var(--warning); color:#000;">⏳ بانتظار الحل</span></td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -129,48 +139,42 @@
 </div>
 
 <script>
-    (function() {
-        // دوال التبويبات
-        function switchTab(tabName, btnElement) {
-            document.querySelectorAll('.student-pane').forEach(pane => pane.style.display = 'none');
-            const targetPane = document.getElementById(`student-pane-${tabName}`);
-            if (targetPane) targetPane.style.display = 'block';
-            
-            document.querySelectorAll('.student-tab-btn').forEach(btn => {
-                btn.classList.remove('active-tab');
-                btn.style.background = 'var(--bg-card)';
-                btn.style.border = '1px solid var(--border)';
-                btn.style.color = 'var(--text-muted)';
-            });
-            
-            if (btnElement) {
-                btnElement.classList.add('active-tab');
-                btnElement.style.background = 'var(--primary)';
-                btnElement.style.border = '1px solid var(--primary)';
-                btnElement.style.color = 'white';
-            }
-        }
-        
-        // ربط الأزرار
-        const btns = document.querySelectorAll('.student-tab-btn');
-        btns.forEach(btn => {
-            const tabName = btn.getAttribute('data-tab');
-            if (tabName) {
-                btn.onclick = () => switchTab(tabName, btn);
-            }
+    // ============================================
+    // دوال التبويبات (Tabs) - بنفس طريقة الكود الأصلي
+    // ============================================
+    
+    window.switchStudentTab = function(tabName, btnElement) {
+        // إخفاء جميع الألواح
+        const panes = document.querySelectorAll('.student-pane');
+        panes.forEach(function(pane) {
+            pane.style.display = 'none';
         });
         
-        // تفعيل التبويب الأول افتراضياً
-        const firstBtn = document.querySelector('.student-tab-btn.active-tab');
-        if (firstBtn && firstBtn.getAttribute('data-tab')) {
-            switchTab(firstBtn.getAttribute('data-tab'), firstBtn);
+        // إظهار اللوح المطلوب
+        var targetPane = document.getElementById('student-pane-' + tabName);
+        if (targetPane) {
+            targetPane.style.display = 'block';
         }
         
-        // إعلام الـ Core بتحميل الواجهة
-        if (window.CyberPath && window.CyberPath.notifyDashboardReady) {
-            window.CyberPath.notifyDashboardReady('student');
-        } else if (window.parent && window.parent.CyberPath) {
-            window.parent.CyberPath.notifyDashboardReady('student');
+        // تحديث حالة الأزرار النشطة
+        var allBtns = document.querySelectorAll('.student-tab-btn');
+        allBtns.forEach(function(btn) {
+            btn.classList.remove('active-tab');
+            btn.style.background = 'var(--bg-card)';
+            btn.style.border = '1px solid var(--border)';
+            btn.style.color = 'var(--text-muted)';
+        });
+        
+        if (btnElement) {
+            btnElement.classList.add('active-tab');
+            btnElement.style.background = 'var(--primary)';
+            btnElement.style.border = '1px solid var(--primary)';
+            btnElement.style.color = 'white';
         }
-    })();
+    };
+    
+    // إعلام الـ Core بتحميل الواجهة
+    if (typeof window.parent !== 'undefined' && window.parent.CyberPath) {
+        window.parent.CyberPath.notifyDashboardReady('student');
+    }
 </script>
