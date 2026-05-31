@@ -1,25 +1,40 @@
 /**
  * 🎯 وحدة الطالب المطورة (Student Dashboard Module) - النسخة المدمجة والنهائية
  * يتم تحميلها ديناميكياً لتشغيل واجهة الطالب الحية وإدارتها بالكامل
- * * تم المزامنة الشاملة مع:
- * - جداول Supabase الأساسية (courses و enrollments)
- * - نظام التنبيهات النيون التفاعلي (showToast)
- * - منطق الكروت المرن والمطابق لواجهة الطالب النقية
  */
 
 // ============================================
-// 1. تهيئة اتصال Supabase (آلية النسخة الموحدة والوقائية)
+// 1. انتظار تحميل Supabase من الـ CDN
 // ============================================
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+let supabase;
 
-const supabaseUrl = "https://suvpaunulhqfoclepwoz.supabase.co";
-const supabaseKey = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
-
-// تأمين استخدام كائن اتصال موحد متاح عالمياً عبر المتصفح لمنع تعارض الجلسات
-if (!window.supabaseClient) {
-    window.supabaseClient = createClient(supabaseUrl, supabaseKey);
+function waitForSupabase() {
+    return new Promise((resolve) => {
+        if (window.supabaseClient) {
+            supabase = window.supabaseClient;
+            resolve();
+            return;
+        }
+        const checkInterval = setInterval(() => {
+            if (window.supabaseClient) {
+                supabase = window.supabaseClient;
+                clearInterval(checkInterval);
+                resolve();
+            }
+        }, 50);
+        setTimeout(() => {
+            clearInterval(checkInterval);
+            if (!supabase) {
+                console.warn("⚠️ Supabase not found, creating new client");
+                const supabaseUrl = "https://suvpaunulhqfoclepwoz.supabase.co";
+                const supabaseKey = "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b";
+                window.supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+                supabase = window.supabaseClient;
+            }
+            resolve();
+        }, 3000);
+    });
 }
-const supabase = window.supabaseClient;
 
 // ============================================
 // 2. المتغيرات العامة لنطاق الطالب
@@ -32,12 +47,11 @@ let currentStudentProfile = null;
 // ============================================
 window.initStudentDashboard = async function() {
     console.log('🎓 جاري تفعيل المزامنة الرقمية وجلب بيانات الطالب...');
+    await waitForSupabase();
     
-    // التحقق من الجلسة الحالية وبناء ملف الطالب
     const isAuthenticated = await window.loadStudentData();
     
     if (isAuthenticated) {
-        // الاستدعاء التلقائي للمناهج والمسارات المتاحة كشاشة افتراضية أولى
         await window.fetchAndRenderStudentCourses();
     } else {
         window.showUnauthorizedMessage();
@@ -59,21 +73,19 @@ window.loadStudentData = async function() {
         currentUser = user;
         console.log(`✅ تم تأمين اتصال الحساب: ${user.email}`);
 
-        // جلب بيانات الحساب الشخصي التفصيلية للطالب
         const { data: profile, error: profileError } = await supabase
             .from('user_profile')
             .select('*')
             .eq('user_id', user.id)
-            .single();
+            .maybeSingle();
 
-        if (profileError) {
+        if (profileError || !profile) {
             console.warn("⚠️ تعذر جلب السجل الشخصي، سيتم استخدام التوزيع الافتراضي المؤقت.");
             currentStudentProfile = window.getDefaultStudentProfile(user);
         } else {
             currentStudentProfile = profile;
         }
 
-        // تحديث عناصر الترحيب والاسم في القالب العلوي
         window.updateStudentTopUI(currentStudentProfile);
         return true;
 
@@ -101,7 +113,6 @@ window.getDefaultStudentProfile = function(user) {
 window.updateStudentTopUI = function(profile) {
     const firstName = profile.full_name?.split(' ')[0] || 'طالب';
     
-    // تحديث رسالة الترحيب في الهيدر الرئيسي إذا كانت موجودة بالصفحة الكبرى
     const welcomeElement = document.getElementById('welcome-msg');
     if (welcomeElement) welcomeElement.innerText = `مرحباً بك، ${firstName} 👋`;
 
@@ -117,22 +128,21 @@ window.updateStudentTopUI = function(profile) {
 // ============================================
 // 4. دالة التنقل والتبديل الذكي بين تبويبات الطالب
 // ============================================
-// دالة التنقل والتبديل الذكي والمضمون بين تبويبات الطالب
 window.switchStudentTab = function(tabName, clickedBtn) {
-    // 1. إخفاء كافة شاشات لوحة تحكم الطالب وإلغاء عرضها بالـ CSS
+    // إخفاء كافة شاشات لوحة تحكم الطالب
     document.querySelectorAll('.student-pane').forEach(pane => {
         pane.classList.add('hidden');
         pane.style.display = 'none';
     });
     
-    // 2. تفعيل الشاشة المختارة فوراً وإظهارها للعرض
+    // تفعيل الشاشة المختارة
     const targetPane = document.getElementById(`student-pane-${tabName}`);
     if (targetPane) {
         targetPane.classList.remove('hidden');
         targetPane.style.display = 'block';
     }
     
-    // 3. إعادة تنسيق ومظهر أزرار التنقل لتبدو نشطة وسلسة للعين
+    // تحديث مظهر أزرار التنقل
     if (clickedBtn && clickedBtn.parentElement) {
         clickedBtn.parentElement.querySelectorAll('.student-tab-btn').forEach(btn => {
             btn.style.background = 'var(--bg-card)';
@@ -144,7 +154,7 @@ window.switchStudentTab = function(tabName, clickedBtn) {
         clickedBtn.style.color = 'white';
     }
     
-    // 4. استدعاء ديناميكي مباشر ومحدث للبيانات الحقيقية من السيرفر
+    // استدعاء البيانات حسب التبويب
     if (tabName === 'courses') {
         window.fetchAndRenderStudentCourses();
     } else if (tabName === 'progress') {
@@ -153,7 +163,7 @@ window.switchStudentTab = function(tabName, clickedBtn) {
 };
 
 // ============================================
-// 5. استدعاء المناهج وتوليد الكروت (دمج كود التحقق والاشتراك الذكي)
+// 5. استدعاء المناهج وتوليد الكروت
 // ============================================
 window.fetchAndRenderStudentCourses = async function() {
     const gridContainer = document.getElementById('dynamic-courses-grid');
@@ -166,18 +176,15 @@ window.fetchAndRenderStudentCourses = async function() {
             currentUser = user;
         }
 
-        // أ. جلب كافة الكورسات المنشورة بالنظام
         const { data: allCourses, error: errCourses } = await supabase.from("courses").select("*");
         if (errCourses) throw errCourses;
 
-        // ب. جلب تسجيلات الطالب للتأكد من حالة الالتحاق والتنافس
         const { data: myEnrollments, error: errEnrolls } = await supabase
             .from("enrollments")
             .select("course_id, completion_percentage")
             .eq("user_id", currentUser.id);
         if (errEnrolls) throw errEnrolls;
 
-        // بناء خارطة ميزان التسجيل لمعرفة النسب التراكمية والكورسات المشترك بها
         const enrollmentMap = {};
         if (myEnrollments) {
             myEnrollments.forEach(e => {
@@ -188,13 +195,11 @@ window.fetchAndRenderStudentCourses = async function() {
             });
         }
 
-        // جـ. تحديث كروت الإحصائيات الفورية التراكمية في أعلى شاشة الطالب
         const totalEnrolled = Object.keys(enrollmentMap).length;
         let sumPercentage = 0;
         Object.values(enrollmentMap).forEach(v => sumPercentage += v.percentage);
         const overallAverage = totalEnrolled > 0 ? Math.round(sumPercentage / totalEnrolled) : 0;
 
-        // تحديث كروت الأداء العلوي
         if (document.getElementById('student-general-progress-text')) {
             document.getElementById('student-general-progress-text').textContent = `${overallAverage}%`;
             document.getElementById('student-general-progress-bar').style.width = `${overallAverage}%`;
@@ -206,13 +211,11 @@ window.fetchAndRenderStudentCourses = async function() {
             document.getElementById('student-xp-val').textContent = `${(currentStudentProfile.xp || 1250).toLocaleString()} XP`;
         }
 
-        // د. التحقق من وجود كورسات لعرضها
         if (!allCourses || allCourses.length === 0) {
             gridContainer.innerHTML = `<div style="color:var(--text-muted); text-align:center; padding:2rem; grid-column:1/-1;">📖 لا توجد مقررات دراسية منشورة بالنظام حالياً.</div>`;
             return;
         }
 
-        // هـ. توليد وحقن الكروت حركياً بناءً على حالة التحقق الرقمي المدمجة
         gridContainer.innerHTML = allCourses.map(course => {
             const enrollment = enrollmentMap[course.course_id];
             const isEnrolled = !!enrollment;
@@ -259,7 +262,7 @@ window.fetchAndRenderStudentCourses = async function() {
 };
 
 // ============================================
-// 6. توليد جدول المتابعة والتقدم ( My Progress )
+// 6. توليد جدول المتابعة والتقدم
 // ============================================
 window.fetchAndRenderStudentProgressTable = async function() {
     const tableBody = document.getElementById('dynamic-progress-table-body');
@@ -282,9 +285,9 @@ window.fetchAndRenderStudentProgressTable = async function() {
 
         tableBody.innerHTML = enrollments.map(e => `
             <tr>
-                <td><strong>${e.courses ? e.courses.title : 'مسار أمني غير معرف'}</strong></td>
-                <td><span class="role-tag" style="background:rgba(16,185,129,0.1); color:var(--success); padding:3px 8px; border-radius:4px;">${e.completion_status || 'قيد الدراسة'}</span></td>
-                <td>
+                <td style="padding:12px;"><strong>${e.courses ? e.courses.title : 'مسار أمني غير معرف'}</strong></td>
+                <td style="padding:12px;"><span class="role-tag" style="background:rgba(16,185,129,0.1); color:var(--success); padding:3px 8px; border-radius:4px;">${e.completion_status || 'قيد الدراسة'}</span></td>
+                <td style="padding:12px;">
                     <div style="display:flex; align-items:center; gap:8px; direction:ltr;">
                         <span style="font-weight:bold; min-width:35px; text-align:right;">${e.completion_percentage || 0}%</span>
                         <div class="progress-container" style="margin:0; height:6px; flex-grow:1; background:var(--border);">
@@ -292,7 +295,7 @@ window.fetchAndRenderStudentProgressTable = async function() {
                         </div>
                     </div>
                 </td>
-                <td>
+                <td style="padding:12px;">
                     <button class="btn-action-small" style="background:var(--primary); padding:6px 12px; color:white; border:none; border-radius:4px; cursor:pointer; font-size:0.85rem;" onclick="window.redirectStudentToPlayer('${e.courses ? e.courses.course_id : ''}')">
                         <i class="fas fa-external-link-alt"></i> فتح المشغل
                     </button>
@@ -321,7 +324,6 @@ window.handleStudentEnrollment = async function(courseId) {
 
         if (typeof window.showLoader === 'function') window.showLoader();
 
-        // إدراج سجل انضمام فوري جديد للطالب بكود الكورس المختار
         const { error } = await supabase.from("enrollments").insert({
             user_id: user.id,
             course_id: courseId,
@@ -338,11 +340,9 @@ window.handleStudentEnrollment = async function(courseId) {
 
         if (typeof window.showToast === 'function') window.showToast("🎉 مبروك! تم تسجيلك بالمسار التعليمي بنجاح تام.", "success");
         
-        // تحديث الرؤية والمظهر تلقائياً والانتقال الفوري لعرض التقدم المحدث
         window.fetchAndRenderStudentCourses();
         setTimeout(() => {
             window.fetchAndRenderStudentProgressTable();
-            // تفعيل التحويل التلقائي لزر التبويب لرؤية الكورس المنضم إليه
             const progressBtn = document.querySelector('button[onclick*="progress"]');
             if (progressBtn) window.switchStudentTab('progress', progressBtn);
         }, 400);
