@@ -9,7 +9,7 @@ const TVTC_QUESTIONS = {
         level: 3,
         category: "network",
         description: "أسئلة في مجال حماية الشبكات وأمن البنية التحتية",
-        totalQuestions: 350,
+        totalQuestions: 190,
         questions: [
             {
                 id: "ND001",
@@ -219,7 +219,7 @@ const TVTC_QUESTIONS = {
         level: 3,
         category: "ethical_hacking",
         description: "أسئلة في مجال اختبار الاختراق والهندسة الاجتماعية",
-        totalQuestions: 280,
+        totalQuestions: 490,
         questions: [
             {
                 id: "EH001",
@@ -434,7 +434,7 @@ const TVTC_QUESTIONS = {
         level: 2,
         category: "cryptography",
         description: "أسئلة في مبادئ التشفير والخوارزميات الأمنية",
-        totalQuestions: 250,
+        totalQuestions: 572,
         questions: [
             {
                 id: "CR001",
@@ -674,7 +674,7 @@ const TVTC_QUESTIONS = {
         level: 4,
         category: "threats",
         description: "أسئلة في أنواع التهديدات والهجمات السيبرانية",
-        totalQuestions: 300,
+        totalQuestions: 806,
         questions: [
             {
                 id: "CT001",
@@ -864,7 +864,7 @@ const TVTC_QUESTIONS = {
         level: 4,
         category: "forensics",
         description: "أسئلة في جمع وتحليل الأدلة الرقمية",
-        totalQuestions: 180,
+        totalQuestions: 230,
         questions: [
             {
                 id: "DF001",
@@ -1074,7 +1074,7 @@ const TVTC_QUESTIONS = {
         level: 4,
         category: "web_security",
         description: "أسئلة في حماية تطبيقات الويب والثغرات الأمنية",
-        totalQuestions: 200,
+        totalQuestions: 660,
         questions: [
             {
                 id: "WS001",
@@ -1249,7 +1249,7 @@ const TVTC_QUESTIONS = {
         level: 2,
         category: "os",
         description: "أسئلة في مفاهيم نظم التشغيل وإدارة الموارد",
-        totalQuestions: 220,
+        totalQuestions: 400,
         questions: [
             {
                 id: "OS001",
@@ -1434,7 +1434,7 @@ const TVTC_QUESTIONS = {
         level: 3,
         category: "risk",
         description: "أسئلة في تقييم وإدارة المخاطر الأمنية",
-        totalQuestions: 150,
+        totalQuestions: 312,
         questions: [
             {
                 id: "RA001",
