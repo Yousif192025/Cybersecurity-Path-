@@ -3,8 +3,10 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>الاختبارات العامة - الأمن السيبراني</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -14,7 +16,7 @@
             padding: 20px;
         }
         .container {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
             background: white;
             border-radius: 20px;
@@ -44,8 +46,40 @@
             color: #333;
         }
         .stat i { color: #1a73e8; font-size: 20px; }
-        .timer { font-weight: bold; font-size: 24px; color: #dc3545; }
+        .timer { font-weight: bold; font-size: 24px; color: #dc3545; font-family: monospace; }
         .exam-area { padding: 30px; }
+        
+        /* Subject selector */
+        .subject-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .subject-btn {
+            padding: 12px 24px;
+            background: #e9ecef;
+            border: none;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Tajawal', sans-serif;
+        }
+        .subject-btn:hover {
+            background: #d0d7de;
+            transform: translateY(-2px);
+        }
+        .subject-btn.active {
+            background: #1a73e8;
+            color: white;
+            box-shadow: 0 4px 12px rgba(26,115,232,0.3);
+        }
+        
+        /* Question card */
         .question-card {
             background: #f8f9fa;
             border-radius: 15px;
@@ -54,16 +88,17 @@
         }
         .question-text {
             font-size: 18px;
-            font-weight: 500;
+            font-weight: 600;
             margin-bottom: 20px;
             line-height: 1.6;
+            color: #1a1a2e;
         }
         .options { display: flex; flex-direction: column; gap: 12px; }
         .option {
             display: flex;
             align-items: center;
             gap: 15px;
-            padding: 12px 15px;
+            padding: 12px 18px;
             background: white;
             border: 2px solid #e0e0e0;
             border-radius: 12px;
@@ -71,21 +106,23 @@
             transition: all 0.3s;
         }
         .option:hover { border-color: #1a73e8; background: #f0f7ff; }
-        .option input { width: 20px; height: 20px; cursor: pointer; }
-        .option label { flex: 1; cursor: pointer; font-size: 16px; }
+        .option input { width: 20px; height: 20px; cursor: pointer; margin: 0; }
+        .option label { flex: 1; cursor: pointer; font-size: 16px; font-weight: 500; margin: 0; }
         .option.selected { border-color: #1a73e8; background: #e8f0fe; }
-        .correct-answer { border-color: #28a745; background: #e6f4ea; }
-        .wrong-answer { border-color: #dc3545; background: #fce8e6; }
+        .option.correct-highlight { border-color: #28a745; background: #e6f4ea; }
+        .option.wrong-highlight { border-color: #dc3545; background: #fce8e6; }
+        
         .explanation {
             margin-top: 15px;
-            padding: 12px;
+            padding: 15px;
             background: #fff3cd;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 14px;
             color: #856404;
             display: none;
         }
         .explanation.show { display: block; }
+        
         .nav-buttons {
             display: flex;
             justify-content: space-between;
@@ -102,13 +139,16 @@
             transition: all 0.3s;
             font-family: 'Tajawal', sans-serif;
         }
-        .btn-primary {
-            background: #1a73e8;
-            color: white;
-        }
+        .btn-primary { background: #1a73e8; color: white; }
         .btn-primary:hover { background: #0d47a1; transform: translateY(-2px); }
         .btn-secondary { background: #6c757d; color: white; }
+        .btn-secondary:hover { background: #5a6268; transform: translateY(-2px); }
         .btn-success { background: #28a745; color: white; }
+        .btn-success:hover { background: #218838; transform: translateY(-2px); }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-info { background: #17a2b8; color: white; }
+        
+        /* Results section */
         .results {
             text-align: center;
             padding: 30px;
@@ -117,17 +157,23 @@
             margin-top: 20px;
         }
         .score-circle {
-            width: 150px;
-            height: 150px;
+            width: 180px;
+            height: 180px;
             border-radius: 50%;
             background: white;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             margin: 0 auto 20px;
             box-shadow: 0 5px 20px rgba(0,0,0,0.1);
         }
-        .score-number { font-size: 48px; font-weight: bold; color: #1a73e8; }
+        .score-number { font-size: 52px; font-weight: bold; color: #1a73e8; }
+        .score-label { font-size: 14px; color: #666; }
+        .pass { color: #28a745; font-size: 24px; margin: 15px 0; }
+        .fail { color: #dc3545; font-size: 24px; margin: 15px 0; }
+        .perfect { color: #ffc107; font-size: 20px; margin: 15px 0; }
+        
         .mistakes-list {
             text-align: right;
             margin-top: 20px;
@@ -140,32 +186,55 @@
             padding: 15px;
             margin-bottom: 10px;
             border-radius: 8px;
+            text-align: right;
         }
-        .subject-select {
-            margin-bottom: 20px;
+        
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: #666;
+        }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #1a73e8;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .mode-toggle {
             display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
         }
-        .subject-btn {
-            padding: 8px 16px;
+        .mode-btn {
+            padding: 8px 20px;
             background: #e9ecef;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s;
+            border-radius: 25px;
+            font-size: 14px;
         }
-        .subject-btn.active {
+        .mode-btn.active {
             background: #1a73e8;
             color: white;
         }
+        
         @media (max-width: 600px) {
-            .stats-bar { flex-direction: column; }
+            .stats-bar { flex-direction: column; align-items: center; }
             .nav-buttons { flex-direction: column; }
             button { width: 100%; }
+            .subject-btn { padding: 8px 16px; font-size: 12px; }
+            .question-text { font-size: 16px; }
         }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
     <div class="container">
@@ -177,18 +246,28 @@
         <div class="stats-bar">
             <div class="stat"><i class="fas fa-layer-group"></i> <span id="subject-name">اختر المادة</span></div>
             <div class="stat"><i class="fas fa-question-circle"></i> السؤال <span id="current-q">0</span> / <span id="total-q">0</span></div>
-            <div class="stat"><i class="fas fa-check-circle"></i> الإجابات: <span id="answered-count">0</span></div>
+            <div class="stat"><i class="fas fa-check-circle"></i> تم الإجابة: <span id="answered-count">0</span></div>
             <div class="timer" id="timer">01:00:00</div>
         </div>
 
         <div class="exam-area">
-            <div class="subject-select" id="subject-select">
-                <!-- سيتم تعبئتها ديناميكياً -->
+            <div class="mode-toggle">
+                <button class="mode-btn active" data-mode="normal" onclick="setMode('normal')">📝 الوضع العادي</button>
+                <button class="mode-btn" data-mode="learning" onclick="setMode('learning')">📖 الوضع التعليمي</button>
             </div>
 
-            <div id="question-container"></div>
+            <div class="subject-selector" id="subject-selector">
+                <!-- سيتم تعبئتها ديناميكياً من قاعدة البيانات -->
+            </div>
 
-            <div class="nav-buttons">
+            <div id="question-container">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    جاري تحميل الأسئلة...
+                </div>
+            </div>
+
+            <div class="nav-buttons" id="nav-buttons" style="display: none;">
                 <button class="btn-secondary" onclick="previousQuestion()"><i class="fas fa-arrow-right"></i> السابق</button>
                 <button class="btn-primary" id="nextBtn" onclick="nextQuestion()">التالي <i class="fas fa-arrow-left"></i></button>
                 <button class="btn-success" id="submitBtn" style="display:none;" onclick="submitExam()"><i class="fas fa-check"></i> إنهاء الاختبار</button>
@@ -196,183 +275,154 @@
         </div>
     </div>
 
+    <script src="questions-db.js"></script>
     <script>
-        // ======================== البيانات المستخرجة من ملفك ========================
-        const QUESTIONS_DB = {
-            "NetworkDefense": {
-                name: "🛡️ الدفاع عن الشبكات",
-                level: 3,
-                questions: [
-                    {
-                        text: "IP addresses that start with ______ are used for testing purposes",
-                        options: ["127", "10", "168", "192"],
-                        correct: 0,
-                        explanation: "127.x.x.x addresses are reserved for loopback testing."
-                    },
-                    {
-                        text: "How many layers are there in the OSI networking model?",
-                        options: ["4", "5", "6", "7"],
-                        correct: 3,
-                        explanation: "The OSI model consists of 7 layers."
-                    },
-                    {
-                        text: "Network Address Translation (NAT) is when?",
-                        options: [
-                            "A router encrypts all traffic entering the network",
-                            "A router removes all unwanted data",
-                            "A router replaces public IP with private IP",
-                            "A router replaces private IP with public IP"
-                        ],
-                        correct: 3,
-                        explanation: "NAT translates private IPs to public ones so they can access the internet."
-                    }
-                ]
-            },
-            "EthicalHacking": {
-                name: "🔓 الاختراق الأخلاقي",
-                level: 3,
-                questions: [
-                    {
-                        text: "Linux files have permissions to",
-                        options: ["Read", "Write", "Execute", "All of the above"],
-                        correct: 3,
-                        explanation: "Linux files can have read, write, and execute permissions."
-                    },
-                    {
-                        text: "Khaled is a pen tester, the company informed him about IP addresses and OS info. What approach is this?",
-                        options: ["Grey Box", "Black Box", "White Box", "None"],
-                        correct: 2,
-                        explanation: "White box testing provides full knowledge of the target environment."
-                    }
-                ]
-            },
-            "Cryptography": {
-                name: "🔐 أساسيات التشفير",
-                level: 2,
-                questions: [
-                    {
-                        text: "What is the primary objective of computer security according to NIST?",
-                        options: [
-                            "Prevent all cyber attacks",
-                            "Preserve integrity, availability, and confidentiality",
-                            "Ensure physical security",
-                            "Eliminate data storage"
-                        ],
-                        correct: 1,
-                        explanation: "The CIA triad is the foundation of information security."
-                    }
-                ]
-            },
-            "CyberThreats": {
-                name: "⚠️ التهديدات السيبرانية",
-                level: 4,
-                questions: [
-                    {
-                        text: "Interception is an attack on:",
-                        options: ["Integrity", "Confidentiality", "Availability", "Authenticity"],
-                        correct: 1,
-                        explanation: "Interception attacks target confidentiality by unauthorized access to data."
-                    }
-                ]
-            },
-            "DigitalForensics": {
-                name: "🔍 التحقيق الجنائي الرقمي",
-                level: 4,
-                questions: [
-                    {
-                        text: "What is the main function of write-blockers in digital forensics?",
-                        options: [
-                            "Boost forensic tools efficiency",
-                            "Stop unauthorized network access",
-                            "Preserve original data by preventing modifications",
-                            "Obstruct malware operations"
-                        ],
-                        correct: 2,
-                        explanation: "Write-blockers prevent modifications to storage devices during analysis."
-                    }
-                ]
-            }
-        };
-
-        // ======================== إعدادات الاختبار ========================
+        // ======================== متغيرات الاختبار ========================
+        let currentSubjectKey = null;
         let currentSubject = null;
         let questions = [];
         let userAnswers = [];
         let currentIndex = 0;
-        let timer;
-        let timeSeconds = 3600; // ساعة واحدة
+        let timerInterval = null;
+        let timeSeconds = 3600;
         let learningMode = false;
+        let examStarted = false;
 
-        // عرض قائمة المواد
+        // ======================== عرض المواد المتاحة ========================
         function displaySubjects() {
-            const container = document.getElementById('subject-select');
+            const container = document.getElementById('subject-selector');
             container.innerHTML = '';
-            for (const [key, subject] of Object.entries(QUESTIONS_DB)) {
+            
+            const subjects = TVTC_QUESTIONS;
+            let firstKey = null;
+            
+            for (const [key, subject] of Object.entries(subjects)) {
                 const btn = document.createElement('button');
                 btn.className = 'subject-btn';
-                btn.innerHTML = subject.name;
+                btn.innerHTML = `${subject.title} <span style="font-size:12px; opacity:0.8;">(${subject.totalQuestions || subject.questions.length} سؤال)</span>`;
                 btn.onclick = () => selectSubject(key);
                 container.appendChild(btn);
+                
+                if (!firstKey) firstKey = key;
             }
+            
+            // اختيار أول مادة تلقائياً
+            if (firstKey) selectSubject(firstKey);
         }
 
-        // اختيار المادة
+        // ======================== اختيار المادة ========================
         function selectSubject(subjectKey) {
-            currentSubject = subjectKey;
-            questions = [...QUESTIONS_DB[subjectKey].questions];
-            userAnswers = new Array(questions.length).fill(null);
-            currentIndex = 0;
-            
-            document.getElementById('subject-name').innerHTML = QUESTIONS_DB[subjectKey].name;
-            document.getElementById('total-q').textContent = questions.length;
-            
-            // إظهار/إخفاء أزرار الملاحة
+            // تحديث المظهر
             document.querySelectorAll('.subject-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
             
+            // تحميل المادة المختارة
+            currentSubjectKey = subjectKey;
+            currentSubject = TVTC_QUESTIONS[subjectKey];
+            
+            if (!currentSubject) {
+                console.error('المادة غير موجودة:', subjectKey);
+                return;
+            }
+            
+            // نسخ جميع الأسئلة (وليس فقط نموذجية)
+            questions = [...currentSubject.questions];
+            userAnswers = new Array(questions.length).fill(null);
+            currentIndex = 0;
+            
+            console.log(`✅ تم تحميل ${questions.length} سؤال من ${currentSubject.title}`);
+            
+            // تحديث الواجهة
+            document.getElementById('subject-name').innerHTML = `${currentSubject.title} <span style="font-size:12px; color:#666;">(المستوى ${currentSubject.level})</span>`;
+            document.getElementById('total-q').textContent = questions.length;
+            document.getElementById('answered-count').textContent = '0';
+            
+            // بدء الاختبار
+            startExam();
+        }
+        
+        // ======================== بدء الاختبار ========================
+        function startExam() {
+            if (timerInterval) clearInterval(timerInterval);
+            examStarted = true;
+            timeSeconds = 3600;
+            
+            document.getElementById('nav-buttons').style.display = 'flex';
             startTimer();
             renderQuestion();
         }
-
-        // عرض السؤال الحالي
+        
+        // ======================== عرض السؤال الحالي ========================
         function renderQuestion() {
+            if (!questions.length || currentIndex >= questions.length) return;
+            
             const q = questions[currentIndex];
-            const container = document.getElementById('question-container');
             const savedAnswer = userAnswers[currentIndex];
+            const container = document.getElementById('question-container');
+            
+            // بناء خيارات الإجابة
+            let optionsHtml = '';
+            const letters = ['أ', 'ب', 'ج', 'د'];
+            
+            q.options.forEach((opt, idx) => {
+                const isSelected = savedAnswer === idx;
+                optionsHtml += `
+                    <div class="option ${isSelected ? 'selected' : ''}" data-value="${idx}" onclick="selectAnswer(${idx})">
+                        <input type="radio" name="answer" value="${idx}" ${isSelected ? 'checked' : ''}>
+                        <label>${letters[idx]}. ${opt}</label>
+                    </div>
+                `;
+            });
             
             container.innerHTML = `
                 <div class="question-card">
                     <div class="question-text">
-                        <strong>السؤال ${currentIndex + 1}:</strong> ${q.text}
+                        <i class="fas fa-question-circle" style="color:#1a73e8;"></i>
+                        <strong>السؤال ${currentIndex + 1} من ${questions.length}</strong>
+                        <p style="margin-top: 15px; font-weight: 500;">${q.text}</p>
                     </div>
                     <div class="options" id="options-list">
-                        ${q.options.map((opt, idx) => `
-                            <div class="option ${savedAnswer === idx ? 'selected' : ''}" data-value="${idx}" onclick="selectAnswer(${idx})">
-                                <input type="radio" name="answer" value="${idx}" ${savedAnswer === idx ? 'checked' : ''}>
-                                <label>${String.fromCharCode(65+idx)}. ${opt}</label>
-                            </div>
-                        `).join('')}
+                        ${optionsHtml}
                     </div>
                     <div id="explanation-${currentIndex}" class="explanation"></div>
                 </div>
             `;
             
+            // تحديث العداد
             document.getElementById('current-q').textContent = currentIndex + 1;
             document.getElementById('answered-count').textContent = userAnswers.filter(a => a !== null).length;
             
-            // تحديث الأزرار
-            document.getElementById('nextBtn').style.display = currentIndex === questions.length - 1 ? 'none' : 'inline-block';
-            document.getElementById('submitBtn').style.display = currentIndex === questions.length - 1 ? 'inline-block' : 'none';
+            // إظهار/إخفاء أزرار التنقل
+            const nextBtn = document.getElementById('nextBtn');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (currentIndex === questions.length - 1) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = 'inline-block';
+                submitBtn.innerHTML = '<i class="fas fa-check"></i> إنهاء الاختبار';
+            } else {
+                nextBtn.style.display = 'inline-block';
+                submitBtn.style.display = 'none';
+            }
+            
+            // في الوضع التعليمي، عرض التصحيح فوراً إذا كان السؤال قد تمت إجابته
+            if (learningMode && savedAnswer !== null) {
+                showCorrection(currentIndex);
+            }
         }
-
-        // اختيار إجابة
+        
+        // ======================== اختيار إجابة ========================
         function selectAnswer(value) {
             userAnswers[currentIndex] = parseInt(value);
             
-            // تحديث واجهة الخيارات
+            // تحديث مظهر الخيارات
             document.querySelectorAll('.option').forEach((opt, idx) => {
                 opt.classList.toggle('selected', idx === value);
             });
+            
+            // تحديث الراديو
+            const radio = document.querySelector(`input[name="answer"][value="${value}"]`);
+            if (radio) radio.checked = true;
             
             document.getElementById('answered-count').textContent = userAnswers.filter(a => a !== null).length;
             
@@ -381,35 +431,46 @@
                 showCorrection(currentIndex);
             }
         }
-
-        // عرض التصحيح
+        
+        // ======================== عرض التصحيح ========================
         function showCorrection(index) {
             const q = questions[index];
-            const isCorrect = userAnswers[index] === q.correct;
+            const userAnswer = userAnswers[index];
+            const isCorrect = userAnswer === q.correct;
             const explanationDiv = document.getElementById(`explanation-${index}`);
             
-            if (explanationDiv) {
-                explanationDiv.innerHTML = `
-                    <i class="fas ${isCorrect ? 'fa-check-circle' : 'fa-times-circle'}"></i>
-                    <strong>${isCorrect ? '✅ إجابة صحيحة!' : '❌ إجابة خاطئة!'}</strong>
-                    <br>الإجابة الصحيحة: ${q.options[q.correct]}
-                    <br><strong>التوضيح:</strong> ${q.explanation}
-                `;
-                explanationDiv.classList.add('show');
-                
-                // تمييز الإجابة الصحيحة/الخاطئة بالألوان
-                const options = document.querySelectorAll('.option');
-                options[q.correct].classList.add('correct-answer');
-                if (!isCorrect && userAnswers[index] !== null) {
-                    options[userAnswers[index]].classList.add('wrong-answer');
+            if (!explanationDiv) return;
+            
+            // إزالة التظليل القديم
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('correct-highlight', 'wrong-highlight');
+            });
+            
+            // تظليل الإجابة الصحيحة والخاطئة
+            document.querySelectorAll('.option').forEach((opt, idx) => {
+                if (idx === q.correct) {
+                    opt.classList.add('correct-highlight');
                 }
-            }
+                if (!isCorrect && idx === userAnswer) {
+                    opt.classList.add('wrong-highlight');
+                }
+            });
+            
+            explanationDiv.innerHTML = `
+                <i class="fas ${isCorrect ? 'fa-check-circle' : 'fa-times-circle'}" style="margin-left: 8px;"></i>
+                <strong>${isCorrect ? '✅ إجابة صحيحة!' : '❌ إجابة خاطئة!'}</strong>
+                <br><br>
+                <strong>الإجابة الصحيحة:</strong> ${q.options[q.correct]}
+                <br><br>
+                <strong><i class="fas fa-info-circle"></i> التوضيح:</strong> ${q.explanation}
+            `;
+            explanationDiv.classList.add('show');
         }
-
-        // السؤال التالي
+        
+        // ======================== السؤال التالي ========================
         function nextQuestion() {
             if (userAnswers[currentIndex] === null) {
-                alert('الرجاء اختيار إجابة قبل المتابعة');
+                alert('⚠️ الرجاء اختيار إجابة قبل المتابعة');
                 return;
             }
             
@@ -418,24 +479,31 @@
                 renderQuestion();
             }
         }
-
-        // السؤال السابق
+        
+        // ======================== السؤال السابق ========================
         function previousQuestion() {
             if (currentIndex > 0) {
                 currentIndex--;
                 renderQuestion();
             }
         }
-
-        // إنهاء الاختبار وعرض النتيجة
+        
+        // ======================== إنهاء الاختبار وعرض النتيجة ========================
         function submitExam() {
-            clearInterval(timer);
+            // التأكد من إجابة السؤال الأخير
+            if (userAnswers[currentIndex] === null) {
+                alert('⚠️ الرجاء إجابة السؤال الأخير قبل إنهاء الاختبار');
+                return;
+            }
+            
+            if (timerInterval) clearInterval(timerInterval);
             
             let score = 0;
             const mistakes = [];
             
             for (let i = 0; i < questions.length; i++) {
-                if (userAnswers[i] === questions[i].correct) {
+                const isCorrect = userAnswers[i] === questions[i].correct;
+                if (isCorrect) {
                     score++;
                 } else {
                     mistakes.push({
@@ -448,48 +516,93 @@
             }
             
             const percentage = (score / questions.length) * 100;
+            let resultClass = '';
+            let resultMessage = '';
+            
+            if (percentage >= 80) {
+                resultClass = 'pass';
+                resultMessage = '🎉 ممتاز! لقد اجتزت الاختبار بنجاح 🎉';
+            } else if (percentage >= 60) {
+                resultClass = 'pass';
+                resultMessage = '👍 جيد! يمكنك تحسين نتيجتك بالمزيد من المراجعة';
+            } else {
+                resultClass = 'fail';
+                resultMessage = '📚 تحتاج إلى مراجعة المواد ثم إعادة المحاولة';
+            }
+            
+            const mistakesHtml = mistakes.length > 0 ? `
+                <div class="mistakes-list">
+                    <h3><i class="fas fa-exclamation-triangle"></i> الأخطاء (${mistakes.length} خطأ):</h3>
+                    ${mistakes.map((m, idx) => `
+                        <div class="mistake-item">
+                            <strong>${idx + 1}. ${m.question}</strong><br>
+                            <span style="color:#dc3545"><i class="fas fa-times"></i> إجابتك: ${m.userAnswer}</span><br>
+                            <span style="color:#28a745"><i class="fas fa-check"></i> الإجابة الصحيحة: ${m.correctAnswer}</span><br>
+                            <small style="color:#666;"><i class="fas fa-info-circle"></i> ${m.explanation}</small>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : '<div class="perfect">🏆 ممتاز! لا توجد أخطاء - إتقان كامل 🏆</div>';
+            
             const resultHTML = `
                 <div class="results">
                     <div class="score-circle">
                         <div class="score-number">${Math.round(percentage)}%</div>
+                        <div class="score-label">النتيجة</div>
                     </div>
-                    <h2>النتيجة النهائية</h2>
+                    <h2>نتيجة اختبار ${currentSubject.title}</h2>
                     <p>أجبت بشكل صحيح على <strong>${score}</strong> من <strong>${questions.length}</strong> أسئلة</p>
-                    <div class="${percentage >= 70 ? 'pass' : 'fail'}">
-                        ${percentage >= 70 ? '🎉 تهانينا! لقد اجتزت الاختبار 🎉' : '📚 تحتاج إلى مراجعة المواد ثم إعادة المحاولة'}
+                    <div class="${resultClass}">
+                        <i class="fas ${percentage >= 60 ? 'fa-trophy' : 'fa-book-open'}"></i> ${resultMessage}
                     </div>
-                    ${mistakes.length > 0 ? `
-                        <div class="mistakes-list">
-                            <h3><i class="fas fa-exclamation-triangle"></i> الأخطاء:</h3>
-                            ${mistakes.map(m => `
-                                <div class="mistake-item">
-                                    <strong>${m.question}</strong><br>
-                                    <span style="color:#dc3545">✗ إجابتك: ${m.userAnswer}</span><br>
-                                    <span style="color:#28a745">✓ الإجابة الصحيحة: ${m.correctAnswer}</span><br>
-                                    <small>📖 ${m.explanation}</small>
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : '<div class="perfect">🏆 ممتاز! لا توجد أخطاء 🏆</div>'}
-                    <button class="btn-primary" onclick="location.reload()" style="margin-top:20px;">
-                        <i class="fas fa-redo-alt"></i> اختبار جديد
-                    </button>
+                    ${mistakesHtml}
+                    <div style="margin-top: 25px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                        <button class="btn-primary" onclick="retrySameSubject()"><i class="fas fa-redo-alt"></i> إعادة الاختبار</button>
+                        <button class="btn-secondary" onclick="location.reload()"><i class="fas fa-list"></i> اختيار مادة أخرى</button>
+                    </div>
                 </div>
             `;
             
             document.getElementById('question-container').innerHTML = resultHTML;
-            document.querySelector('.nav-buttons').style.display = 'none';
+            document.getElementById('nav-buttons').style.display = 'none';
         }
-
-        // المؤقت
-        function startTimer() {
-            if (timer) clearInterval(timer);
-            timeSeconds = 3600;
+        
+        // ======================== إعادة نفس المادة ========================
+        function retrySameSubject() {
+            // إعادة تعيين المتغيرات
+            questions = [...currentSubject.questions];
+            userAnswers = new Array(questions.length).fill(null);
+            currentIndex = 0;
             
-            timer = setInterval(() => {
+            document.getElementById('nav-buttons').style.display = 'flex';
+            
+            if (timerInterval) clearInterval(timerInterval);
+            timeSeconds = 3600;
+            startTimer();
+            
+            renderQuestion();
+        }
+        
+        // ======================== وضع التعلم ========================
+        function setMode(mode) {
+            learningMode = (mode === 'learning');
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.mode-btn[data-mode="${mode}"]`).classList.add('active');
+            
+            // إذا كان الاختبار قيد التشغيل، قم بإعادة عرض السؤال الحالي
+            if (examStarted && questions.length > 0) {
+                renderQuestion();
+            }
+        }
+        
+        // ======================== المؤقت ========================
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
                 if (timeSeconds <= 0) {
-                    clearInterval(timer);
-                    alert('انتهى الوقت!');
+                    clearInterval(timerInterval);
+                    alert('⏰ انتهى الوقت! سيتم إنهاء الاختبار تلقائياً.');
                     submitExam();
                 } else {
                     timeSeconds--;
@@ -498,15 +611,25 @@
                     const seconds = timeSeconds % 60;
                     document.getElementById('timer').textContent = 
                         `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                    
+                    // تحذير عند آخر 5 دقائق
+                    if (timeSeconds === 300) {
+                        const warning = document.createElement('div');
+                        warning.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#dc3545; color:white; padding:10px 20px; border-radius:8px; z-index:1000;';
+                        warning.innerHTML = '⚠️ تبقت 5 دقائق فقط على انتهاء الاختبار!';
+                        document.body.appendChild(warning);
+                        setTimeout(() => warning.remove(), 5000);
+                    }
                 }
             }, 1000);
         }
-
-        // التهيئة
+        
+        // ======================== التهيئة ========================
         function init() {
             displaySubjects();
         }
         
+        // بدء التطبيق عند تحميل الصفحة
         init();
     </script>
 </body>
