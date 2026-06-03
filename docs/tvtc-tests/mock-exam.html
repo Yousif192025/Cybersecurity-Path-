@@ -1,1 +1,749 @@
+<!-- docs/tvtc-tests/general-questions.html -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الاختبارات العامة - الأمن السيبراني</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a73e8, #0d47a1);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+        .header h1 { font-size: 28px; margin-bottom: 10px; }
+        .lang-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .lang-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            background: #f8f9fa;
+            padding: 15px 30px;
+            border-bottom: 1px solid #e0e0e0;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #333;
+        }
+        .stat i { color: #1a73e8; font-size: 20px; }
+        .timer { font-weight: bold; font-size: 24px; color: #dc3545; font-family: monospace; }
+        .exam-area { padding: 30px; }
+        
+        /* Subject selector */
+        .subject-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .subject-btn {
+            padding: 12px 24px;
+            background: #e9ecef;
+            border: none;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Tajawal', sans-serif;
+        }
+        .subject-btn:hover {
+            background: #d0d7de;
+            transform: translateY(-2px);
+        }
+        .subject-btn.active {
+            background: #1a73e8;
+            color: white;
+            box-shadow: 0 4px 12px rgba(26,115,232,0.3);
+        }
+        
+        /* Question card */
+        .question-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        .question-text {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            color: #1a1a2e;
+        }
+        .options { display: flex; flex-direction: column; gap: 12px; }
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 18px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .option:hover { border-color: #1a73e8; background: #f0f7ff; }
+        .option input { width: 20px; height: 20px; cursor: pointer; margin: 0; }
+        .option label { flex: 1; cursor: pointer; font-size: 16px; font-weight: 500; margin: 0; }
+        .option.selected { border-color: #1a73e8; background: #e8f0fe; }
+        .option.correct-highlight { border-color: #28a745; background: #e6f4ea; }
+        .option.wrong-highlight { border-color: #dc3545; background: #fce8e6; }
+        
+        .explanation {
+            margin-top: 15px;
+            padding: 15px;
+            background: #fff3cd;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #856404;
+            display: none;
+        }
+        .explanation.show { display: block; }
+        
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 15px;
+        }
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Tajawal', sans-serif;
+        }
+        .btn-primary { background: #1a73e8; color: white; }
+        .btn-primary:hover { background: #0d47a1; transform: translateY(-2px); }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-secondary:hover { background: #5a6268; transform: translateY(-2px); }
+        .btn-success { background: #28a745; color: white; }
+        .btn-success:hover { background: #218838; transform: translateY(-2px); }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-info { background: #17a2b8; color: white; }
+        
+        /* Results section */
+        .results {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #e8f0fe, #d4e4fc);
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+        .score-circle {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        .score-number { font-size: 52px; font-weight: bold; color: #1a73e8; }
+        .score-label { font-size: 14px; color: #666; }
+        .pass { color: #28a745; font-size: 24px; margin: 15px 0; }
+        .fail { color: #dc3545; font-size: 24px; margin: 15px 0; }
+        .perfect { color: #ffc107; font-size: 20px; margin: 15px 0; }
+        
+        .mistakes-list {
+            text-align: right;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .mistake-item {
+            background: white;
+            border-right: 4px solid #dc3545;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            text-align: right;
+        }
+        
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: #666;
+        }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #1a73e8;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .mode-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .mode-btn {
+            padding: 8px 20px;
+            background: #e9ecef;
+            border-radius: 25px;
+            font-size: 14px;
+        }
+        .mode-btn.active {
+            background: #1a73e8;
+            color: white;
+        }
+        
+        @media (max-width: 600px) {
+            .stats-bar { flex-direction: column; align-items: center; }
+            .nav-buttons { flex-direction: column; }
+            button { width: 100%; }
+            .subject-btn { padding: 8px 16px; font-size: 12px; }
+            .question-text { font-size: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="lang-btn" id="langToggle">🇬🇧 English</button>
+            <h1><i class="fas fa-shield-alt"></i> <span id="header-title">اختبارات الأمن السيبراني</span></h1>
+            <p id="header-desc">اختبر معلوماتك في مختلف مجالات الأمن السيبراني</p>
+        </div>
 
+        <div class="stats-bar">
+            <div class="stat"><i class="fas fa-layer-group"></i> <span id="subject-name-label">المادة:</span> <span id="subject-name">اختر المادة</span></div>
+            <div class="stat"><i class="fas fa-question-circle"></i> <span id="question-label">السؤال</span> <span id="current-q">0</span> / <span id="total-q">0</span></div>
+            <div class="stat"><i class="fas fa-check-circle"></i> <span id="answered-label">تم الإجابة:</span> <span id="answered-count">0</span></div>
+            <div class="timer" id="timer">01:00:00</div>
+        </div>
+
+        <div class="exam-area">
+            <div class="mode-toggle">
+                <button class="mode-btn active" data-mode="normal" onclick="setMode('normal')" id="normal-mode-btn">📝 الوضع العادي</button>
+                <button class="mode-btn" data-mode="learning" onclick="setMode('learning')" id="learning-mode-btn">📖 الوضع التعليمي</button>
+            </div>
+
+            <div class="subject-selector" id="subject-selector">
+                <!-- سيتم تعبئتها ديناميكياً من قاعدة البيانات -->
+            </div>
+
+            <div id="question-container">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <span id="loading-text">جاري تحميل الأسئلة...</span>
+                </div>
+            </div>
+
+            <div class="nav-buttons" id="nav-buttons" style="display: none;">
+                <button class="btn-secondary" onclick="previousQuestion()" id="prev-btn"><i class="fas fa-arrow-right"></i> <span>السابق</span></button>
+                <button class="btn-primary" id="nextBtn" onclick="nextQuestion()"><span>التالي</span> <i class="fas fa-arrow-left"></i></button>
+                <button class="btn-success" id="submitBtn" style="display:none;" onclick="submitExam()"><i class="fas fa-check"></i> <span>إنهاء الاختبار</span></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="questions-db.js"></script>
+    <script>
+        // ======================== نظام الترجمة ========================
+        let currentLang = 'ar';
+        
+        const translations = {
+            ar: {
+                'header-title': 'اختبارات الأمن السيبراني',
+                'header-desc': 'اختبر معلوماتك في مختلف مجالات الأمن السيبراني',
+                'subject-name-label': 'المادة:',
+                'question-label': 'السؤال',
+                'answered-label': 'تم الإجابة:',
+                'normal-mode': '📝 الوضع العادي',
+                'learning-mode': '📖 الوضع التعليمي',
+                'loading-text': 'جاري تحميل الأسئلة...',
+                'prev-btn': 'السابق',
+                'next-btn': 'التالي',
+                'submit-btn': 'إنهاء الاختبار',
+                'retry-btn': 'إعادة الاختبار',
+                'other-btn': 'اختيار مادة أخرى',
+                'result-label': 'النتيجة',
+                'pass-message': '🎉 ممتاز! لقد اجتزت الاختبار بنجاح 🎉',
+                'good-message': '👍 جيد! يمكنك تحسين نتيجتك بالمزيد من المراجعة',
+                'fail-message': '📚 تحتاج إلى مراجعة المواد ثم إعادة المحاولة',
+                'perfect-message': '🏆 ممتاز! لا توجد أخطاء - إتقان كامل 🏆',
+                'mistakes-title': 'الأخطاء',
+                'correct-answer': 'الإجابة الصحيحة:',
+                'your-answer': 'إجابتك:',
+                'explanation': 'التوضيح:',
+                'time-warning': '⚠️ تبقت 5 دقائق فقط على انتهاء الاختبار!',
+                'time-expired': '⏰ انتهى الوقت! سيتم إنهاء الاختبار تلقائياً.',
+                'no-answer-warning': '⚠️ الرجاء اختيار إجابة قبل المتابعة',
+                'last-question-warning': '⚠️ الرجاء إجابة السؤال الأخير قبل إنهاء الاختبار'
+            },
+            en: {
+                'header-title': 'Cybersecurity Tests',
+                'header-desc': 'Test your knowledge in various cybersecurity fields',
+                'subject-name-label': 'Subject:',
+                'question-label': 'Question',
+                'answered-label': 'Answered:',
+                'normal-mode': '📝 Normal Mode',
+                'learning-mode': '📖 Learning Mode',
+                'loading-text': 'Loading questions...',
+                'prev-btn': 'Previous',
+                'next-btn': 'Next',
+                'submit-btn': 'Submit Exam',
+                'retry-btn': 'Retry Exam',
+                'other-btn': 'Choose Another Subject',
+                'result-label': 'Result',
+                'pass-message': '🎉 Excellent! You passed the exam successfully 🎉',
+                'good-message': '👍 Good! You can improve your score with more review',
+                'fail-message': '📚 You need to review the materials and try again',
+                'perfect-message': '🏆 Perfect! No mistakes - Complete mastery 🏆',
+                'mistakes-title': 'Mistakes',
+                'correct-answer': 'Correct answer:',
+                'your-answer': 'Your answer:',
+                'explanation': 'Explanation:',
+                'time-warning': '⚠️ Only 5 minutes left to finish the exam!',
+                'time-expired': '⏰ Time is up! The exam will be submitted automatically.',
+                'no-answer-warning': '⚠️ Please select an answer before continuing',
+                'last-question-warning': '⚠️ Please answer the last question before submitting'
+            }
+        };
+        
+        function applyTranslations() {
+            const t = translations[currentLang];
+            document.getElementById('header-title').textContent = t['header-title'];
+            document.getElementById('header-desc').textContent = t['header-desc'];
+            document.getElementById('subject-name-label').textContent = t['subject-name-label'];
+            document.getElementById('question-label').textContent = t['question-label'];
+            document.getElementById('answered-label').textContent = t['answered-label'];
+            document.getElementById('normal-mode-btn').innerHTML = t['normal-mode'];
+            document.getElementById('learning-mode-btn').innerHTML = t['learning-mode'];
+            document.getElementById('loading-text').textContent = t['loading-text'];
+            document.getElementById('prev-btn').innerHTML = '<i class="fas fa-arrow-right"></i> ' + t['prev-btn'];
+            document.getElementById('nextBtn').innerHTML = t['next-btn'] + ' <i class="fas fa-arrow-left"></i>';
+            document.getElementById('submitBtn').innerHTML = '<i class="fas fa-check"></i> ' + t['submit-btn'];
+            document.getElementById('langToggle').textContent = currentLang === 'ar' ? '🇬🇧 English' : '🇸🇦 العربية';
+            document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+            document.documentElement.lang = currentLang === 'ar' ? 'ar' : 'en';
+        }
+        
+        function toggleLanguage() {
+            currentLang = currentLang === 'ar' ? 'en' : 'ar';
+            applyTranslations();
+            // إعادة عرض النصوص الحالية إذا كان الاختبار قيد التشغيل
+            if (examStarted && questions.length > 0) {
+                renderQuestion();
+            }
+        }
+        
+        // ======================== متغيرات الاختبار ========================
+        let currentSubjectKey = null;
+        let currentSubject = null;
+        let questions = [];
+        let userAnswers = [];
+        let currentIndex = 0;
+        let timerInterval = null;
+        let timeSeconds = 3600;
+        let learningMode = false;
+        let examStarted = false;
+
+        // ======================== عرض المواد المتاحة ========================
+        function displaySubjects() {
+            const container = document.getElementById('subject-selector');
+            container.innerHTML = '';
+            
+            const subjects = TVTC_QUESTIONS;
+            let firstKey = null;
+            
+            for (const [key, subject] of Object.entries(subjects)) {
+                const btn = document.createElement('button');
+                btn.className = 'subject-btn';
+                btn.innerHTML = `${subject.title} <span style="font-size:12px; opacity:0.8;">(${subject.totalQuestions || subject.questions.length} سؤال)</span>`;
+                btn.onclick = () => selectSubject(key);
+                container.appendChild(btn);
+                
+                if (!firstKey) firstKey = key;
+            }
+            
+            // اختيار أول مادة تلقائياً
+            if (firstKey) selectSubject(firstKey);
+        }
+
+        // ======================== اختيار المادة ========================
+        function selectSubject(subjectKey) {
+            // تحديث المظهر
+            document.querySelectorAll('.subject-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // تحميل المادة المختارة
+            currentSubjectKey = subjectKey;
+            currentSubject = TVTC_QUESTIONS[subjectKey];
+            
+            if (!currentSubject) {
+                console.error('المادة غير موجودة:', subjectKey);
+                return;
+            }
+            
+            // نسخ جميع الأسئلة (وليس فقط نموذجية)
+            questions = [...currentSubject.questions];
+            userAnswers = new Array(questions.length).fill(null);
+            currentIndex = 0;
+            
+            console.log(`✅ تم تحميل ${questions.length} سؤال من ${currentSubject.title}`);
+            
+            // تحديث الواجهة
+            document.getElementById('subject-name').innerHTML = `${currentSubject.title} <span style="font-size:12px; color:#666;">(المستوى ${currentSubject.level})</span>`;
+            document.getElementById('total-q').textContent = questions.length;
+            document.getElementById('answered-count').textContent = '0';
+            
+            // بدء الاختبار
+            startExam();
+        }
+        
+        // ======================== بدء الاختبار ========================
+        function startExam() {
+            if (timerInterval) clearInterval(timerInterval);
+            examStarted = true;
+            timeSeconds = 3600;
+            
+            document.getElementById('nav-buttons').style.display = 'flex';
+            startTimer();
+            renderQuestion();
+        }
+        
+        // ======================== عرض السؤال الحالي ========================
+        function renderQuestion() {
+            if (!questions.length || currentIndex >= questions.length) return;
+            
+            const q = questions[currentIndex];
+            const savedAnswer = userAnswers[currentIndex];
+            const container = document.getElementById('question-container');
+            
+            // بناء خيارات الإجابة
+            let optionsHtml = '';
+            const letters = currentLang === 'ar' ? ['أ', 'ب', 'ج', 'د'] : ['A', 'B', 'C', 'D'];
+            
+            q.options.forEach((opt, idx) => {
+                const isSelected = savedAnswer === idx;
+                optionsHtml += `
+                    <div class="option ${isSelected ? 'selected' : ''}" data-value="${idx}" onclick="selectAnswer(${idx})">
+                        <input type="radio" name="answer" value="${idx}" ${isSelected ? 'checked' : ''}>
+                        <label>${letters[idx]}. ${opt}</label>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = `
+                <div class="question-card">
+                    <div class="question-text">
+                        <i class="fas fa-question-circle" style="color:#1a73e8;"></i>
+                        <strong>${translations[currentLang]['question-label']} ${currentIndex + 1} من ${questions.length}</strong>
+                        <p style="margin-top: 15px; font-weight: 500;">${q.text}</p>
+                    </div>
+                    <div class="options" id="options-list">
+                        ${optionsHtml}
+                    </div>
+                    <div id="explanation-${currentIndex}" class="explanation"></div>
+                </div>
+            `;
+            
+            // تحديث العداد
+            document.getElementById('current-q').textContent = currentIndex + 1;
+            document.getElementById('answered-count').textContent = userAnswers.filter(a => a !== null).length;
+            
+            // إظهار/إخفاء أزرار التنقل
+            const nextBtn = document.getElementById('nextBtn');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (currentIndex === questions.length - 1) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = 'inline-block';
+                submitBtn.innerHTML = '<i class="fas fa-check"></i> ' + translations[currentLang]['submit-btn'];
+            } else {
+                nextBtn.style.display = 'inline-block';
+                submitBtn.style.display = 'none';
+            }
+            
+            // في الوضع التعليمي، عرض التصحيح فوراً إذا كان السؤال قد تمت إجابته
+            if (learningMode && savedAnswer !== null) {
+                showCorrection(currentIndex);
+            }
+        }
+        
+        // ======================== اختيار إجابة ========================
+        function selectAnswer(value) {
+            userAnswers[currentIndex] = parseInt(value);
+            
+            // تحديث مظهر الخيارات
+            document.querySelectorAll('.option').forEach((opt, idx) => {
+                opt.classList.toggle('selected', idx === value);
+            });
+            
+            // تحديث الراديو
+            const radio = document.querySelector(`input[name="answer"][value="${value}"]`);
+            if (radio) radio.checked = true;
+            
+            document.getElementById('answered-count').textContent = userAnswers.filter(a => a !== null).length;
+            
+            // في الوضع التعليمي، عرض التصحيح فوراً
+            if (learningMode) {
+                showCorrection(currentIndex);
+            }
+        }
+        
+        // ======================== عرض التصحيح ========================
+        function showCorrection(index) {
+            const q = questions[index];
+            const userAnswer = userAnswers[index];
+            const isCorrect = userAnswer === q.correct;
+            const explanationDiv = document.getElementById(`explanation-${index}`);
+            const t = translations[currentLang];
+            
+            if (!explanationDiv) return;
+            
+            // إزالة التظليل القديم
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('correct-highlight', 'wrong-highlight');
+            });
+            
+            // تظليل الإجابة الصحيحة والخاطئة
+            document.querySelectorAll('.option').forEach((opt, idx) => {
+                if (idx === q.correct) {
+                    opt.classList.add('correct-highlight');
+                }
+                if (!isCorrect && idx === userAnswer) {
+                    opt.classList.add('wrong-highlight');
+                }
+            });
+            
+            explanationDiv.innerHTML = `
+                <i class="fas ${isCorrect ? 'fa-check-circle' : 'fa-times-circle'}" style="margin-left: 8px;"></i>
+                <strong>${isCorrect ? '✅ ' + t['correct-answer'].replace(':', '') + '!' : '❌ ' + t['your-answer'].replace(':', '') + '!'}</strong>
+                <br><br>
+                <strong>${t['correct-answer']}</strong> ${q.options[q.correct]}
+                <br><br>
+                <strong><i class="fas fa-info-circle"></i> ${t['explanation']}</strong> ${q.explanation}
+            `;
+            explanationDiv.classList.add('show');
+        }
+        
+        // ======================== السؤال التالي ========================
+        function nextQuestion() {
+            if (userAnswers[currentIndex] === null) {
+                alert(translations[currentLang]['no-answer-warning']);
+                return;
+            }
+            
+            if (currentIndex < questions.length - 1) {
+                currentIndex++;
+                renderQuestion();
+            }
+        }
+        
+        // ======================== السؤال السابق ========================
+        function previousQuestion() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderQuestion();
+            }
+        }
+        
+        // ======================== إنهاء الاختبار وعرض النتيجة ========================
+        function submitExam() {
+            // التأكد من إجابة السؤال الأخير
+            if (userAnswers[currentIndex] === null) {
+                alert(translations[currentLang]['last-question-warning']);
+                return;
+            }
+            
+            if (timerInterval) clearInterval(timerInterval);
+            
+            let score = 0;
+            const mistakes = [];
+            const t = translations[currentLang];
+            
+            for (let i = 0; i < questions.length; i++) {
+                const isCorrect = userAnswers[i] === questions[i].correct;
+                if (isCorrect) {
+                    score++;
+                } else {
+                    mistakes.push({
+                        question: questions[i].text,
+                        userAnswer: userAnswers[i] !== null ? questions[i].options[userAnswers[i]] : 'لم يتم الإجابة',
+                        correctAnswer: questions[i].options[questions[i].correct],
+                        explanation: questions[i].explanation
+                    });
+                }
+            }
+            
+            const percentage = (score / questions.length) * 100;
+            let resultClass = '';
+            let resultMessage = '';
+            
+            if (percentage >= 80) {
+                resultClass = 'pass';
+                resultMessage = t['pass-message'];
+            } else if (percentage >= 60) {
+                resultClass = 'pass';
+                resultMessage = t['good-message'];
+            } else {
+                resultClass = 'fail';
+                resultMessage = t['fail-message'];
+            }
+            
+            const mistakesHtml = mistakes.length > 0 ? `
+                <div class="mistakes-list">
+                    <h3><i class="fas fa-exclamation-triangle"></i> ${t['mistakes-title']} (${mistakes.length}):</h3>
+                    ${mistakes.map((m, idx) => `
+                        <div class="mistake-item">
+                            <strong>${idx + 1}. ${m.question}</strong><br>
+                            <span style="color:#dc3545"><i class="fas fa-times"></i> ${t['your-answer']} ${m.userAnswer}</span><br>
+                            <span style="color:#28a745"><i class="fas fa-check"></i> ${t['correct-answer']} ${m.correctAnswer}</span><br>
+                            <small style="color:#666;"><i class="fas fa-info-circle"></i> ${t['explanation']} ${m.explanation}</small>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : '<div class="perfect">' + t['perfect-message'] + '</div>';
+            
+            const resultHTML = `
+                <div class="results">
+                    <div class="score-circle">
+                        <div class="score-number">${Math.round(percentage)}%</div>
+                        <div class="score-label">${t['result-label']}</div>
+                    </div>
+                    <h2>${t['result-label']} ${currentSubject.title}</h2>
+                    <p>${t['correct-answer']} <strong>${score}</strong> ${t['question-label']} <strong>${questions.length}</strong></p>
+                    <div class="${resultClass}">
+                        <i class="fas ${percentage >= 60 ? 'fa-trophy' : 'fa-book-open'}"></i> ${resultMessage}
+                    </div>
+                    ${mistakesHtml}
+                    <div style="margin-top: 25px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                        <button class="btn-primary" onclick="retrySameSubject()"><i class="fas fa-redo-alt"></i> ${t['retry-btn']}</button>
+                        <button class="btn-secondary" onclick="location.reload()"><i class="fas fa-list"></i> ${t['other-btn']}</button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('question-container').innerHTML = resultHTML;
+            document.getElementById('nav-buttons').style.display = 'none';
+        }
+        
+        // ======================== إعادة نفس المادة ========================
+        function retrySameSubject() {
+            // إعادة تعيين المتغيرات
+            questions = [...currentSubject.questions];
+            userAnswers = new Array(questions.length).fill(null);
+            currentIndex = 0;
+            
+            document.getElementById('nav-buttons').style.display = 'flex';
+            
+            if (timerInterval) clearInterval(timerInterval);
+            timeSeconds = 3600;
+            startTimer();
+            
+            renderQuestion();
+        }
+        
+        // ======================== وضع التعلم ========================
+        function setMode(mode) {
+            learningMode = (mode === 'learning');
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.mode-btn[data-mode="${mode}"]`).classList.add('active');
+            
+            // إذا كان الاختبار قيد التشغيل، قم بإعادة عرض السؤال الحالي
+            if (examStarted && questions.length > 0) {
+                renderQuestion();
+            }
+        }
+        
+        // ======================== المؤقت ========================
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            const t = translations[currentLang];
+            
+            timerInterval = setInterval(() => {
+                if (timeSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    alert(t['time-expired']);
+                    submitExam();
+                } else {
+                    timeSeconds--;
+                    const hours = Math.floor(timeSeconds / 3600);
+                    const minutes = Math.floor((timeSeconds % 3600) / 60);
+                    const seconds = timeSeconds % 60;
+                    document.getElementById('timer').textContent = 
+                        `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                    
+                    // تحذير عند آخر 5 دقائق
+                    if (timeSeconds === 300) {
+                        const warning = document.createElement('div');
+                        warning.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#dc3545; color:white; padding:10px 20px; border-radius:8px; z-index:1000;';
+                        warning.innerHTML = t['time-warning'];
+                        document.body.appendChild(warning);
+                        setTimeout(() => warning.remove(), 5000);
+                    }
+                }
+            }, 1000);
+        }
+        
+        // ======================== التهيئة ========================
+        function init() {
+            displaySubjects();
+            document.getElementById('langToggle').addEventListener('click', toggleLanguage);
+        }
+        
+        // بدء التطبيق عند تحميل الصفحة
+        init();
+    </script>
+</body>
+</html>
