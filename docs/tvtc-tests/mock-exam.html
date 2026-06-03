@@ -361,18 +361,32 @@
         
         function applyTranslations() {
             const t = translations[currentLang];
-            document.getElementById('header-title').textContent = t['header-title'];
-            document.getElementById('header-desc').textContent = t['header-desc'];
-            document.getElementById('subject-name-label').textContent = t['subject-name-label'];
-            document.getElementById('question-label').textContent = t['question-label'];
-            document.getElementById('answered-label').textContent = t['answered-label'];
-            document.getElementById('normal-mode-btn').innerHTML = t['normal-mode'];
-            document.getElementById('learning-mode-btn').innerHTML = t['learning-mode'];
-            document.getElementById('loading-text').textContent = t['loading-text'];
-            document.getElementById('prev-btn').innerHTML = '<i class="fas fa-arrow-right"></i> ' + t['prev-btn'];
-            document.getElementById('nextBtn').innerHTML = t['next-btn'] + ' <i class="fas fa-arrow-left"></i>';
-            document.getElementById('submitBtn').innerHTML = '<i class="fas fa-check"></i> ' + t['submit-btn'];
-            document.getElementById('langToggle').textContent = currentLang === 'ar' ? '🇬🇧 English' : '🇸🇦 العربية';
+            const headerTitle = document.getElementById('header-title');
+            const headerDesc = document.getElementById('header-desc');
+            const subjectNameLabel = document.getElementById('subject-name-label');
+            const questionLabel = document.getElementById('question-label');
+            const answeredLabel = document.getElementById('answered-label');
+            const normalModeBtn = document.getElementById('normal-mode-btn');
+            const learningModeBtn = document.getElementById('learning-mode-btn');
+            const loadingText = document.getElementById('loading-text');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('nextBtn');
+            const submitBtn = document.getElementById('submitBtn');
+            const langToggle = document.getElementById('langToggle');
+            
+            if (headerTitle) headerTitle.textContent = t['header-title'];
+            if (headerDesc) headerDesc.textContent = t['header-desc'];
+            if (subjectNameLabel) subjectNameLabel.textContent = t['subject-name-label'];
+            if (questionLabel) questionLabel.textContent = t['question-label'];
+            if (answeredLabel) answeredLabel.textContent = t['answered-label'];
+            if (normalModeBtn) normalModeBtn.innerHTML = t['normal-mode'];
+            if (learningModeBtn) learningModeBtn.innerHTML = t['learning-mode'];
+            if (loadingText) loadingText.textContent = t['loading-text'];
+            if (prevBtn) prevBtn.innerHTML = '<i class="fas fa-arrow-right"></i> ' + t['prev-btn'];
+            if (nextBtn) nextBtn.innerHTML = t['next-btn'] + ' <i class="fas fa-arrow-left"></i>';
+            if (submitBtn) submitBtn.innerHTML = '<i class="fas fa-check"></i> ' + t['submit-btn'];
+            if (langToggle) langToggle.textContent = currentLang === 'ar' ? '🇬🇧 English' : '🇸🇦 العربية';
+            
             document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
             document.documentElement.lang = currentLang === 'ar' ? 'ar' : 'en';
         }
@@ -381,7 +395,7 @@
             currentLang = currentLang === 'ar' ? 'en' : 'ar';
             applyTranslations();
             // إعادة عرض النصوص الحالية إذا كان الاختبار قيد التشغيل
-            if (examStarted && questions.length > 0) {
+            if (typeof examStarted !== 'undefined' && examStarted && questions && questions.length > 0) {
                 renderQuestion();
             }
         }
@@ -400,6 +414,7 @@
         // ======================== عرض المواد المتاحة ========================
         function displaySubjects() {
             const container = document.getElementById('subject-selector');
+            if (!container) return;
             container.innerHTML = '';
             
             const subjects = TVTC_QUESTIONS;
@@ -423,7 +438,7 @@
         function selectSubject(subjectKey) {
             // تحديث المظهر
             document.querySelectorAll('.subject-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            if (event && event.target) event.target.classList.add('active');
             
             // تحميل المادة المختارة
             currentSubjectKey = subjectKey;
@@ -442,9 +457,14 @@
             console.log(`✅ تم تحميل ${questions.length} سؤال من ${currentSubject.title}`);
             
             // تحديث الواجهة
-            document.getElementById('subject-name').innerHTML = `${currentSubject.title} <span style="font-size:12px; color:#666;">(المستوى ${currentSubject.level})</span>`;
-            document.getElementById('total-q').textContent = questions.length;
-            document.getElementById('answered-count').textContent = '0';
+            const subjectNameSpan = document.getElementById('subject-name');
+            if (subjectNameSpan) {
+                subjectNameSpan.innerHTML = `${currentSubject.title} <span style="font-size:12px; color:#666;">(المستوى ${currentSubject.level})</span>`;
+            }
+            const totalQSpan = document.getElementById('total-q');
+            if (totalQSpan) totalQSpan.textContent = questions.length;
+            const answeredCountSpan = document.getElementById('answered-count');
+            if (answeredCountSpan) answeredCountSpan.textContent = '0';
             
             // بدء الاختبار
             startExam();
@@ -456,7 +476,8 @@
             examStarted = true;
             timeSeconds = 3600;
             
-            document.getElementById('nav-buttons').style.display = 'flex';
+            const navButtons = document.getElementById('nav-buttons');
+            if (navButtons) navButtons.style.display = 'flex';
             startTimer();
             renderQuestion();
         }
@@ -468,6 +489,7 @@
             const q = questions[currentIndex];
             const savedAnswer = userAnswers[currentIndex];
             const container = document.getElementById('question-container');
+            if (!container) return;
             
             // بناء خيارات الإجابة
             let optionsHtml = '';
@@ -498,20 +520,24 @@
             `;
             
             // تحديث العداد
-            document.getElementById('current-q').textContent = currentIndex + 1;
-            document.getElementById('answered-count').textContent = userAnswers.filter(a => a !== null).length;
+            const currentQSpan = document.getElementById('current-q');
+            const answeredCountSpan = document.getElementById('answered-count');
+            if (currentQSpan) currentQSpan.textContent = currentIndex + 1;
+            if (answeredCountSpan) answeredCountSpan.textContent = userAnswers.filter(a => a !== null).length;
             
             // إظهار/إخفاء أزرار التنقل
             const nextBtn = document.getElementById('nextBtn');
             const submitBtn = document.getElementById('submitBtn');
             
             if (currentIndex === questions.length - 1) {
-                nextBtn.style.display = 'none';
-                submitBtn.style.display = 'inline-block';
-                submitBtn.innerHTML = '<i class="fas fa-check"></i> ' + translations[currentLang]['submit-btn'];
+                if (nextBtn) nextBtn.style.display = 'none';
+                if (submitBtn) {
+                    submitBtn.style.display = 'inline-block';
+                    submitBtn.innerHTML = '<i class="fas fa-check"></i> ' + translations[currentLang]['submit-btn'];
+                }
             } else {
-                nextBtn.style.display = 'inline-block';
-                submitBtn.style.display = 'none';
+                if (nextBtn) nextBtn.style.display = 'inline-block';
+                if (submitBtn) submitBtn.style.display = 'none';
             }
             
             // في الوضع التعليمي، عرض التصحيح فوراً إذا كان السؤال قد تمت إجابته
@@ -533,7 +559,8 @@
             const radio = document.querySelector(`input[name="answer"][value="${value}"]`);
             if (radio) radio.checked = true;
             
-            document.getElementById('answered-count').textContent = userAnswers.filter(a => a !== null).length;
+            const answeredCountSpan = document.getElementById('answered-count');
+            if (answeredCountSpan) answeredCountSpan.textContent = userAnswers.filter(a => a !== null).length;
             
             // في الوضع التعليمي، عرض التصحيح فوراً
             if (learningMode) {
@@ -661,8 +688,8 @@
                         <div class="score-number">${Math.round(percentage)}%</div>
                         <div class="score-label">${t['result-label']}</div>
                     </div>
-                    <h2>${t['result-label']} ${currentSubject.title}</h2>
-                    <p>${t['correct-answer']} <strong>${score}</strong> ${t['question-label']} <strong>${questions.length}</strong></p>
+                    <h2>نتيجة اختبار ${currentSubject.title}</h2>
+                    <p>أجبت بشكل صحيح على <strong>${score}</strong> من <strong>${questions.length}</strong> أسئلة</p>
                     <div class="${resultClass}">
                         <i class="fas ${percentage >= 60 ? 'fa-trophy' : 'fa-book-open'}"></i> ${resultMessage}
                     </div>
@@ -674,8 +701,10 @@
                 </div>
             `;
             
-            document.getElementById('question-container').innerHTML = resultHTML;
-            document.getElementById('nav-buttons').style.display = 'none';
+            const container = document.getElementById('question-container');
+            if (container) container.innerHTML = resultHTML;
+            const navButtons = document.getElementById('nav-buttons');
+            if (navButtons) navButtons.style.display = 'none';
         }
         
         // ======================== إعادة نفس المادة ========================
@@ -685,7 +714,8 @@
             userAnswers = new Array(questions.length).fill(null);
             currentIndex = 0;
             
-            document.getElementById('nav-buttons').style.display = 'flex';
+            const navButtons = document.getElementById('nav-buttons');
+            if (navButtons) navButtons.style.display = 'flex';
             
             if (timerInterval) clearInterval(timerInterval);
             timeSeconds = 3600;
@@ -698,7 +728,8 @@
         function setMode(mode) {
             learningMode = (mode === 'learning');
             document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`.mode-btn[data-mode="${mode}"]`).classList.add('active');
+            const activeBtn = document.querySelector(`.mode-btn[data-mode="${mode}"]`);
+            if (activeBtn) activeBtn.classList.add('active');
             
             // إذا كان الاختبار قيد التشغيل، قم بإعادة عرض السؤال الحالي
             if (examStarted && questions.length > 0) {
@@ -721,8 +752,11 @@
                     const hours = Math.floor(timeSeconds / 3600);
                     const minutes = Math.floor((timeSeconds % 3600) / 60);
                     const seconds = timeSeconds % 60;
-                    document.getElementById('timer').textContent = 
-                        `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                    const timerElement = document.getElementById('timer');
+                    if (timerElement) {
+                        timerElement.textContent = 
+                            `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                    }
                     
                     // تحذير عند آخر 5 دقائق
                     if (timeSeconds === 300) {
@@ -739,7 +773,11 @@
         // ======================== التهيئة ========================
         function init() {
             displaySubjects();
-            document.getElementById('langToggle').addEventListener('click', toggleLanguage);
+            const langToggle = document.getElementById('langToggle');
+            if (langToggle) {
+                langToggle.addEventListener('click', toggleLanguage);
+            }
+            applyTranslations();
         }
         
         // بدء التطبيق عند تحميل الصفحة
