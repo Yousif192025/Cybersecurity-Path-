@@ -1147,3 +1147,4 @@ window.goToQuestion = goToQuestion;
 window.submitExam = submitExam;
 window.retryExam = retryExam;
 window.toggleLearningMode = toggleLearningMode;
+
