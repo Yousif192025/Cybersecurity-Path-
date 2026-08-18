@@ -1,3 +1,4 @@
+
 <!-- docs/tvtc-tests/general-questions.html -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -253,6 +254,59 @@
             .subject-btn { padding: 8px 16px; font-size: 12px; }
             .question-text { font-size: 16px; }
         }
+
+        /* Arabic question translation layer: visual-only, responsive support */
+        .lang-btn {
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .lang-btn.arabic-active {
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.16);
+        }
+        .translation-unavailable {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            width: fit-content;
+            max-width: 100%;
+            margin-top: 12px;
+            padding: 8px 10px;
+            border: 1px solid rgba(205, 139, 0, 0.36);
+            border-radius: 8px;
+            color: #704d00;
+            background: #fff7df;
+            font-size: 0.88rem;
+            line-height: 1.45;
+            overflow-wrap: anywhere;
+        }
+        .question-text p,
+        .option label,
+        .explanation,
+        .mistake-item {
+            overflow-wrap: anywhere;
+        }
+        @media (max-width: 560px) {
+            .header {
+                padding: 84px 20px 24px;
+            }
+            .header h1 {
+                font-size: clamp(1.45rem, 8vw, 1.75rem);
+                line-height: 1.35;
+            }
+            .lang-btn {
+                top: 16px;
+                left: 20px;
+                right: 20px;
+                width: auto;
+            }
+            .translation-unavailable {
+                width: 100%;
+                font-size: 0.82rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -296,6 +350,7 @@
     </div>
 
     <script src="questions-db.js"></script>
+    <script src="questions-translations-ar.js"></script>
     <script>
         // ======================== نظام الترجمة ========================
         let currentLang = 'ar';
@@ -385,7 +440,11 @@
             if (prevBtn) prevBtn.innerHTML = '<i class="fas fa-arrow-right"></i> ' + t['prev-btn'];
             if (nextBtn) nextBtn.innerHTML = t['next-btn'] + ' <i class="fas fa-arrow-left"></i>';
             if (submitBtn) submitBtn.innerHTML = '<i class="fas fa-check"></i> ' + t['submit-btn'];
-            if (langToggle) langToggle.textContent = currentLang === 'ar' ? '🇬🇧 English' : '🇸🇦 العربية';
+            if (langToggle) {
+                langToggle.textContent = currentLang === 'ar' ? '🇬🇧 English' : '🇸🇦 العربية';
+                langToggle.classList.toggle('arabic-active', currentLang === 'ar');
+                langToggle.setAttribute('aria-label', currentLang === 'ar' ? 'Switch to English' : 'التبديل إلى العربية');
+            }
             
             document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
             document.documentElement.lang = currentLang === 'ar' ? 'ar' : 'en';
@@ -410,6 +469,22 @@
         let timeSeconds = 3600;
         let learningMode = false;
         let examStarted = false;
+
+        // ======================== طبقة عرض الترجمة العربية ========================
+        // تحافظ هذه الدالة على q.correct والمصدر الأصلي؛ وتغيّر النصوص المعروضة فقط.
+        function getQuestionDisplayContent(q) {
+            const arabicTranslation = currentLang === 'ar' && typeof QUESTION_TRANSLATIONS_AR !== 'undefined'
+                ? QUESTION_TRANSLATIONS_AR[q.id]
+                : null;
+            return {
+                text: arabicTranslation?.text || q.text,
+                options: arabicTranslation?.options || q.options,
+                explanation: arabicTranslation?.explanation || q.explanation,
+                hasArabicTranslation: Boolean(arabicTranslation),
+                showUnavailableNotice: currentLang === 'ar' && !arabicTranslation
+            };
+        }
+
 
         // ======================== عرض المواد المتاحة ========================
         function displaySubjects() {
@@ -487,15 +562,16 @@
             if (!questions.length || currentIndex >= questions.length) return;
             
             const q = questions[currentIndex];
+            const displayQuestion = getQuestionDisplayContent(q);
             const savedAnswer = userAnswers[currentIndex];
             const container = document.getElementById('question-container');
             if (!container) return;
             
             // بناء خيارات الإجابة
             let optionsHtml = '';
-            const letters = currentLang === 'ar' ? ['أ', 'ب', 'ج', 'د'] : ['A', 'B', 'C', 'D'];
+            const letters = currentLang === 'ar' ? ['أ', 'ب', 'ج', 'د', 'هـ', 'و'] : ['A', 'B', 'C', 'D', 'E', 'F'];
             
-            q.options.forEach((opt, idx) => {
+            displayQuestion.options.forEach((opt, idx) => {
                 const isSelected = savedAnswer === idx;
                 optionsHtml += `
                     <div class="option ${isSelected ? 'selected' : ''}" data-value="${idx}" onclick="selectAnswer(${idx})">
@@ -510,7 +586,8 @@
                     <div class="question-text">
                         <i class="fas fa-question-circle" style="color:#1a73e8;"></i>
                         <strong>${translations[currentLang]['question-label']} ${currentIndex + 1} من ${questions.length}</strong>
-                        <p style="margin-top: 15px; font-weight: 500;">${q.text}</p>
+                        <p style="margin-top: 15px; font-weight: 500;">${displayQuestion.text}</p>
+                        ${displayQuestion.showUnavailableNotice ? '<div class="translation-unavailable" role="status">🇬🇧 الترجمة العربية غير متاحة لهذا السؤال</div>' : ''}
                     </div>
                     <div class="options" id="options-list">
                         ${optionsHtml}
@@ -571,6 +648,7 @@
         // ======================== عرض التصحيح ========================
         function showCorrection(index) {
             const q = questions[index];
+            const displayQuestion = getQuestionDisplayContent(q);
             const userAnswer = userAnswers[index];
             const isCorrect = userAnswer === q.correct;
             const explanationDiv = document.getElementById(`explanation-${index}`);
@@ -597,9 +675,9 @@
                 <i class="fas ${isCorrect ? 'fa-check-circle' : 'fa-times-circle'}" style="margin-left: 8px;"></i>
                 <strong>${isCorrect ? '✅ ' + t['correct-answer'].replace(':', '') + '!' : '❌ ' + t['your-answer'].replace(':', '') + '!'}</strong>
                 <br><br>
-                <strong>${t['correct-answer']}</strong> ${q.options[q.correct]}
+                <strong>${t['correct-answer']}</strong> ${displayQuestion.options[q.correct]}
                 <br><br>
-                <strong><i class="fas fa-info-circle"></i> ${t['explanation']}</strong> ${q.explanation}
+                <strong><i class="fas fa-info-circle"></i> ${t['explanation']}</strong> ${displayQuestion.explanation}
             `;
             explanationDiv.classList.add('show');
         }
@@ -644,11 +722,12 @@
                 if (isCorrect) {
                     score++;
                 } else {
+                    const displayQuestion = getQuestionDisplayContent(questions[i]);
                     mistakes.push({
-                        question: questions[i].text,
-                        userAnswer: userAnswers[i] !== null ? questions[i].options[userAnswers[i]] : 'لم يتم الإجابة',
-                        correctAnswer: questions[i].options[questions[i].correct],
-                        explanation: questions[i].explanation
+                        question: displayQuestion.text,
+                        userAnswer: userAnswers[i] !== null ? displayQuestion.options[userAnswers[i]] : 'لم يتم الإجابة',
+                        correctAnswer: displayQuestion.options[questions[i].correct],
+                        explanation: displayQuestion.explanation
                     });
                 }
             }
