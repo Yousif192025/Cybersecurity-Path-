@@ -1603,10 +1603,23 @@ const QUESTION_TRANSLATIONS_AR = Object.freeze({
     }
 });
 
+/* طبقة ترجمة أسماء المواد المعروضة في واجهة Mock Exam. */
+const SUBJECT_TRANSLATIONS = Object.freeze({
+    NetworkDefense: { ar: '🛡️ الدفاع عن الشبكات', en: '🛡️ Network Defense' },
+    EthicalHacking: { ar: '🔓 الاختراق الأخلاقي', en: '🔓 Ethical Hacking' },
+    CryptographyBasics: { ar: '🔐 أساسيات التشفير', en: '🔐 Cryptography Basics' },
+    CyberThreats: { ar: '⚠️ التهديدات السيبرانية', en: '⚠️ Cyber Threats' },
+    DigitalForensics: { ar: '🔍 التحقيق الجنائي الرقمي', en: '🔍 Digital Forensics' },
+    WebApplicationSecurity: { ar: '🌐 أمن تطبيقات الويب', en: '🌐 Web Application Security' },
+    OperatingSystems: { ar: '💻 نظم التشغيل', en: '💻 Operating Systems' },
+    RiskAnalysis: { ar: '📊 تحليل المخاطر السيبرانية', en: '📊 Cyber Risk Analysis' }
+});
+
 if (typeof window !== 'undefined') {
     window.QUESTION_TRANSLATIONS_AR = QUESTION_TRANSLATIONS_AR;
+    window.SUBJECT_TRANSLATIONS = SUBJECT_TRANSLATIONS;
+}
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { QUESTION_TRANSLATIONS_AR, SUBJECT_TRANSLATIONS };
 }
 
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { QUESTION_TRANSLATIONS_AR };
-}
