@@ -448,6 +448,7 @@
             
             document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
             document.documentElement.lang = currentLang === 'ar' ? 'ar' : 'en';
+            updateSubjectDisplayLabels();
         }
         
         function toggleLanguage() {
@@ -485,6 +486,42 @@
             };
         }
 
+        // ======================== طبقة عرض أسماء المواد ========================
+        function getLocalizedSubjectTitle(subjectKey, subject) {
+            const localizedSubject = typeof SUBJECT_TRANSLATIONS !== 'undefined'
+                ? SUBJECT_TRANSLATIONS[subjectKey]
+                : null;
+            return localizedSubject?.[currentLang] || subject?.title || '';
+        }
+
+        function getSubjectQuestionCount(subject) {
+            return subject.totalQuestions || subject.questions.length;
+        }
+
+        function getLocalizedQuestionCountLabel(subject) {
+            return currentLang === 'ar' ? 'سؤال' : 'Questions';
+        }
+
+        function getSubjectButtonMarkup(subjectKey, subject) {
+            return `${getLocalizedSubjectTitle(subjectKey, subject)} <span style="font-size:12px; opacity:0.8;">(${getSubjectQuestionCount(subject)} ${getLocalizedQuestionCountLabel(subject)})</span>`;
+        }
+
+        function updateCurrentSubjectName() {
+            const subjectNameSpan = document.getElementById('subject-name');
+            if (subjectNameSpan && currentSubject && currentSubjectKey) {
+                subjectNameSpan.innerHTML = `${getLocalizedSubjectTitle(currentSubjectKey, currentSubject)} <span style="font-size:12px; color:#666;">(المستوى ${currentSubject.level})</span>`;
+            }
+        }
+
+        function updateSubjectDisplayLabels() {
+            document.querySelectorAll('.subject-btn[data-subject-key]').forEach(button => {
+                const subjectKey = button.dataset.subjectKey;
+                const subject = TVTC_QUESTIONS[subjectKey];
+                if (subject) button.innerHTML = getSubjectButtonMarkup(subjectKey, subject);
+            });
+            updateCurrentSubjectName();
+        }
+
 
         // ======================== عرض المواد المتاحة ========================
         function displaySubjects() {
@@ -498,7 +535,8 @@
             for (const [key, subject] of Object.entries(subjects)) {
                 const btn = document.createElement('button');
                 btn.className = 'subject-btn';
-                btn.innerHTML = `${subject.title} <span style="font-size:12px; opacity:0.8;">(${subject.totalQuestions || subject.questions.length} سؤال)</span>`;
+                btn.dataset.subjectKey = key;
+                btn.innerHTML = getSubjectButtonMarkup(key, subject);
                 btn.onclick = () => selectSubject(key);
                 container.appendChild(btn);
                 
@@ -532,10 +570,7 @@
             console.log(`✅ تم تحميل ${questions.length} سؤال من ${currentSubject.title}`);
             
             // تحديث الواجهة
-            const subjectNameSpan = document.getElementById('subject-name');
-            if (subjectNameSpan) {
-                subjectNameSpan.innerHTML = `${currentSubject.title} <span style="font-size:12px; color:#666;">(المستوى ${currentSubject.level})</span>`;
-            }
+            updateCurrentSubjectName();
             const totalQSpan = document.getElementById('total-q');
             if (totalQSpan) totalQSpan.textContent = questions.length;
             const answeredCountSpan = document.getElementById('answered-count');
@@ -767,7 +802,7 @@
                         <div class="score-number">${Math.round(percentage)}%</div>
                         <div class="score-label">${t['result-label']}</div>
                     </div>
-                    <h2>نتيجة اختبار ${currentSubject.title}</h2>
+                    <h2>نتيجة اختبار ${getLocalizedSubjectTitle(currentSubjectKey, currentSubject)}</h2>
                     <p>أجبت بشكل صحيح على <strong>${score}</strong> من <strong>${questions.length}</strong> أسئلة</p>
                     <div class="${resultClass}">
                         <i class="fas ${percentage >= 60 ? 'fa-trophy' : 'fa-book-open'}"></i> ${resultMessage}
