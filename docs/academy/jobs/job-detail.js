@@ -83,8 +83,7 @@
             ? `<div class="job-salary">${job.salary}</div>`
             : `<div class="job-salary text-muted">الراتب غير متوفر حاليًا</div>`;
         const certsHtml = (job.certifications && job.certifications.length)
-            ? `<div class="mt-3"><h6>الشهادات ذات الصلة</h6>` +
-              job.certifications.map(c => `<span class="job-skill">${c}</span>`).join('') + `</div>`
+            ? `<div class="job-cert">${job.certifications.join(' • ')}</div>`
             : '';
         const careerPathsHtml = (job.careerPaths && job.careerPaths.length)
             ? `<div class="mt-3"><h6>المسارات المهنية ذات الصلة</h6>` +
