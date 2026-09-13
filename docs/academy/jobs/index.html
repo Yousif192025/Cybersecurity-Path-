@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
@@ -87,7 +88,7 @@
             <h2 class="section-title">دليل الوظائف الأمنية</h2>
             <p class="section-subtitle">استكشف الوظائف المتاحة في مجال الأمن السيبراني، مهاراتها، ورواتبها التقريبية</p>
 
-            <div class="jobs-grid" id="jobs-directory-container">
+            <div id="jobs-directory-container">
                 <p class="text-center w-100">جاري تحميل الوظائف...</p>
             </div>
         </div>
@@ -146,35 +147,92 @@
     <script src="../js/script.js"></script>
     <script>
         // ============================================================
-        // Jobs Directory — يقرأ data/jobs.json فقط، لا بيانات مُختلَقة
+        // Jobs Directory — مصنّفة حسب المسار المهني
+        // يقرأ data/jobs.json و data/career-paths.json فقط (بيانات موجودة
+        // أصلًا في المشروع)، لا بيانات مُختلَقة ولا تصنيفات جديدة.
         // ============================================================
-        fetch('../data/jobs.json')
-            .then(res => res.json())
-            .then(jobs => {
-                const container = document.getElementById('jobs-directory-container');
-                container.innerHTML = '';
-                jobs.forEach(job => {
-                    const primaryUrl = job.urls[0];
-                    const skillsHtml = job.skills.map(s => `<span class="job-skill">${s}</span>`).join('');
-                    const salaryHtml = job.salary ? `<div class="job-salary">${job.salary}</div>` : '';
-                    const card = document.createElement('div');
-                    card.className = 'job-card';
-                    card.innerHTML = `
+        function jobCardHtml(job) {
+            const primaryUrl = job.urls[0];
+            const skillsHtml = (job.skills || []).slice(0, 4)
+                .map(s => `<span class="job-skill">${s}</span>`).join('');
+            const certHtml = job.certifications ? job.certifications.join(' • ') : '';
+            return `
+                <div class="col-lg-4 col-md-6">
+                    <div class="job-card">
                         <h5 class="job-title">${job.title}</h5>
                         <div class="job-skills">${skillsHtml}</div>
-                        ${salaryHtml}
+                        <div class="job-cert">${certHtml}</div>
+                        <div class="job-salary">${job.salary || 'حسب الخبرة'}</div>
                         <a href="${primaryUrl}" class="job-link">
                             عرض التفاصيل <i class="fa-solid fa-arrow-left"></i>
                         </a>
-                    `;
-                    container.appendChild(card);
-                });
-            })
-            .catch(err => {
-                document.getElementById('jobs-directory-container').innerHTML =
-                    '<p class="text-center w-100">تعذّر تحميل الوظائف حاليًا.</p>';
-                console.error('Jobs directory load error:', err);
+                    </div>
+                </div>`;
+        }
+
+        Promise.all([
+            fetch('../data/jobs.json').then(r => r.json()),
+            fetch('../data/career-paths.json').then(r => r.json())
+        ]).then(([jobs, careerPaths]) => {
+            const container = document.getElementById('jobs-directory-container');
+            container.innerHTML = '';
+
+            const cpNameById = {};
+            const cpUrlById = {};
+            careerPaths.forEach(cp => {
+                cpNameById[cp.id] = cp.name;
+                cpUrlById[cp.id] = cp.url;
             });
+
+            // تجميع الوظائف حسب أول مسار مهني مرتبط بها (الأقسام الثمانية الموجودة أصلًا)
+            const grouped = {};
+            const uncategorized = [];
+            jobs.forEach(job => {
+                if (job.careerPaths && job.careerPaths.length) {
+                    const cpId = job.careerPaths[0];
+                    if (!grouped[cpId]) grouped[cpId] = [];
+                    grouped[cpId].push(job);
+                } else {
+                    uncategorized.push(job);
+                }
+            });
+
+            // قسم لكل مسار مهني، بنفس ترتيب ظهورها في career-paths.json
+            careerPaths.forEach(cp => {
+                const jobsInPath = grouped[cp.id];
+                if (!jobsInPath || !jobsInPath.length) return;
+
+                const section = document.createElement('div');
+                section.className = 'mb-5';
+                section.innerHTML = `
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h4 class="mb-0">${cpNameById[cp.id] || cp.id}</h4>
+                        <a href="${cpUrlById[cp.id] || '#'}" class="small">عرض المسار المهني <i class="fa-solid fa-arrow-left"></i></a>
+                    </div>
+                    <div class="row g-4">
+                        ${jobsInPath.map(jobCardHtml).join('')}
+                    </div>`;
+                container.appendChild(section);
+            });
+
+            // قسم أخير للوظائف غير المرتبطة بمسار مهني محدد
+            if (uncategorized.length) {
+                const section = document.createElement('div');
+                section.className = 'mb-5';
+                section.innerHTML = `
+                    <div class="mb-3">
+                        <h4 class="mb-0">وظائف أخرى</h4>
+                    </div>
+                    <div class="row g-4">
+                        ${uncategorized.map(jobCardHtml).join('')}
+                    </div>`;
+                container.appendChild(section);
+            }
+        }).catch(err => {
+            document.getElementById('jobs-directory-container').innerHTML =
+                '<p class="text-center w-100">تعذّر تحميل الوظائف حاليًا.</p>';
+            console.error('Jobs directory load error:', err);
+        });
     </script>
 </body>
 </html>
