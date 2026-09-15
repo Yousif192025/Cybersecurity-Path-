@@ -27,10 +27,93 @@
    */
 
   const RELATIONS_URL =
-    '../data/certification-relations.json';
+    '../../../data/certification-relations.json';
+
+  /*
+   * Certification pages are nested under a provider folder:
+   * /academy/certifications/{provider}/{slug}/
+   * so building a correct link requires knowing the provider
+   * for the target id. This map reflects the actual current
+   * folder structure (verified against the repository), not
+   * new data — it is a navigation lookup only.
+   */
+  const CERTIFICATION_PROVIDER_MAP = {
+    'cloud-practitioner': 'aws',
+    'security-specialty': 'aws',
+    'solutions-architect': 'aws',
+    'ccna': 'cisco',
+    'ccnp-security': 'cisco',
+    'cyberops': 'cisco',
+    'devnet-associate': 'cisco',
+    'cysa-plus': 'comptia',
+    'linux-plus': 'comptia',
+    'network-plus': 'comptia',
+    'pentest-plus': 'comptia',
+    'security-plus': 'comptia',
+    'ceh': 'ec-council',
+    'chfi': 'ec-council',
+    'cnd': 'ec-council',
+    'ecsa': 'ec-council',
+    'cisa': 'isaca',
+    'cism': 'isaca',
+    'crisc': 'isaca',
+    'cc': 'isc2',
+    'cissp': 'isc2',
+    'sscp': 'isc2',
+    'ai-900': 'microsoft',
+    'az-500': 'microsoft',
+    'dp-900': 'microsoft',
+    'ms-900': 'microsoft',
+    'pl-900': 'microsoft',
+    'sc-900': 'microsoft',
+    'oscp': 'offsec',
+    'osed': 'offsec',
+    'osep': 'offsec',
+    'oswe': 'offsec'
+  };
 
   const CERTIFICATIONS_BASE_URL =
-    '../certifications/';
+    '/academy/certifications/';
+
+  /*
+   * Real certification names, extracted verbatim from each
+   * page's own <h1 class="cert-title"> (not new content).
+   * Used so the user never sees a raw id like "cysa-plus".
+   */
+  const CERTIFICATION_NAME_MAP = {
+    'cloud-practitioner': 'AWS Cloud Practitioner',
+    'security-specialty': 'AWS Security Specialty',
+    'solutions-architect': 'AWS Solutions Architect Associate',
+    'ccna': 'Cisco CCNA',
+    'ccnp-security': 'Cisco CCNP Security',
+    'cyberops': 'Cisco CyberOps Associate',
+    'devnet-associate': 'Cisco DevNet Associate',
+    'cysa-plus': 'CompTIA CySA+',
+    'linux-plus': 'CompTIA Linux+',
+    'network-plus': 'CompTIA Network+',
+    'pentest-plus': 'CompTIA PenTest+',
+    'security-plus': 'CompTIA Security+',
+    'ceh': 'EC-Council CEH',
+    'chfi': 'EC-Council CHFI',
+    'cnd': 'EC-Council CND',
+    'ecsa': 'EC-Council ECSA',
+    'cisa': 'ISACA CISA',
+    'cism': 'ISACA CISM',
+    'crisc': 'ISACA CRISC',
+    'cc': 'ISC2 Certified in Cybersecurity (CC)',
+    'cissp': 'ISC2 CISSP',
+    'sscp': 'ISC2 SSCP',
+    'ai-900': 'Microsoft AI-900',
+    'az-500': 'Microsoft AZ-500',
+    'dp-900': 'Microsoft DP-900',
+    'ms-900': 'Microsoft MS-900',
+    'pl-900': 'Microsoft PL-900',
+    'sc-900': 'Microsoft SC-900',
+    'oscp': 'OffSec OSCP',
+    'osed': 'OffSec OSED',
+    'osep': 'OffSec OSEP',
+    'oswe': 'OffSec OSWE'
+  };
 
 
   /*
@@ -225,8 +308,17 @@
     certificationId
   ) {
 
+    const provider =
+      CERTIFICATION_PROVIDER_MAP[certificationId];
+
+    if (!provider) {
+      // No known page for this id — fail gracefully, do not build a broken link.
+      return null;
+    }
+
     return (
       CERTIFICATIONS_BASE_URL +
+      encodeURIComponent(provider) + '/' +
       encodeURIComponent(certificationId) +
       '/'
     );
@@ -242,6 +334,20 @@
   function createRelationCard(
     relation
   ) {
+
+    const url =
+      getCertificationUrl(relation.target);
+
+    if (!url) {
+      // Unknown target page — skip rather than render a broken link.
+      return null;
+    }
+
+    const col =
+      document.createElement('div');
+
+    col.className =
+      'col-lg-4 col-md-6';
 
     const article =
       document.createElement('article');
@@ -275,12 +381,10 @@
     link.className =
       'certification-relation-link';
 
-    link.href =
-      getCertificationUrl(
-        relation.target
-      );
+    link.href = url;
 
     link.textContent =
+      CERTIFICATION_NAME_MAP[relation.target] ||
       relation.target;
 
 
@@ -311,8 +415,9 @@
       article.appendChild(rationale);
     }
 
+    col.appendChild(article);
 
-    return article;
+    return col;
   }
 
 
@@ -363,9 +468,12 @@
 
     relations.forEach(function (relation) {
 
-      fragment.appendChild(
-        createRelationCard(relation)
-      );
+      const card =
+        createRelationCard(relation);
+
+      if (card) {
+        fragment.appendChild(card);
+      }
 
     });
 
