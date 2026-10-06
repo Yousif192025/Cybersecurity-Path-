@@ -1,0 +1,1978 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="المحور الثالث — من تجربة المستخدم إلى الأمن السيبراني">
+<title>من تجربة المستخدم إلى الأمن السيبراني — المحور الثالث</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0a2540;--navy-2:#123c69;--navy-3:#17457c;
+  --blue:#1f6feb;--blue-soft:#e8f1fd;
+  --accent:#00b4d8;--accent-2:#7fe3f5;
+  --gold:#e0a800;
+  --ink:#132a41;--muted:#5b7089;--line:#dde5ee;--bg:#eef3f9;--white:#ffffff;
+  --ok:#0f9d58;--bad:#d93025;--warn:#e0a800;
+  --radius:16px;--shadow:0 8px 24px rgba(10,37,64,.08);
+}
+*,*::before,*::after{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'Tajawal','Segoe UI',Tahoma,Arial,sans-serif;
+  background:var(--bg);color:var(--ink);line-height:1.9;font-size:16px;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+h1,h2,h3,h4{line-height:1.55;font-weight:800;}
+p{margin:0 0 12px;}
+ul,ol{margin:0 0 14px;padding-inline-start:24px;}
+li{margin-bottom:7px;}
+strong{font-weight:700;}
+button{font-family:inherit;}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px;}
+
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden;}
+
+/* ===== الشريط العلوي ===== */
+.topbar{
+  background:linear-gradient(100deg,var(--navy),var(--navy-2) 55%,var(--navy-3));
+  color:#fff;padding:10px 16px 0;display:flex;flex-direction:column;gap:8px;
+  box-shadow:0 2px 16px rgba(10,37,64,.28);z-index:30;flex:0 0 auto;
+}
+.topbar-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-bottom:8px;}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:15.5px;}
+.brand .logo{
+  width:36px;height:36px;border-radius:11px;
+  background:linear-gradient(135deg,var(--accent),#4cc9f0);
+  display:grid;place-items:center;font-size:18px;flex:0 0 auto;
+  box-shadow:0 4px 12px rgba(0,180,216,.35);
+}
+.brand .brand-text{display:flex;flex-direction:column;line-height:1.35;}
+.brand .brand-text small{font-weight:500;font-size:12px;color:#a9c6e2;}
+.topbar-actions{margin-inline-start:auto;display:flex;gap:8px;flex-wrap:wrap;}
+.btn{
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);
+  color:#fff;padding:7px 14px;border-radius:10px;cursor:pointer;
+  font-size:14px;font-weight:600;transition:.2s;white-space:nowrap;
+}
+.btn:hover{background:rgba(255,255,255,.24);}
+.btn.active{background:var(--accent);border-color:var(--accent);color:#04202c;font-weight:700;}
+.progress-track{width:100%;height:5px;background:rgba(255,255,255,.16);border-radius:0;}
+.progress-fill{
+  height:100%;width:0;border-radius:0 4px 4px 0;
+  background:linear-gradient(90deg,var(--accent),#4cc9f0);transition:width .35s ease;
+}
+
+/* ===== منطقة العرض ===== */
+.stage{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;padding:26px 20px 40px;scroll-behavior:smooth;}
+.slide{display:none;max-width:1080px;margin:0 auto;}
+.slide.active{display:block;animation:fadeUp .35s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:none;}}
+
+/* ===== الشريط السفلي ===== */
+.navbar{
+  background:#fff;border-top:1px solid var(--line);padding:9px 16px;
+  display:flex;align-items:center;gap:12px;justify-content:space-between;
+  flex-wrap:wrap;z-index:30;box-shadow:0 -2px 14px rgba(10,37,64,.07);flex:0 0 auto;
+}
+.nav-meta{display:flex;flex-direction:column;line-height:1.4;min-width:0;}
+.nav-meta .nav-title{font-weight:700;color:var(--navy);font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw;}
+.nav-meta .nav-time{font-size:12.5px;color:var(--muted);}
+.nav-buttons{display:flex;gap:8px;align-items:center;}
+.navbtn{
+  border:1px solid var(--line);background:#fff;color:var(--navy-2);
+  padding:9px 18px;border-radius:11px;font-weight:700;font-size:15px;cursor:pointer;transition:.2s;
+}
+.navbtn:hover:not(:disabled){background:var(--blue-soft);border-color:var(--blue);}
+.navbtn:disabled{opacity:.4;cursor:not-allowed;}
+.navbtn.primary{background:linear-gradient(135deg,var(--blue),var(--accent));color:#fff;border:0;box-shadow:0 6px 16px rgba(31,111,235,.28);}
+.navbtn.primary:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 9px 22px rgba(31,111,235,.35);}
+.counter{font-size:13.5px;color:var(--muted);font-weight:600;white-space:nowrap;}
+
+/* ===== القائمة الجانبية ===== */
+.overlay{position:fixed;inset:0;background:rgba(6,20,35,.55);opacity:0;pointer-events:none;transition:opacity .3s;z-index:40;}
+.overlay.show{opacity:1;pointer-events:auto;}
+.drawer{
+  position:fixed;top:0;bottom:0;inset-inline-start:0;width:min(380px,88vw);
+  background:#fff;z-index:50;transform:translateX(102%);
+  transition:transform .32s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;box-shadow:-12px 0 34px rgba(10,37,64,.22);
+}
+.drawer.open{transform:translateX(0);}
+.drawer-head{
+  padding:16px 18px;background:linear-gradient(100deg,var(--navy),var(--navy-2));
+  color:#fff;display:flex;align-items:center;justify-content:space-between;gap:10px;
+}
+.drawer-head h3{margin:0;font-size:17px;}
+.drawer-close{
+  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;
+  width:34px;height:34px;border-radius:10px;cursor:pointer;font-size:17px;line-height:1;
+}
+.drawer-close:hover{background:rgba(255,255,255,.3);}
+.nav-list{overflow-y:auto;padding:10px;flex:1;}
+.nav-item{
+  display:flex;gap:10px;align-items:flex-start;width:100%;text-align:start;
+  background:transparent;border:0;border-radius:10px;padding:10px 12px;
+  font-size:15px;color:#22384f;cursor:pointer;transition:.18s;margin-bottom:2px;line-height:1.6;
+}
+.nav-item:hover{background:#f0f6fd;}
+.nav-item.active{background:var(--blue-soft);color:#1a5fb4;font-weight:700;}
+.nav-num{
+  min-width:26px;height:26px;border-radius:8px;background:#eaf1fa;color:#1a5fb4;
+  display:grid;place-items:center;font-size:13px;font-weight:700;flex:0 0 auto;
+}
+.nav-item.active .nav-num{background:var(--accent);color:#04202c;}
+
+/* ===== عناصر المحتوى ===== */
+.slide-head{margin-bottom:20px;border-bottom:2px solid var(--line);padding-bottom:14px;}
+.kicker{
+  display:inline-block;background:var(--blue-soft);color:#1a5fb4;font-weight:700;
+  font-size:13px;padding:4px 13px;border-radius:999px;margin-bottom:10px;
+}
+.slide-title{font-size:clamp(22px,3vw,33px);color:var(--navy);margin:0 0 6px;}
+.slide-sub{color:var(--muted);font-size:16px;margin:0;}
+.lead{font-size:17.5px;color:#27405a;}
+h3{font-size:19.5px;color:var(--navy);margin:24px 0 10px;}
+h4{font-size:16.5px;color:var(--navy-2);margin:16px 0 8px;}
+.small{font-size:14px;color:var(--muted);}
+
+/* ===== الغلاف ===== */
+.hero{
+  display:grid;grid-template-columns:1.2fr .8fr;gap:26px;align-items:center;
+  background:linear-gradient(135deg,var(--navy),var(--navy-2) 55%,var(--navy-3));
+  border-radius:22px;padding:32px 28px;color:#fff;
+  box-shadow:0 18px 44px rgba(10,37,64,.25);margin-bottom:22px;
+}
+.hero h1{font-size:clamp(24px,3.6vw,39px);margin:10px 0 6px;line-height:1.4;}
+.hero-sub{color:var(--accent-2);font-size:clamp(17px,2.3vw,22px);font-weight:700;margin:0;}
+.hero-desc{color:#c3d6ea;font-size:16px;margin-top:12px;}
+.hero .kicker{background:rgba(0,180,216,.22);color:var(--accent-2);}
+.hero-slogan{
+  margin-top:14px;padding:11px 15px;background:rgba(255,255,255,.09);
+  border-inline-start:4px solid var(--accent);border-radius:11px;
+  font-size:15.5px;color:#eaf4ff;font-weight:600;
+}
+.venn{width:100%;height:auto;max-height:300px;display:block;}
+.svg-t{fill:#eaf4ff;font-family:'Tajawal',Tahoma,sans-serif;font-size:17px;font-weight:700;}
+.meta-grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));}
+.meta-item{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:0 2px 8px rgba(10,37,64,.04);}
+.meta-item span{display:block;font-size:13px;color:var(--muted);margin-bottom:4px;}
+.meta-item strong{font-size:15.5px;color:var(--navy);line-height:1.6;display:block;}
+
+/* ===== الشبكات والبطاقات ===== */
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));}
+.grid.two{grid-template-columns:repeat(auto-fit,minmax(300px,1fr));}
+.grid.three{grid-template-columns:repeat(auto-fit,minmax(210px,1fr));}
+.grid.four{grid-template-columns:repeat(auto-fit,minmax(180px,1fr));}
+.card{
+  background:#fff;border:1px solid var(--line);border-radius:15px;padding:16px 18px;
+  box-shadow:0 2px 10px rgba(10,37,64,.045);transition:.22s;
+}
+.card h4{margin-top:0;}
+.card.clickable{cursor:pointer;}
+.card.clickable:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 12px 26px rgba(10,37,64,.11);}
+.card-tag{
+  display:inline-block;font-size:12.5px;font-weight:700;color:#1a5fb4;
+  background:var(--blue-soft);border-radius:999px;padding:2px 10px;margin-bottom:8px;
+}
+.card-tag.warn{background:#fff7e0;color:#8a6100;}
+.card-tag.ok{background:#f2fbf6;color:#0a6b3d;}
+.card .more{margin-top:10px;border-top:1px dashed var(--line);padding-top:10px;color:#33506d;font-size:15.3px;}
+.card.open{border-color:var(--accent);box-shadow:0 10px 24px rgba(0,180,216,.14);}
+.more{display:none;}
+.open > .more, .card.open .more, .tl-item.open .more, .jstep.open .more, .scn.open .more{display:block;}
+
+/* ===== المخططات الانسيابية ===== */
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin:18px 0;}
+.flow.center{justify-content:center;}
+.node{
+  background:#fff;border:1.6px solid #cfe0f5;border-radius:12px;padding:10px 15px;
+  font-weight:700;color:var(--navy-2);font-size:15px;box-shadow:0 2px 8px rgba(10,37,64,.05);
+}
+.node.accent{border-color:var(--accent);background:#f0fbff;color:#0a6b80;}
+.node.dark{background:var(--navy);border-color:var(--navy);color:#fff;}
+.node.gold{background:var(--gold);border-color:var(--gold);color:#fff;}
+.arrow{color:var(--accent);font-size:21px;font-weight:800;line-height:1;}
+
+/* ===== الجداول ===== */
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:15px;background:#fff;box-shadow:var(--shadow);}
+table{width:100%;border-collapse:collapse;min-width:640px;}
+th,td{padding:12px 15px;text-align:start;border-bottom:1px solid var(--line);font-size:15.3px;vertical-align:top;}
+th{background:#f3f8fd;color:var(--navy-2);font-weight:700;font-size:15px;}
+tbody tr:last-child td{border-bottom:0;}
+tbody tr:hover{background:#fafcff;}
+.table-wrap caption{caption-side:top;padding:10px 14px;text-align:start;font-size:14px;color:var(--muted);}
+.ws-table select,.ws-table input{
+  width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:9px;
+  font-family:inherit;font-size:14.5px;background:#fbfdff;color:var(--ink);transition:.2s;
+}
+.ws-table select:focus,.ws-table input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,180,216,.18);}
+
+/* ===== الصناديق ===== */
+.note{background:#f2f9ff;border-inline-start:5px solid var(--accent);border-radius:13px;padding:14px 18px;margin:18px 0;}
+.note strong{color:#0a6b80;}
+.quote{background:#fff;border:1px solid var(--line);border-inline-start:6px solid var(--blue);border-radius:13px;padding:16px 20px;margin:20px 0;font-size:17px;font-weight:600;color:var(--navy-2);}
+.think{background:linear-gradient(135deg,var(--navy),var(--navy-2));color:#fff;border-radius:18px;padding:22px 24px;margin:24px 0;box-shadow:0 14px 34px rgba(10,37,64,.22);}
+.think h3{color:var(--accent-2);margin-top:0;}
+.think blockquote{margin:12px 0;padding:12px 16px;background:rgba(255,255,255,.09);border-inline-start:4px solid var(--accent);border-radius:10px;font-size:16.5px;color:#eaf4ff;}
+.think .small{color:#a9c6e2;}
+.warn-box{background:#fff9e8;border-inline-start:5px solid var(--warn);border-radius:13px;padding:14px 18px;margin:18px 0;}
+.warn-box strong{color:#8a6100;}
+.sec-box{
+  background:#fff9e8;border:1.6px dashed var(--warn);border-radius:15px;
+  padding:15px 18px;margin:18px 0;
+}
+.sec-box h4{margin:0 0 8px;color:#8a6100;display:flex;align-items:center;gap:8px;font-size:16px;}
+.sec-box p{margin:0;color:#4b3d16;font-size:15.4px;}
+.ok-box{background:#f2fbf6;border-inline-start:5px solid var(--ok);border-radius:13px;padding:14px 18px;margin:18px 0;}
+.ok-box strong{color:#0a6b3d;}
+
+/* ===== المراحل ===== */
+.stage-block{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow);margin:16px 0;}
+.sb-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;border-bottom:1px solid var(--line);padding-bottom:11px;}
+.sb-num{
+  width:40px;height:40px;border-radius:13px;
+  background:linear-gradient(135deg,var(--blue),var(--accent));color:#fff;
+  display:grid;place-items:center;font-weight:800;font-size:17px;flex:0 0 auto;
+}
+.sb-title{font-weight:800;color:var(--navy);font-size:18.5px;line-height:1.5;}
+.sb-grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));}
+.sb-item{background:#f9fcff;border:1px solid #e6eef7;border-radius:12px;padding:11px 13px;}
+.sb-item b{display:block;font-size:13.5px;color:#1a5fb4;margin-bottom:4px;}
+.sb-item span{font-size:15px;color:#33506d;line-height:1.8;}
+.sb-item.sec{background:#fff9e8;border-color:#f2e3b8;}
+.sb-item.sec b{color:#8a6100;}
+.sb-item.safe{background:#f2fbf6;border-color:#c8e9d7;}
+.sb-item.safe b{color:#0a6b3d;}
+
+/* ===== رحلة المستخدم ===== */
+.journey{display:flex;flex-direction:column;gap:9px;margin:18px 0;}
+.jstep{display:flex;gap:12px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px 16px;cursor:pointer;transition:.2s;}
+.jstep:hover{border-color:var(--accent);box-shadow:0 8px 20px rgba(10,37,64,.09);}
+.jstep.open{border-color:var(--accent);background:#fbfeff;}
+.jstep .num{min-width:32px;height:32px;border-radius:10px;background:var(--blue-soft);color:#1a5fb4;display:grid;place-items:center;font-weight:700;font-size:14px;flex:0 0 auto;}
+.jstep.open .num{background:var(--accent);color:#04202c;}
+.jstep .jbody{flex:1;}
+.jstep .jt{font-weight:700;color:var(--navy);font-size:15.8px;}
+.jstep .more{margin-top:9px;border-top:1px dashed var(--line);padding-top:9px;font-size:15.1px;color:#33506d;}
+
+/* ===== نقاط الحماية ===== */
+.shield{display:flex;flex-direction:column;gap:10px;margin:18px 0;}
+.shield-row{display:flex;align-items:stretch;gap:10px;flex-wrap:wrap;}
+.shield-stage{
+  flex:1 1 190px;background:#fff;border:1.6px solid #cfe0f5;border-radius:12px;
+  padding:11px 14px;font-weight:700;color:var(--navy-2);display:flex;align-items:center;gap:8px;
+}
+.shield-stage .n{
+  min-width:24px;height:24px;border-radius:8px;background:var(--blue-soft);color:#1a5fb4;
+  display:grid;place-items:center;font-size:12.5px;font-weight:700;
+}
+.shield-note{
+  flex:2 1 280px;background:#f2fbf6;border:1.6px dashed #9ad4b6;border-radius:12px;
+  padding:11px 14px;font-size:15px;color:#0a6b3d;display:flex;align-items:center;gap:9px;
+}
+.shield-note::before{content:'🛡️';font-size:16px;flex:0 0 auto;}
+
+/* ===== ملاحظات المقدم ===== */
+.trainer-note{
+  display:none;background:#fff9e8;border:1.6px dashed var(--warn);border-radius:15px;
+  padding:16px 18px;margin:26px 0 4px;font-size:15.3px;
+}
+body.trainer .trainer-note{display:block;animation:fadeUp .3s ease both;}
+.trainer-note > h4{
+  color:#8a6100;margin:0 0 12px;display:flex;align-items:center;gap:8px;font-size:16px;
+  border-bottom:1px dashed #e8cf8a;padding-bottom:8px;
+}
+.tn-grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));}
+.tn-item{background:#fffdf5;border-radius:11px;padding:10px 13px;border:1px solid #f2e3b8;}
+.tn-item strong{color:#8a6100;display:block;margin-bottom:4px;font-size:13.5px;}
+.tn-item span{color:#4b3d16;font-size:14.8px;line-height:1.8;}
+
+/* ===== الاختبارات ===== */
+.quiz{background:#fff;border:1px solid var(--line);border-radius:15px;padding:18px;margin:18px 0;box-shadow:var(--shadow);}
+.quiz .q{font-weight:700;color:var(--navy);margin-bottom:12px;font-size:16.5px;}
+.opt{
+  display:block;width:100%;text-align:start;background:#f7fafd;border:1px solid var(--line);
+  border-radius:11px;padding:11px 15px;margin-bottom:8px;font-size:15.5px;cursor:pointer;
+  transition:.2s;color:var(--ink);
+}
+.opt:hover{border-color:var(--accent);background:#f0fbff;}
+.opt.correct{background:#e6f7ee;border-color:var(--ok);color:#0a6b3d;font-weight:700;}
+.opt.wrong{background:#fdeaea;border-color:var(--bad);color:#a02318;}
+.answer{display:none;margin-top:10px;background:#f2f9ff;border-inline-start:4px solid var(--accent);border-radius:11px;padding:12px 15px;font-size:15.3px;}
+.answer.show{display:block;animation:fadeUp .3s ease both;}
+
+/* ===== قوائم التحقق ===== */
+.checklist{display:grid;gap:9px;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));margin:16px 0;}
+.chk{
+  display:flex;gap:10px;align-items:flex-start;background:#fff;border:1px solid var(--line);
+  border-radius:12px;padding:11px 14px;cursor:pointer;font-size:15.2px;transition:.2s;color:#22384f;
+}
+.chk:hover{border-color:var(--accent);}
+.chk .box{
+  width:22px;height:22px;border-radius:7px;border:2px solid #c3d4e6;display:grid;place-items:center;
+  font-size:14px;color:transparent;flex:0 0 auto;margin-top:2px;transition:.2s;background:#fff;
+}
+.chk.done{background:#f2fbf6;border-color:var(--ok);}
+.chk.done .box{background:var(--ok);border-color:var(--ok);color:#fff;}
+
+/* ===== الأهداف ===== */
+.obj{
+  display:flex;gap:11px;align-items:flex-start;background:#fff;border:1px solid var(--line);
+  border-radius:13px;padding:13px 16px;cursor:pointer;transition:.2s;font-size:15.5px;
+}
+.obj:hover{border-color:var(--accent);}
+.obj .box{width:22px;height:22px;border-radius:7px;border:2px solid #c3d4e6;flex:0 0 auto;display:grid;place-items:center;font-size:14px;color:transparent;transition:.2s;margin-top:3px;}
+.obj.done{background:#f2fbf6;border-color:var(--ok);}
+.obj.done .box{background:var(--ok);border-color:var(--ok);color:#fff;}
+
+/* ===== النماذج المحلية ===== */
+.field{margin-bottom:14px;}
+.field label{display:block;font-weight:700;margin-bottom:6px;color:var(--navy-2);font-size:15.3px;}
+.field input,.field textarea{
+  width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:11px;
+  font-family:inherit;font-size:15.5px;background:#fbfdff;color:var(--ink);transition:.2s;
+}
+.field textarea{min-height:76px;resize:vertical;line-height:1.8;}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,180,216,.18);}
+.btn-primary{background:linear-gradient(135deg,var(--blue),var(--accent));color:#fff;border:0;border-radius:12px;padding:12px 26px;font-weight:700;font-size:16px;cursor:pointer;transition:.2s;box-shadow:0 8px 20px rgba(31,111,235,.28);}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(31,111,235,.36);}
+.btn-ghost{background:#fff;border:1px solid var(--line);color:var(--navy-2);border-radius:12px;padding:11px 20px;font-weight:700;font-size:15.5px;cursor:pointer;transition:.2s;}
+.btn-ghost:hover{background:var(--blue-soft);border-color:var(--blue);}
+.summary-box{display:none;margin-top:16px;background:#fff;border:1px solid var(--line);border-inline-start:5px solid var(--accent);border-radius:14px;padding:16px 18px;}
+.summary-box.show{display:block;animation:fadeUp .3s ease both;}
+.summary-box ul{padding-inline-start:22px;margin-bottom:0;}
+
+/* ===== الرقاقة ===== */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0;}
+.chip{background:#fff;border:1px solid #cfe0f5;color:var(--navy-2);border-radius:999px;padding:7px 15px;font-size:14.5px;font-weight:600;}
+.chip.accent{background:var(--blue-soft);border-color:#bcd8f7;color:#1a5fb4;}
+.chip.gold{background:#fff7e0;border-color:#f0d98a;color:#8a6100;}
+.chip.ok{background:#f2fbf6;border-color:#c8e9d7;color:#0a6b3d;}
+
+/* ===== المخرجات ===== */
+.outcome{background:linear-gradient(135deg,#fff,#f7fbff);border:1px solid var(--line);border-radius:16px;padding:18px;position:relative;overflow:hidden;}
+.outcome::after{content:'';position:absolute;inset-inline-start:0;top:0;bottom:0;width:5px;background:linear-gradient(180deg,var(--blue),var(--accent));}
+.outcome h4{margin:0 0 6px;color:var(--navy);font-size:17px;}
+.outcome .verb{display:inline-block;background:var(--navy);color:#fff;font-size:12.5px;font-weight:700;border-radius:999px;padding:2px 11px;margin-bottom:8px;}
+
+/* ===== القاموس ===== */
+.term{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;cursor:pointer;transition:.2s;}
+.term:hover{border-color:var(--accent);box-shadow:0 8px 20px rgba(10,37,64,.09);}
+.term.open{border-color:var(--accent);background:#fbfeff;}
+.term .term-head{display:flex;flex-direction:column;gap:2px;}
+.term .term-en{font-weight:700;color:var(--blue);font-size:15px;direction:ltr;text-align:start;}
+.term .term-ar{font-weight:700;color:var(--navy);font-size:16.5px;}
+.term .more{margin-top:10px;border-top:1px dashed var(--line);padding-top:9px;font-size:15px;color:#33506d;}
+.term .more b{color:#0a6b80;}
+
+/* ===== بطاقات السيناريو ===== */
+.scn{background:#fff;border:1px solid var(--line);border-radius:15px;padding:16px 18px;cursor:pointer;transition:.22s;box-shadow:0 2px 10px rgba(10,37,64,.045);}
+.scn:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 12px 26px rgba(10,37,64,.11);}
+.scn.open{border-color:var(--accent);box-shadow:0 10px 24px rgba(0,180,216,.14);}
+.scn .scn-tag{display:inline-block;font-size:12.5px;font-weight:700;color:#8a6100;background:#fff7e0;border-radius:999px;padding:2px 11px;margin-bottom:8px;}
+.scn h4{margin:0 0 6px;color:var(--navy);font-size:16.5px;}
+.scn p{margin:0;font-size:15.4px;color:#33506d;}
+.scn .more{margin-top:10px;border-top:1px dashed var(--line);padding-top:10px;font-size:15.2px;color:#33506d;}
+.scn .more b{color:#0a6b80;}
+.scn .more .q{margin-bottom:6px;font-weight:700;color:#1a5fb4;}
+
+/* ===== الاستجابة ===== */
+@media (max-width:900px){
+  .hero{grid-template-columns:1fr;padding:24px 20px;}
+  .venn{max-height:230px;}
+  .brand .brand-text small{display:none;}
+}
+@media (max-width:640px){
+  body{font-size:15.4px;}
+  .stage{padding:16px 12px 28px;}
+  .topbar{padding:8px 12px 0;}
+  .topbar-actions{width:100%;margin-inline-start:0;}
+  .btn{flex:1 1 auto;text-align:center;font-size:13px;padding:8px 10px;}
+  .nav-meta .nav-title{max-width:60vw;font-size:14px;}
+  .navbtn{padding:9px 13px;font-size:14px;}
+  .navbar{gap:8px;}
+  .hero h1{font-size:23px;}
+  .card{padding:14px;}
+  table{min-width:560px;}
+  .shield-row{flex-direction:column;}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important;}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ===================== الشريط العلوي ===================== -->
+  <header class="topbar">
+    <div class="topbar-row">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">🛡️</div>
+        <div class="brand-text">
+          <span>من تجربة المستخدم إلى الأمن السيبراني</span>
+          <small>المحور الثالث — اليوم الأول</small>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn" id="menuBtn" type="button" aria-label="فتح قائمة الأقسام">☰ الأقسام</button>
+        <button class="btn" id="homeBtn" type="button" aria-label="العودة إلى الغلاف">🏠 الرئيسية</button>
+        <button class="btn" id="trainerBtn" type="button" aria-pressed="false" aria-label="تفعيل ملاحظات المقدم">🎤 ملاحظات المقدم</button>
+      </div>
+    </div>
+    <div class="progress-track" role="progressbar" aria-label="شريط تقدم المحور" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressBar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </header>
+
+  <!-- ===================== منطقة العرض ===================== -->
+  <main class="stage" id="stage">
+
+  <!-- ============ 1 — الغلاف ============ -->
+  <section class="slide" data-title="الغلاف" data-time="3 دقائق">
+    <div class="hero">
+      <div class="hero-text">
+        <span class="kicker">اليوم الأول — المحور الثالث</span>
+        <h1>من تجربة المستخدم إلى الأمن السيبراني</h1>
+        <p class="hero-sub">كيف نحمي المستخدم والهوية والبيانات أثناء استخدام الخدمات الحكومية الرقمية؟</p>
+        <p class="hero-desc">
+          محور تمهيدي ينقلنا من سؤال «كيف أستخدم الخدمة؟» إلى سؤال «كيف أحمي حسابي وبياناتي؟».
+          نبني فيه الوعي السيبراني كجزء أساسي من تجربة الخدمة الرقمية، ونمهد مباشرة لليوم الثاني.
+        </p>
+        <div class="hero-slogan">
+          «الخدمة الرقمية الناجحة ليست فقط سهلة الاستخدام، بل يجب أن تكون آمنة وموثوقة أيضًا.»
+        </div>
+      </div>
+      <div class="hero-visual">
+        <svg class="venn" viewBox="0 0 520 360" role="img" aria-label="رسم توضيحي: من تجربة المستخدم إلى الأمن السيبراني">
+          <rect x="20"  y="30" width="112" height="62" rx="14" fill="#4da3ff" fill-opacity=".22" stroke="#4da3ff" stroke-width="2"/>
+          <rect x="146" y="30" width="112" height="62" rx="14" fill="#4da3ff" fill-opacity=".34" stroke="#4da3ff" stroke-width="2"/>
+          <rect x="272" y="30" width="112" height="62" rx="14" fill="#4da3ff" fill-opacity=".46" stroke="#4da3ff" stroke-width="2"/>
+          <rect x="398" y="30" width="104" height="62" rx="14" fill="#e0a800" stroke="#e0a800" stroke-width="2"/>
+          <text class="svg-t" x="76"  y="68" text-anchor="middle">الهوية</text>
+          <text class="svg-t" x="202" y="68" text-anchor="middle">الحساب</text>
+          <text class="svg-t" x="328" y="68" text-anchor="middle">البيانات</text>
+          <text class="svg-t" x="450" y="68" text-anchor="middle">الحماية</text>
+
+          <text class="svg-t" x="260" y="150" text-anchor="middle" font-size="19" fill="#7fe3f5">من تجربة المستخدم…</text>
+          <text class="svg-t" x="260" y="184" text-anchor="middle" font-size="15" fill="#c3d6ea">إلى الأمن السيبراني</text>
+          <text class="svg-t" x="260" y="212" text-anchor="middle" font-size="14" fill="#c3d6ea">ومن الوعي… إلى السلوك الآمن</text>
+
+          <rect x="120" y="250" width="280" height="58" rx="14" fill="none" stroke="#7fe3f5" stroke-width="2" stroke-dasharray="6 5"/>
+          <text class="svg-t" x="260" y="285" text-anchor="middle" font-size="15">🛡️ الحماية في كل خطوة</text>
+        </svg>
+      </div>
+    </div>
+
+    <div class="meta-grid">
+      <div class="meta-item"><span>الورشة</span><strong>خدمات الحكومة الإلكترونية وتطبيقاتها: الاستخدام الآمن والوعي السيبراني</strong></div>
+      <div class="meta-item"><span>اليوم / المحور</span><strong>اليوم الأول — المحور الثالث: من تجربة المستخدم إلى الأمن السيبراني</strong></div>
+      <div class="meta-item"><span>المدة المقترحة</span><strong>30 – 40 دقيقة</strong></div>
+      <div class="meta-item"><span>الفئة المستهدفة</span><strong>طلاب جامعيون — مع حضور من تخصصات الحاسب وتقنية المعلومات والأمن السيبراني ونظم المعلومات</strong></div>
+    </div>
+
+    <div class="note">
+      <strong>طبيعة المحور:</strong> توعوي، تفاعلي، تطبيقي، مرتبط بتجربة المستخدم.
+      يمهد لمفاهيم الأمن السيبراني دون الدخول في تفاصيل تقنية متقدمة.
+    </div>
+
+    <aside class="trainer-note">
+      <h4>🎤 ملاحظات المقدم</h4>
+      <div class="tn-grid">
+        <div class="tn-item"><strong>ماذا أقول؟</strong><span>«عرفنا كيف نستخدم الخدمة. اليوم نسأل سؤالًا أهم: كيف نحافظ على أمان حسابنا وبياناتنا أثناء استخدامها؟»</span></div>
+        <div class="tn-item"><strong>النقطة الأساسية</strong><span>هذا محور تمهيدي، لا محاضرة أمن سيبراني. الهدف بناء الوعي والربط بين الخدمة والمخاطر.</span></div>
+        <div class="tn-item"><strong>الوقت المقترح</strong><span>3 دقائق.</span></div>
+        <div class="tn-item"><strong>سؤال للطلاب</strong><span>لو اختفى حسابك في إحدى الخدمات الحكومية غدًا، ما أول شيء ستفكر فيه؟</span></div>
+        <div class="tn-item"><strong>الانتقال</strong><span>«لنبدأ من حيث وصلنا في المحور الثاني.»</span></div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ============ 2 — من أين وصلنا؟ ============ -->
+  <section class="slide" data-title="من أين وصلنا؟" data-time="4 دقائق">
+    <div class="slide-head">
+      <span class="kicker">القسم 2</span>
+      <h2 class="slide-title">من أين وصلنا؟</h2>
+      <p class="slide-sub">ربط مباشر بالمحور الثاني: رحلة الخدمة</p>
+    </div>
+
+    <p class="lead">
+      في المحور السابق تتبعنا رحلة خدمة بلدية إلكترونية من البداية إلى النهاية.
+      في هذا المحور سنأخذ هذه الرحلة ونطرح سؤالًا مختلفًا: <strong>ماذا لو لم تكن محمية؟</strong>
+    </p>
+
+    <div class="flow center" aria-label="رحلة الخدمة التي تعلمناها في المحور الثاني">
+      <span class="node gold">الدخول</span>
+      <span class="arrow" aria-hidden="true">←</span>
+      <span class="node">التحقق من الهوية</span>
+      <span class="arrow" aria-hidden="true">←</span>
+      <span class="node">إدخال البيانات</span>
+      <span class="arrow" aria-hidden="true">←</span>
+      <span class="node accent">رفع المستندات</span>
+      <span class="arrow" aria-hidden="true">←</span>
+      <span class="node accent">إرسال الطلب</span>
+      <span class="arrow" aria-hidden="true">←</span>
+      <span class="node dark">المعالجة</span>
+      <span class="arrow" aria-hidden="true">←</span>
+      <span class="node dark">المتابعة</span>
+      <span class="arrow" aria-hidden="true">←</span>
+      <span class="node gold">النتيجة</span>
+    </div>
+
+    <div class="think">
+      <h3>السؤال المدخل</h3>
+      <blockquote>لو كانت هذه الرحلة رقمية بالكامل، ماذا يمكن أن يحدث لو لم تكن محمية؟</blockquote>
+      <p class="small">
+        خذ دقيقة لسماع إجابات الطلاب، ثم انتقل بهم إلى الفكرة التالية:
+        عندما تصبح الخدمة رقمية بالكامل، تصبح <strong>الهوية والبيانات والحساب</strong> عناصر حساسة
+        تستحق الحماية.
+      </p>
+    </div>
+
+    <aside class="trainer-note">
+      <h4>🎤 ملاحظات المقدم</h4>
+      <div class="tn-grid">
+        <div class="tn-item"><strong>ماذا أقول؟</strong><span>«تذكّروا رحلة الخدمة. الرحلة نفسها لم تتغير، لكن ما تغيّر هو السؤال: كيف نحميها؟»</span></div>
+        <div class="tn-item"><strong>النقطة الأساسية</strong><span>هذا المحور امتداد طبيعي للمحور الثاني، لا موضوع منفصل عنه.</span></div>
+        <div class="tn-item"><strong>الوقت المقترح</strong><span>4 دقائق.</span></div>
+        <div class="tn-item"><strong>سؤال للطلاب</strong><span>في أي خطوة من الرحلة تظن أن الخطر الأكبر؟</span></div>
+        <div class="tn-item"><strong>الانتقال</strong><span>«لماذا تحتاج الخدمات الحكومية الرقمية إلى حماية أساسًا؟»</span></div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ============ 3 — لماذا تحتاج الخدمات الحكومية الرقمية إلى حماية؟ ============ -->
+  <section class="slide" data-title="لماذا تحتاج الخدمات الحكومية الرقمية إلى حماية؟" data-time="5 دقائق">
+    <div class="slide-head">
+      <span class="kicker">القسم 3</span>
+      <h2 class="slide-title">لماذا تحتاج الخدمات الحكومية الرقمية إلى حماية؟</h2>
+      <p class="slide-sub">قيمة البيانات والخدمة + الثقة الرقمية</p>
+    </div>
+
+    <p class="lead">
+      الخدمات الحكومية الرقمية تتعامل مع عناصر ذات قيمة عالية، وهذا بحد ذاته يفسّر لماذا تحتاج إلى حماية.
+      اضغط على كل عنصر لعرض تفصيله.
+    </p>
+
+    <div class="grid three">
+      <div class="card clickable" data-toggle tabindex="0"><h4>🪪 هويات المستخدمين</h4><div class="more">الهوية الرقمية للمستخدم هي أساس الوصول إلى كل خدمة. من يسيطر عليها، يستطيع التصرف باسم صاحبها.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>📄 بيانات شخصية</h4><div class="more">أي بيانات تحدد هوية الفرد أو تجعله قابلًا للتعرف عليه: الاسم، رقم الهوية، العنوان، وغيرها.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>📞 بيانات اتصال</h4><div class="more">رقم الجوال والبريد الإلكتروني. تُستخدم للإشعارات والتحقق، ولذلك يجب أن تكون محمية.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>📎 مستندات ومرفقات</h4><div class="more">ملفات تُرفع لإثبات معلومة أو استكمال متطلب. قد تحتوي بيانات حساسة.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>📋 طلبات ومعاملات</h4><div class="more">تفاصيل الطلب ومراحله، وقد تشمل معلومات خاصة بالمستخدم أو منشأته.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>🏪 بيانات المنشآت</h4><div class="more">بيانات النشاط أو السجل التجاري أو الترخيص، وتظهر في الخدمات الموجهة للأعمال.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>💰 بيانات مالية أو رسوم</h4><div class="more">عندما ترتبط الخدمة بدفع رسوم أو استرجاع مبالغ، تصبح البيانات المالية جزءًا من الخدمة.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>⚙️ بيانات تشغيلية للجهة</h4><div class="more">أنظمة ومعلومات داخلية تدير الخدمة. حمايتها تحمي استمرارية الخدمة نفسها.</div></div>
+    </div>
+
+    <div class="note">
+      <strong>القاعدة:</strong> كلما زادت قيمة البيانات والخدمات، أصبحت حمايتها أكثر أهمية.
+    </div>
+
+    <h3>الثقة الرقمية (Digital Trust)</h3>
+    <p>
+      المستخدم يحتاج إلى أن يثق بأن:
+    </p>
+    <div class="chips">
+      <span class="chip accent">الخدمة أصلية</span>
+      <span class="chip accent">بياناته محمية</span>
+      <span class="chip accent">هويته محمية</span>
+      <span class="chip accent">طلبه يصل إلى الجهة الصحيحة</span>
+      <span class="chip gold">لا أحد غير مصرح يمكنه الوصول إلى معلوماته</span>
+    </div>
+
+    <aside class="trainer-note">
+      <h4>🎤 ملاحظات المقدم</h4>
+      <div class="tn-grid">
+        <div class="tn-item"><strong>ماذا أقول؟</strong><span>«الخدمة الرقمية لها قيمة، لأن ما بداخلها له قيمة. ومن هنا تبدأ الحاجة إلى الحماية.»</span></div>
+        <div class="tn-item"><strong>النقطة الأساسية</strong><span>الثقة الرقمية هي المنتج الحقيقي للخدمة الحكومية الرقمية. فقدانها يعني فقدان كل شيء.</span></div>
+        <div class="tn-item"><strong>الوقت المقترح</strong><span>5 دقائق. اكتفِ بأربع بطاقات لتوفير الوقت.</span></div>
+        <div class="tn-item"><strong>مثال واقعي</strong><span>لو فقد المستخدم ثقته في خدمة رقمية، هل سيعود إليها أم سيبحث عن البديل التقليدي؟</span></div>
+        <div class="tn-item"><strong>سؤال للطلاب</strong><span>ما الذي يجعلك تثق في خدمة رقمية؟ اذكر عنصرًا واحدًا.</span></div>
+        <div class="tn-item"><strong>الانتقال</strong><span>«لكن… ما الذي نحميه بالتحديد؟»</span></div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ============ 4 — ماذا نحمي؟ ============ -->
+  <section class="slide" data-title="ماذا نحمي في الخدمة الرقمية؟" data-time="4 دقائق">
+    <div class="slide-head">
+      <span class="kicker">القسم 4</span>
+      <h2 class="slide-title">ماذا نحمي في الخدمة الرقمية؟</h2>
+      <p class="slide-sub">خمس فئات — اضغط على كل فئة لعرض تفصيلها</p>
+    </div>
+
+    <div class="grid">
+      <div class="card clickable" data-toggle tabindex="0">
+        <span class="card-tag">١</span>
+        <h4>🪪 الهوية</h4>
+        <p>من أنت؟</p>
+        <div class="more">الهوية الرقمية هي ما يثبت أنك أنت. حمايتها تمنع أي شخص آخر من التصرف باسمك.</div>
+      </div>
+      <div class="card clickable" data-toggle tabindex="0">
+        <span class="card-tag">٢</span>
+        <h4>🔑 الحساب</h4>
+        <p>من يستطيع الدخول باسمك؟</p>
+        <div class="more">الحساب هو البوابة إلى الخدمات والبيانات. من يسيطر عليه يستطيع رؤية ما يخصك وتنفيذ إجراءات باسمك.</div>
+      </div>
+      <div class="card clickable" data-toggle tabindex="0">
+        <span class="card-tag">٣</span>
+        <h4>📊 البيانات</h4>
+        <p>ما المعلومات التي تخصك؟</p>
+        <div class="more">بياناتك الشخصية وبيانات الاتصال وتفاصيل طلباتك، وكل ما يمكن أن يُعرّف عنك.</div>
+      </div>
+      <div class="card clickable" data-toggle tabindex="0">
+        <span class="card-tag">٤</span>
+        <h4>📎 المستندات</h4>
+        <p>ما الملفات التي رفعتها؟</p>
+        <div class="more">المستندات قد تحتوي بيانات حساسة، ولذلك يجب أن تُرفع وتُخزَّن في قنوات آمنة.</div>
+      </div>
+      <div class="card clickable" data-toggle tabindex="0">
+        <span class="card-tag">٥</span>
+        <h4>🖥️ الخدمة نفسها</h4>
+        <p>هل تعمل بشكل صحيح وآمن؟</p>
+        <div class="more">حماية الخدمة تعني استمراريتها وموثوقيتها. خدمة متوقفة أو غير آمنة لا يمكن الاعتماد عليها.</div>
+      </div>
+    </div>
+
+    <div class="note">
+      <strong>نقطة مهمة:</strong> حماية الخدمة لا تعني حماية جهاز المستخدم فقط.
+      إنها تشمل كل ما سبق: الهوية، الحساب، البيانات، المستندات، والخدمة نفسها.
+    </div>
+
+    <aside class="trainer-note">
+      <h4>🎤 ملاحظات المقدم</h4>
+      <div class="tn-grid">
+        <div class="tn-item"><strong>ماذا أقول؟</strong><span>«حماية جهازك خطوة أولى، لكنها ليست النهاية. هناك أشياء أخرى كثيرة تحتاج حماية.»</span></div>
+        <div class="tn-item"><strong>النقطة الأساسية</strong><span>الحماية ليست عنصرًا واحدًا، بل منظومة متكاملة.</span></div>
+        <div class="tn-item"><strong>الوقت المقترح</strong><span>4 دقائق.</span></div>
+        <div class="tn-item"><strong>سؤال للطلاب</strong><span>أي فئة من هذه الفئات تظن أنها الأكثر حساسية؟ ولماذا؟</span></div>
+        <div class="tn-item"><strong>الانتقال</strong><span>«لننزل من الفئات إلى المستوى التفصيلي: ما البيانات التي نتعامل معها فعليًا؟»</span></div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ============ 5 — ما البيانات التي يتعامل معها المستخدم؟ ============ -->
+  <section class="slide" data-title="ما البيانات التي يتعامل معها المستخدم؟" data-time="5 دقائق">
+    <div class="slide-head">
+      <span class="kicker">القسم 5</span>
+      <h2 class="slide-title">ما البيانات التي يتعامل معها المستخدم؟</h2>
+      <p class="slide-sub">سؤال تفاعلي + تصنيف مبسط</p>
+    </div>
+
+    <div class="think">
+      <h3>سؤال تفاعلي</h3>
+      <blockquote>عندما تستخدم خدمة حكومية إلكترونية، ما البيانات التي يمكن أن تدخلها أو تتعامل معها؟</blockquote>
+      <p class="small">اطلب من الطلاب طرح أمثلة قبل عرض التصنيف التالي.</p>
+    </div>
+
+    <h3>تصنيف البيانات</h3>
+    <div class="grid three">
+      <div class="card clickable" data-toggle tabindex="0"><h4>🪪 بيانات تعريفية</h4><div class="more">بيانات تُعرّف الشخص أو المنشأة، مثل الاسم ورقم الهوية أو رقم السجل.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>📞 بيانات التواصل</h4><div class="more">رقم الجوال، البريد الإلكتروني، العنوان. تُستخدم للتواصل والإشعارات.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>🔑 بيانات الحساب</h4><div class="more">بيانات الدخول، وتشمل اسم المستخدم وكلمة المرور. وهي من أكثر البيانات حساسية.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>📋 بيانات الطلب</h4><div class="more">تفاصيل الطلب نفسه: نوعه، وصفه، ومعلومات مرتبطة به.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>📍 بيانات الموقع</h4><div class="more">قد تُطلب في خدمات مرتبطة بموقع معين، وتُستخدم لتحديد الموقع أو التحقق منه.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>📎 المستندات والمرفقات</h4><div class="more">ملفات أو صور تُرفع لإثبات معلومة أو استكمال متطلب.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>🏪 بيانات المنشأة أو النشاط</h4><div class="more">بيانات مرتبطة بنشاط تجاري أو منشأة، وتظهر في الخدمات الموجهة للأعمال.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>➕ بيانات أخرى بحسب الخدمة</h4><div class="more">كل خدمة قد تطلب بيانات إضافية بحسب طبيعتها وشروطها.</div></div>
+    </div>
+
+    <div class="grid two">
+      <div class="card">
+        <span class="card-tag">Personal Data</span>
+        <h4>البيانات الشخصية</h4>
+        <p>أي بيانات تحدد هوية الفرد أو تجعله قابلًا للتعرف عليه.</p>
+      </div>
+      <div class="card">
+        <span class="card-tag">مبدأ أساسي</span>
+        <h4>التعامل بعناية</h4>
+        <p>البيانات الشخصية يجب أن تُجمع بأقل قدر ممكن، وتُستخدم للغرض المحدد، ولا تُشارك مع غير المصرح لهم.</p>
+      </div>
+    </div>
+
+    <aside class="trainer-note">
+      <h4>🎤 ملاحظات المقدم</h4>
+      <div class="tn-grid">
+        <div class="tn-item"><strong>ماذا أقول؟</strong><span>«قبل أن نتحدث عن الحماية، لنعرف ما الذي نحميه بالضبط. ما البيانات التي نتعامل معها فعليًا؟»</span></div>
+        <div class="tn-item"><strong>النقطة الأساسية</strong><span>كل نوع من هذه البيانات له مستوى حساسية مختلف، وهذا سيظهر في القسم التالي.</span></div>
+        <div class="tn-item"><strong>الوقت المقترح</strong><span>5 دقائق.</span></div>
+        <div class="tn-item"><strong>مثال واقعي</strong><span>اذكر مثالًا: خدمة تحديث بيانات قد تطلب رقم الجوال والعنوان، بينما خدمة تسجيل نشاط قد تطلب بيانات أكثر.</span></div>
+        <div class="tn-item"><strong>سؤال للطلاب</strong><span>هل تعرف خدمة تطلب بيانات لا تبدو ضرورية؟ كيف تعاملت معها؟</span></div>
+        <div class="tn-item"><strong>الانتقال</strong><span>«لكن… هل كل هذه البيانات متساوية في حساسيتها؟»</span></div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ============ 6 — هل كل البيانات متساوية؟ ============ -->
+  <section class="slide" data-title="هل كل البيانات متساوية؟" data-time="5 دقائق">
+    <div class="slide-head">
+      <span class="kicker">القسم 6 — نشاط سريع</span>
+      <h2 class="slide-title">هل كل البيانات متساوية؟</h2>
+      <p class="slide-sub">نشاط تصنيف — اضغط على كل بطاقة لعرض التحليل</p>
+    </div>
+
+    <p class="lead">
+      اعرض هذه العناصر على الطلاب واسألهم: <strong>أي منها يجب التعامل معه بحذر أكبر؟ ولماذا؟</strong>
+      ثم افتح التحليل بعد سماع إجاباتهم.
+    </p>
+
+    <div class="grid three">
+      <div class="card clickable" data-toggle tabindex="0"><h4>👤 الاسم</h4><div class="more">معلومة تُشارك في سياقات كثيرة، لكنها تُعدّ من البيانات الشخصية ولا تُنشر بلا حاجة.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>📱 رقم الهاتف</h4><div class="more">معلومة حساسة نسبيًا، لأنها تُستخدم في التحقق من الهوية والوصول إلى الحساب.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>🔒 كلمة المرور</h4><div class="more">من أكثر البيانات حساسية. لا تُشارك مع أي شخص، ولا تُكتب في أماكن غير آمنة.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>🔢 رمز OTP</h4><div class="more">رمز تحقق لمرة واحدة. مشاركته تعني تسليم مفتاح الحساب. لا يُشارك مع أي جهة أو شخص.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>📄 صورة وثيقة رسمية</h4><div class="more">تحتوي بيانات حساسة، وتُشارك فقط عبر القنوات الرسمية وللجهة المختصة.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>📧 البريد الإلكتروني</h4><div class="more">معلومة تُستخدم للتواصل والتحقق. قد تكون حساسة بحسب ارتباطها بحسابات أخرى.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>🔢 رقم الطلب</h4><div class="more">أقل حساسية نسبيًا، لكنه يُستخدم للمتابعة. يُشارك فقط عند الحاجة.</div></div>
+    </div>
+
+    <div class="warn-box">
+      <strong>تأكيد مهم:</strong> هناك معلومات يمكن مشاركتها في سياقات معينة، لكن هناك معلومات
+      <strong>شديدة الحساسية</strong> يجب ألا تُشارك مع أي شخص مهما ادّعى أنه موظف أو جهة رسمية:
+      <em>كلمات المرور، ورموز التحقق، وبيانات المصادقة.</em>
+    </div>
+
+    <div class="sec-box">
+      <h4>🛡️ قاعدة يجب تذكّرها</h4>
+      <p>
+        «رمز التحقق <strong>OTP</strong> ليس شيئًا يجب مشاركته مع شخص آخر لمجرد أنه ادّعى أنه موظف أو جهة رسمية.»
+      </p>
+    </div>
+
+    <aside class="trainer-note">
+      <h4>🎤 ملاحظات المقدم</h4>
+      <div class="tn-grid">
+        <div class="tn-item"><strong>ماذا أقول؟</strong><span>«البيانات ليست متساوية. هناك ما يمكن مشاركته في سياق، وهناك ما لا يُشارك أبدًا.»</span></div>
+        <div class="tn-item"><strong>النقطة الأساسية</strong><span>كلمة المرور ورمز OTP لا يُشاركان مع أي شخص، مهما كان مبرره.</span></div>
+        <div class="tn-item"><strong>الوقت المقترح</strong><span>5 دقائق.</span></div>
+        <div class="tn-item"><strong>مثال واقعي</strong><span>«وصلني اتصال من شخص يقول إنه من الدعم الفني ويطلب رمز التحقق.» — هذا ليس طبيعيًا ولا يجوز تنفيذه.</span></div>
+        <div class="tn-item"><strong>سؤال للطلاب</strong><span>لو طلب منك شخص رمز التحقق بحجة مساعدتك، ماذا ستفعل؟</span></div>
+        <div class="tn-item"><strong>الانتقال</strong><span>«ولننتقل الآن إلى مفهوم مرتبط بهذا: الهوية الرقمية.»</span></div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ============ 7 — الهوية الرقمية ============ -->
+  <section class="slide" data-title="الهوية الرقمية" data-time="5 دقائق">
+    <div class="slide-head">
+      <span class="kicker">القسم 7</span>
+      <h2 class="slide-title">الهوية الرقمية (Digital Identity)</h2>
+      <p class="slide-sub">ماذا تعني؟ ولماذا هي مهمة؟</p>
+    </div>
+
+    <p class="lead">
+      <strong>الهوية الرقمية</strong> هي مجموعة المعلومات ووسائل التحقق التي تساعد الأنظمة الرقمية
+      على التعرف على المستخدم والتحقق من هويته عند الوصول إلى الخدمات.
+      باختصار: هي الطريقة التي يعرفك بها النظام.
+    </p>
+
+    <h3>لماذا تعد الهوية الرقمية مهمة؟</h3>
+    <div class="grid two">
+      <div class="card clickable" data-toggle tabindex="0">
+        <h4>🚪 الوصول إلى الحساب</h4>
+        <div class="more">الهوية هي ما يمنحك الوصول إلى حسابك، وتمنع غيرك من الوصول إليه.</div>
+      </div>
+      <div class="card clickable" data-toggle tabindex="0">
+        <h4>🌐 الوصول إلى الخدمات</h4>
+        <div class="more">بدون هوية رقمية موثوقة، لا يمكنك استخدام الخدمات الحكومية الرقمية.</div>
+      </div>
+      <div class="card clickable" data-toggle tabindex="0">
+        <h4>📋 تنفيذ المعاملات</h4>
+        <div class="more">الهوية هي ما يجعل الطلب مرتبطًا بك أنت، وليس بأي شخص آخر.</div>
+      </div>
+      <div class="card clickable" data-toggle tabindex="0">
+        <h4>🛡️ حماية بيانات المستخدم</h4>
+        <div class="more">الهوية تحمي بياناتك من الوصول غير المصرح به.</div>
+      </div>
+      <div class="card clickable" data-toggle tabindex="0">
+        <h4>🚫 منع انتحال الشخصية</h4>
+        <div class="more">الهوية الموثوقة تجعل من الصعب على شخص آخر التصرف باسمك.</div>
+      </div>
+    </div>
+
+    <div class="note">
+      <strong>مثال بسيط:</strong> إذا استطاع شخص آخر استخدام هويتك الرقمية، فقد يتمكن من الوصول
+      إلى خدمات أو معلومات مرتبطة بك — وقد ينفذ باسمك إجراءات لم توافق عليها.
+    </div>
+
+    <aside class="trainer-note">
+      <h4>🎤 ملاحظات المقدم</h4>
+      <div class="tn-grid">
+        <div class="tn-item"><strong>ماذا أقول؟</strong><span>«الهوية الرقمية هي الطريقة التي يعرفك بها النظام. من يملكها، يملك مفتاح حسابك.»</span></div>
+        <div class="tn-item"><strong>النقطة الأساسية</strong><span>الهوية الرقمية ليست مجرد اسم مستخدم وكلمة مرور، بل منظومة تحقق كاملة.</span></div>
+        <div class="tn-item"><strong>الوقت المقترح</strong><span>5 دقائق.</span></div>
+        <div class="tn-item"><strong>مثال واقعي</strong><span>لو استطاع شخص آخر دخول حسابك، فسيظهر النظام له كأنه أنت — وهذا ما يجعل الهوية حساسة.</span></div>
+        <div class="tn-item"><strong>سؤال للطلاب</strong><span>ما الفرق بين هويتك الرقمية وكلمة مرورك؟</span></div>
+        <div class="tn-item"><strong>الانتقال</strong><span>«والآن… ماذا لو فقدت حسابك الرقمي؟»</span></div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ============ 8 — الحساب الرقمي: ماذا لو فقدته؟ ============ -->
+  <section class="slide" data-title="الحساب الرقمي: ماذا لو فقدته؟" data-time="5 دقائق">
+    <div class="slide-head">
+      <span class="kicker">القسم 8</span>
+      <h2 class="slide-title">الحساب الرقمي: ماذا لو فقدته؟</h2>
+      <p class="slide-sub">سؤال تفاعلي + سلسلة النتائج</p>
+    </div>
+
+    <div class="think">
+      <h3>سؤال تفاعلي</h3>
+      <blockquote>ماذا يمكن أن يحدث لو تمكن شخص آخر من الدخول إلى حسابك في إحدى الخدمات الرقمية؟</blockquote>
+      <p class="small">دع الطلاب يجيبون قبل عرض السلسلة التالية.</p>
+    </div>
+
+    <h3>سلسلة النتائج المحتملة</h3>
+    <div class="flow center" aria-label="سلسلة نتائج اختراق الحساب">
+      <span class="node gold">اختراق الحساب</span>
+      <span class="arrow" aria-hidden="true">←</span>
+      <span class="node">الوصول إلى المعلومات</span>
+      <span class="arrow" aria-hidden="true">←</span>
+      <span class="node accent">إمكانية تنفيذ إجراءات باسم المستخدم</span>
+      <span class="arrow" aria-hidden="true">←</span>
+      <span class="node dark">احتمال إساءة استخدام الخدمة</span>
+    </div>
+
+    <h3>مخاطر محتملة</h3>
+    <div class="grid three">
+      <div class="card clickable" data-toggle tabindex="0"><h4>👁️ الاطلاع غير المصرح به على البيانات</h4><div class="more">قد يرى شخص آخر بياناتك الشخصية وتفاصيل طلباتك.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>✏️ تغيير معلومات الحساب</h4><div class="more">قد يعدّل بيانات الاتصال أو معلومات أخرى، ما يصعّب عليك استعادة الحساب.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>📤 تنفيذ طلبات أو إجراءات</h4><div class="more">قد يقدّم طلبات باسمك دون علمك، وقد تترتب عليها آثار قانونية أو مالية.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>📎 الوصول إلى المستندات</h4><div class="more">قد يصل إلى مستنداتك المرفوعة، وقد يستخدمها لأغراض غير مشروعة.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>🎭 انتحال هوية صاحبه</h4><div class="more">قد يُستخدم الحساب للتصرف باسمك في تعاملات أخرى، ما يوسّع نطاق الأثر.</div></div>
+    </div>
+
+    <div class="note">
+      <strong>ملاحظة:</strong> لا تدخل في تفاصيل هجومية أو تقنية. الهدف هو توضيح الأثر، لا شرح كيفية الاختراق.
+    </div>
+
+    <aside class="trainer-note">
+      <h4>🎤 ملاحظات المقدم</h4>
+      <div class="tn-grid">
+        <div class="tn-item"><strong>ماذا أقول؟</strong><span>«الحساب ليس مجرد كلمة مرور. من يملكه، يستطيع التصرف باسمك.»</span></div>
+        <div class="tn-item"><strong>النقطة الأساسية</strong><span>فقدان الحساب قد تكون آثاره أوسع من مجرد فقدان كلمة المرور.</span></div>
+        <div class="tn-item"><strong>الوقت المقترح</strong><span>5 دقائق.</span></div>
+        <div class="tn-item"><strong>مثال واقعي</strong><span>لو استخدم شخص آخر حسابك لتقديم طلب باسمك، فقد تصل إليك تبعات لا تعرف مصدرها.</span></div>
+        <div class="tn-item"><strong>سؤال للطلاب</strong><span>هل تعرف شخصًا تعرّض لحسابه اختراق؟ ما الذي فعله؟</span></div>
+        <div class="tn-item"><strong>الانتقال</strong><span>«إذن، كيف يمكن أن يفقد المستخدم السيطرة على حسابه؟»</span></div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ============ 9 — كيف يفقد المستخدم السيطرة؟ ============ -->
+  <section class="slide" data-title="كيف يمكن أن يفقد المستخدم السيطرة على حسابه؟" data-time="5 دقائق">
+    <div class="slide-head">
+      <span class="kicker">القسم 9</span>
+      <h2 class="slide-title">كيف يمكن أن يفقد المستخدم السيطرة على حسابه؟</h2>
+      <p class="slide-sub">ثمانية أسباب محتملة</p>
+    </div>
+
+    <div class="grid four">
+      <div class="card clickable" data-toggle tabindex="0"><h4>🔓 كلمة مرور ضعيفة</h4><div class="more">كلمة مرور قصيرة أو شائعة أو معاد استخدامها في أكثر من حساب.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>🤝 مشاركة بيانات الدخول</h4><div class="more">إعطاء بيانات الحساب لشخص آخر بحجة المساعدة أو الاستعجال.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>🔢 مشاركة رمز OTP</h4><div class="more">إفشاء رمز التحقق لأي شخص مهما كان مبرره.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>🎣 الوقوع في التصيد</h4><div class="more">إدخال بيانات الدخول في صفحة مزيّفة تشبه الصفحة الرسمية.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>🌐 تسجيل الدخول عبر موقع مزيف</h4><div class="more">الدخول من رابط غير رسمي وصل عبر رسالة أو إعلان.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>💻 استخدام جهاز غير آمن</h4><div class="more">جهاز مشترك أو مصاب ببرمجيات ضارة، ما يعرّض بياناتك للسرقة.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>📥 تثبيت تطبيقات مشبوهة</h4><div class="more">تطبيقات غير رسمية قد تجمع بياناتك أو تصل إلى إشعاراتك.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>🚪 ترك الحساب مفتوحًا</h4><div class="more">الدخول على جهاز مشترك دون تسجيل الخروج، ما يمنح الآخرين الوصول.</div></div>
+    </div>
+
+    <div class="think">
+      <h3>الجملة المحورية</h3>
+      <blockquote>اختراق الحساب لا يبدأ دائمًا من النظام نفسه؛ أحيانًا يبدأ من سلوك المستخدم.</blockquote>
+      <p class="small">
+        هذه الجملة هي مقدمة مفهوم <strong>الوعي السيبراني</strong>:
+        التقنية وحدها لا تكفي، ما لم يصحبها سلوك واعٍ من المستخدم.
+      </p>
+    </div>
+
+    <aside class="trainer-note">
+      <h4>🎤 ملاحظات المقدم</h4>
+      <div class="tn-grid">
+        <div class="tn-item"><strong>ماذا أقول؟</strong><span>«معظم الحوادث لا تبدأ من ثغرة في النظام، بل من قرار بشري.»</span></div>
+        <div class="tn-item"><strong>النقطة الأساسية</strong><span>هذا هو الأساس الذي سيُبنى عليه اليوم الثاني: الوعي السيبراني يحمي المستخدم.</span></div>
+        <div class="tn-item"><strong>الوقت المقترح</strong><span>5 دقائق.</span></div>
+        <div class="tn-item"><strong>مثال واقعي</strong><span>اذكر أن أغلب حالات الاستيلاء على الحسابات تبدأ من رسالة أو اتصال، لا من هجوم تقني معقد.</span></div>
+        <div class="tn-item"><strong>سؤال للطلاب</strong><span>أي سبب من هذه الأسباب تراه الأكثر شيوعًا؟</span></div>
+        <div class="tn-item"><strong>الانتقال</strong><span>«وما دور المستخدم في الحماية؟»</span></div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ============ 10 — مسؤولية المستخدم ============ -->
+  <section class="slide" data-title="أنت جزء من منظومة الحماية" data-time="5 دقائق">
+    <div class="slide-head">
+      <span class="kicker">القسم 10</span>
+      <h2 class="slide-title">أنت جزء من منظومة الحماية</h2>
+      <p class="slide-sub">عشر خطوات يمكن للمستخدم القيام بها</p>
+    </div>
+
+    <p class="lead">
+      المستخدم ليس مسؤولًا عن كل جوانب الأمن، لكنه يمثل جزءًا مهمًا من منظومة الحماية.
+      اضغط على كل خطوة لعرض تفصيلها.
+    </p>
+
+    <div class="grid">
+      <div class="card clickable" data-toggle tabindex="0"><h4>🌐 استخدام القنوات الرسمية</h4><div class="more">الدخول من الرابط أو التطبيق الرسمي، لا من أي رابط آخر.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>🔒 حماية كلمة المرور</h4><div class="more">كلمة مرور قوية، غير مكررة، ولا تُشارك مع أي شخص.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>🔢 عدم مشاركة رموز التحقق</h4><div class="more">رمز OTP لا يُشارك مع أي شخص، مهما كان مبرره.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>🧩 تفعيل MFA</h4><div class="more">عند توفر المصادقة متعددة العوامل، تفعيلها خطوة حماية إضافية مهمة.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>🔗 التأكد من الروابط</h4><div class="more">لا تدخل بياناتك من روابط مجهولة، حتى لو بدت رسمية.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>🔄 تحديث الأجهزة والتطبيقات</h4><div class="more">التحديثات تسدّ ثغرات معروفة، وتركها يؤخر الحماية.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>💻 تجنّب الأجهزة غير الموثوقة</h4><div class="more">لا تستخدم جهازًا عامًا لخدمات حساسة، أو تأكد من تسجيل الخروج بعده.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>📎 عدم مشاركة المستندات الحساسة</h4><div class="more">لا تشارك مستنداتك مع أي شخص دون حاجة رسمية.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>🚪 تسجيل الخروج</h4><div class="more">خصوصًا على الأجهزة المشتركة، وقبل مغادرة أي جهاز.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>📢 الإبلاغ عن المحاولات المشبوهة</h4><div class="more">إذا وصلتك رسالة أو اتصال مريب، أبلغ الجهة المختصة، ولا تتفاعل معه.</div></div>
+    </div>
+
+    <div class="ok-box">
+      <strong>رسالة أساسية:</strong> المستخدم ليس مسؤولًا عن كل جوانب الأمن،
+      لكنه يمثل جزءًا مهمًا من منظومة الحماية.
+    </div>
+
+    <aside class="trainer-note">
+      <h4>🎤 ملاحظات المقدم</h4>
+      <div class="tn-grid">
+        <div class="tn-item"><strong>ماذا أقول؟</strong><span>«لن نطلب منك أن تكون خبير أمن سيبراني، لكن هناك خطوات بسيطة تُحدث فرقًا كبيرًا.»</span></div>
+        <div class="tn-item"><strong>النقطة الأساسية</strong><span>المستخدم شريك في الحماية، لا طرف خارجها.</span></div>
+        <div class="tn-item"><strong>الوقت المقترح</strong><span>5 دقائق.</span></div>
+        <div class="tn-item"><strong>مثال واقعي</strong><span>تفعيل MFA قد يبدو خطوة صغيرة، لكنه يمنع كثيرًا من حالات الاستيلاء على الحساب.</span></div>
+        <div class="tn-item"><strong>سؤال للطلاب</strong><span>أي خطوة من هذه الخطوات أنت ملتزم بها فعلًا؟ وأيها تحتاج تغييرًا في سلوكك؟</span></div>
+        <div class="tn-item"><strong>الانتقال</strong><span>«هل يمكن أن تكون الخدمة سهلة وآمنة في الوقت نفسه؟»</span></div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ============ 11 — سهلة وآمنة في الوقت نفسه ============ -->
+  <section class="slide" data-title="هل يمكن أن تكون الخدمة سهلة وآمنة في الوقت نفسه؟" data-time="5 دقائق">
+    <div class="slide-head">
+      <span class="kicker">القسم 11 — نقاش</span>
+      <h2 class="slide-title">هل يمكن أن تكون الخدمة سهلة وآمنة في الوقت نفسه؟</h2>
+      <p class="slide-sub">التوازن بين الأمن وسهولة الاستخدام</p>
+    </div>
+
+    <div class="think">
+      <h3>سؤال النقاش</h3>
+      <blockquote>هل زيادة الحماية تعني دائمًا أن الخدمة تصبح أصعب؟</blockquote>
+      <p class="small">استمع لإجابات الطلاب قبل عرض التحليل التالي.</p>
+    </div>
+
+    <h3>التوازن بين الأمن وسهولة الاستخدام</h3>
+    <div class="flow center" aria-label="التوازن بين الأمن وسهولة الاستخدام">
+      <span class="node gold">Security</span>
+      <span class="arrow" aria-hidden="true">⇄</span>
+      <span class="node accent">Usability</span>
+    </div>
+
+    <p>
+      التصميم الجيد يحاول تحقيق الاثنين: أن تكون الخدمة آمنة دون أن تصبح مرهقة للمستخدم.
+      وهذا يظهر في عدة أمثلة عملية:
+    </p>
+
+    <div class="grid three">
+      <div class="card clickable" data-toggle tabindex="0"><h4>🧩 المصادقة متعددة العوامل</h4><div class="more">خطوة إضافية لكنها سريعة، وتحقق فرقًا كبيرًا في الحماية.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>💬 رسائل تحذيرية واضحة</h4><div class="more">تنبّه المستخدم دون أن تربكه، وتشرح ما يجب فعله.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>🎨 تصميم آمن وسهل</h4><div class="more">التصميم الذي يوجّه المستخدم بشكل صحيح يقلّل الأخطاء ويحسّن الأمن.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>👁️ إخفاء البيانات الحساسة</h4><div class="more">عرض جزئي للبيانات الحساسة يحميها من النظرات والتصوير.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>🔔 تنبيهات عند تسجيل الدخول</h4><div class="more">إعلام المستخدم بأن هناك دخولًا جديدًا، ليتمكن من التصرف إن لم يكن هو.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>🛟 خطوات واضحة لاستعادة الحساب</h4><div class="more">استعادة الحساب لا يجب أن تكون معقدة، لكن يجب أن تكون آمنة.</div></div>
+    </div>
+
+    <div class="quote">
+      الأمن الجيد لا يعني تعقيد المستخدم بلا داعٍ؛ بل يعني حماية المستخدم بطريقة مفهومة وقابلة للاستخدام.
+    </div>
+
+    <aside class="trainer-note">
+      <h4>🎤 ملاحظات المقدم</h4>
+      <div class="tn-grid">
+        <div class="tn-item"><strong>ماذا أقول؟</strong><span>«الحماية ليست عدوا للسهولة. أفضل الحلول تحقق الاثنين معًا.»</span></div>
+        <div class="tn-item"><strong>النقطة الأساسية</strong><span>المصادقة متعددة العوامل ليست «عقوبة»، بل حماية بطريقة مقبولة.</span></div>
+        <div class="tn-item"><strong>الوقت المقترح</strong><span>5 دقائق.</span></div>
+        <div class="tn-item"><strong>مثال واقعي</strong><span>تنبيه الدخول الجديد على الجوال مثال على حماية بسيطة وفعالة في الوقت نفسه.</span></div>
+        <div class="tn-item"><strong>سؤال للطلاب</strong><span>هل تعرف خدمة جمعت بين الأمن والسهولة؟ اذكرها.</span></div>
+        <div class="tn-item"><strong>الانتقال</strong><span>«لننتقل إلى مفهومين مرتبطين: التصيد والهندسة الاجتماعية.»</span></div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ============ 12 — التصيد الإلكتروني ============ -->
+  <section class="slide" data-title="ما هو التصيد الإلكتروني؟" data-time="6 دقائق">
+    <div class="slide-head">
+      <span class="kicker">القسم 12</span>
+      <h2 class="slide-title">ما هو التصيد الإلكتروني؟</h2>
+      <p class="slide-sub">Phishing — تعريف مبسط + مثال افتراضي</p>
+    </div>
+
+    <p class="lead">
+      <strong>التصيد الإلكتروني (Phishing)</strong> محاولة خداع المستخدم لإقناعه بالكشف عن معلومات
+      حساسة أو تنفيذ إجراء غير آمن، غالبًا عبر رسالة أو موقع أو وسيلة اتصال تبدو موثوقة.
+    </p>
+
+    <div class="grid two">
+      <div class="card">
+        <span class="card-tag warn">مثال افتراضي للتدريب</span>
+        <h4>📧 رسالة مزيّفة</h4>
+        <p>«عزيزي المستفيد، يوجد تحديث عاجل على حسابك. اضغط هنا لتأكيد بياناتك.»</p>
+        <p class="small" style="margin-bottom:0;">هذا مثال افتراضي لأغراض تعليمية فقط — لا يستخدم رابطًا حقيقيًا.</p>
+      </div>
+      <div class="card">
+        <span class="card-tag">ما يهدف إليه التصيد</span>
+        <h4>🎯 أهداف المهاجم</h4>
+        <ul style="margin-bottom:0;">
+          <li>الحصول على بيانات الدخول.</li>
+          <li>الحصول على رمز التحقق OTP.</li>
+          <li>دفع المستخدم لتنفيذ إجراء معين.</li>
+          <li>تثبيت تطبيق أو فتح رابط ضار.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>ما العلامات التي تجعلك تشك في الرسالة؟</h3>
+    <div class="grid three">
+      <div class="card clickable" data-toggle tabindex="0"><h4>⏰ الاستعجال</h4><div class="more">«عاجل»، «فورًا»، «خلال ساعات» — كلها أدوات ضغط نفسي.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>⚠️ التهديد</h4><div class="more">«سيتم إغلاق حسابك»، «ستفقد الخدمة» — تُستخدم لدفع المستخدم للتصرف السريع.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>🔗 رابط غير موثوق</h4><div class="more">الرابط لا يشبه الرابط الرسمي، أو يحمل اسمًا مشابهًا بخدعة بسيطة.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>🔑 طلب بيانات حساسة</h4><div class="more">طلب كلمة المرور أو رمز التحقق أو معلومات بطاقة، وهذه لا تُطلب رسميًا بهذه الطريقة.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>✍️ أخطاء وصياغة غير معتادة</h4><div class="more">أخطاء إملائية أو صياغة ركيكة أو غير رسمية.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>🎭 انتحال جهة معروفة</h4><div class="more">اسم وشعار جهة رسمية مستخدمان لزيادة المصداقية.</div></div>
+    </div>
+
+    <div class="sec-box">
+      <h4>🛡️ قاعدة عملية</h4>
+      <p>
+        «لا تتفاعل مع أي رسالة تطلب منك بيانات حساسة. افتح القناة الرسمية بنفسك،
+        وتحقق من خلالها قبل أي إجراء.»
+      </p>
+    </div>
+
+    <aside class="trainer-note">
+      <h4>🎤 ملاحظات المقدم</h4>
+      <div class="tn-grid">
+        <div class="tn-item"><strong>ماذا أقول؟</strong><span>«التصيد لا يعتمد على التقنية فقط، بل على خداع المستخدم. ولهذا الوعي هو الدفاع الأول.»</span></div>
+        <div class="tn-item"><strong>النقطة الأساسية</strong><span>لا تستخدم روابط أو صفحات تصيد حقيقية في العرض. اكتفِ بأمثلة وهمية للأغراض التعليمية.</span></div>
+        <div class="tn-item"><strong>الوقت المقترح</strong><span>6 دقائق.</span></div>
+        <div class="tn-item"><strong>مثال واقعي</strong><span>اذكر نمطًا عامًا: رسالة تُطالب بتأكيد بيانات الحساب «خلال 24 ساعة».</span></div>
+        <div class="tn-item"><strong>سؤال للطلاب</strong><span>ما العلامة التي تجعلك تتوقف عن قراءة الرسالة مباشرة؟</span></div>
+        <div class="tn-item"><strong>الانتقال</strong><span>«التصيد أسلوب. لكن هناك مفهوم أوسع… اسمه الهندسة الاجتماعية.»</span></div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ============ 13 — الهندسة الاجتماعية ============ -->
+  <section class="slide" data-title="الهندسة الاجتماعية" data-time="6 دقائق">
+    <div class="slide-head">
+      <span class="kicker">القسم 13</span>
+      <h2 class="slide-title">الهندسة الاجتماعية (Social Engineering)</h2>
+      <p class="slide-sub">استغلال الثقة والخوف والاستعجال</p>
+    </div>
+
+    <p class="lead">
+      <strong>الهندسة الاجتماعية</strong> استخدام أساليب التأثير والخداع والتلاعب النفسي لإقناع الشخص
+      بالكشف عن معلومات أو تنفيذ إجراء يفيد المهاجم. المهاجم لا يهاجم النظام، بل يهاجم <em>الإنسان</em>.
+    </p>
+
+    <h3>ما الذي يحاول المهاجم استغلاله؟</h3>
+    <div class="grid three">
+      <div class="card clickable" data-toggle tabindex="0"><h4>🤝 الثقة</h4><div class="more">المستخدم يميل لتصديق من يبدو موثوقًا، أو من يستخدم اسم جهة رسمية.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>😨 الخوف</h4><div class="more">«سيتم إغلاق حسابك»، «ستفقد الخدمة» — الخوف يدفع المستخدم للتصرف دون تفكير.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>⏰ الاستعجال</h4><div class="more">الضغط الزمني يقلّل من قدرة المستخدم على التحقق والتفكير.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>❓ الفضول</h4><div class="more">«تفاصيل مهمة تخص حسابك» — الفضول قد يدفع المستخدم لفتح رابط مشبوه.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>🙏 الرغبة في المساعدة</h4><div class="more">«ساعدني وأنا سأساعدك» — قد يقود إلى مشاركة بيانات أو مستندات.</div></div>
+      <div class="card clickable" data-toggle tabindex="0"><h4>👔 السلطة أو انتحال صفة موظف</h4><div class="more">«أنا من الدعم الفني» — انتحال صفة رسمية لإضفاء مصداقية مزيفة.</div></div>
+    </div>
+
+    <div class="card">
+      <span class="card-tag warn">مثال افتراضي للتدريب</span>
+      <h4>📞 مكالمة مزيّفة</h4>
+      <p>«أنا من الدعم الفني، أحتاج رمز التحقق الذي وصلك حتى أساعدك في حل المشكلة.»</p>
+      <p><strong>السؤال للطلاب:</strong> هل هذا طلب طبيعي؟ ولماذا؟</p>
+      <p class="small" style="margin-bottom:0;">
+        الإجابة: هذا طلب غير طبيعي. الجهات الرسمية لا تطلب رمز التحقق من المستخدم.
+      </p>
+    </div>
+
+    <aside class="trainer-note">
+      <h4>🎤 ملاحظات المقدم</h4>
+      <div class="tn-grid">
+        <div class="tn-item"><strong>ماذا أقول؟</strong><span>«الهندسة الاجتماعية لا تستهدف النظام، بل تستهدف الإنسان — لأنه أضعف نقطة، وأقوى نقطة في الوقت نفسه.»</span></div>
+        <div class="tn-item"><strong>النقطة الأساسية</strong><span>لا جهة رسمية تطلب منك رمز التحقق أو كلمة المرور. هذا هو الدرع الأساسي.</span></div>
+        <div class="tn-item"><strong>الوقت المقترح</strong><span>6 دقائق.</span></div>
+        <div class="tn-item"><strong>مثال واقعي</strong><span>اتصالات تنتحل صفة الدعم الفني تتكرر في أشكال مختلفة، لكن النمط ثابت: استعجال + طلب بيانات.</span></div>
+        <div class="tn-item"><strong>سؤال للطلاب</strong><span>ما الفرق بين الهندسة الاجتماعية والتصيد؟</span></div>
+        <div class="tn-item"><strong>الانتقال</strong><span>«لنتعمق في هذه النقطة تحديدًا.»</span></div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ============ 14 — الفرق بين التصيد والهندسة الاجتماعية ============ -->
+  <section class="slide" data-title="التصيد والهندسة الاجتماعية: ما العلاقة؟" data-time="4 دقائق">
+    <div class="slide-head">
+      <span class="kicker">القسم 14</span>
+      <h2 class="slide-title">التصيد والهندسة الاجتماعية: ما العلاقة؟</h2>
+      <p class="slide-sub">مفهوم أوسع... وأسلوب من أساليبه</p>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <caption>الفرق بين التصيد الإلكتروني والهندسة الاجتماعية</caption>
+        <thead>
+          <tr><th scope="col">التصيد الإلكتروني</th><th scope="col">الهندسة الاجتماعية</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>أسلوب خداع شائع</td><td>مفهوم أوسع</td></tr>
+          <tr><td>قد يستخدم رسائل أو مواقع مزيّفة</td><td>يعتمد على التلاعب بالسلوك والثقة</td></tr>
+          <tr><td>يهدف للحصول على معلومات أو دفع المستخدم لإجراء معين</td><td>قد يستخدم وسائل متعددة: اتصال، رسالة، لقاء</td></tr>
+          <tr><td>قد يكون جزءًا من هجوم أوسع</td><td>يشمل عدة أساليب وتقنيات</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="quote">
+      التصيد الإلكتروني أحد الأمثلة على استخدام أساليب الهندسة الاجتماعية.
+    </div>
+
+    <aside class="trainer-note">
+      <h4>🎤 ملاحظات المقدم</h4>
+      <div class="tn-grid">
+        <div class="tn-item"><strong>ماذا أقول؟</strong><span>«التصيد أسلوب، والهندسة الاجتماعية هي المفهوم الأوسع الذي يحتويه.»</span></div>
+        <div class="tn-item"><strong>النقطة الأساسية</strong><span>لا تجعل الشرح تقنيًا أكثر من اللازم. الهدف توضيح العلاقة لا التفصيل الأكاديمي.</span></div>
+        <div class="tn-item"><strong>الوقت المقترح</strong><span>4 دقائق.</span></div>
+        <div class="tn-item"><strong>سؤال للطلاب</strong><span>هل كل هندسة اجتماعية تصيد؟ وهل كل تصيد هندسة اجتماعية؟</span></div>
+        <div class="tn-item"><strong>الانتقال</strong><span>«لنعد إلى رحلة الخدمة… ونرى أين يدخل الأمن فيها.»</span></div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ============ 15 — أين يدخل الأمن في الرحلة؟ ============ -->
+  <section class="slide" data-title="أين يدخل الأمن السيبراني في رحلة الخدمة؟" data-time="6 دقائق">
+    <div class="slide-head">
+      <span class="kicker">القسم 15</span>
+      <h2 class="slide-title">أين يدخل الأمن السيبراني في رحلة الخدمة؟</h2>
+      <p class="slide-sub">عودة إلى الرحلة… بعين أمنية</p>
+    </div>
+
+    <p class="lead">
+      سنعيد رسم رحلة الخدمة، لكن هذه المرة نضيف عند كل مرحلة ما يجب حمايته.
+      لاحظوا أن الأمن ليس نقطة واحدة، بل يمتد على الرحلة بأكملها.
+    </p>
+
+    <div class="shield">
+      <div class="shield-row">
+        <div class="shield-stage"><span class="n">١</span> الدخول</div>
+        <div class="shield-note">حماية القناة: التأكد من أن المستخدم في القناة الرسمية الصحيحة.</div>
+      </div>
+      <div class="shield-row">
+        <div class="shield-stage"><span class="n">٢</span> الهوية</div>
+        <div class="shield-note">حماية المصادقة: كلمة مرور قوية، ومصادقة متعددة العوامل عند توفرها.</div>
+      </div>
+      <div class="shield-row">
+        <div class="shield-stage"><span class="n">٣</span> البيانات</div>
+        <div class="shield-note">حماية المعلومات: عدم إدخال البيانات إلا في القنوات الرسمية.</div>
+      </div>
+      <div class="shield-row">
+        <div class="shield-stage"><span class="n">٤</span> المستندات</div>
+        <div class="shield-note">حماية الملفات: الرفع عبر القناة الرسمية، وعدم مشاركتها مع غير المصرح لهم.</div>
+      </div>
+      <div class="shield-row">
+        <div class="shield-stage"><span class="n">٥</span> المعالجة</div>
+        <div class="shield-note">حماية الأنظمة: صلاحيات محددة، ومراقبة الوصول، وتسجيل العمليات.</div>
+      </div>
+      <div class="shield-row">
+        <div class="shield-stage"><span class="n">٦</span> المتابعة</div>
+        <div class="shield-note">حماية الحساب: الدخول من قناة رسمية، وتسجيل الخروج بعد الانتهاء.</div>
+      </div>
+      <div class="shield-row">
+        <div class="shield-stage"><span class="n">٧</span> النتيجة</div>
+        <div class="shield-note">حماية المعلومات ووصولها للمستخدم الصحيح، والتحقق من مصدر الوثيقة.</div>
+      </div>
+    </div>
+
+    <div class="think">
+      <h3>السؤال</h3>
+      <blockquote>هل يوجد مكان واحد فقط نحتاج فيه إلى الأمن؟</blockquote>
+      <p class="small">
+        الإجابة التي نريد الوصول إليها: <strong>لا. الأمن جزء من الرحلة كلها.</strong>
+      </p>
+    </div>
+
+    <aside class="trainer-note">
+      <h4>🎤 ملاحظات المقدم</h4>
+      <div class="tn-grid">
+        <div class="tn-item"><strong>ماذا أقول؟</strong><span>«تذكّروا الرحلة من المحور الثاني. نفس الرحلة، لكن مع نقطة حماية في كل خطوة.»</span></div>
+        <div class="tn-item"><strong>النقطة الأساسية</strong><span>الأمن ليس مرحلة، بل خيط يمر في الرحلة كلها. وهذا جوهر هذا المحور.</span></div>
+        <div class="tn-item"><strong>الوقت المقترح</strong><span>6 دقائق.</span></div>
+        <div class="tn-item"><strong>مثال واقعي</strong><span>لو ضعفت الحماية في نقطة واحدة، فقد لا تكفي قوة بقية النقاط لحماية المستخدم.</span></div>
+        <div class="tn-item"><strong>سؤال للطلاب</strong><span>أي مرحلة تظن أنها الأكثر إهمالًا من قِبل المستخدمين؟</span></div>
+        <div class="tn-item"><strong>الانتقال</strong><span>«لنطبق كل هذا في نشاط عملي.»</span></div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ============ 16 — نشاط: حدد نقطة الخطر ============ -->
+  <section class="slide" data-title="نشاط: حدد نقطة الخطر" data-time="8 دقائق">
+    <div class="slide-head">
+      <span class="kicker">القسم 16 — نشاط رئيسي</span>
+      <h2 class="slide-title">نشاط: حدد نقطة الخطر</h2>
+      <p class="slide-sub">عمل في مجموعات صغيرة — تحليل رحلة الخدمة</p>
+    </div>
+
+    <h3>الهدف</h3>
+    <p>
+      تدريب الطلاب على التفكير في الأمن السيبراني <strong>أثناء استخدام الخدمة</strong>،
+      بدل النظر إلى الأمن كموضوع منفصل.
+    </p>
+
+    <h3>طريقة التنفيذ</h3>
+    <ol>
+      <li>قسّم الطلاب إلى مجموعات صغيرة (3 – 5 أفراد).</li>
+      <li>اعرض عليهم رحلة الخدمة التالية.</li>
+      <li>اطلب من كل مجموعة تحديد <strong>أكبر عدد ممكن من نقاط الخطر</strong>.</li>
+      <li>لكل نقطة خطر، عليهم تحديد: أين تحدث؟ ما الخطر المحتمل؟ من أو ماذا يتأثر؟ كيف يمكن تقليل الخطر؟</li>
+    </ol>
+
+    <div class="flow center" aria-label="رحلة الخدمة للنشاط">
+      <span class="node gold">١. الدخول</span>
+      <span class="arrow" aria-hidden="true">←</span>
+      <span class="node">٢. التحقق من الهوية</span>
+      <span class="arrow" aria-hidden="true">←</span>
+      <span class="node">٣. إدخال البيانات</span>
+      <span class="arrow" aria-hidden="true">←</span>
+      <span class="node accent">٤. رفع المستندات</span>
+      <span class="arrow" aria-hidden="true">←</span>
+      <span class="node accent">٥. إرسال الطلب</span>
+      <span class="arrow" aria-hidden="true">←</span>
+      <span class="node dark">٦. معالجة الطلب</span>
+      <span class="arrow" aria-hidden="true">←</span>
+      <span class="node dark">٧. متابعة الطلب</span>
+      <span class="arrow" aria-hidden="true">←</span>
+      <span class="node gold">٨. النتيجة</span>
+    </div>
+
+    <div class="think">
+      <h3>المطلوب من كل مجموعة</h3>
+      <blockquote>حددوا أكبر عدد ممكن من نقاط الخطر في هذه الرحلة.</blockquote>
+      <p class="small">ثم لكل نقطة خطر: أين؟ ما الخطر؟ ما المتأثر؟ كيف نقلّله؟</p>
+    </div>
+
+    <aside class="trainer-note">
+      <h4>🎤 ملاحظات المقدم</h4>
+      <div class="tn-grid">
+        <div class="tn-item"><strong>ماذا أقول؟</strong><span>«لا نريد إجابات واحدة صحيحة. نريد تفكيرًا في كل مرحلة.»</span></div>
+        <div class="tn-item"><strong>النقطة الأساسية</strong><span>الهدف من النشاط هو تحويل الرحلة من شيء «مشاهد» إلى شيء «محلَّل».</span></div>
+        <div class="tn-item"><strong>الوقت المقترح</strong><span>8 دقائق: 4 دقائق عمل مجموعات، و4 دقائق مشاركة.</span></div>
+        <div class="tn-item"><strong>مثال شفهي</strong><span>لو أشارت مجموعة إلى مرحلة واحدة فقط، اسأل: وماذا عن المراحل الأخرى؟</span></div>
+        <div class="tn-item"><strong>تنبيه</strong><span>لا تطلب من الطلاب إدخال أي بيانات شخصية أثناء النشاط.</span></div>
+        <div class="tn-item"><strong>الانتقال</strong><span>«لنعرض الآن سيناريوهات قصيرة، ونرى أين نقطة الخطر فيها.»</span></div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ============ 17 — بطاقات السيناريو ============ -->
+  <section class="slide" data-title="بطاقات سيناريو للنشاط" data-time="8 دقائق">
+    <div class="slide-head">
+      <span class="kicker">القسم 17 — سيناريوهات</span>
+      <h2 class="slide-title">بطاقات سيناريو للنشاط</h2>
+      <p class="slide-sub">خمسة مواقف قصيرة — اضغط على كل بطاقة لعرض التحليل</p>
+    </div>
+
+    <p class="lead">
+      اعرض كل سيناريو على الطلاب، واسألهم أولًا: <strong>أين نقطة الخطر؟</strong>
+      ثم افتح التحليل بعد سماع إجاباتهم.
+    </p>
+
+    <div class="grid two">
+      <div class="scn" data-toggle tabindex="0">
+        <span class="scn-tag">السيناريو ١</span>
+        <h4>رابط الخدمة</h4>
+        <p>وصلت رسالة للمستخدم تحتوي على رابط لخدمة حكومية وتطلب منه تسجيل الدخول بشكل عاجل.</p>
+        <div class="more">
+          <div class="q">أين نقطة الخطر؟</div>
+          <b>التحليل:</b> الرسالة قد تكون محاولة تصيد، والرابط قد يقود إلى صفحة مزيّفة.
+          الحل: افتح القناة الرسمية بنفسك، ولا تدخل من أي رابط يصلك.<br>
+          <b>ما نحميه:</b> الهوية والحساب.
+        </div>
+      </div>
+
+      <div class="scn" data-toggle tabindex="0">
+        <span class="scn-tag">السيناريو ٢</span>
+        <h4>رمز التحقق</h4>
+        <p>اتصل شخص بالمستخدم وادعى أنه موظف دعم، وطلب منه رمز OTP الذي وصله.</p>
+        <div class="more">
+          <div class="q">ما الخطأ؟</div>
+          <b>التحليل:</b> لا جهة رسمية تطلب رمز التحقق من المستخدم. الرمز يمثل مفتاح الحساب.
+          الحل: رفض الطلب، وإنهاء المكالمة، والإبلاغ عن المحاولة.<br>
+          <b>ما نحميه:</b> الحساب والهوية.
+        </div>
+      </div>
+
+      <div class="scn" data-toggle tabindex="0">
+        <span class="scn-tag">السيناريو ٣</span>
+        <h4>المستند</h4>
+        <p>رفع المستخدم مستندًا يحتوي على بيانات شخصية إلى موقع غير رسمي.</p>
+        <div class="more">
+          <div class="q">ما المخاطر المحتملة؟</div>
+          <b>التحليل:</b> الموقع غير الرسمي قد يجمع البيانات ويستخدمها لغرض لم يوافق عليه المستخدم.
+          الحل: الرفع فقط عبر القنوات الرسمية المعتمدة.<br>
+          <b>ما نحميه:</b> البيانات والمستندات.
+        </div>
+      </div>
+
+      <div class="scn" data-toggle tabindex="0">
+        <span class="scn-tag">السيناريو ٤</span>
+        <h4>الجهاز المشترك</h4>
+        <p>استخدم المستخدم جهازًا مشتركًا وسجّل الدخول إلى حسابه ثم غادر دون تسجيل الخروج.</p>
+        <div class="more">
+          <div class="q">ما نقطة الخطر؟</div>
+          <b>التحليل:</b> الجلسة المفتوحة قد تُستخدم من شخص آخر للوصول إلى الحساب.
+          الحل: تسجيل الخروج بعد الانتهاء، وتجنب الأجهزة العامة للخدمات الحساسة.<br>
+          <b>ما نحميه:</b> الحساب والبيانات.
+        </div>
+      </div>
+
+      <div class="scn" data-toggle tabindex="0">
+        <span class="scn-tag">السيناريو ٥</span>
+        <h4>مشاركة الحساب</h4>
+        <p>أعطى المستخدم بيانات الدخول لشخص آخر ليساعده في تنفيذ الخدمة.</p>
+        <div class="more">
+          <div class="q">ما المشكلة؟</div>
+          <b>التحليل:</b> مشاركة بيانات الدخول تعني فقدان السيطرة على الحساب، وقد تُستخدم بيانات المستخدم
+          لغرض آخر دون علمه. الحل: إتمام الإجراء بنفسك، أو عبر قنوات رسمية مفوّضة.<br>
+          <b>ما نحميه:</b> الحساب والهوية.
+        </div>
+      </div>
+    </div>
+
+    <aside class="trainer-note">
+      <h4>🎤 ملاحظات المقدم</h4>
+      <div class="tn-grid">
+        <div class="tn-item"><strong>ماذا أقول؟</strong><span>«لا تفتحوا التحليل مباشرة. اسألوا أولًا: أين نقطة الخطر؟»</span></div>
+        <div class="tn-item"><strong>النقطة الأساسية</strong><span>السيناريوهات مبنية على مواقف واقعية، لكنها وهمية لأغراض التدريب.</span></div>
+        <div class="tn-item"><strong>الوقت المقترح</strong><span>8 دقائق (حوالي دقيقة ونصف لكل سيناريو).</span></div>
+        <div class="tn-item"><strong>مثال شفهي</strong><span>لو لم يكتشف الطلاب نقطة الخطر، اسأل سؤالًا موجّهًا: ما الذي يملكه شخص آخر في هذا الموقف؟</span></div>
+        <div class="tn-item"><strong>تنبيه</strong><span>لا تستخدم روابط تصيد حقيقية أو رسائل حقيقية في هذا النشاط.</span></div>
+        <div class="tn-item"><strong>الانتقال</strong><span>«لنجمع الآن إجاباتكم ونصنّفها.»</span></div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ============ 18 — تحليل النشاط ============ -->
+  <section class="slide" data-title="تحليل النشاط: تصنيف نقاط الخطر" data-time="6 دقائق">
+    <div class="slide-head">
+      <span class="kicker">القسم 18</span>
+      <h2 class="slide-title">تحليل النشاط: تصنيف نقاط الخطر</h2>
+      <p class="slide-sub">أربع فئات من المخاطر</p>
+    </div>
+
+    <p class="lead">
+      بعد انتهاء المجموعات، نجمع الإجابات ونصنّفها على الشاشة إلى أربع فئات.
+      هذه الفئات تساعد الطالب على ترتيب تفكيره الأمني.
+    </p>
+
+    <div class="grid two">
+      <div class="card clickable" data-toggle tabindex="0">
+        <span class="card-tag">١</span>
+        <h4>🪪 مخاطر الهوية</h4>
+        <div class="more">
+          <ul>
+            <li>انتحال الهوية.</li>
+            <li>سرقة بيانات الدخول.</li>
+            <li>مشاركة رمز OTP.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card clickable" data-toggle tabindex="0">
+        <span class="card-tag">٢</span>
+        <h4>📄 مخاطر البيانات</h4>
+        <div class="more">
+          <ul>
+            <li>كشف المعلومات الشخصية.</li>
+            <li>مشاركة المستندات مع غير المصرح لهم.</li>
+            <li>الوصول غير المصرح به إلى البيانات.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card clickable" data-toggle tabindex="0">
+        <span class="card-tag">٣</span>
+        <h4>👤 مخاطر المستخدم</h4>
+        <div class="more">
+          <ul>
+            <li>الضغط على رابط مشبوه.</li>
+            <li>استخدام جهاز غير موثوق.</li>
+            <li>مشاركة المعلومات مع الآخرين.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card clickable" data-toggle tabindex="0">
+        <span class="card-tag">٤</span>
+        <h4>⚙️ مخاطر تقنية</h4>
+        <div class="more">
+          <ul>
+            <li>تطبيقات أو أنظمة غير آمنة.</li>
+            <li>ضعف في الحماية التقنية.</li>
+            <li>مشكلات في إدارة الوصول والصلاحيات.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="think">
+      <h3>الخلاصة</h3>
+      <blockquote>لا توجد نقطة خطر واحدة فقط؛ رحلة الخدمة بأكملها تحتاج إلى حماية.</blockquote>
+    </div>
+
+    <aside class="trainer-note">
+      <h4>🎤 ملاحظات المقدم</h4>
+      <div class="tn-grid">
+        <div class="tn-item"><strong>ماذا أقول؟</strong><span>«لاحظوا: المخاطر ليست في مكان واحد. هي موزّعة على فئات مختلفة وأطراف مختلفة.»</span></div>
+        <div class="tn-item"><strong>النقطة الأساسية</strong><span>تصنيف المخاطر يساعد على فهم من يتحمل مسؤولية الحماية في كل حالة.</span></div>
+        <div class="tn-item"><strong>الوقت المقترح</strong><span>6 دقائق.</span></div>
+        <div class="tn-item"><strong>مثال شفهي</strong><span>لو أشارت مجموعة إلى «المستخدم» فقط، اسأل: وماذا عن مخاطر الأنظمة؟</span></div>
+        <div class="tn-item"><strong>سؤال للطلاب</strong><span>أي فئة من هذه الفئات تظن أنها الأكثر تأثيرًا؟</span></div>
+        <div class="tn-item"><strong>الانتقال</strong><span>«إذا كانت المخاطر موزعة، فمن يحميها؟»</span></div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ============ 19 — الأمن مسؤولية مشتركة ============ -->
+  <section class="slide" data-title="الأمن مسؤولية مشتركة" data-time="5 دقائق">
+    <div class="slide-head">
+      <span class="kicker">القسم 19</span>
+      <h2 class="slide-title">الأمن مسؤولية مشتركة</h2>
+      <p class="slide-sub">ثلاثة أطراف... منظومة واحدة</p>
+    </div>
+
+    <div class="grid three">
+      <div class="card">
+        <span class="card-tag">الطرف الأول</span>
+        <h4>👤 المستخدم</h4>
+        <p>يحمي:</p>
+        <ul>
+          <li>الحساب.</li>
+          <li>كلمة المرور.</li>
+          <li>رمز OTP.</li>
+          <li>الجهاز.</li>
+          <li>البيانات التي يشاركها.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="card-tag">الطرف الثاني</span>
+        <h4>🏛️ الجهة الحكومية</h4>
+        <p>تعمل على:</p>
+        <ul>
+          <li>حماية الأنظمة.</li>
+          <li>حماية البيانات.</li>
+          <li>إدارة الوصول والصلاحيات.</li>
+          <li>تأمين الخدمات.</li>
+          <li>التوعية والدعم.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="card-tag">الطرف الثالث</span>
+        <h4>⚙️ التقنية والأنظمة</h4>
+        <p>تساهم في:</p>
+        <ul>
+          <li>المصادقة.</li>
+          <li>التحكم في الوصول.</li>
+          <li>التشفير.</li>
+          <li>التسجيل والمراقبة.</li>
+          <li>اكتشاف الأنشطة غير الطبيعية.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="quote">
+      الأمن السيبراني الفعّال لا يعتمد على طرف واحد.
+    </div>
+
+    <aside class="trainer-note">
+      <h4>🎤 ملاحظات المقدم</h4>
+      <div class="tn-grid">
+        <div class="tn-item"><strong>ماذا أقول؟</strong><span>«الأمن ليس مسؤولية طرف واحد. هو تعاون بين المستخدم والجهة والأنظمة.»</span></div>
+        <div class="tn-item"><strong>النقطة الأساسية</strong><span>لو غاب أي طرف، تنكشف ثغرة في المنظومة.</span></div>
+        <div class="tn-item"><strong>الوقت المقترح</strong><span>5 دقائق.</span></div>
+        <div class="tn-item"><strong>مثال واقعي</strong><span>لو حمى المستخدم حسابه، ولم يحمِ النظام نفسه، فالثغرة تبقى قائمة.</span></div>
+        <div class="tn-item"><strong>سؤال للطلاب</strong><span>أي طرف تظن أن دوره الأصعب؟ ولماذا؟</span></div>
+        <div class="tn-item"><strong>الانتقال</strong><span>«لنتحدث عن العلاقة بين تجربة المستخدم والأمن.»</span></div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ============ 20 — العلاقة بين تجربة المستخدم والأمن ============ -->
+  <section class="slide" data-title="العلاقة بين تجربة المستخدم والأمن السيبراني" data-time="5 دقائق">
+    <div class="slide-head">
+      <span class="kicker">القسم 20</span>
+      <h2 class="slide-title">العلاقة بين تجربة المستخدم والأمن السيبراني</h2>
+      <p class="slide-sub">تجربة جيدة + أمن جيد = خدمة موثوقة</p>
+    </div>
+
+    <div class="flow center" aria-label="العلاقة بين تجربة المستخدم والأمن">
+      <span class="node gold">تجربة مستخدم جيدة</span>
+      <span class="arrow" aria-hidden="true">+</span>
+      <span class="node accent">أمن جيد</span>
+      <span class="arrow" aria-hidden="true">=</span>
+      <span class="node dark">خدمة رقمية موثوقة</span>
+    </div>
+
+    <h3>ثلاث حالات محتملة</h3>
+    <div class="grid three">
+      <div class="card">
+        <span class="card-tag warn">حالة ١</span>
+        <h4>سهلة ولكن غير آمنة</h4>
+        <p>تجربة سريعة لكن بيانات المستخدم في خطر. مشكلة حقيقية.</p>
+      </div>
+      <div class="card">
+        <span class="card-tag warn">حالة ٢</span>
+        <h4>آمنة ولكن معقدة جدًا</h4>
+        <p>حماية قوية لكن المستخدم لا يستطيع استخدامها. مشكلة أيضًا.</p>
+      </div>
+      <div class="card">
+        <span class="card-tag ok">حالة ٣</span>
+        <h4>سهلة وآمنة وموثوقة</h4>
+        <p>التوازن المطلوب، والتجربة الأفضل.</p>
+      </div>
+    </div>
+
+    <h3>مفهوم Secure by Design</h3>
+    <div class="note">
+      <strong>Secure by Design</strong> يعني: أن يؤخذ الأمن في الاعتبار
+      <strong>منذ تصميم الخدمة</strong>، وليس بعد الانتهاء منها.
+      هذا المفهوم مناسب للمبتدئين: الأمن ليس إضافة، بل جزء من الأساس.
+    </div>
+
+    <aside class="trainer-note">
+      <h4>🎤 ملاحظات المقدم</h4>
+      <div class="tn-grid">
+        <div class="tn-item"><strong>ماذا أقول؟</strong><span>«خدمة سهلة وغير آمنة، أو آمنة ومعقدة جدًا — الاثنتان مشكلة. المطلوب التوازن.»</span></div>
+        <div class="tn-item"><strong>النقطة الأساسية</strong><span>مفهوم Secure by Design فكرة بسيطة: الأمن من البداية، لا في النهاية.</span></div>
+        <div class="tn-item"><strong>الوقت المقترح</strong><span>5 دقائق.</span></div>
+        <div class="tn-item"><strong>مثال واقعي</strong><span>خدمة تطلب عشر خطوات تحقق قد تكون آمنة لكن مرهقة. خدمة بدون تحقق قد تكون سهلة لكن غير آمنة.</span></div>
+        <div class="tn-item"><strong>سؤال للطلاب</strong><span>أي الحالات الثلاث تجدها في الخدمات التي تستخدمها؟</span></div>
+        <div class="tn-item"><strong>الانتقال</strong><span>«لنراجع ما تعلمناه.»</span></div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ============ 21 — ماذا تعلمنا؟ ============ -->
+  <section class="slide" data-title="ماذا تعلمنا؟" data-time="4 دقائق">
+    <div class="slide-head">
+      <span class="kicker">القسم 21 — مراجعة</span>
+      <h2 class="slide-title">ماذا تعلمنا؟</h2>
+      <p class="slide-sub">خمس رسائل أساسية</p>
+    </div>
+
+    <div class="grid">
+      <div class="outcome">
+        <span class="verb">١</span>
+        <h4>قيمة الخدمة الرقمية</h4>
+        <p>الخدمات الحكومية الرقمية تحتوي على بيانات وخدمات ذات قيمة.</p>
+      </div>
+      <div class="outcome">
+        <span class="verb">٢</span>
+        <h4>أهمية الهوية الرقمية</h4>
+        <p>الهوية الرقمية تمثل عنصرًا مهمًا في الوصول إلى الخدمات.</p>
+      </div>
+      <div class="outcome">
+        <span class="verb">٣</span>
+        <h4>أثر فقدان الحساب</h4>
+        <p>فقدان الحساب قد يؤدي إلى مخاطر تتجاوز مجرد فقدان كلمة المرور.</p>
+      </div>
+      <div class="outcome">
+        <span class="verb">٤</span>
+        <h4>دور المستخدم</h4>
+        <p>المستخدم جزء من منظومة الحماية.</p>
+      </div>
+      <div class="outcome">
+        <span class="verb">٥</span>
+        <h4>الأمن عبر الرحلة</h4>
+        <p>الأمن يجب أن يكون حاضرًا عبر رحلة الخدمة بأكملها.</p>
+      </div>
+    </div>
+
+    <div class="think">
+      <h3>سؤال للمراجعة</h3>
+      <blockquote>ما أهم شيء ستغيّره في سلوكك عند استخدام خدمة حكومية رقمية؟</blockquote>
+    </div>
+
+    <aside class="trainer-note">
+      <h4>🎤 ملاحظات المقدم</h4>
+      <div class="tn-grid">
+        <div class="tn-item"><strong>ماذا أقول؟</strong><span>«لو خرجت من هذا المحور بخمس رسائل فقط، فهذه هي.»</span></div>
+        <div class="tn-item"><strong>النقطة الأساسية</strong><span>المراجعة تربط ما تعلمناه بمحور اليوم الثاني.</span></div>
+        <div class="tn-item"><strong>الوقت المقترح</strong><span>4 دقائق.</span></div>
+        <div class="tn-item"><strong>سؤال للطلاب</strong><span>أي رسالة من هذه الرسائل تراها الأهم؟</span></div>
+        <div class="tn-item"><strong>الانتقال</strong><span>«بعد أن عرفنا كيف تعمل الخدمة، حان الوقت لنتعلم كيف نستخدمها بأمان.»</span></div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ============ 22 — الجسر إلى اليوم الثاني ============ -->
+  <section class="slide" data-title="من الفهم إلى الاستخدام الآمن" data-time="4 دقائق">
+    <div class="slide-head">
+      <span class="kicker">القسم 22 — ختام اليوم الأول</span>
+      <h2 class="slide-title">من الفهم إلى الاستخدام الآمن</h2>
+      <p class="slide-sub">الجسر إلى اليوم الثاني</p>
+    </div>
+
+    <h3>اليوم الأول — ما فهمناه</h3>
+    <div class="flow center" aria-label="ما تعلمناه في اليوم الأول">
+      <span class="node gold">الحكومة الإلكترونية</span>
+      <span class="arrow" aria-hidden="true">←</span>
+      <span class="node">الخدمات الرقمية</span>
+      <span class="arrow" aria-hidden="true">←</span>
+      <span class="node">تجربة المستفيد</span>
+      <span class="arrow" aria-hidden="true">←</span>
+      <span class="node accent">رحلة الخدمة</span>
+      <span class="arrow" aria-hidden="true">←</span>
+      <span class="node dark">نقاط الخطر</span>
+    </div>
+
+    <h3>اليوم الثاني — ما سنتعلمه</h3>
+    <div class="flow center" aria-label="ما سنتعلمه في اليوم الثاني">
+      <span class="node gold">حماية الحسابات والهوية</span>
+      <span class="arrow" aria-hidden="true">←</span>
+      <span class="node">التصيد والاحتيال</span>
+      <span class="arrow" aria-hidden="true">←</span>
+      <span class="node">الهندسة الاجتماعية</span>
+      <span class="arrow" aria-hidden="true">←</span>
+      <span class="node accent">حماية البيانات والخصوصية</span>
+      <span class="arrow" aria-hidden="true">←</span>
+      <span class="node dark">السلوك الآمن</span>
+    </div>
+
+    <div class="quote" style="font-size:18px;">
+      «بعد أن عرفنا كيف تعمل الخدمة، حان الوقت لنتعلم كيف نستخدمها بأمان.»
+    </div>
+
+    <aside class="trainer-note">
+      <h4>🎤 ملاحظات المقدم</h4>
+      <div class="tn-grid">
+        <div class="tn-item"><strong>ماذا أقول؟</strong><span>«تعرفنا على الخدمة من منظور المستخدم، وحددنا نقاط الخطر. غدًا نتعلم كيف نحمي أنفسنا فعلًا.»</span></div>
+        <div class="tn-item"><strong>النقطة الأساسية</strong><span>هذا المحور يمهّد لليوم الثاني، ولا يغني عنه. المحتوى التفصيلي للحماية سيأتي غدًا.</span></div>
+        <div class="tn-item"><strong>الوقت المقترح</strong><span>4 دقائق.</span></div>
+        <div class="tn-item"><strong>سؤال للطلاب</strong><span>ما الموضوع الذي تتطلع لمعرفته أكثر في اليوم الثاني؟</span></div>
+        <div class="tn-item"><strong>الانتقال</strong><span>«نكمل غدًا: الاستخدام الآمن للخدمات الحكومية الإلكترونية.»</span></div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ============ 23 — الخاتمة النهائية ============ -->
+  <section class="slide" data-title="الخاتمة النهائية" data-time="3 دقائق">
+    <div class="slide-head">
+      <span class="kicker">القسم الختامي</span>
+      <h2 class="slide-title">الخاتمة النهائية</h2>
+      <p class="slide-sub">نهاية المحور الثالث — اليوم الأول</p>
+    </div>
+
+    <div class="quote" style="font-size:18px;">
+      «لا يكفي أن نعرف كيف نستخدم الخدمة الرقمية؛ يجب أن نعرف كيف نستخدمها بأمان.»
+    </div>
+
+    <h3>من تجربة المستخدم…</h3>
+    <div class="flow center">
+      <span class="node gold">تجربة المستخدم</span>
+      <span class="arrow" aria-hidden="true">←</span>
+      <span class="node dark">الوعي السيبراني</span>
+      <span class="arrow" aria-hidden="true">←</span>
+      <span class="node accent">السلوك الآمن</span>
+    </div>
+
+    <div class="think">
+      <h3>ما القادم؟</h3>
+      <blockquote>غدًا ننتقل من فهم المخاطر إلى تعلم كيفية حماية أنفسنا وحساباتنا وبياناتنا أثناء استخدام الخدمات الحكومية الإلكترونية.</blockquote>
+    </div>
+
+    <div style="text-align:center;margin:22px 0 6px;">
+      <button class="btn-primary" type="button" id="backTop">↑ العودة إلى بداية المحور</button>
+    </div>
+
+    <aside class="trainer-note">
+      <h4>🎤 ملاحظات المقدم</h4>
+      <div class="tn-grid">
+        <div class="tn-item"><strong>ماذا أقول؟</strong><span>«انتهى اليوم الأول. غدًا نبدأ رحلة الحماية الفعلية.»</span></div>
+        <div class="tn-item"><strong>النقطة الأساسية</strong><span>اختم اليوم بمشاعر إيجابية: الطالب أصبح أكثر وعيًا، والخطوة التالية هي السلوك الآمن.</span></div>
+        <div class="tn-item"><strong>الوقت المقترح</strong><span>3 دقائق.</span></div>
+        <div class="tn-item"><strong>سؤال للطلاب</strong><span>ما الفكرة التي ستأخذها معك من اليوم الأول؟</span></div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ============ 24 — الملحق: المصطلحات وأسئلة النقاش ============ -->
+  <section class="slide" data-title="ملحق: المصطلحات وأسئلة النقاش" data-time="4 دقائق">
+    <div class="slide-head">
+      <span class="kicker">ملحق</span>
+      <h2 class="slide-title">المصطلحات الأساسية وأسئلة النقاش</h2>
+      <p class="slide-sub">مرجع سريع للمقدم والطلاب</p>
+    </div>
+
+    <h3>المصطلحات الأساسية</h3>
+    <p class="small">اضغط على أي مصطلح لعرض تعريفه.</p>
+    <div class="grid">
+      <div class="term" data-toggle tabindex="0">
+        <div class="term-head"><span class="term-en">Digital Trust</span><span class="term-ar">الثقة الرقمية</span></div>
+        <div class="more"><b>تعريف:</b> ثقة المستخدم في أن الخدمة الرقمية أصلية، وبياناته محمية، وهويته مصونة، ولا أحد غير مصرح يمكنه الوصول إلى معلوماته.</div>
+      </div>
+      <div class="term" data-toggle tabindex="0">
+        <div class="term-head"><span class="term-en">Digital Identity</span><span class="term-ar">الهوية الرقمية</span></div>
+        <div class="more"><b>تعريف:</b> مجموعة المعلومات ووسائل التحقق التي تساعد الأنظمة على التعرف على المستخدم والتحقق من هويته.</div>
+      </div>
+      <div class="term" data-toggle tabindex="0">
+        <div class="term-head"><span class="term-en">Authentication</span><span class="term-ar">المصادقة</span></div>
+        <div class="more"><b>تعريف:</b> التحقق من أن الشخص الذي يحاول الدخول هو صاحب الحساب فعلًا.</div>
+      </div>
+      <div class="term" data-toggle tabindex="0">
+        <div class="term-head"><span class="term-en">OTP</span><span class="term-ar">رمز التحقق لمرة واحدة</span></div>
+        <div class="more"><b>تعريف:</b> رمز مؤقت يُستخدم مرة واحدة، ولا يجب مشاركته مع أي شخص.</div>
+      </div>
+      <div class="term" data-toggle tabindex="0">
+        <div class="term-head"><span class="term-en">MFA</span><span class="term-ar">المصادقة متعددة العوامل</span></div>
+        <div class="more"><b>تعريف:</b> استخدام أكثر من عامل تحقق للدخول، ما يزيد حماية الحساب.</div>
+      </div>
+      <div class="term" data-toggle tabindex="0">
+        <div class="term-head"><span class="term-en">Personal Data</span><span class="term-ar">البيانات الشخصية</span></div>
+        <div class="more"><b>تعريف:</b> أي بيانات تحدد هوية الفرد أو تجعله قابلًا للتعرف عليه.</div>
+      </div>
+      <div class="term" data-toggle tabindex="0">
+        <div class="term-head"><span class="term-en">Privacy</span><span class="term-ar">الخصوصية</span></div>
+        <div class="more"><b>تعريف:</b> حق الفرد في معرفة لماذا تُجمع بياناته وكيف تُستخدم ومن يمكنه الوصول إليها.</div>
+      </div>
+      <div class="term" data-toggle tabindex="0">
+        <div class="term-head"><span class="term-en">Phishing</span><span class="term-ar">التصيد الإلكتروني</span></div>
+        <div class="more"><b>تعريف:</b> محاولة خداع المستخدم لإقناعه بالكشف عن معلومات حساسة أو تنفيذ إجراء غير آمن، عبر رسالة أو موقع أو وسيلة اتصال تبدو موثوقة.</div>
+      </div>
+      <div class="term" data-toggle tabindex="0">
+        <div class="term-head"><span class="term-en">Social Engineering</span><span class="term-ar">الهندسة الاجتماعية</span></div>
+        <div class="more"><b>تعريف:</b> استخدام أساليب التأثير والخداع والتلاعب النفسي لإقناع الشخص بالكشف عن معلومات أو تنفيذ إجراء يفيد المهاجم.</div>
+      </div>
+      <div class="term" data-toggle tabindex="0">
+        <div class="term-head"><span class="term-en">Account Takeover</span><span class="term-ar">الاستيلاء على الحساب</span></div>
+        <div class="more"><b>تعريف:</b> سيطرة المهاجم على حساب المستخدم دون إذنه.</div>
+      </div>
+      <div class="term" data-toggle tabindex="0">
+        <div class="term-head"><span class="term-en">Secure by Design</span><span class="term-ar">الأمن من التصميم</span></div>
+        <div class="more"><b>تعريف:</b> أن يؤخذ الأمن في الاعتبار منذ تصميم الخدمة، لا بعد الانتهاء منها.</div>
+      </div>
+      <div class="term" data-toggle tabindex="0">
+        <div class="term-head"><span class="term-en">Security ↔ Usability</span><span class="term-ar">التوازن بين الأمن وسهولة الاستخدام</span></div>
+        <div class="more"><b>تعريف:</b> محاولة تحقيق حماية قوية دون إرهاق المستخدم بخطوات معقدة.</div>
+      </div>
+    </div>
+
+    <h3>أسئلة نقاشية مقترحة</h3>
+    <div class="grid two">
+      <div class="card"><h4>١</h4><p>لماذا قد يكون حساب المستخدم هدفًا مهمًا؟</p></div>
+      <div class="card"><h4>٢</h4><p>ما الفرق بين حماية كلمة المرور وحماية الهوية الرقمية؟</p></div>
+      <div class="card"><h4>٣</h4><p>هل يمكن أن يكون المستخدم جزءًا من المشكلة الأمنية دون قصد؟</p></div>
+      <div class="card"><h4>٤</h4><p>هل كل رسالة تبدو رسمية تكون فعلًا رسمية؟</p></div>
+      <div class="card"><h4>٥</h4><p>لماذا ينجح التصيد رغم وجود وسائل حماية تقنية؟</p></div>
+      <div class="card"><h4>٦</h4><p>أين يمكن أن يحدث الخطأ في رحلة الخدمة؟</p></div>
+      <div class="card"><h4>٧</h4><p>هل الأمن مسؤولية المستخدم فقط؟</p></div>
+      <div class="card"><h4>٨</h4><p>كيف يمكن أن نجعل الخدمة آمنة وسهلة في الوقت نفسه؟</p></div>
+      <div class="card"><h4>٩</h4><p>ماذا تفعل إذا شككت في رسالة أو رابط؟</p></div>
+      <div class="card"><h4>١٠</h4><p>ما السلوك الأمني الذي ستتبناه بعد هذه الورشة؟</p></div>
+    </div>
+
+    <aside class="trainer-note">
+      <h4>🎤 ملاحظات المقدم</h4>
+      <div class="tn-grid">
+        <div class="tn-item"><strong>ماذا أقول؟</strong><span>«هذه الصفحة مرجعية. لا تحتاج عرضها كاملة، لكنها مفيدة للرجوع إليها.»</span></div>
+        <div class="tn-item"><strong>النقطة الأساسية</strong><span>المصطلحات ليست للحفظ، بل لفهم دورها في الرحلة.</span></div>
+        <div class="tn-item"><strong>الوقت المقترح</strong><span>4 دقائق أو أقل.</span></div>
+      </div>
+    </aside>
+  </section>
+
+  </main>
+
+  <!-- ===================== الشريط السفلي ===================== -->
+  <footer class="navbar">
+    <div class="nav-meta">
+      <span class="nav-title" id="currentTitle">الغلاف</span>
+      <span class="nav-time" id="currentTime"></span>
+    </div>
+    <div class="nav-buttons">
+      <button class="navbtn" id="prevBtn" type="button">← السابق</button>
+      <span class="counter" id="counter">القسم 1</span>
+      <button class="navbtn primary" id="nextBtn" type="button">التالي →</button>
+    </div>
+  </footer>
+
+</div>
+
+<!-- ===================== القائمة الجانبية ===================== -->
+<div class="overlay" id="overlay"></div>
+<aside class="drawer" id="drawer" aria-label="قائمة أقسام المحور الثالث">
+  <div class="drawer-head">
+    <h3>أقسام المحور الثالث</h3>
+    <button class="drawer-close" id="drawerClose" type="button" aria-label="إغلاق القائمة">✕</button>
+  </div>
+  <div class="nav-list" id="navList"></div>
+</aside>
+
+<script>
+(function () {
+  'use strict';
+
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var stage = document.getElementById('stage');
+  var progressFill = document.getElementById('progressFill');
+  var progressBar = document.getElementById('progressBar');
+  var counter = document.getElementById('counter');
+  var currentTitle = document.getElementById('currentTitle');
+  var currentTime = document.getElementById('currentTime');
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+  var navList = document.getElementById('navList');
+  var drawer = document.getElementById('drawer');
+  var overlay = document.getElementById('overlay');
+  var menuBtn = document.getElementById('menuBtn');
+  var homeBtn = document.getElementById('homeBtn');
+  var drawerClose = document.getElementById('drawerClose');
+  var trainerBtn = document.getElementById('trainerBtn');
+
+  var current = 0;
+  var total = slides.length;
+
+  /* ===== بناء قائمة التنقل ===== */
+  slides.forEach(function (slide, i) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'nav-item';
+    var title = slide.getAttribute('data-title') || ('القسم ' + (i + 1));
+    b.innerHTML = '<span class="nav-num">' + (i + 1) + '</span><span class="nav-label">' + title + '</span>';
+    b.addEventListener('click', function () { goTo(i); });
+    navList.appendChild(b);
+  });
+  var navItems = Array.prototype.slice.call(navList.children);
+
+  /* ===== التنقل ===== */
+  function goTo(index) {
+    if (index < 0 || index >= total) { return; }
+    slides[current].classList.remove('active');
+    current = index;
+    slides[current].classList.add('active');
+    if (stage) { stage.scrollTop = 0; }
+    updateUI();
+    closeDrawer();
+  }
+
+  function updateUI() {
+    var pct = ((current + 1) / total) * 100;
+    progressFill.style.width = pct + '%';
+    if (progressBar) { progressBar.setAttribute('aria-valuenow', Math.round(pct)); }
+    counter.textContent = 'القسم ' + (current + 1) + ' من ' + total;
+
+    var t = slides[current].getAttribute('data-title') || '';
+    var tm = slides[current].getAttribute('data-time') || '';
+    currentTitle.textContent = t;
+    currentTime.textContent = tm ? ('الوقت المقترح: ' + tm) : '';
+
+    prevBtn.disabled = (current === 0);
+    nextBtn.disabled = (current === total - 1);
+
+    navItems.forEach(function (item, i) {
+      item.classList.toggle('active', i === current);
+    });
+  }
+
+  prevBtn.addEventListener('click', function () { goTo(current - 1); });
+  nextBtn.addEventListener('click', function () { goTo(current + 1); });
+  homeBtn.addEventListener('click', function () { goTo(0); });
+
+  /* ===== القائمة الجانبية ===== */
+  function openDrawer() {
+    drawer.classList.add('open');
+    overlay.classList.add('show');
+    menuBtn.classList.add('active');
+  }
+  function closeDrawer() {
+    drawer.classList.remove('open');
+    overlay.classList.remove('show');
+    menuBtn.classList.remove('active');
+  }
+  menuBtn.addEventListener('click', function () {
+    if (drawer.classList.contains('open')) { closeDrawer(); } else { openDrawer(); }
+  });
+  drawerClose.addEventListener('click', closeDrawer);
+  overlay.addEventListener('click', closeDrawer);
+
+  /* ===== وضع المدرب ===== */
+  trainerBtn.addEventListener('click', function () {
+    var on = !document.body.classList.contains('trainer');
+    document.body.classList.toggle('trainer', on);
+    trainerBtn.classList.toggle('active', on);
+    trainerBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    trainerBtn.textContent = on ? '🎤 ملاحظات المقدم: مُفعّلة' : '🎤 ملاحظات المقدم';
+  });
+
+  /* ===== العناصر القابلة للفتح ===== */
+  document.addEventListener('click', function (e) {
+    var toggleEl = e.target.closest('[data-toggle]');
+    if (toggleEl) { toggleEl.classList.toggle('open'); return; }
+
+    var objEl = e.target.closest('.obj');
+    if (objEl) { objEl.classList.toggle('done'); return; }
+
+    var chkEl = e.target.closest('.chk');
+    if (chkEl) { chkEl.classList.toggle('done'); return; }
+
+    var opt = e.target.closest('.opt');
+    if (opt) {
+      var quiz = opt.closest('.quiz');
+      if (!quiz || quiz.getAttribute('data-answered') === '1') { return; }
+      quiz.setAttribute('data-answered', '1');
+      var isCorrect = opt.getAttribute('data-correct') === '1';
+      opt.classList.add(isCorrect ? 'correct' : 'wrong');
+      if (!isCorrect) {
+        var right = quiz.querySelector('.opt[data-correct="1"]');
+        if (right) { right.classList.add('correct'); }
+      }
+      var ans = quiz.querySelector('.answer');
+      if (ans) { ans.classList.add('show'); }
+    }
+  });
+
+  /* دعم لوحة المفاتيح للعناصر التفاعلية */
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      var el = e.target;
+      if (el && el.matches && el.matches('[data-toggle], .obj, .chk')) {
+        e.preventDefault();
+        el.click();
+      }
+    }
+  });
+
+  /* ===== اختصارات لوحة المفاتيح ===== */
+  document.addEventListener('keydown', function (e) {
+    var tag = (e.target && e.target.tagName ? e.target.tagName.toLowerCase() : '');
+    if (tag === 'input' || tag === 'textarea' || tag === 'select') { return; }
+    switch (e.key) {
+      case 'ArrowLeft': e.preventDefault(); goTo(current + 1); break;
+      case 'ArrowRight': e.preventDefault(); goTo(current - 1); break;
+      case 'Home': e.preventDefault(); goTo(0); break;
+      case 'End': e.preventDefault(); goTo(total - 1); break;
+      case 'Escape': closeDrawer(); break;
+      default: break;
+    }
+  });
+
+  /* ===== زر العودة إلى بداية المحور ===== */
+  var backTop = document.getElementById('backTop');
+  if (backTop) {
+    backTop.addEventListener('click', function () { goTo(0); });
+  }
+
+  /* ===== التشغيل الأولي ===== */
+  slides[0].classList.add('active');
+  updateUI();
+
+})();
+</script>
+</body>
+</html>
