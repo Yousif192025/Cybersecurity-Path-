@@ -1,576 +1,1154 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>محاكي الاختبار الشامل - دبلوم علوم الحاسب</title>
-    <style>
-        :root {
-            --primary: #1e3a5f;
-            --primary-light: #2c5282;
-            --accent: #38b2ac;
-            --success: #2f855a;
-            --danger: #c53030;
-            --bg: #f7fafc;
-            --card-bg: #ffffff;
-            --text: #2d3748;
-            --text-light: #718096;
-            --border: #e2e8f0;
-            --radius: 12px;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .container {
-            width: 100%;
-            max-width: 900px;
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            overflow: hidden;
-        }
-        header {
-            background: var(--primary);
-            color: white;
-            padding: 20px 25px;
-            text-align: center;
-        }
-        header h1 {
-            font-size: 1.5rem;
-            margin-bottom: 5px;
-        }
-        header p {
-            font-size: 0.9rem;
-            opacity: 0.85;
-        }
-        .status-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 25px;
-            background: #edf2f7;
-            border-bottom: 1px solid var(--border);
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .progress-info {
-            font-weight: 600;
-            color: var(--primary);
-        }
-        .score-display {
-            background: var(--primary);
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-weight: 700;
-            font-size: 0.9rem;
-        }
-        .progress-bar {
-            height: 6px;
-            background: #cbd5e0;
-            width: 100%;
-            position: relative;
-        }
-        .progress-fill {
-            height: 100%;
-            background: var(--accent);
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-        .quiz-area {
-            padding: 25px;
-        }
-        .section-tag {
-            display: inline-block;
-            background: var(--accent);
-            color: white;
-            font-size: 0.75rem;
-            padding: 3px 12px;
-            border-radius: 15px;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-        .question-text {
-            font-size: 1.15rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-            color: var(--primary);
-            line-height: 1.8;
-        }
-        .options {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .option {
-            padding: 14px 18px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 1rem;
-            background: #fafafa;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .option:hover:not(.disabled) {
-            border-color: var(--primary-light);
-            background: #ebf8ff;
-        }
-        .option.selected {
-            border-color: var(--primary);
-            background: #ebf8ff;
-        }
-        .option.correct {
-            border-color: var(--success);
-            background: #f0fff4;
-        }
-        .option.wrong {
-            border-color: var(--danger);
-            background: #fff5f5;
-        }
-        .option.disabled {
-            cursor: not-allowed;
-            opacity: 0.8;
-        }
-        .option .letter {
-            font-weight: 700;
-            color: var(--primary);
-            min-width: 24px;
-            text-align: center;
-            background: #e2e8f0;
-            border-radius: 50%;
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.85rem;
-        }
-        .feedback {
-            margin-top: 18px;
-            padding: 12px 16px;
-            border-radius: var(--radius);
-            font-weight: 600;
-            display: none;
-        }
-        .feedback.show {
-            display: block;
-        }
-        .feedback.correct {
-            background: #f0fff4;
-            color: var(--success);
-            border-right: 4px solid var(--success);
-        }
-        .feedback.wrong {
-            background: #fff5f5;
-            color: var(--danger);
-            border-right: 4px solid var(--danger);
-        }
-        .nav-buttons {
-            display: flex;
-            justify-content: space-between;
-            padding: 20px 25px;
-            border-top: 1px solid var(--border);
-            background: #f7fafc;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        button {
-            font-family: inherit;
-            font-size: 1rem;
-            font-weight: 600;
-            padding: 12px 28px;
-            border: none;
-            border-radius: var(--radius);
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-        .btn-primary:hover:not(:disabled) {
-            background: var(--primary-light);
-        }
-        .btn-primary:disabled {
-            background: #a0aec0;
-            cursor: not-allowed;
-        }
-        .btn-secondary {
-            background: #e2e8f0;
-            color: var(--text);
-        }
-        .btn-secondary:hover:not(:disabled) {
-            background: #cbd5e0;
-        }
-        .btn-secondary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .result-screen {
-            display: none;
-            padding: 40px 25px;
-            text-align: center;
-        }
-        .result-screen.active {
-            display: block;
-        }
-        .result-screen h2 {
-            font-size: 1.8rem;
-            color: var(--primary);
-            margin-bottom: 15px;
-        }
-        .result-score {
-            font-size: 3rem;
-            font-weight: 800;
-            color: var(--accent);
-            margin: 10px 0;
-        }
-        .result-detail {
-            font-size: 1.1rem;
-            color: var(--text-light);
-            margin-bottom: 25px;
-        }
-        .btn-restart {
-            background: var(--accent);
-            color: white;
-            padding: 14px 40px;
-            font-size: 1.1rem;
-        }
-        .btn-restart:hover {
-            background: #319795;
-        }
-        .hidden {
-            display: none !important;
-        }
-        @media (max-width: 600px) {
-            body { padding: 10px; }
-            .quiz-area { padding: 18px; }
-            .question-text { font-size: 1.05rem; }
-            .option { font-size: 0.95rem; padding: 12px 14px; }
-            button { width: 100%; }
-            .nav-buttons { flex-direction: column; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="محاكي الاختبار الشامل - دبلوم علوم الحاسب وتقنية المعلومات / الأمن السيبراني">
+<title>محاكي الاختبار الشامل | مسار الأمن السيبراني</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* =====================================================
+   Design Tokens
+   ===================================================== */
+:root{
+  --bg-0:#040814;
+  --bg-1:#0a1322;
+  --bg-2:#0f1b30;
+  --card:#0f1c33;
+  --card-2:#152540;
+  --border:#1c2d4a;
+  --border-2:#26405f;
+  --primary:#22d3ee;
+  --primary-dark:#0891b2;
+  --primary-glow:rgba(34,211,238,.35);
+  --success:#34d399;
+  --success-bg:rgba(52,211,153,.08);
+  --danger:#f87171;
+  --danger-bg:rgba(248,113,113,.08);
+  --warning:#fbbf24;
+  --purple:#a78bfa;
+  --text:#e6edf7;
+  --text-dim:#94a3b8;
+  --text-muted:#5f7395;
+  --radius:16px;
+  --radius-sm:10px;
+  --shadow:0 20px 40px -15px rgba(0,0,0,.6);
+  --transition:.2s ease;
+}
+
+/* =====================================================
+   Reset & Base
+   ===================================================== */
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Tajawal','Segoe UI',system-ui,-apple-system,sans-serif;
+  background:
+    radial-gradient(ellipse 800px 400px at top,rgba(34,211,238,.08),transparent 55%),
+    radial-gradient(ellipse 800px 400px at bottom right,rgba(167,139,250,.06),transparent 55%),
+    linear-gradient(180deg,var(--bg-0) 0%,var(--bg-1) 100%);
+  background-attachment:fixed;
+  color:var(--text);
+  min-height:100vh;
+  line-height:1.7;
+  position:relative;
+  overflow-x:hidden;
+}
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  background-image:
+    linear-gradient(rgba(34,211,238,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(34,211,238,.025) 1px,transparent 1px);
+  background-size:50px 50px;
+  mask-image:radial-gradient(ellipse at center,black 30%,transparent 85%);
+  -webkit-mask-image:radial-gradient(ellipse at center,black 30%,transparent 85%);
+}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit}
+.app{
+  position:relative;
+  z-index:1;
+  max-width:1000px;
+  margin:0 auto;
+  padding:22px 18px 90px;
+}
+
+/* =====================================================
+   Header
+   ===================================================== */
+.app-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:16px 20px;
+  background:rgba(15,28,51,.7);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  margin-bottom:16px;
+  flex-wrap:wrap;
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+}
+.brand-icon{
+  width:46px;
+  height:46px;
+  border-radius:12px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,rgba(34,211,238,.15),rgba(167,139,250,.15));
+  border:1px solid rgba(34,211,238,.35);
+  color:var(--primary);
+  font-size:22px;
+  flex-shrink:0;
+  box-shadow:0 0 20px rgba(34,211,238,.15);
+}
+.brand-text h1{
+  font-size:1.05rem;
+  font-weight:800;
+  letter-spacing:.2px;
+  line-height:1.3;
+}
+.brand-text p{
+  font-size:.72rem;
+  color:var(--text-dim);
+  margin-top:2px;
+}
+.header-stats{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.stat-pill{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 14px;
+  background:rgba(10,19,34,.7);
+  border:1px solid var(--border-2);
+  border-radius:999px;
+  font-size:.82rem;
+  color:var(--text-dim);
+  font-weight:600;
+  white-space:nowrap;
+}
+.stat-pill strong{
+  color:var(--text);
+  font-family:'JetBrains Mono',monospace;
+  font-weight:700;
+}
+.stat-pill.accent strong{color:var(--primary)}
+.stat-pill.success strong{color:var(--success)}
+
+/* =====================================================
+   Toolbar (الإجراءات الأربعة)
+   ===================================================== */
+.toolbar{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  margin-bottom:16px;
+}
+.tool-btn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:11px 12px;
+  background:var(--card);
+  color:var(--text);
+  border:1px solid var(--border-2);
+  border-radius:12px;
+  cursor:pointer;
+  font-size:.85rem;
+  font-weight:700;
+  transition:var(--transition);
+  white-space:nowrap;
+}
+.tool-btn:hover{
+  background:var(--card-2);
+  border-color:var(--primary);
+  transform:translateY(-1px);
+}
+.tool-btn .ico{font-size:1.05rem;line-height:1}
+.tool-btn.primary{
+  background:linear-gradient(135deg,var(--primary-dark),var(--primary));
+  color:#03212b;
+  border-color:transparent;
+}
+.tool-btn.primary:hover{
+  filter:brightness(1.1);
+  box-shadow:0 0 25px var(--primary-glow);
+}
+.tool-btn.danger{
+  color:var(--danger);
+  border-color:rgba(248,113,113,.35);
+}
+.tool-btn.danger:hover{
+  background:var(--danger-bg);
+  border-color:var(--danger);
+}
+.tool-btn.ghost{background:transparent}
+.tool-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* =====================================================
+   Progress
+   ===================================================== */
+.progress-wrap{margin-bottom:18px}
+.progress-info{
+  display:flex;
+  justify-content:space-between;
+  font-size:.75rem;
+  color:var(--text-dim);
+  margin-bottom:6px;
+  font-weight:600;
+}
+.progress-track{
+  height:8px;
+  background:rgba(28,45,74,.7);
+  border-radius:999px;
+  overflow:hidden;
+  position:relative;
+}
+.progress-fill{
+  height:100%;
+  width:0;
+  border-radius:999px;
+  background:linear-gradient(90deg,var(--primary-dark),var(--primary),var(--purple));
+  box-shadow:0 0 14px var(--primary-glow);
+  transition:width .35s ease;
+}
+
+/* =====================================================
+   Question Card
+   ===================================================== */
+.q-card{
+  background:linear-gradient(180deg,var(--card),rgba(15,28,51,.85));
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:26px;
+  box-shadow:var(--shadow);
+  position:relative;
+}
+.q-card::before{
+  content:'';
+  position:absolute;
+  inset:-1px;
+  border-radius:inherit;
+  padding:1px;
+  background:linear-gradient(135deg,rgba(34,211,238,.4),transparent 40%,transparent 60%,rgba(167,139,250,.3));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+  mask-composite:exclude;
+  pointer-events:none;
+}
+.q-meta{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  margin-bottom:16px;
+  flex-wrap:wrap;
+}
+.section-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:5px 12px;
+  background:rgba(34,211,238,.1);
+  border:1px solid rgba(34,211,238,.3);
+  color:var(--primary);
+  border-radius:999px;
+  font-size:.75rem;
+  font-weight:700;
+}
+.q-counter{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.8rem;
+  color:var(--text-muted);
+}
+.q-text{
+  font-size:1.15rem;
+  font-weight:700;
+  line-height:1.85;
+  margin-bottom:20px;
+  color:var(--text);
+}
+
+/* =====================================================
+   Options
+   ===================================================== */
+.options{display:flex;flex-direction:column;gap:10px}
+.option{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px 16px;
+  background:rgba(10,19,34,.5);
+  border:1.5px solid var(--border-2);
+  border-radius:12px;
+  cursor:pointer;
+  transition:var(--transition);
+  font-size:.98rem;
+  color:var(--text);
+  text-align:right;
+  width:100%;
+  font-family:inherit;
+}
+.option:hover:not(.locked){
+  background:var(--card-2);
+  border-color:var(--primary);
+  transform:translateX(-3px);
+}
+.option .key{
+  width:30px;
+  height:30px;
+  display:grid;
+  place-items:center;
+  flex-shrink:0;
+  background:var(--border);
+  border-radius:8px;
+  font-family:'JetBrains Mono',monospace;
+  font-weight:700;
+  font-size:.85rem;
+  color:var(--text-dim);
+  transition:var(--transition);
+}
+.option .txt{flex:1;line-height:1.6}
+.option.locked{cursor:not-allowed}
+.option.correct{background:var(--success-bg);border-color:var(--success)}
+.option.correct .key{background:var(--success);color:#022c1f}
+.option.wrong{background:var(--danger-bg);border-color:var(--danger)}
+.option.wrong .key{background:var(--danger);color:#3b0606}
+
+/* =====================================================
+   Explanation (الوضع التعليمي)
+   ===================================================== */
+.explain{
+  margin-top:20px;
+  padding:18px;
+  border-radius:14px;
+  display:none;
+  border-right:4px solid var(--primary);
+  background:rgba(34,211,238,.06);
+  animation:slideIn .35s ease;
+}
+.explain.show{display:block}
+.explain.correct{border-right-color:var(--success);background:var(--success-bg)}
+.explain.wrong{border-right-color:var(--danger);background:var(--danger-bg)}
+.explain-head{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-weight:800;
+  font-size:.95rem;
+  margin-bottom:10px;
+}
+.explain.correct .explain-head{color:var(--success)}
+.explain.wrong .explain-head{color:var(--danger)}
+.explain-head .ico{font-size:1.15rem;line-height:1}
+.explain-body{
+  font-size:.92rem;
+  color:var(--text);
+  line-height:1.9;
+}
+.explain-body b{color:var(--primary);font-weight:800}
+.explain.correct .explain-body b{color:var(--success)}
+.explain.wrong .explain-body b{color:var(--danger)}
+@keyframes slideIn{
+  from{opacity:0;transform:translateY(-6px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* =====================================================
+   Navigation Footer
+   ===================================================== */
+.nav-footer{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  margin-top:18px;
+  flex-wrap:wrap;
+}
+.nav-btn{
+  padding:12px 26px;
+  background:var(--card);
+  color:var(--text);
+  border:1px solid var(--border-2);
+  border-radius:12px;
+  font-weight:700;
+  font-size:.9rem;
+  cursor:pointer;
+  transition:var(--transition);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.nav-btn:hover:not(:disabled){
+  border-color:var(--primary);
+  background:var(--card-2);
+}
+.nav-btn:disabled{opacity:.4;cursor:not-allowed}
+.nav-btn.next{
+  background:linear-gradient(135deg,var(--primary-dark),var(--primary));
+  color:#03212b;
+  border:none;
+  flex:1;
+  justify-content:center;
+}
+.nav-btn.next:hover{
+  filter:brightness(1.1);
+  box-shadow:0 0 25px var(--primary-glow);
+}
+
+/* =====================================================
+   Modal
+   ===================================================== */
+.modal-back{
+  position:fixed;
+  inset:0;
+  background:rgba(3,8,18,.82);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  z-index:100;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  animation:fadeIn .2s ease;
+}
+.modal-back.show{display:flex}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{
+  background:linear-gradient(180deg,var(--card),var(--bg-2));
+  border:1px solid var(--border-2);
+  border-radius:20px;
+  max-width:520px;
+  width:100%;
+  padding:32px;
+  box-shadow:var(--shadow);
+  position:relative;
+  animation:pop .3s cubic-bezier(.2,.9,.3,1.3);
+  max-height:90vh;
+  overflow-y:auto;
+}
+@keyframes pop{
+  from{transform:scale(.9);opacity:0}
+  to{transform:scale(1);opacity:1}
+}
+.modal-head{text-align:center;margin-bottom:22px}
+.modal-icon{
+  width:70px;
+  height:70px;
+  margin:0 auto 14px;
+  border-radius:20px;
+  display:grid;
+  place-items:center;
+  font-size:34px;
+  background:linear-gradient(135deg,rgba(34,211,238,.15),rgba(167,139,250,.15));
+  border:1px solid rgba(34,211,238,.35);
+  box-shadow:0 0 30px rgba(34,211,238,.2);
+}
+.modal-title{
+  font-size:1.4rem;
+  font-weight:800;
+  color:var(--text);
+  margin-bottom:6px;
+}
+.modal-sub{font-size:.9rem;color:var(--text-dim)}
+.modal-body{margin-bottom:24px}
+.stat-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-bottom:18px;
+}
+.stat-box{
+  padding:14px 10px;
+  background:rgba(10,19,34,.6);
+  border:1px solid var(--border);
+  border-radius:12px;
+  text-align:center;
+}
+.stat-box .num{
+  font-family:'JetBrains Mono',monospace;
+  font-size:1.5rem;
+  font-weight:700;
+  color:var(--primary);
+  line-height:1.2;
+}
+.stat-box .lbl{
+  font-size:.72rem;
+  color:var(--text-muted);
+  margin-top:2px;
+}
+.stat-box.ok .num{color:var(--success)}
+.stat-box.bad .num{color:var(--danger)}
+.grade-banner{
+  text-align:center;
+  padding:20px;
+  border-radius:14px;
+  background:linear-gradient(135deg,rgba(34,211,238,.12),rgba(167,139,250,.12));
+  border:1px solid rgba(34,211,238,.3);
+  margin-bottom:18px;
+}
+.grade-pct{
+  font-size:2.6rem;
+  font-weight:800;
+  color:var(--primary);
+  line-height:1;
+  font-family:'JetBrains Mono',monospace;
+}
+.grade-msg{
+  font-size:.92rem;
+  color:var(--text);
+  margin-top:8px;
+  font-weight:600;
+}
+.modal-actions{display:flex;flex-direction:column;gap:10px}
+.modal-btn{
+  padding:13px;
+  border-radius:12px;
+  font-weight:700;
+  font-size:.95rem;
+  cursor:pointer;
+  transition:var(--transition);
+  border:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  text-align:center;
+}
+.modal-btn.primary{
+  background:linear-gradient(135deg,var(--primary-dark),var(--primary));
+  color:#03212b;
+}
+.modal-btn.primary:hover{
+  filter:brightness(1.1);
+  box-shadow:0 0 25px var(--primary-glow);
+}
+.modal-btn.ghost{
+  background:transparent;
+  color:var(--text-dim);
+  border:1px solid var(--border-2);
+}
+.modal-btn.ghost:hover{
+  color:var(--text);
+  border-color:var(--primary);
+}
+.modal-btn.danger{
+  background:transparent;
+  color:var(--danger);
+  border:1px solid rgba(248,113,113,.35);
+}
+.modal-btn.danger:hover{background:var(--danger-bg)}
+
+/* =====================================================
+   Final Result Screen
+   ===================================================== */
+.result-screen{
+  display:none;
+  background:linear-gradient(180deg,var(--card),var(--bg-2));
+  border:1px solid var(--border-2);
+  border-radius:20px;
+  padding:40px 26px;
+  text-align:center;
+  box-shadow:var(--shadow);
+}
+.result-screen.show{display:block;animation:pop .4s ease}
+.result-icon{font-size:64px;margin-bottom:10px;line-height:1}
+.result-title{
+  font-size:1.6rem;
+  font-weight:800;
+  margin-bottom:6px;
+  color:var(--primary);
+}
+.result-pct{
+  font-family:'JetBrains Mono',monospace;
+  font-size:3.5rem;
+  font-weight:800;
+  color:var(--primary);
+  line-height:1.1;
+}
+.result-msg{
+  font-size:1rem;
+  color:var(--text-dim);
+  margin:14px 0 22px;
+}
+.result-actions{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+.result-actions .modal-btn{
+  width:auto;
+  padding:13px 24px;
+}
+
+/* =====================================================
+   Utility & Responsive
+   ===================================================== */
+.hidden{display:none!important}
+
+@media(max-width:720px){
+  .toolbar{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:600px){
+  .app{padding:14px 12px 80px}
+  .q-card{padding:18px}
+  .q-text{font-size:1.02rem}
+  .option{padding:12px;font-size:.92rem}
+  .tool-btn{font-size:.78rem;padding:10px 8px}
+  .header-stats{width:100%;justify-content:space-between}
+  .stat-pill{font-size:.7rem;padding:6px 10px}
+  .nav-footer{flex-direction:column}
+  .nav-btn.next{width:100%}
+  .stat-grid{grid-template-columns:1fr}
+  .brand-text h1{font-size:.95rem}
+  .brand-text p{font-size:.65rem}
+  .modal{padding:24px 18px}
+}
+</style>
 </head>
 <body>
+<div class="app">
 
-<div class="container" id="app">
-    <header>
+  <!-- ============ HEADER ============ -->
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-icon">🛡️</div>
+      <div class="brand-text">
         <h1>محاكي الاختبار الشامل</h1>
-        <p>دبلوم علوم الحاسب الآلي وتقنية المعلومات / الأمن السيبراني</p>
-    </header>
-
-    <div id="quizSection">
-        <div class="status-bar">
-            <span class="progress-info" id="progressText">السؤال 1 من 100</span>
-            <span class="score-display" id="scoreText">النتيجة: 0</span>
-        </div>
-        <div class="progress-bar">
-            <div class="progress-fill" id="progressFill"></div>
-        </div>
-
-        <div class="quiz-area">
-            <span class="section-tag" id="sectionTag">البرمجة وهياكل البيانات</span>
-            <div class="question-text" id="questionText">جارٍ تحميل السؤال...</div>
-            <div class="options" id="optionsContainer"></div>
-            <div class="feedback" id="feedbackBox"></div>
-        </div>
-
-        <div class="nav-buttons">
-            <button class="btn-secondary" id="prevBtn" onclick="prevQuestion()" disabled>السابق</button>
-            <button class="btn-primary" id="nextBtn" onclick="nextQuestion()">التالي</button>
-        </div>
+        <p>دبلوم علوم الحاسب وتقنية المعلومات / الأمن السيبراني</p>
+      </div>
     </div>
-
-    <div class="result-screen" id="resultScreen">
-        <h2>انتهى الاختبار</h2>
-        <div class="result-score" id="finalScore">0 / 100</div>
-        <div class="result-detail" id="finalDetail"></div>
-        <button class="btn-restart" onclick="restartQuiz()">إعادة الاختبار</button>
+    <div class="header-stats">
+      <div class="stat-pill accent">سؤال <strong id="hdrQ">1/100</strong></div>
+      <div class="stat-pill success">صحيحة <strong id="hdrScore">0</strong></div>
+      <div class="stat-pill">متبقي <strong id="hdrRemain">100</strong></div>
     </div>
+  </header>
+
+  <!-- ============ TOOLBAR (4 أزرار) ============ -->
+  <div class="toolbar" id="toolbar">
+    <button class="tool-btn primary" onclick="showResultModal()">
+      <span class="ico">📊</span><span>عرض النتيجة</span>
+    </button>
+    <button class="tool-btn" onclick="confirmRestart()">
+      <span class="ico">🔄</span><span>إعادة المحاولة</span>
+    </button>
+    <button class="tool-btn danger" onclick="confirmFinish()">
+      <span class="ico">🏁</span><span>إنهاء الاختبار</span>
+    </button>
+    <a class="tool-btn ghost" id="backBtn">
+      <span class="ico">↩️</span><span>الرجوع للقائمة</span>
+    </a>
+  </div>
+
+  <!-- ============ PROGRESS ============ -->
+  <div class="progress-wrap">
+    <div class="progress-info">
+      <span>التقدم في الاختبار</span>
+      <span id="progressPct">0%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <!-- ============ QUIZ SECTION ============ -->
+  <section id="quizSection">
+    <div class="q-card">
+      <div class="q-meta">
+        <span class="section-badge" id="sectionBadge">تحميل...</span>
+        <span class="q-counter" id="qCounter">01 / 100</span>
+      </div>
+      <h2 class="q-text" id="questionText">...</h2>
+      <div class="options" id="optionsBox"></div>
+      <div class="explain" id="explainBox">
+        <div class="explain-head">
+          <span class="ico" id="explainIco">✓</span>
+          <span id="explainTitle">إجابة صحيحة</span>
+        </div>
+        <div class="explain-body" id="explainBody"></div>
+      </div>
+    </div>
+    <div class="nav-footer">
+      <button class="nav-btn" id="prevBtn" onclick="prevQ()">← السابق</button>
+      <button class="nav-btn next" id="nextBtn" onclick="nextQ()">التالي →</button>
+    </div>
+  </section>
+
+  <!-- ============ FINAL RESULT SCREEN ============ -->
+  <section class="result-screen" id="resultScreen">
+    <div class="result-icon" id="resultIcon">🎯</div>
+    <div class="result-title">انتهى الاختبار</div>
+    <div class="result-pct" id="resultPct">0%</div>
+    <div class="result-msg" id="resultMsg"></div>
+    <div class="stat-grid" style="max-width:400px;margin:0 auto 22px">
+      <div class="stat-box ok"><div class="num" id="resCorrect">0</div><div class="lbl">صحيحة</div></div>
+      <div class="stat-box bad"><div class="num" id="resWrong">0</div><div class="lbl">خاطئة</div></div>
+      <div class="stat-box"><div class="num" id="resUnanswered">0</div><div class="lbl">غير مجاب</div></div>
+    </div>
+    <div class="result-actions">
+      <button class="modal-btn primary" onclick="restartExam()">
+        <span>🔄</span> إعادة المحاولة
+      </button>
+      <button class="modal-btn ghost" onclick="showResultModal()">
+        <span>📊</span> تفاصيل النتيجة
+      </button>
+      <a class="modal-btn ghost" id="backBtn2">
+        <span>↩️</span> القائمة
+      </a>
+    </div>
+  </section>
+
+</div>
+
+<!-- ============ MODAL ============ -->
+<div class="modal-back" id="modalBack">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-icon" id="modalIcon">📊</div>
+      <div class="modal-title" id="modalTitle">نتيجتك الحالية</div>
+      <div class="modal-sub" id="modalSub">ملخص أدائك حتى الآن</div>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-actions" id="modalActions"></div>
+  </div>
 </div>
 
 <script>
-    // ========== بنك الأسئلة (100 سؤال) ==========
-    // تم استخراج الأسئلة من الملف المرفق وتنظيمها حسب المحاور.
-    // كل كائن: { section, question, options: [], correct: index (0-based), type: 'mcq' | 'tf' }
-    const allQuestions = [];
+/* =====================================================
+   ⚙️ الإعدادات — عدّل السطر التالي فقط
+   ===================================================== */
+const EXAMS_LIST_URL = "index.html";  // ← مسار صفحة قائمة الاختبارات
 
-    // ---------- قسم البرمجة وهياكل البيانات (C++ & JavaScript) ----------
-    const programmingQuestions = [
-        { section: "البرمجة وهياكل البيانات", question: "الكود الصحيح لكتابة تعليق من سطر واحد في JavaScript و C++ هو:", options: ["<!-- تعليق -->", "// تعليق", "/* تعليق", "# تعليق"], correct: 1, type: "mcq" },
-        { section: "البرمجة وهياكل البيانات", question: "كيف تقوم بإنشاء متغير عددي صحيح بقيمة 5 في لغة C++؟", options: ["int x = 5;", "num x = 5;", "var x = 5;", "x := 5;"], correct: 0, type: "mcq" },
-        { section: "البرمجة وهياكل البيانات", question: "المعامل الصحيح للمقارنة بين قيمتين في C++ للتأكد من تساويهما هو:", options: ["=", "==", "===", "!="], correct: 1, type: "mcq" },
-        { section: "البرمجة وهياكل البيانات", question: "ما هي الدالة المستخدمة لإيجاد القيمة الكبرى بين متغيرين x و y في C++؟", options: ["maximum(x, y)", "top(x, y)", "max(x, y)", "math.max(x, y)"], correct: 2, type: "mcq" },
-        { section: "البرمجة وهياكل البيانات", question: "كيف تبدأ كتابة حلقة التكرار While في C++ بشكل صحيح؟", options: ["while x > y", "while (condition) { }", "while (condition) then", "do while (condition)"], correct: 1, type: "mcq" },
-        { section: "البرمجة وهياكل البيانات", question: "سلسلة من الأوامر المكتوبة بأحد لغات البرمجة وتخزن في ملف قابل للتنفيذ تُسمى:", options: ["البرنامج (Program)", "الخوارزمية (Algorithm)", "المترجم (Compiler)", "المخطط الانسيابي (Flowchart)"], correct: 0, type: "mcq" },
-        { section: "البرمجة وهياكل البيانات", question: "لإنهاء جملة برمجية في C++ يجب وضع:", options: ["نقطة .", "فاصلة ,", "فاصلة منقوطة ;", "نقطتان رأسيتان :"], correct: 2, type: "mcq" },
-        { section: "البرمجة وهياكل البيانات", question: "أي من الكلمات التالية تُعد كلمة محجوزة في C++ للتعامل مع الشروط؟", options: ["if", "when", "check", "condition"], correct: 0, type: "mcq" },
-        { section: "البرمجة وهياكل البيانات", question: "النوع الإرجاعي للدالة الرئيسية Main في C++ هو عادة:", options: ["void", "int", "string", "float"], correct: 1, type: "mcq" },
-        { section: "البرمجة وهياكل البيانات", question: "الأمر المستخدم لطباعة نص على الشاشة في C++ هو:", options: ["cin", "cout", "printf", "write"], correct: 1, type: "mcq" },
-        { section: "البرمجة وهياكل البيانات", question: "الأمر المستخدم لاستقبال المدخلات من المستخدم في C++ هو:", options: ["cout <<", "cin >>", "input()", "read()"], correct: 1, type: "mcq" },
-        { section: "البرمجة وهياكل البيانات", question: "المصفوفة (Array) في لغات البرمجة هي:", options: ["مجموعة متغيرات ذات أنواع مختلفة", "مجموعة عناصر متتالية من نفس نوع البيانات مخزنة في الذاكرة", "دالة برمجية تنفذ مرة واحدة", "ملف نصي يخزن البيانات"], correct: 1, type: "mcq" },
-        { section: "البرمجة وهياكل البيانات", question: "يبدأ ترقيم الفهرس (Index) لعناصر المصفوفة في C++ من الرقم:", options: ["1", "-1", "0", "2"], correct: 2, type: "mcq" },
-        { section: "البرمجة وهياكل البيانات", question: "المعامل المبرمج للحصول على باقي القسمة الصحيحة في C++ هو:", options: ["/", "%", "\\", "div"], correct: 1, type: "mcq" },
-        { section: "البرمجة وهياكل البيانات", question: "المكتبة الأساسية للإدخال والإخراج التي يتم تضمينها في رأس برنامج C++ هي:", options: ["<math.h>", "<iostream>", "<conio.h>", "<stdio.h>"], correct: 1, type: "mcq" }
-    ];
+/* =====================================================
+   بنك الأسئلة (100 سؤال) + تبرير تعليمي لكل سؤال
+   ===================================================== */
+const QUESTIONS = [
 
-    // ---------- قسم قواعد البيانات و SQL ----------
-    const databaseQuestions = [
-        { section: "قواعد البيانات و SQL", question: "العمود الفريد الذي لا يتكرر في الجدول بقاعدة البيانات مثل رقم الطالب يسمى:", options: ["المفتاح الأجنبي (Foreign Key)", "المفتاح الأساسي (Primary Key)", "المفتاح المركب (Composite Key)", "السجل (Record)"], correct: 1, type: "mcq" },
-        { section: "قواعد البيانات و SQL", question: "الأمر المستخدم لعرض جميع البيانات والصفوف من جدول باسم EMP هو:", options: ["SELECT ALL FROM EMP;", "SELECT * FROM EMP;", "SHOW TABLE EMP;", "GET * FROM EMP;"], correct: 1, type: "mcq" },
-        { section: "قواعد البيانات و SQL", question: "لإدخال صفوف جديدة من البيانات إلى الجدول في SQL نستخدم الأمر:", options: ["ADD RECORD", "INSERT INTO", "UPDATE", "CREATE ROW"], correct: 1, type: "mcq" },
-        { section: "قواعد البيانات و SQL", question: "لتعديل بيانات موجودة سابقاً في جدول نستخدم الأمر:", options: ["MODIFY", "UPDATE", "ALTER", "CHANGE"], correct: 1, type: "mcq" },
-        { section: "قواعد البيانات و SQL", question: "لحذف سجل (صف) معين من الجدول بناءً على شرط نستخدم الأمر:", options: ["DROP", "TRUNCATE", "DELETE FROM", "REMOVE"], correct: 2, type: "mcq" },
-        { section: "قواعد البيانات و SQL", question: "الأمر المستخدم لحذف الجدول بالكامل مع هيكله من قاعدة البيانات هو:", options: ["DELETE TABLE", "DROP TABLE", "REMOVE TABLE", "CLEAR TABLE"], correct: 1, type: "mcq" },
-        { section: "قواعد البيانات و SQL", question: "يُستخدم المفتاح الأجنبي (Foreign Key) لـ:", options: ["منع تكرار البيانات في نفس الجدول", "ربط جدول بجدول آخر في قاعدة البيانات", "تشفير الحقول", "تسريع البحث فقط"], correct: 1, type: "mcq" },
-        { section: "قواعد البيانات و SQL", question: "للترتيب التصاعدي للنتائج في SQL نستخدم الكلمة المحجوزة:", options: ["DESC", "ASC", "ORDER", "SORT"], correct: 1, type: "mcq" },
-        { section: "قواعد البيانات و SQL", question: "الدالة لحساب عدد الصفوف في جدول SQL هي:", options: ["SUM()", "TOTAL()", "COUNT()", "NUMBER()"], correct: 2, type: "mcq" },
-        { section: "قواعد البيانات و SQL", question: "الشرط المستخدم مع SELECT لتحديد معايير تصفية السجلات هو:", options: ["HAVING", "WHERE", "LIKE", "IF"], correct: 1, type: "mcq" },
-        { section: "قواعد البيانات و SQL", question: "المفهوم الذي يرمز له بـ RDBMS يعني:", options: ["نظام إدارة قواعد البيانات العلائقية", "نظام إدارة شبكات الحاسب", "معالج النصوص الرقمي", "ذاكرة الوصول العشوائي المباشر"], correct: 0, type: "mcq" },
-        { section: "قواعد البيانات و SQL", question: "لإضافة عمود جديد إلى جدول قائم بالفعل نستخدم:", options: ["UPDATE TABLE ADD", "ALTER TABLE ADD", "MODIFY TABLE", "INSERT COLUMN"], correct: 1, type: "mcq" },
-        { section: "قواعد البيانات و SQL", question: "الصف الواحد داخل الجدول في قاعدة البيانات يطلق عليه تقنياً:", options: ["حقل (Field)", "سجل (Record / Tuple)", "خاصية (Attribute)", "استعلام (Query)"], correct: 1, type: "mcq" },
-        { section: "قواعد البيانات و SQL", question: "العمود في جدول قاعدة البيانات يسمى:", options: ["حقل / خاصية (Field / Attribute)", "سجل", "كيان", "علاقة"], correct: 0, type: "mcq" },
-        { section: "قواعد البيانات و SQL", question: "لدمج بيانات من جدولين أو أكثر استناداً إلى حقل مشترك نستخدم:", options: ["GROUP BY", "JOIN", "UNION", "CONNECT"], correct: 1, type: "mcq" }
-    ];
+  /* ============ 1) البرمجة وهياكل البيانات (15) ============ */
+  {sec:"البرمجة وهياكل البيانات", q:"الكود الصحيح لكتابة تعليق من سطر واحد في JavaScript و C++ هو:", o:["<!-- تعليق -->","// تعليق","/* تعليق","# تعليق"], c:1, t:"mcq", exp:"<b>//</b> هو تعليق السطر الواحد في C++ و JavaScript. أما <b>&lt;!-- --&gt;</b> فلغة HTML، و<b>/* */</b> للتعليقات المتعددة الأسطر في C++، و<b>#</b> تُستخدم في Python و Shell."},
+  {sec:"البرمجة وهياكل البيانات", q:"كيف تقوم بإنشاء متغير عددي صحيح بقيمة 5 في لغة C++؟", o:["int x = 5;","num x = 5;","var x = 5;","x := 5;"], c:0, t:"mcq", exp:"<b>int</b> هو النوع الصحيح للأعداد الصحيحة في C++. أما <b>num</b> و <b>var</b> فغير معرّفة في C++ (var موجودة في JavaScript)، و<b>x := 5</b> صيغة غير صحيحة."},
+  {sec:"البرمجة وهياكل البيانات", q:"المعامل الصحيح للمقارنة بين قيمتين في C++ للتأكد من تساويهما هو:", o:["=","==","===","!="], c:1, t:"mcq", exp:"<b>==</b> هو معامل المقارنة في C++. أما <b>=</b> فهو للتخصيص (Assignment)، و<b>===</b> موجودة في JavaScript فقط، و<b>!=</b> تعني «لا يساوي»."},
+  {sec:"البرمجة وهياكل البيانات", q:"ما هي الدالة المستخدمة لإيجاد القيمة الكبرى بين متغيرين x و y في C++؟", o:["maximum(x, y)","top(x, y)","max(x, y)","math.max(x, y)"], c:2, t:"mcq", exp:"<b>max(x, y)</b> دالة قياسية في مكتبة <b>&lt;algorithm&gt;</b> تُرجع القيمة الكبرى. الصيغة math.max خاصة بلغات أخرى كـ JavaScript."},
+  {sec:"البرمجة وهياكل البيانات", q:"كيف تبدأ كتابة حلقة التكرار While في C++ بشكل صحيح؟", o:["while x > y","while (condition) { }","while (condition) then","do while (condition)"], c:1, t:"mcq", exp:"الصيغة الصحيحة: <b>while (condition) { ... }</b> — الشرط بين قوسين، والجسم بين أقواس معقوفة. لا تُستخدم كلمة then في C++."},
+  {sec:"البرمجة وهياكل البيانات", q:"سلسلة من الأوامر المكتوبة بأحد لغات البرمجة وتخزن في ملف قابل للتنفيذ تُسمى:", o:["البرنامج (Program)","الخوارزمية (Algorithm)","المترجم (Compiler)","المخطط الانسيابي (Flowchart)"], c:0, t:"mcq", exp:"<b>البرنامج</b> هو سلسلة الأوامر القابلة للتنفيذ. <b>الخوارزمية</b> هي الخطوات المنطقية المجردة، و<b>المترجم</b> يحوّل الكود للغة الآلة، و<b>المخطط الانسيابي</b> تمثيل بصري للخوارزمية."},
+  {sec:"البرمجة وهياكل البيانات", q:"لإنهاء جملة برمجية في C++ يجب وضع:", o:["نقطة .","فاصلة ,","فاصلة منقوطة ;","نقطتان رأسيتان :"], c:2, t:"mcq", exp:"<b>الفاصلة المنقوطة ;</b> إلزامية لإنهاء كل جملة في C++. إغفالها يسبب أخطاء ترجمة (Syntax Error)."},
+  {sec:"البرمجة وهياكل البيانات", q:"أي من الكلمات التالية تُعد كلمة محجوزة في C++ للتعامل مع الشروط؟", o:["if","when","check","condition"], c:0, t:"mcq", exp:"<b>if</b> هي الكلمة المحجوزة للشروط في C++. الكلمات when وcheck وcondition ليست محجوزة ولا تُستخدم لهذا الغرض."},
+  {sec:"البرمجة وهياكل البيانات", q:"النوع الإرجاعي للدالة الرئيسية Main في C++ هو عادة:", o:["void","int","string","float"], c:1, t:"mcq", exp:"<b>int main()</b> هي الصيغة القياسية، وتُرجع عدداً صحيحاً (0 عادة للنجاح) إلى نظام التشغيل، بخلاف void التي لا تُرجع قيمة."},
+  {sec:"البرمجة وهياكل البيانات", q:"الأمر المستخدم لطباعة نص على الشاشة في C++ هو:", o:["cin","cout","printf","write"], c:1, t:"mcq", exp:"<b>cout</b> هو كائن الإخراج القياسي في C++ ويُستخدم مع <b>&lt;&lt;</b>. أما cin فللإدخال، وprintf خاصة بلغة C، وwrite للكتابة في الملفات."},
+  {sec:"البرمجة وهياكل البيانات", q:"الأمر المستخدم لاستقبال المدخلات من المستخدم في C++ هو:", o:["cout <<","cin >>","input()","read()"], c:1, t:"mcq", exp:"<b>cin &gt;&gt;</b> هو معامل الإدخال في C++، يستقبل البيانات من لوحة المفاتيح ويخزنها في متغيرات."},
+  {sec:"البرمجة وهياكل البيانات", q:"المصفوفة (Array) في لغات البرمجة هي:", o:["مجموعة متغيرات ذات أنواع مختلفة","مجموعة عناصر متتالية من نفس نوع البيانات مخزنة في الذاكرة","دالة برمجية تنفذ مرة واحدة","ملف نصي يخزن البيانات"], c:1, t:"mcq", exp:"<b>المصفوفة</b> مجموعة عناصر <b>من نفس النوع</b> ومتتالية في الذاكرة، يُوصل إليها بالفهرس (Index). هذا ما يميزها عن السجلات (Structs) التي قد تحتوي أنواعاً مختلفة."},
+  {sec:"البرمجة وهياكل البيانات", q:"يبدأ ترقيم الفهرس (Index) لعناصر المصفوفة في C++ من الرقم:", o:["1","-1","0","2"], c:2, t:"mcq", exp:"يبدأ الفهرس من <b>0</b> في C++ وأغلب لغات البرمجة. العنصر الأول index = 0، والثاني = 1، وهكذا."},
+  {sec:"البرمجة وهياكل البيانات", q:"المعامل المبرمج للحصول على باقي القسمة الصحيحة في C++ هو:", o:["/","%","\\","div"], c:1, t:"mcq", exp:"<b>%</b> هو معامل باقي القسمة (Modulo) في C++. أما / فتعني القسمة العادية، وdiv تُستخدم في لغات أخرى أحياناً."},
+  {sec:"البرمجة وهياكل البيانات", q:"المكتبة الأساسية للإدخال والإخراج التي يتم تضمينها في رأس برنامج C++ هي:", o:["<math.h>","<iostream>","<conio.h>","<stdio.h>"], c:1, t:"mcq", exp:"<b>&lt;iostream&gt;</b> هي المكتبة القياسية للإدخال والإخراج في C++، وتضم cin وcout. أما stdio.h فلغة C، وmath.h للرياضيات."},
 
-    // ---------- قسم الشبكات وأنظمة التشغيل ----------
-    const networkQuestions = [
-        { section: "الشبكات وأنظمة التشغيل", question: "الرقم المنطقي الذي يُعرف ويُميز الجهاز داخل شبكة الحاسب يسمى:", options: ["MAC Address", "IP Address", "Port Number", "SSID"], correct: 1, type: "mcq" },
-        { section: "الشبكات وأنظمة التشغيل", question: "ربط جهازين أو أكثر مع بعضهما البعض بهدف تبادل البيانات والموارد يُعرف بـ:", options: ["شبكة الحاسب الآلي (Computer Network)", "نظام التشغيل", "قاعدة البيانات", "البرمجيات الخبيثة"], correct: 0, type: "mcq" },
-        { section: "الشبكات وأنظمة التشغيل", question: "الشبكة المحلية التي تغطي منطقة جغرافية محدودة كـ (مبنى أو مكتب) يرمز لها بـ:", options: ["WAN", "MAN", "LAN", "WLAN"], correct: 2, type: "mcq" },
-        { section: "الشبكات وأنظمة التشغيل", question: "الأمر المستخدم لإظهار العنوان المنطقي (IP Address) وإعدادات الشبكة عبر موجه الأوامر CMD هو:", options: ["ping", "ipconfig", "tracert", "netstat"], correct: 1, type: "mcq" },
-        { section: "الشبكات وأنظمة التشغيل", question: "اسم مستخدم مسؤول النظام الافتراضي ذو الصلاحيات الكاملة عند تثبيت Windows Server هو:", options: ["Root", "Admin", "Administrator", "Supervisor"], correct: 2, type: "mcq" },
-        { section: "الشبكات وأنظمة التشغيل", question: "قاعدة البيانات الضخمة في نظام Windows Server والتي تحتوي على السياسات والحسابات والتحكم في البرامج تُسمى:", options: ["Active Directory", "Registry", "DNS Server", "DHCP"], correct: 0, type: "mcq" },
-        { section: "الشبكات وأنظمة التشغيل", question: "البروتوكول المسؤول عن إعطاء عناوين IP بشكل آلي وتلقائي للأجهزة في الشبكة هو:", options: ["DNS", "DHCP", "FTP", "HTTP"], correct: 1, type: "mcq" },
-        { section: "الشبكات وأنظمة التشغيل", question: "البروتوكول المسؤول عن ترجمة أسماء المواقع (مثل google.com) إلى عناوين IP هو:", options: ["HTTP", "DNS", "SMTP", "SNMP"], correct: 1, type: "mcq" },
-        { section: "الشبكات وأنظمة التشغيل", question: "جهاز شبكي يعمل في الطبقة الثانية (Data Link Layer) ويقوم بربط الأجهزة بناءً على MAC Address هو:", options: ["الموجه (Router)", "المحول (Switch)", "المكرر (Repeater)", "الجدار الناري (Firewall)"], correct: 1, type: "mcq" },
-        { section: "الشبكات وأنظمة التشغيل", question: "جهاز الشبكة المسؤول عن ربط شبكات مختلفة ببعضها وتوجيه الحزم بينها (مثل ربط LAN بـ Internet) هو:", options: ["Switch", "Hub", "Router", "Access Point"], correct: 2, type: "mcq" },
-        { section: "الشبكات وأنظمة التشغيل", question: "الأمر المستخدم لاختبار حالة الاتصال وإمكانية الوصول لجهاز آخر في الشبكة هو:", options: ["ping", "cls", "dir", "cd"], correct: 0, type: "mcq" },
-        { section: "الشبكات وأنظمة التشغيل", question: "العنوان الفيزيائي المحفور على بطاقة الشبكة من قبل الشركات المصنعة يسمى:", options: ["IP Address", "MAC Address", "Port Number", "Subnet Mask"], correct: 1, type: "mcq" },
-        { section: "الشبكات وأنظمة التشغيل", question: "النموذج المرجعي لربط الأنظمة المفتوحة (OSI Model) يتكون من كم طبقة؟", options: ["4 طبقات", "5 طبقات", "7 طبقات", "6 طبقات"], correct: 2, type: "mcq" },
-        { section: "الشبكات وأنظمة التشغيل", question: "أي بروتوكول من التالي يُستخدم لنقل الملفات بين العميل والخادم بشكل آمن؟", options: ["SFTP / FTP", "HTTP", "POP3", "ICMP"], correct: 0, type: "mcq" },
-        { section: "الشبكات وأنظمة التشغيل", question: "المنفذ الافتراضي المخصص لبروتوكول تصفح المواقع الآمن HTTPS هو:", options: ["80", "21", "443", "25"], correct: 2, type: "mcq" }
-    ];
+  /* ============ 2) قواعد البيانات و SQL (15) ============ */
+  {sec:"قواعد البيانات و SQL", q:"العمود الفريد الذي لا يتكرر في الجدول بقاعدة البيانات مثل رقم الطالب يسمى:", o:["المفتاح الأجنبي (Foreign Key)","المفتاح الأساسي (Primary Key)","المفتاح المركب (Composite Key)","السجل (Record)"], c:1, t:"mcq", exp:"<b>المفتاح الأساسي</b> عمود فريد لا يتكرر ولا يقبل NULL، ويُستخدم لتمييز كل صف بشكل فريد، كرقم الطالب أو الهوية."},
+  {sec:"قواعد البيانات و SQL", q:"الأمر المستخدم لعرض جميع البيانات والصفوف من جدول باسم EMP هو:", o:["SELECT ALL FROM EMP;","SELECT * FROM EMP;","SHOW TABLE EMP;","GET * FROM EMP;"], c:1, t:"mcq", exp:"<b>SELECT * FROM EMP;</b> — النجمة <b>*</b> تعني «كل الأعمدة»، و FROM تحدد الجدول. الصيغة SELECT ALL غير صحيحة."},
+  {sec:"قواعد البيانات و SQL", q:"لإدخال صفوف جديدة من البيانات إلى الجدول في SQL نستخدم الأمر:", o:["ADD RECORD","INSERT INTO","UPDATE","CREATE ROW"], c:1, t:"mcq", exp:"<b>INSERT INTO</b> هو الأمر الصحيح لإدخال صفوف جديدة. UPDATE للتعديل، وADD/CREATE ROW غير قياسية."},
+  {sec:"قواعد البيانات و SQL", q:"لتعديل بيانات موجودة سابقاً في جدول نستخدم الأمر:", o:["MODIFY","UPDATE","ALTER","CHANGE"], c:1, t:"mcq", exp:"<b>UPDATE</b> يُستخدم مع SET و WHERE لتعديل قيم محددة. ALTER لتعديل هيكل الجدول لا بياناته."},
+  {sec:"قواعد البيانات و SQL", q:"لحذف سجل (صف) معين من الجدول بناءً على شرط نستخدم الأمر:", o:["DROP","TRUNCATE","DELETE FROM","REMOVE"], c:2, t:"mcq", exp:"<b>DELETE FROM</b> مع <b>WHERE</b> لحذف صفوف محددة. DROP يحذف الجدول بهيكله، وTRUNCATE يفرّغ الجدول كاملاً بسرعة."},
+  {sec:"قواعد البيانات و SQL", q:"الأمر المستخدم لحذف الجدول بالكامل مع هيكله من قاعدة البيانات هو:", o:["DELETE TABLE","DROP TABLE","REMOVE TABLE","CLEAR TABLE"], c:1, t:"mcq", exp:"<b>DROP TABLE</b> يحذف الجدول ببياناته وهيكله نهائياً. DELETE يحذف بيانات فقط، وTRUNCATE يفرّغ البيانات مع بقاء الهيكل."},
+  {sec:"قواعد البيانات و SQL", q:"يُستخدم المفتاح الأجنبي (Foreign Key) لـ:", o:["منع تكرار البيانات في نفس الجدول","ربط جدول بجدول آخر في قاعدة البيانات","تشفير الحقول","تسريع البحث فقط"], c:1, t:"mcq", exp:"<b>Foreign Key</b> يشير إلى Primary Key في جدول آخر، ويضمن التكامل المرجعي (Referential Integrity) بين الجداول."},
+  {sec:"قواعد البيانات و SQL", q:"للترتيب التصاعدي للنتائج في SQL نستخدم الكلمة المحجوزة:", o:["DESC","ASC","ORDER","SORT"], c:1, t:"mcq", exp:"<b>ASC</b> (Ascending) للترتيب التصاعدي من الأصغر للأكبر، و<b>DESC</b> للتنازلي. SORT غير قياسية."},
+  {sec:"قواعد البيانات و SQL", q:"الدالة لحساب عدد الصفوف في جدول SQL هي:", o:["SUM()","TOTAL()","COUNT()","NUMBER()"], c:2, t:"mcq", exp:"<b>COUNT()</b> دالة تجميعية تُرجع عدد الصفوف. SUM تجمع القيم الرقمية، ولا توجد دالة TOTAL أو NUMBER قياسية."},
+  {sec:"قواعد البيانات و SQL", q:"الشرط المستخدم مع SELECT لتحديد معايير تصفية السجلات هو:", o:["HAVING","WHERE","LIKE","IF"], c:1, t:"mcq", exp:"<b>WHERE</b> تُصفّي الصفوف قبل التجميع. HAVING تُصفّي بعد GROUP BY، وLIKE للمطابقة النمطية."},
+  {sec:"قواعد البيانات و SQL", q:"المفهوم الذي يرمز له بـ RDBMS يعني:", o:["نظام إدارة قواعد البيانات العلائقية","نظام إدارة شبكات الحاسب","معالج النصوص الرقمي","ذاكرة الوصول العشوائي المباشر"], c:0, t:"mcq", exp:"<b>RDBMS</b> = Relational Database Management System، أي نظام إدارة قواعد البيانات العلائقية (مثل MySQL و SQL Server)."},
+  {sec:"قواعد البيانات و SQL", q:"لإضافة عمود جديد إلى جدول قائم بالفعل نستخدم:", o:["UPDATE TABLE ADD","ALTER TABLE ADD","MODIFY TABLE","INSERT COLUMN"], c:1, t:"mcq", exp:"<b>ALTER TABLE ... ADD COLUMN</b> لإضافة عمود جديد. UPDATE للبيانات فقط، ولا توجد أوامر MODIFY TABLE أو INSERT COLUMN قياسية."},
+  {sec:"قواعد البيانات و SQL", q:"الصف الواحد داخل الجدول في قاعدة البيانات يطلق عليه تقنياً:", o:["حقل (Field)","سجل (Record / Tuple)","خاصية (Attribute)","استعلام (Query)"], c:1, t:"mcq", exp:"<b>السجل (Record/Tuple)</b> هو الصف الواحد، ويتكون من عدة حقول. الحقل هو العمود، والاستعلام عملية استرجاع."},
+  {sec:"قواعد البيانات و SQL", q:"العمود في جدول قاعدة البيانات يسمى:", o:["حقل / خاصية (Field / Attribute)","سجل","كيان","علاقة"], c:0, t:"mcq", exp:"<b>الحقل / الخاصية</b> هو العمود، ويحمل نوع بيانات واحد لكل الصفوف. السجل هو الصف، والكيان مفهوم تصميمي."},
+  {sec:"قواعد البيانات و SQL", q:"لدمج بيانات من جدولين أو أكثر استناداً إلى حقل مشترك نستخدم:", o:["GROUP BY","JOIN","UNION","CONNECT"], c:1, t:"mcq", exp:"<b>JOIN</b> يدمج صفوف جدولين بشرط علاقة (غالباً Primary Key = Foreign Key). GROUP BY للتجميع، وUNION لدمج نتائج استعلامات."},
 
-    // ---------- قسم أساسيات الحاسب والعتاد ----------
-    const hardwareQuestions = [
-        { section: "أساسيات الحاسب والعتاد", question: "الكيلو بايت (Kilobyte) يساوي بدقة:", options: ["1000 بايت", "1024 بايت", "512 بايت", "8 بايت"], correct: 1, type: "mcq" },
-        { section: "أساسيات الحاسب والعتاد", question: "مصدر الطاقة الرئيسي الذي يزود اللوحة الأم وجميع المكونات بالتيار الكهربائي المناسب هو:", options: ["CPU", "Power Supply Unit (مزود الطاقة)", "RAM", "CMOS"], correct: 1, type: "mcq" },
-        { section: "أساسيات الحاسب والعتاد", question: "الوحدة الأساسية والأصغر لتمثيل البيانات الرقمية في الحاسب (0 أو 1) هي:", options: ["البايت (Byte)", "البت (Bit)", "الكيلو بايت", "النبل (Nibble)"], correct: 1, type: "mcq" },
-        { section: "أساسيات الحاسب والعتاد", question: "لغة الحاسب الآلي الأصلية التي يفهمها ويتعامل بها المعالج مباشرة تتكون من:", options: ["النظام العشري", "النظام الثنائي (Binary System - 0/1)", "النظام السادس عشر", "لغة C++"], correct: 1, type: "mcq" },
-        { section: "أساسيات الحاسب والعتاد", question: "القطعة الإلكترونية الأساسية التي تُربط عليها كافة المكونات وتنظم الاتصال بينها هي:", options: ["القرص الصلب", "لوحة النظام / اللوحة الأم (Motherboard)", "الذاكرة العشوائية", "كارت الشاشة"], correct: 1, type: "mcq" },
-        { section: "أساسيات الحاسب والعتاد", question: "الذاكرة المؤقتة المتطايرة التي تفقد بياناتها فور انقطاع التيار الكهربائي هي:", options: ["ROM", "RAM", "Hard Disk", "Flash Memory"], correct: 1, type: "mcq" },
-        { section: "أساسيات الحاسب والعتاد", question: "البايت الواحد (1 Byte) يتكون من:", options: ["4 بت", "8 بت", "16 بت", "1024 بت"], correct: 1, type: "mcq" },
-        { section: "أساسيات الحاسب والعتاد", question: "تعتبر الطابعة والشاشة من وحدات:", options: ["الإدخال", "المعالجة", "الإخراج", "التخزين الثانوية"], correct: 2, type: "mcq" },
-        { section: "أساسيات الحاسب والعتاد", question: "تعتبر لوحة المفاتيح والماسح الضوئي (Scanner) من وحدات:", options: ["الإخراج", "الإدخال", "التخزين", "التحكم"], correct: 1, type: "mcq" },
-        { section: "أساسيات الحاسب والعتاد", question: "الوحدة المسؤولة عن إجراء العمليات الحسابية والمنطقية في الحاسب هي:", options: ["ALU (وحدة الحساب والمنطق)", "Control Unit", "Registers", "RAM"], correct: 0, type: "mcq" },
-        { section: "أساسيات الحاسب والعتاد", question: "أي مما يلي يُعد من وسائل التخزين الثانوية الدائمة؟", options: ["RAM", "Cache Memory", "القرص الصلب (Hard Disk / SSD)", "Registers"], correct: 2, type: "mcq" },
-        { section: "أساسيات الحاسب والعتاد", question: "تُقاس سرعة المعالج (CPU) الحديثة بـ:", options: ["الكيلوبايت", "الجيجاهرتز (GHz)", "البايت", "الميجابت"], correct: 1, type: "mcq" },
-        { section: "أساسيات الحاسب والعتاد", question: "من أسباب بطء الحاسب وتجمده أثناء تشغيل عدة برامج في نفس الوقت نقص سعة:", options: ["القرص الصلب", "ذاكرة الوصول العشوائي (RAM)", "اللوحة الأم", "الشاشة"], correct: 1, type: "mcq" },
-        { section: "أساسيات الحاسب والعتاد", question: "نظام العد السداسي عشر (Hexadecimal) يستند على الأساس:", options: ["2", "8", "10", "16"], correct: 3, type: "mcq" },
-        { section: "أساسيات الحاسب والعتاد", question: "الذاكرة الدائمة الموجودة في اللوحة الأم وتحتوي على تعليمات بدء التشغيل (BIOS) هي:", options: ["RAM", "ROM", "NVRAM", "SRAM"], correct: 1, type: "mcq" }
-    ];
+  /* ============ 3) الشبكات وأنظمة التشغيل (15) ============ */
+  {sec:"الشبكات وأنظمة التشغيل", q:"الرقم المنطقي الذي يُعرف ويُميز الجهاز داخل شبكة الحاسب يسمى:", o:["MAC Address","IP Address","Port Number","SSID"], c:1, t:"mcq", exp:"<b>IP Address</b> هو العنوان المنطقي الذي يُعرّف الجهاز داخل الشبكة، وقد يكون IPv4 أو IPv6. MAC عنوان فيزيائي، وSSID اسم شبكة Wi-Fi."},
+  {sec:"الشبكات وأنظمة التشغيل", q:"ربط جهازين أو أكثر مع بعضهما البعض بهدف تبادل البيانات والموارد يُعرف بـ:", o:["شبكة الحاسب الآلي (Computer Network)","نظام التشغيل","قاعدة البيانات","البرمجيات الخبيثة"], c:0, t:"mcq", exp:"<b>شبكة الحاسب</b> هي ربط جهازين أو أكثر لتبادل البيانات والموارد عبر بروتوكولات مشتركة."},
+  {sec:"الشبكات وأنظمة التشغيل", q:"الشبكة المحلية التي تغطي منطقة جغرافية محدودة كـ (مبنى أو مكتب) يرمز لها بـ:", o:["WAN","MAN","LAN","WLAN"], c:2, t:"mcq", exp:"<b>LAN</b> = Local Area Network، تغطي مساحة محدودة كالمبنى أو المكتب. WAN موسعة (دول)، MAN مدينة، WLAN لاسلكية محلية."},
+  {sec:"الشبكات وأنظمة التشغيل", q:"الأمر المستخدم لإظهار العنوان المنطقي (IP Address) وإعدادات الشبكة عبر موجه الأوامر CMD هو:", o:["ping","ipconfig","tracert","netstat"], c:1, t:"mcq", exp:"<b>ipconfig</b> في Windows يعرض إعدادات الشبكة وعنوان IP. ping يختبر الاتصال، tracert يتتبع المسار، netstat يعرض الاتصالات."},
+  {sec:"الشبكات وأنظمة التشغيل", q:"اسم مستخدم مسؤول النظام الافتراضي ذو الصلاحيات الكاملة عند تثبيت Windows Server هو:", o:["Root","Admin","Administrator","Supervisor"], c:2, t:"mcq", exp:"<b>Administrator</b> هو الحساب الافتراضي في Windows Server. أما Root فهو في Linux/Unix."},
+  {sec:"الشبكات وأنظمة التشغيل", q:"قاعدة البيانات الضخمة في نظام Windows Server والتي تحتوي على السياسات والحسابات والتحكم في البرامج تُسمى:", o:["Active Directory","Registry","DNS Server","DHCP"], c:0, t:"mcq", exp:"<b>Active Directory</b> خدمة دليل مركزية في Windows Server لإدارة المستخدمين والأجهزة والسياسات."},
+  {sec:"الشبكات وأنظمة التشغيل", q:"البروتوكول المسؤول عن إعطاء عناوين IP بشكل آلي وتلقائي للأجهزة في الشبكة هو:", o:["DNS","DHCP","FTP","HTTP"], c:1, t:"mcq", exp:"<b>DHCP</b> = Dynamic Host Configuration Protocol، يوزّع عناوين IP تلقائياً. DNS يترجم الأسماء، وFTP/HTTP لبروتوكولات أخرى."},
+  {sec:"الشبكات وأنظمة التشغيل", q:"البروتوكول المسؤول عن ترجمة أسماء المواقع (مثل google.com) إلى عناوين IP هو:", o:["HTTP","DNS","SMTP","SNMP"], c:1, t:"mcq", exp:"<b>DNS</b> = Domain Name System، يترجم أسماء النطاقات إلى عناوين IP والعكس. HTTP لنقل الويب، وSMTP للبريد."},
+  {sec:"الشبكات وأنظمة التشغيل", q:"جهاز شبكي يعمل في الطبقة الثانية (Data Link Layer) ويقوم بربط الأجهزة بناءً على MAC Address هو:", o:["الموجه (Router)","المحول (Switch)","المكرر (Repeater)","الجدار الناري (Firewall)"], c:1, t:"mcq", exp:"<b>Switch</b> يعمل في الطبقة الثانية ويستخدم MAC Address لتوجيه الإطارات. Router في الطبقة الثالثة يستخدم IP."},
+  {sec:"الشبكات وأنظمة التشغيل", q:"جهاز الشبكة المسؤول عن ربط شبكات مختلفة ببعضها وتوجيه الحزم بينها (مثل ربط LAN بـ Internet) هو:", o:["Switch","Hub","Router","Access Point"], c:2, t:"mcq", exp:"<b>Router</b> يوجّه الحزم بين شبكات مختلفة بناءً على عناوين IP، ويعمل في الطبقة الثالثة."},
+  {sec:"الشبكات وأنظمة التشغيل", q:"الأمر المستخدم لاختبار حالة الاتصال وإمكانية الوصول لجهاز آخر في الشبكة هو:", o:["ping","cls","dir","cd"], c:0, t:"mcq", exp:"<b>ping</b> يرسل حزم ICMP ويقيس زمن الاستجابة. cls يمسح الشاشة، dir يسرد الملفات، cd للتنقل بين المجلدات."},
+  {sec:"الشبكات وأنظمة التشغيل", q:"العنوان الفيزيائي المحفور على بطاقة الشبكة من قبل الشركات المصنعة يسمى:", o:["IP Address","MAC Address","Port Number","Subnet Mask"], c:1, t:"mcq", exp:"<b>MAC Address</b> عنوان فيزيائي 48-بت مثبت على بطاقة الشبكة من المصنع، وثابت لا يتغير."},
+  {sec:"الشبكات وأنظمة التشغيل", q:"النموذج المرجعي لربط الأنظمة المفتوحة (OSI Model) يتكون من كم طبقة؟", o:["4 طبقات","5 طبقات","7 طبقات","6 طبقات"], c:2, t:"mcq", exp:"نموذج <b>OSI</b> يتكون من 7 طبقات: Physical, Data Link, Network, Transport, Session, Presentation, Application."},
+  {sec:"الشبكات وأنظمة التشغيل", q:"أي بروتوكول من التالي يُستخدم لنقل الملفات بين العميل والخادم بشكل آمن؟", o:["SFTP / FTP","HTTP","POP3","ICMP"], c:0, t:"mcq", exp:"<b>SFTP</b> (عبر SSH) آمن ومشفّر، بخلاف FTP التقليدي غير المشفر. HTTP للويب، POP3 للبريد، ICMP لـ ping."},
+  {sec:"الشبكات وأنظمة التشغيل", q:"المنفذ الافتراضي المخصص لبروتوكول تصفح المواقع الآمن HTTPS هو:", o:["80","21","443","25"], c:2, t:"mcq", exp:"<b>HTTPS على 443</b>. HTTP على 80، FTP على 21، SMTP على 25."},
 
-    // ---------- قسم تطوير الويب والأمن والذكاء الاصطناعي ----------
-    const webSecurityAIQuestions = [
-        { section: "تطوير الويب والأمن والذكاء الاصطناعي", question: "لإدراج مربع خيار متعدد (Checkbox) في مستند HTML نستخدم الوسم:", options: ['<input type="radio">', '<input type="checkbox">', "<check>", "<option>"], correct: 1, type: "mcq" },
-        { section: "تطوير الويب والأمن والذكاء الاصطناعي", question: "لإنشاء رابط تشعبي (Hyperlink) للانتقال لصفحة أخرى في HTML نستخدم الوسم:", options: ["<link>", '<a href="url">', "<url>", "<src>"], correct: 1, type: "mcq" },
-        { section: "تطوير الويب والأمن والذكاء الاصطناعي", question: "النظام/الملف الذي يسجل ويحفظ كل الأنشطة والأحداث التي يقوم بها المستخدم على النظام يسمى:", options: ["Audit Logs / Activity Logs", "Firewall", "Antivirus", "Database Index"], correct: 0, type: "mcq" },
-        { section: "تطوير الويب والأمن والذكاء الاصطناعي", question: "أحد فروع الذكاء الاصطناعي يركز على تطوير خوارزميات تمكن الحاسب من التعلم من البيانات والتنبؤ بالنتائج:", options: ["التشفير التطبيقي", "تعلم الآلة (Machine Learning)", "معالجة الصور فقط", "قواعد البيانات العادية"], correct: 1, type: "mcq" },
-        { section: "تطوير الويب والأمن والذكاء الاصطناعي", question: "إدراج زر اختيار واحد فقط من بين عدة خيارات متبادلة (Radio Button) في HTML يكون بـ:", options: ['<input type="button">', '<input type="radio">', "<select>", '<input type="text">'], correct: 1, type: "mcq" },
-        { section: "تطوير الويب والأمن والذكاء الاصطناعي", question: "الوسم المسؤول عن إضافة صورة في صفحة HTML هو:", options: ['<image src="...">', '<img src="...">', "<picture>", "<graphics>"], correct: 1, type: "mcq" },
-        { section: "تطوير الويب والأمن والذكاء الاصطناعي", question: "لإنشاء نموذج إدخال بيانات في HTML يتم تغليف العناصر داخل الوسم:", options: ["<table>", "<form>", "<div>", "<section>"], correct: 1, type: "mcq" },
-        { section: "تطوير الويب والأمن والذكاء الاصطناعي", question: "المحافظة على أسرار العمل وعدم استغلال الصلاحيات في تخريب البيانات يعتبر من:", options: ["أخلاقيات المهنة والأمن السيبراني", "مهام صيانة المكونات المادية", "وظيفة المترجم البرمجي", "بروتوكولات الشبكة"], correct: 0, type: "mcq" },
-        { section: "تطوير الويب والأمن والذكاء الاصطناعي", question: "المثلث الأساسي لأمن المعلومات (CIA Triad) يتكون من السرية والسلامة و:", options: ["السرعة", "التوافر (Availability)", "التكلفة", "التنسيق"], correct: 1, type: "mcq" },
-        { section: "تطوير الويب والأمن والذكاء الاصطناعي", question: "نوع من البرمجيات الخبيثة يقوم بتشفير ملفات المستخدم ومطالبته بمبالغ مالية لفك التشفير:", options: ["برامج الفدية (Ransomware)", "التجسس (Spyware)", "الديدان (Worms)", "الإعلانات (Adware)"], correct: 0, type: "mcq" },
-        { section: "تطوير الويب والأمن والذكاء الاصطناعي", question: "الأسلوب القائم على خدع البشر وتضليلهم للحصول على بياناتهم السرية ككلمات المرور يسمى:", options: ["الهجوم المباشر", "الهندسة الاجتماعية (Social Engineering)", "الثغرات البرمجية", "التشفير العكسي"], correct: 1, type: "mcq" },
-        { section: "تطوير الويب والأمن والذكاء الاصطناعي", question: "الهجوم الذي يهدف لإغراق خادم الشبكة بحركة مرور وهمية وتعطيله عن خدمة المستخدمين الحقيقيين:", options: ["Phishing", "DoS / DDoS (حجب الخدمة)", "Man-in-the-middle", "SQL Injection"], correct: 1, type: "mcq" },
-        { section: "تطوير الويب والأمن والذكاء الاصطناعي", question: "عملية تحويل النص الأصلي الواضح إلى نص غير مفهوم باستخدام خوارزميات لحمايته تُسمى:", options: ["الضغط", "التشفير (Encryption)", "التجميع", "التحليل الجنائي"], correct: 1, type: "mcq" },
-        { section: "تطوير الويب والأمن والذكاء الاصطناعي", question: "أي من أساليب التشفير التالية يستخدم مفتاحاً واحداً سرياً للتشفير وفك التشفير؟", options: ["التشفير المتماثل (Symmetric Encryption)", "التشفير غير المتماثل (Asymmetric Encryption)", "المفتاح العام", "التوقيع الرقمي"], correct: 0, type: "mcq" },
-        { section: "تطوير الويب والأمن والذكاء الاصطناعي", question: "التقنية التي توفر بيئة افتراضية تشبه جهاز حاسب مستقلاً داخل نظام تشغيل آخر تُسمى:", options: ["Virtualization (المحاكاة الافتراضية)", "Cloud Computing", "Containerization", "Multithreading"], correct: 0, type: "mcq" }
-    ];
+  /* ============ 4) أساسيات الحاسب والعتاد (15) ============ */
+  {sec:"أساسيات الحاسب والعتاد", q:"الكيلو بايت (Kilobyte) يساوي بدقة:", o:["1000 بايت","1024 بايت","512 بايت","8 بايت"], c:1, t:"mcq", exp:"<b>1024 بايت</b> في النظام الثنائي (2^10). بعض المصنعين يستخدمون 1000 تسويقياً، لكن المعيار التقني 1024."},
+  {sec:"أساسيات الحاسب والعتاد", q:"مصدر الطاقة الرئيسي الذي يزود اللوحة الأم وجميع المكونات بالتيار الكهربائي المناسب هو:", o:["CPU","Power Supply Unit (مزود الطاقة)","RAM","CMOS"], c:1, t:"mcq", exp:"<b>PSU</b> يحول التيار المتردد AC إلى مستمر DC ويوزعه بالقيم المناسبة (3.3V, 5V, 12V)."},
+  {sec:"أساسيات الحاسب والعتاد", q:"الوحدة الأساسية والأصغر لتمثيل البيانات الرقمية في الحاسب (0 أو 1) هي:", o:["البايت (Byte)","البت (Bit)","الكيلو بايت","النبل (Nibble)"], c:1, t:"mcq", exp:"<b>البت</b> أصغر وحدة، قيمته 0 أو 1. 8 بت = 1 بايت، 4 بت = 1 نبل."},
+  {sec:"أساسيات الحاسب والعتاد", q:"لغة الحاسب الآلي الأصلية التي يفهمها ويتعامل بها المعالج مباشرة تتكون من:", o:["النظام العشري","النظام الثنائي (Binary System - 0/1)","النظام السادس عشر","لغة C++"], c:1, t:"mcq", exp:"<b>النظام الثنائي</b> هو ما يفهمه المعالج مباشرة. باقي اللغات تحتاج مترجماً (Compiler/Interpreter)."},
+  {sec:"أساسيات الحاسب والعتاد", q:"القطعة الإلكترونية الأساسية التي تُربط عليها كافة المكونات وتنظم الاتصال بينها هي:", o:["القرص الصلب","لوحة النظام / اللوحة الأم (Motherboard)","الذاكرة العشوائية","كارت الشاشة"], c:1, t:"mcq", exp:"<b>Motherboard</b> تربط المعالج والذاكرة والأقراص وبطاقات التوسع عبر نواقل، وتنظم الاتصال بينها."},
+  {sec:"أساسيات الحاسب والعتاد", q:"الذاكرة المؤقتة المتطايرة التي تفقد بياناتها فور انقطاع التيار الكهربائي هي:", o:["ROM","RAM","Hard Disk","Flash Memory"], c:1, t:"mcq", exp:"<b>RAM</b> ذاكرة متطايرة (Volatile) تُستخدم لتخزين البيانات المؤقتة أثناء التشغيل، وتفقد محتواها بانقطاع الكهرباء."},
+  {sec:"أساسيات الحاسب والعتاد", q:"البايت الواحد (1 Byte) يتكون من:", o:["4 بت","8 بت","16 بت","1024 بت"], c:1, t:"mcq", exp:"<b>1 بايت = 8 بت</b>، وهو الوحدة الأساسية لتمثيل حرف واحد (في ترميز ASCII مثلاً)."},
+  {sec:"أساسيات الحاسب والعتاد", q:"تعتبر الطابعة والشاشة من وحدات:", o:["الإدخال","المعالجة","الإخراج","التخزين الثانوية"], c:2, t:"mcq", exp:"<b>وحدات الإخراج</b> تُظهر أو تُخرج نتائج المعالجة للمستخدم، مثل الشاشة والطابعة والسماعات."},
+  {sec:"أساسيات الحاسب والعتاد", q:"تعتبر لوحة المفاتيح والماسح الضوئي (Scanner) من وحدات:", o:["الإخراج","الإدخال","التخزين","التحكم"], c:1, t:"mcq", exp:"<b>وحدات الإدخال</b> تُدخل البيانات إلى الحاسب، مثل لوحة المفاتيح والفأرة والماسح الضوئي."},
+  {sec:"أساسيات الحاسب والعتاد", q:"الوحدة المسؤولة عن إجراء العمليات الحسابية والمنطقية في الحاسب هي:", o:["ALU (وحدة الحساب والمنطق)","Control Unit","Registers","RAM"], c:0, t:"mcq", exp:"<b>ALU</b> داخل المعالج تنفذ العمليات الحسابية (جمع، طرح) والمنطقية (AND, OR, NOT)."},
+  {sec:"أساسيات الحاسب والعتاد", q:"أي مما يلي يُعد من وسائل التخزين الثانوية الدائمة؟", o:["RAM","Cache Memory","القرص الصلب (Hard Disk / SSD)","Registers"], c:2, t:"mcq", exp:"<b>القرص الصلب/SSD</b> تخزين ثانوي دائم يحتفظ بالبيانات بعد إيقاف التشغيل، بخلاف RAM وCache وRegisters (كلها متطايرة)."},
+  {sec:"أساسيات الحاسب والعتاد", q:"تُقاس سرعة المعالج (CPU) الحديثة بـ:", o:["الكيلوبايت","الجيجاهرتز (GHz)","البايت","الميجابت"], c:1, t:"mcq", exp:"<b>الجيجاهرتز GHz</b> = مليارات الدورات في الثانية، وهي وحدة قياس تردد المعالج."},
+  {sec:"أساسيات الحاسب والعتاد", q:"من أسباب بطء الحاسب وتجمده أثناء تشغيل عدة برامج في نفس الوقت نقص سعة:", o:["القرص الصلب","ذاكرة الوصول العشوائي (RAM)","اللوحة الأم","الشاشة"], c:1, t:"mcq", exp:"<b>RAM</b> غير كافية تدفع النظام لاستخدام القرص كذاكرة افتراضية، وهو أبطأ بكثير ويسبب البطء والتجمد."},
+  {sec:"أساسيات الحاسب والعتاد", q:"نظام العد السداسي عشر (Hexadecimal) يستند على الأساس:", o:["2","8","10","16"], c:3, t:"mcq", exp:"<b>Hexadecimal أساسه 16</b>، يستخدم 0-9 و A-F (حيث A=10 حتى F=15)، شائع في العناوين والألوان."},
+  {sec:"أساسيات الحاسب والعتاد", q:"الذاكرة الدائمة الموجودة في اللوحة الأم وتحتوي على تعليمات بدء التشغيل (BIOS) هي:", o:["RAM","ROM","NVRAM","SRAM"], c:1, t:"mcq", exp:"<b>ROM</b> ذاكرة قراءة فقط تحتفظ بمحتواها دون كهرباء، وتحتوي على BIOS الذي يبدأ تشغيل الحاسب."},
 
-    // ---------- أسئلة صح / خطأ (25 سؤالاً) ----------
-    const trueFalseQuestions = [
-        { section: "صح / خطأ", question: "الذاكرة العشوائية (RAM) تفقد كافة محتوياتها فور انقطاع التيار الكهربائي.", options: ["صح", "خطأ"], correct: 0, type: "tf" },
-        { section: "صح / خطأ", question: "الكيلوبايت يساوي 1000 بايت تماماً في النظام الرقمي للحاسب.", options: ["صح", "خطأ"], correct: 1, type: "tf" },
-        { section: "صح / خطأ", question: "يستخدم المعامل = في لغة C++ للمقارنة الشروطية بين قيمتين.", options: ["صح", "خطأ"], correct: 1, type: "tf" },
-        { section: "صح / خطأ", question: "يمكنك إدراج تعليقات متعددة الأسطر في لغة C++ باستخدام /* ... */.", options: ["صح", "خطأ"], correct: 0, type: "tf" },
-        { section: "صح / خطأ", question: "المفتاح الأساسي (Primary Key) يسمح بتكرار القيم داخل نفس العمود في الجدول.", options: ["صح", "خطأ"], correct: 1, type: "tf" },
-        { section: "صح / خطأ", question: "الأمر SELECT * FROM EMP; يقوم بحذف جميع البيانات من جدول EMP.", options: ["صح", "خطأ"], correct: 1, type: "tf" },
-        { section: "صح / خطأ", question: "تُستخدم الشبكة المحلية LAN لربط أجهزة الحواسيب المنتشرة عبر دول وقارات مختلفة.", options: ["صح", "خطأ"], correct: 1, type: "tf" },
-        { section: "صح / خطأ", question: "الأمر ipconfig يُستخدم في بيئة سطر الأوامر CMD لعرض إعدادات وعنوان IP الخاص بالجهاز.", options: ["صح", "خطأ"], correct: 0, type: "tf" },
-        { section: "صح / خطأ", question: "نظام التشغيل Windows Server 2012 يأتي باسم المستخدم الافتراضي Root للمسؤول.", options: ["صح", "خطأ"], correct: 1, type: "tf" },
-        { section: "صح / خطأ", question: 'يُستخدم الوسم <input type="checkbox"> لإدراج مربعات اختيار متعددة في صفحات HTML.', options: ["صح", "خطأ"], correct: 0, type: "tf" },
-        { section: "صح / خطأ", question: "تعلم الآلة (Machine Learning) هو أحد مجالات الذكاء الاصطناعي التي تمكن النظم من التنبؤ واستخلاص الأنماط من البيانات.", options: ["صح", "خطأ"], correct: 0, type: "tf" },
-        { section: "صح / خطأ", question: "بروتوكول DHCP مسؤول عن تحويل اسم الموقع الإلكتروني إلى عنوان IP.", options: ["صح", "خطأ"], correct: 1, type: "tf" },
-        { section: "صح / خطأ", question: "تعتبر الشاشة والطابعة من أهم وحدات الإدخال في الحاسب.", options: ["صح", "خطأ"], correct: 1, type: "tf" },
-        { section: "صح / خطأ", question: "اللوحة الأم (Motherboard) هي المكون الأساسي الذي يربط أجهزة وقطع الحاسب المختلفة ببعضها.", options: ["صح", "خطأ"], correct: 0, type: "tf" },
-        { section: "صح / خطأ", question: "يتكون البايت الواحد (Byte) من 5 بت.", options: ["صح", "خطأ"], correct: 1, type: "tf" },
-        { section: "صح / خطأ", question: "الأمر INSERT INTO في قواعد البيانات يُستخدم لتعديل صفوف البيانات الموجودة.", options: ["صح", "خطأ"], correct: 1, type: "tf" },
-        { section: "صح / خطأ", question: "الـ Active Directory في نظام Windows Server يُعد قاعدة بيانات مركزية للتحكم بالسياسات والمستخدمين.", options: ["صح", "خطأ"], correct: 0, type: "tf" },
-        { section: "صح / خطأ", question: "يبدأ تنفيذ الأوامر البرمجية في لغة C++ دائماً من دالة main().", options: ["صح", "خطأ"], correct: 0, type: "tf" },
-        { section: "صح / خطأ", question: "عنوان الـ MAC Address هو عنوان منطقي يتغير بظروف الاتصال في الشبكة.", options: ["صح", "خطأ"], correct: 1, type: "tf" },
-        { section: "صح / خطأ", question: "يُستخدم الأمر DELETE لحذف الجدول بالكامل وهيكله من قاعدة البيانات.", options: ["صح", "خطأ"], correct: 1, type: "tf" },
-        { section: "صح / خطأ", question: "المحافظة على أسرار وسجلات المنشأة تُعد جزءاً أساسياً من أمن المعلومات والأخلاقيات المهنية.", options: ["صح", "خطأ"], correct: 0, type: "tf" },
-        { section: "صح / خطأ", question: "لغة الحاسب التي يفهمها المعالج بشكل مباشر دون حاجة لمترجم هي لغة التجميع (Assembly).", options: ["صح", "خطأ"], correct: 1, type: "tf" },
-        { section: "صح / خطأ", question: 'الوسم <a href="..."> يُستخدم لإضافة صورة في HTML.', options: ["صح", "خطأ"], correct: 1, type: "tf" },
-        { section: "صح / خطأ", question: "هجمات التصيد الاحتيالي (Phishing) تحاول إغراء المستخدم بدخول مواقع مزيفة لسرقة بياناته.", options: ["صح", "خطأ"], correct: 0, type: "tf" },
-        { section: "صح / خطأ", question: "في C++، تؤدي العبارة int x; إلى حجز مكان لمتغير نصي في الذاكرة.", options: ["صح", "خطأ"], correct: 1, type: "tf" }
-    ];
+  /* ============ 5) تطوير الويب والأمن والذكاء الاصطناعي (15) ============ */
+  {sec:"تطوير الويب والأمن والذكاء الاصطناعي", q:"لإدراج مربع خيار متعدد (Checkbox) في مستند HTML نستخدم الوسم:", o:['<input type="radio">','<input type="checkbox">',"<check>","<option>"], c:1, t:"mcq", exp:"<b>&lt;input type=\"checkbox\"&gt;</b> يُنشئ مربع اختيار متعدد. أما type=\"radio\" فللاختيار الواحد من متعدد."},
+  {sec:"تطوير الويب والأمن والذكاء الاصطناعي", q:"لإنشاء رابط تشعبي (Hyperlink) للانتقال لصفحة أخرى في HTML نستخدم الوسم:", o:["<link>",'<a href="url">',"<url>","<src>"], c:1, t:"mcq", exp:"<b>&lt;a href=\"url\"&gt;</b> هو وسم الرابط التشعبي. link لربط CSS، وsrc ليس وسم HTML."},
+  {sec:"تطوير الويب والأمن والذكاء الاصطناعي", q:"النظام/الملف الذي يسجل ويحفظ كل الأنشطة والأحداث التي يقوم بها المستخدم على النظام يسمى:", o:["Audit Logs / Activity Logs","Firewall","Antivirus","Database Index"], c:0, t:"mcq", exp:"<b>Audit Logs</b> سجلات تدقيق تسجل كل نشاط، وهي مهمة للأمن والامتثال والتحقيق الجنائي الرقمي."},
+  {sec:"تطوير الويب والأمن والذكاء الاصطناعي", q:"أحد فروع الذكاء الاصطناعي يركز على تطوير خوارزميات تمكن الحاسب من التعلم من البيانات والتنبؤ بالنتائج:", o:["التشفير التطبيقي","تعلم الآلة (Machine Learning)","معالجة الصور فقط","قواعد البيانات العادية"], c:1, t:"mcq", exp:"<b>Machine Learning</b> فرع من AI يُدرّب النماذج على بيانات للتنبؤ أو التصنيف دون برمجة صريحة للقواعد."},
+  {sec:"تطوير الويب والأمن والذكاء الاصطناعي", q:"إدراج زر اختيار واحد فقط من بين عدة خيارات متبادلة (Radio Button) في HTML يكون بـ:", o:['<input type="button">','<input type="radio">',"<select>",'<input type="text">'], c:1, t:"mcq", exp:"<b>&lt;input type=\"radio\"&gt;</b> يُنشئ زر اختيار واحد من مجموعة (خيارات متبادلة). checkbox للاختيار المتعدد."},
+  {sec:"تطوير الويب والأمن والذكاء الاصطناعي", q:"الوسم المسؤول عن إضافة صورة في صفحة HTML هو:", o:['<image src="...">','<img src="...">',"<picture>","<graphics>"], c:1, t:"mcq", exp:"<b>&lt;img src=\"...\"&gt;</b> لإدراج صورة. picture لصور متجاوبة، وimage ليس وسم HTML قياسي."},
+  {sec:"تطوير الويب والأمن والذكاء الاصطناعي", q:"لإنشاء نموذج إدخال بيانات في HTML يتم تغليف العناصر داخل الوسم:", o:["<table>","<form>","<div>","<section>"], c:1, t:"mcq", exp:"<b>&lt;form&gt;</b> يغلف عناصر النموذج ويرسل بياناته للخادم عبر action وmethod."},
+  {sec:"تطوير الويب والأمن والذكاء الاصطناعي", q:"المحافظة على أسرار العمل وعدم استغلال الصلاحيات في تخريب البيانات يعتبر من:", o:["أخلاقيات المهنة والأمن السيبراني","مهام صيانة المكونات المادية","وظيفة المترجم البرمجي","بروتوكولات الشبكة"], c:0, t:"mcq", exp:"<b>أخلاقيات المهنة</b> جزء أساسي من الأمن السيبراني، فالمحافظة على السرية والصلاحيات مسؤولية مهنية وقانونية."},
+  {sec:"تطوير الويب والأمن والذكاء الاصطناعي", q:"المثلث الأساسي لأمن المعلومات (CIA Triad) يتكون من السرية والسلامة و:", o:["السرعة","التوافر (Availability)","التكلفة","التنسيق"], c:1, t:"mcq", exp:"<b>CIA</b> = Confidentiality + Integrity + <b>Availability</b> (السرية + السلامة + التوافر)."},
+  {sec:"تطوير الويب والأمن والذكاء الاصطناعي", q:"نوع من البرمجيات الخبيثة يقوم بتشفير ملفات المستخدم ومطالبته بمبالغ مالية لفك التشفير:", o:["برامج الفدية (Ransomware)","التجسس (Spyware)","الديدان (Worms)","الإعلانات (Adware)"], c:0, t:"mcq", exp:"<b>Ransomware</b> برامج فدية تشفر ملفات الضحية وتطلب فدية مالية لفك التشفير."},
+  {sec:"تطوير الويب والأمن والذكاء الاصطناعي", q:"الأسلوب القائم على خدع البشر وتضليلهم للحصول على بياناتهم السرية ككلمات المرور يسمى:", o:["الهجوم المباشر","الهندسة الاجتماعية (Social Engineering)","الثغرات البرمجية","التشفير العكسي"], c:1, t:"mcq", exp:"<b>Social Engineering</b> يعتمد على التلاعب النفسي بالبشر بدلاً من اختراق الأنظمة تقنياً."},
+  {sec:"تطوير الويب والأمن والذكاء الاصطناعي", q:"الهجوم الذي يهدف لإغراق خادم الشبكة بحركة مرور وهمية وتعطيله عن خدمة المستخدمين الحقيقيين:", o:["Phishing","DoS / DDoS (حجب الخدمة)","Man-in-the-middle","SQL Injection"], c:1, t:"mcq", exp:"<b>DoS/DDoS</b> هجوم حجب خدمة يُغرق الخادم بحركة وهمية من مصدر واحد أو مصادر متعددة (Botnet)."},
+  {sec:"تطوير الويب والأمن والذكاء الاصطناعي", q:"عملية تحويل النص الأصلي الواضح إلى نص غير مفهوم باستخدام خوارزميات لحمايته تُسمى:", o:["الضغط","التشفير (Encryption)","التجميع","التحليل الجنائي"], c:1, t:"mcq", exp:"<b>Encryption</b> تحويل النص الواضح إلى مشفر بمفتاح، ولا يمكن قراءته إلا بفك التشفير بالمفتاح الصحيح."},
+  {sec:"تطوير الويب والأمن والذكاء الاصطناعي", q:"أي من أساليب التشفير التالية يستخدم مفتاحاً واحداً سرياً للتشفير وفك التشفير؟", o:["التشفير المتماثل (Symmetric Encryption)","التشفير غير المتماثل (Asymmetric Encryption)","المفتاح العام","التوقيع الرقمي"], c:0, t:"mcq", exp:"<b>Symmetric Encryption</b> يستخدم مفتاحاً واحداً للتشفير وفك التشفير، سريع لكن يتطلب تبادل المفتاح بأمان. Asymmetric يستخدم مفتاحين (عام وخاص)."},
+  {sec:"تطوير الويب والأمن والذكاء الاصطناعي", q:"التقنية التي توفر بيئة افتراضية تشبه جهاز حاسب مستقلاً داخل نظام تشغيل آخر تُسمى:", o:["Virtualization (المحاكاة الافتراضية)","Cloud Computing","Containerization","Multithreading"], c:0, t:"mcq", exp:"<b>Virtualization</b> تُنشئ أجهزة افتراضية (VMs) تعمل بأنظمة تشغيل مستقلة على نفس العتاد الفيزيائي. الحاويات (Containers) تشترك في نواة النظام."},
 
-    // دمج جميع الأسئلة
-    allQuestions.push(...programmingQuestions, ...databaseQuestions, ...networkQuestions, ...hardwareQuestions, ...webSecurityAIQuestions, ...trueFalseQuestions);
+  /* ============ 6) صح / خطأ (25) ============ */
+  {sec:"صح / خطأ", q:"الذاكرة العشوائية (RAM) تفقد كافة محتوياتها فور انقطاع التيار الكهربائي.", o:["صح","خطأ"], c:0, t:"tf", exp:"<b>صح.</b> RAM ذاكرة متطايرة (Volatile) تفقد محتواها فور انقطاع الكهرباء."},
+  {sec:"صح / خطأ", q:"الكيلوبايت يساوي 1000 بايت تماماً في النظام الرقمي للحاسب.", o:["صح","خطأ"], c:1, t:"tf", exp:"<b>خطأ.</b> الكيلوبايت = <b>1024 بايت</b> في النظام الثنائي (2^10)."},
+  {sec:"صح / خطأ", q:"يستخدم المعامل = في لغة C++ للمقارنة الشروطية بين قيمتين.", o:["صح","خطأ"], c:1, t:"tf", exp:"<b>خطأ.</b> <b>=</b> للتخصيص (Assignment)، و<b>==</b> للمقارنة."},
+  {sec:"صح / خطأ", q:"يمكنك إدراج تعليقات متعددة الأسطر في لغة C++ باستخدام /* ... */.", o:["صح","خطأ"], c:0, t:"tf", exp:"<b>صح.</b> /* ... */ تُستخدم للتعليقات المتعددة الأسطر، و// لسطر واحد."},
+  {sec:"صح / خطأ", q:"المفتاح الأساسي (Primary Key) يسمح بتكرار القيم داخل نفس العمود في الجدول.", o:["صح","خطأ"], c:1, t:"tf", exp:"<b>خطأ.</b> المفتاح الأساسي فريد لا يقبل التكرار ولا NULL."},
+  {sec:"صح / خطأ", q:"الأمر SELECT * FROM EMP; يقوم بحذف جميع البيانات من جدول EMP.", o:["صح","خطأ"], c:1, t:"tf", exp:"<b>خطأ.</b> SELECT يعرض البيانات فقط، لا يحذفها. للحذف DELETE."},
+  {sec:"صح / خطأ", q:"تُستخدم الشبكة المحلية LAN لربط أجهزة الحواسيب المنتشرة عبر دول وقارات مختلفة.", o:["صح","خطأ"], c:1, t:"tf", exp:"<b>خطأ.</b> LAN محلية محدودة النطاق (مبنى/مكتب)، و<b>WAN</b> هي الموسعة (دول وقارات)."},
+  {sec:"صح / خطأ", q:"الأمر ipconfig يُستخدم في بيئة سطر الأوامر CMD لعرض إعدادات وعنوان IP الخاص بالجهاز.", o:["صح","خطأ"], c:0, t:"tf", exp:"<b>صح.</b> ipconfig يعرض عنوان IP والإعدادات في Windows."},
+  {sec:"صح / خطأ", q:"نظام التشغيل Windows Server 2012 يأتي باسم المستخدم الافتراضي Root للمسؤول.", o:["صح","خطأ"], c:1, t:"tf", exp:"<b>خطأ.</b> المسؤول الافتراضي في Windows هو <b>Administrator</b>، وRoot في Linux."},
+  {sec:"صح / خطأ", q:'يُستخدم الوسم <input type="checkbox"> لإدراج مربعات اختيار متعددة في صفحات HTML.', o:["صح","خطأ"], c:0, t:"tf", exp:"<b>صح.</b> type=\"checkbox\" يُنشئ مربعات اختيار متعددة."},
+  {sec:"صح / خطأ", q:"تعلم الآلة (Machine Learning) هو أحد مجالات الذكاء الاصطناعي التي تمكن النظم من التنبؤ واستخلاص الأنماط من البيانات.", o:["صح","خطأ"], c:0, t:"tf", exp:"<b>صح.</b> ML يتعلم من البيانات ويستخلص الأنماط للتنبؤ والتصنيف."},
+  {sec:"صح / خطأ", q:"بروتوكول DHCP مسؤول عن تحويل اسم الموقع الإلكتروني إلى عنوان IP.", o:["صح","خطأ"], c:1, t:"tf", exp:"<b>خطأ.</b> <b>DNS</b> يترجم الأسماء إلى IP، أما <b>DHCP</b> فيوزع العناوين تلقائياً."},
+  {sec:"صح / خطأ", q:"تعتبر الشاشة والطابعة من أهم وحدات الإدخال في الحاسب.", o:["صح","خطأ"], c:1, t:"tf", exp:"<b>خطأ.</b> الشاشة والطابعة وحدات <b>إخراج</b>، وليس إدخال."},
+  {sec:"صح / خطأ", q:"اللوحة الأم (Motherboard) هي المكون الأساسي الذي يربط أجهزة وقطع الحاسب المختلفة ببعضها.", o:["صح","خطأ"], c:0, t:"tf", exp:"<b>صح.</b> اللوحة الأم هي المكون الأساسي الذي يربط كل شيء."},
+  {sec:"صح / خطأ", q:"يتكون البايت الواحد (Byte) من 5 بت.", o:["صح","خطأ"], c:1, t:"tf", exp:"<b>خطأ.</b> البايت = <b>8 بت</b>، والنبل = 4 بت."},
+  {sec:"صح / خطأ", q:"الأمر INSERT INTO في قواعد البيانات يُستخدم لتعديل صفوف البيانات الموجودة.", o:["صح","خطأ"], c:1, t:"tf", exp:"<b>خطأ.</b> INSERT للإضافة، و<b>UPDATE</b> للتعديل."},
+  {sec:"صح / خطأ", q:"الـ Active Directory في نظام Windows Server يُعد قاعدة بيانات مركزية للتحكم بالسياسات والمستخدمين.", o:["صح","خطأ"], c:0, t:"tf", exp:"<b>صح.</b> Active Directory قاعدة بيانات مركزية للمستخدمين والأجهزة والسياسات."},
+  {sec:"صح / خطأ", q:"يبدأ تنفيذ الأوامر البرمجية في لغة C++ دائماً من دالة main().", o:["صح","خطأ"], c:0, t:"tf", exp:"<b>صح.</b> تنفيذ C++ يبدأ دائماً من main()."},
+  {sec:"صح / خطأ", q:"عنوان الـ MAC Address هو عنوان منطقي يتغير بظروف الاتصال في الشبكة.", o:["صح","خطأ"], c:1, t:"tf", exp:"<b>خطأ.</b> MAC عنوان <b>فيزيائي</b> ثابت من المصنع، و<b>IP</b> هو المنطقي المتغير."},
+  {sec:"صح / خطأ", q:"يُستخدم الأمر DELETE لحذف الجدول بالكامل وهيكله من قاعدة البيانات.", o:["صح","خطأ"], c:1, t:"tf", exp:"<b>خطأ.</b> <b>DROP TABLE</b> يحذف الجدول بهيكله، وDELETE يحذف صفوفاً فقط."},
+  {sec:"صح / خطأ", q:"المحافظة على أسرار وسجلات المنشأة تُعد جزءاً أساسياً من أمن المعلومات والأخلاقيات المهنية.", o:["صح","خطأ"], c:0, t:"tf", exp:"<b>صح.</b> الحفاظ على الأسرار جزء من أخلاقيات المهنة وأمن المعلومات."},
+  {sec:"صح / خطأ", q:"لغة الحاسب التي يفهمها المعالج بشكل مباشر دون حاجة لمترجم هي لغة التجميع (Assembly).", o:["صح","خطأ"], c:1, t:"tf", exp:"<b>خطأ.</b> <b>لغة الآلة (Binary)</b> هي ما يفهمه المعالج مباشرة، وAssembly تحتاج مترجماً (Assembler)."},
+  {sec:"صح / خطأ", q:'الوسم <a href="..."> يُستخدم لإضافة صورة في HTML.', o:["صح","خطأ"], c:1, t:"tf", exp:"<b>خطأ.</b> <b>&lt;a&gt;</b> للروابط التشعبية، و<b>&lt;img&gt;</b> للصور."},
+  {sec:"صح / خطأ", q:"هجمات التصيد الاحتيالي (Phishing) تحاول إغراء المستخدم بدخول مواقع مزيفة لسرقة بياناته.", o:["صح","خطأ"], c:0, t:"tf", exp:"<b>صح.</b> Phishing تصيد احتيالي يخدع المستخدم لسرقة بياناته عبر مواقع مزيفة."},
+  {sec:"صح / خطأ", q:"في C++، تؤدي العبارة int x; إلى حجز مكان لمتغير نصي في الذاكرة.", o:["صح","خطأ"], c:1, t:"tf", exp:"<b>خطأ.</b> int لمتغير <b>صحيح (Integer)</b>، وstring للنصوص."}
+];
 
-    // ========== حالة التطبيق ==========
-    let currentIndex = 0;
-    let userAnswers = new Array(allQuestions.length).fill(null); // null: لم يجب, أو رقم الخيار المختار
-    let score = 0;
-    let answered = new Array(allQuestions.length).fill(false);
+/* =====================================================
+   الحالة
+   ===================================================== */
+const state = {
+  idx: 0,
+  answers: new Array(QUESTIONS.length).fill(null),
+  locked: new Array(QUESTIONS.length).fill(false),
+  score: 0
+};
 
-    // ========== دوال واجهة المستخدم ==========
-    const questionTextEl = document.getElementById('questionText');
-    const optionsContainer = document.getElementById('optionsContainer');
-    const sectionTagEl = document.getElementById('sectionTag');
-    const progressTextEl = document.getElementById('progressText');
-    const scoreTextEl = document.getElementById('scoreText');
-    const progressFillEl = document.getElementById('progressFill');
-    const feedbackBox = document.getElementById('feedbackBox');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const quizSection = document.getElementById('quizSection');
-    const resultScreen = document.getElementById('resultScreen');
-    const finalScoreEl = document.getElementById('finalScore');
-    const finalDetailEl = document.getElementById('finalDetail');
+/* =====================================================
+   اختصارات DOM
+   ===================================================== */
+const $ = id => document.getElementById(id);
+const el = {
+  hdrQ: $('hdrQ'), hdrScore: $('hdrScore'), hdrRemain: $('hdrRemain'),
+  progressFill: $('progressFill'), progressPct: $('progressPct'),
+  sectionBadge: $('sectionBadge'), qCounter: $('qCounter'),
+  questionText: $('questionText'), optionsBox: $('optionsBox'),
+  explainBox: $('explainBox'), explainIco: $('explainIco'),
+  explainTitle: $('explainTitle'), explainBody: $('explainBody'),
+  prevBtn: $('prevBtn'), nextBtn: $('nextBtn'),
+  quizSection: $('quizSection'), resultScreen: $('resultScreen'),
+  resultPct: $('resultPct'), resultMsg: $('resultMsg'), resultIcon: $('resultIcon'),
+  resCorrect: $('resCorrect'), resWrong: $('resWrong'), resUnanswered: $('resUnanswered'),
+  modalBack: $('modalBack'), modalIcon: $('modalIcon'),
+  modalTitle: $('modalTitle'), modalSub: $('modalSub'),
+  modalBody: $('modalBody'), modalActions: $('modalActions'),
+  backBtn: $('backBtn'), backBtn2: $('backBtn2'),
+  toolbar: $('toolbar')
+};
 
-    function loadQuestion(index) {
-        const q = allQuestions[index];
-        sectionTagEl.textContent = q.section;
-        questionTextEl.textContent = q.question;
-        feedbackBox.className = 'feedback';
-        feedbackBox.textContent = '';
+/* روابط العودة */
+el.backBtn.href = EXAMS_LIST_URL;
+el.backBtn2.href = EXAMS_LIST_URL;
+el.backBtn.onclick = (e) => {
+  if (hasProgress() && !confirm('سيتم فقدان تقدمك، هل تريد الرجوع للقائمة؟')) {
+    e.preventDefault();
+  }
+};
 
-        // تحديث شريط التقدم
-        const total = allQuestions.length;
-        progressTextEl.textContent = `السؤال ${index + 1} من ${total}`;
-        progressFillEl.style.width = `${((index + 1) / total) * 100}%`;
+/* =====================================================
+   دوال مساعدة
+   ===================================================== */
+function hasProgress() {
+  return state.locked.filter(Boolean).length > 0;
+}
 
-        // عرض الخيارات
-        optionsContainer.innerHTML = '';
-        q.options.forEach((optText, i) => {
-            const optDiv = document.createElement('div');
-            optDiv.className = 'option';
-            if (answered[index]) {
-                optDiv.classList.add('disabled');
-                if (i === q.correct) optDiv.classList.add('correct');
-                if (userAnswers[index] === i && i !== q.correct) optDiv.classList.add('wrong');
-                if (userAnswers[index] === i) optDiv.classList.add('selected');
-            }
-            const letterSpan = document.createElement('span');
-            letterSpan.className = 'letter';
-            letterSpan.textContent = q.type === 'tf' ? (i === 0 ? 'ص' : 'خ') : String.fromCharCode(65 + i); // A,B,C,D أو ص/خ
-            const textSpan = document.createElement('span');
-            textSpan.textContent = optText;
-            optDiv.appendChild(letterSpan);
-            optDiv.appendChild(textSpan);
-            optDiv.onclick = () => selectOption(i);
-            optionsContainer.appendChild(optDiv);
-        });
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
 
-        // إظهار التغذية الراجعة إذا تمت الإجابة مسبقاً
-        if (answered[index]) {
-            const isCorrect = userAnswers[index] === q.correct;
-            feedbackBox.classList.add('show', isCorrect ? 'correct' : 'wrong');
-            feedbackBox.textContent = isCorrect ? '✅ إجابة صحيحة' : `❌ إجابة خاطئة. الإجابة الصحيحة: ${q.options[q.correct]}`;
-        }
+function scrollTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
-        // تحديث أزرار التنقل
-        prevBtn.disabled = index === 0;
-        nextBtn.textContent = index === allQuestions.length - 1 ? 'عرض النتيجة' : 'التالي';
+/* =====================================================
+   العرض
+   ===================================================== */
+function render() {
+  const q = QUESTIONS[state.idx];
+  const locked = state.locked[state.idx];
+
+  /* الترويسة */
+  el.sectionBadge.textContent = q.sec;
+  el.qCounter.textContent = `${String(state.idx + 1).padStart(2, '0')} / ${QUESTIONS.length}`;
+  el.questionText.textContent = q.q;
+
+  /* الإحصاءات العلوية */
+  el.hdrQ.textContent = `${state.idx + 1}/${QUESTIONS.length}`;
+  el.hdrScore.textContent = state.score;
+  const answered = state.locked.filter(Boolean).length;
+  el.hdrRemain.textContent = QUESTIONS.length - answered;
+
+  /* شريط التقدم */
+  const pct = Math.round((answered / QUESTIONS.length) * 100);
+  el.progressFill.style.width = pct + '%';
+  el.progressPct.textContent = pct + '%';
+
+  /* الخيارات */
+  el.optionsBox.innerHTML = '';
+  q.o.forEach((text, i) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'option';
+    if (locked) {
+      btn.classList.add('locked');
+      if (i === q.c) btn.classList.add('correct');
+      if (state.answers[state.idx] === i && i !== q.c) btn.classList.add('wrong');
+      btn.disabled = true;
     }
+    const letter = q.t === 'tf' ? (i === 0 ? 'ص' : 'خ') : String.fromCharCode(65 + i);
+    btn.innerHTML = `<span class="key">${letter}</span><span class="txt">${escapeHtml(text)}</span>`;
+    if (!locked) btn.addEventListener('click', () => selectAnswer(i));
+    el.optionsBox.appendChild(btn);
+  });
 
-    function selectOption(optionIndex) {
-        const index = currentIndex;
-        if (answered[index]) return; // لا يمكن تغيير الإجابة بعد التثبيت
+  /* التبرير التعليمي */
+  if (locked) {
+    const isCorrect = state.answers[state.idx] === q.c;
+    el.explainBox.className = 'explain show ' + (isCorrect ? 'correct' : 'wrong');
+    el.explainIco.textContent = isCorrect ? '✓' : '✗';
+    el.explainTitle.textContent = isCorrect ? 'إجابة صحيحة — أحسنت!' : 'إجابة خاطئة — تعلّم من التفسير';
+    el.explainBody.innerHTML = q.exp;
+  } else {
+    el.explainBox.className = 'explain';
+    el.explainBody.innerHTML = '';
+  }
 
-        const q = allQuestions[index];
-        userAnswers[index] = optionIndex;
-        answered[index] = true;
+  /* أزرار التنقل */
+  el.prevBtn.disabled = state.idx === 0;
+  el.nextBtn.textContent =
+    state.idx === QUESTIONS.length - 1 ? 'إنهاء وعرض النتيجة →' : 'التالي →';
+}
 
-        const isCorrect = optionIndex === q.correct;
-        if (isCorrect) {
-            score++;
-            scoreTextEl.textContent = `النتيجة: ${score}`;
-        }
+/* =====================================================
+   التفاعل
+   ===================================================== */
+function selectAnswer(i) {
+  if (state.locked[state.idx]) return;
+  state.answers[state.idx] = i;
+  state.locked[state.idx] = true;
+  if (i === QUESTIONS[state.idx].c) state.score++;
+  render();
+  setTimeout(() => {
+    el.explainBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 100);
+}
 
-        // إعادة تحميل السؤال لتطبيق الأنماط
-        loadQuestion(index);
-    }
+function nextQ() {
+  if (state.idx < QUESTIONS.length - 1) {
+    state.idx++;
+    render();
+    scrollTop();
+  } else {
+    showFinalResult();
+  }
+}
 
-    function nextQuestion() {
-        if (currentIndex < allQuestions.length - 1) {
-            currentIndex++;
-            loadQuestion(currentIndex);
-        } else {
-            showResult();
-        }
-    }
+function prevQ() {
+  if (state.idx > 0) {
+    state.idx--;
+    render();
+    scrollTop();
+  }
+}
 
-    function prevQuestion() {
-        if (currentIndex > 0) {
-            currentIndex--;
-            loadQuestion(currentIndex);
-        }
-    }
+/* =====================================================
+   الإحصاءات
+   ===================================================== */
+function computeStats() {
+  const answered = state.locked.filter(Boolean).length;
+  const correct = state.score;
+  const wrong = answered - correct;
+  const unanswered = QUESTIONS.length - answered;
+  const pct = Math.round((correct / QUESTIONS.length) * 100);
+  return { answered, correct, wrong, unanswered, pct };
+}
 
-    function showResult() {
-        quizSection.style.display = 'none';
-        resultScreen.classList.add('active');
-        const total = allQuestions.length;
-        finalScoreEl.textContent = `${score} / ${total}`;
-        const percentage = Math.round((score / total) * 100);
-        let message = '';
-        if (percentage >= 85) message = 'ممتاز! أنت جاهز تماماً للاختبار الشامل.';
-        else if (percentage >= 70) message = 'جيد جداً، راجع بعض النقاط لضمان الدرجة النهائية.';
-        else if (percentage >= 50) message = 'مقبول، تحتاج إلى مراجعة إضافية لبعض المحاور.';
-        else message = 'تحتاج إلى مراجعة شاملة لجميع المحاور قبل الاختبار.';
-        finalDetailEl.textContent = `${message} (نسبة النجاح: ${percentage}%)`;
-    }
+/* =====================================================
+   Modal
+   ===================================================== */
+function openModal({ icon, title, sub, body, actions }) {
+  el.modalIcon.textContent = icon;
+  el.modalTitle.textContent = title;
+  el.modalSub.textContent = sub;
+  el.modalBody.innerHTML = body;
+  el.modalActions.innerHTML = '';
+  actions.forEach(a => {
+    const b = document.createElement(a.href ? 'a' : 'button');
+    b.className = 'modal-btn ' + (a.kind || 'ghost');
+    b.innerHTML = `<span>${a.icon || ''}</span> ${a.label}`;
+    if (a.href) b.href = a.href;
+    if (a.onClick) b.addEventListener('click', a.onClick);
+    el.modalActions.appendChild(b);
+  });
+  el.modalBack.classList.add('show');
+}
 
-    function restartQuiz() {
-        currentIndex = 0;
-        userAnswers = new Array(allQuestions.length).fill(null);
-        answered = new Array(allQuestions.length).fill(false);
-        score = 0;
-        scoreTextEl.textContent = 'النتيجة: 0';
-        resultScreen.classList.remove('active');
-        quizSection.style.display = 'block';
-        loadQuestion(0);
-    }
+function closeModal() {
+  el.modalBack.classList.remove('show');
+}
 
-    // تحميل أول سؤال عند فتح الصفحة
-    window.onload = () => {
-        loadQuestion(0);
-    };
+el.modalBack.addEventListener('click', e => {
+  if (e.target === el.modalBack) closeModal();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && el.modalBack.classList.contains('show')) {
+    closeModal();
+  }
+});
+
+/* =====================================================
+   الأزرار الأربعة
+   ===================================================== */
+function showResultModal() {
+  const s = computeStats();
+  const body = `
+    <div class="stat-grid">
+      <div class="stat-box ok"><div class="num">${s.correct}</div><div class="lbl">صحيحة</div></div>
+      <div class="stat-box bad"><div class="num">${s.wrong}</div><div class="lbl">خاطئة</div></div>
+      <div class="stat-box"><div class="num">${s.unanswered}</div><div class="lbl">غير مجاب</div></div>
+    </div>
+    <div class="grade-banner">
+      <div class="grade-pct">${s.pct}%</div>
+      <div class="grade-msg">أجبت على ${s.answered} من ${QUESTIONS.length} سؤال</div>
+    </div>`;
+  openModal({
+    icon: '📊',
+    title: 'نتيجتك الحالية',
+    sub: 'ملخص أدائك حتى الآن',
+    body,
+    actions: [
+      { label: 'متابعة الاختبار', icon: '▶', kind: 'primary', onClick: closeModal },
+      { label: 'إنهاء وعرض النتيجة النهائية', icon: '🏁', kind: 'ghost', onClick: () => { closeModal(); confirmFinish(); } },
+      { label: 'إعادة المحاولة', icon: '🔄', kind: 'ghost', onClick: () => { closeModal(); confirmRestart(); } }
+    ]
+  });
+}
+
+function confirmFinish() {
+  const s = computeStats();
+  if (s.answered < QUESTIONS.length) {
+    openModal({
+      icon: '⚠️',
+      title: 'إنهاء الاختبار؟',
+      sub: `لم تُجب بعد على ${s.unanswered} سؤال`,
+      body: `<p style="text-align:center;color:var(--text-dim);line-height:1.9;font-size:.95rem">سيتم احتساب الأسئلة غير المجابة كخاطئة في النتيجة النهائية. هل تريد المتابعة؟</p>`,
+      actions: [
+        { label: 'نعم، إنهاء الاختبار', icon: '🏁', kind: 'primary', onClick: () => { closeModal(); showFinalResult(); } },
+        { label: 'العودة للاختبار', icon: '↩', kind: 'ghost', onClick: closeModal }
+      ]
+    });
+  } else {
+    showFinalResult();
+  }
+}
+
+function showFinalResult() {
+  const s = computeStats();
+  el.quizSection.style.display = 'none';
+  el.toolbar.style.display = 'none';
+  el.resultScreen.classList.add('show');
+  el.resultPct.textContent = s.pct + '%';
+  el.resCorrect.textContent = s.correct;
+  el.resWrong.textContent = s.wrong;
+  el.resUnanswered.textContent = s.unanswered;
+
+  let icon = '🎯', msg = '';
+  if (s.pct >= 85) { icon = '🏆'; msg = 'ممتاز! أنت جاهز تماماً للاختبار الشامل.'; }
+  else if (s.pct >= 70) { icon = '🎖️'; msg = 'جيد جداً، راجع بعض النقاط لضمان الدرجة النهائية.'; }
+  else if (s.pct >= 50) { icon = '📚'; msg = 'مقبول، تحتاج إلى مراجعة إضافية لبعض المحاور.'; }
+  else { icon = '💪'; msg = 'تحتاج إلى مراجعة شاملة لجميع المحاور قبل الاختبار.'; }
+  el.resultIcon.textContent = icon;
+  el.resultMsg.textContent = msg;
+  scrollTop();
+}
+
+function confirmRestart() {
+  if (!hasProgress()) { restartExam(); return; }
+  openModal({
+    icon: '🔄',
+    title: 'إعادة المحاولة؟',
+    sub: 'سيتم حذف كل إجاباتك الحالية',
+    body: `<p style="text-align:center;color:var(--text-dim);line-height:1.9;font-size:.95rem">هل تريد البدء من جديد؟ لن يمكن استرجاع التقدم الحالي.</p>`,
+    actions: [
+      { label: 'نعم، إعادة المحاولة', icon: '🔄', kind: 'primary', onClick: () => { closeModal(); restartExam(); } },
+      { label: 'إلغاء', icon: '✕', kind: 'ghost', onClick: closeModal }
+    ]
+  });
+}
+
+function restartExam() {
+  state.idx = 0;
+  state.answers = new Array(QUESTIONS.length).fill(null);
+  state.locked = new Array(QUESTIONS.length).fill(false);
+  state.score = 0;
+  el.resultScreen.classList.remove('show');
+  el.toolbar.style.display = '';
+  el.quizSection.style.display = '';
+  render();
+  scrollTop();
+}
+
+/* =====================================================
+   بدء التشغيل
+   ===================================================== */
+render();
 </script>
-
 </body>
 </html>
