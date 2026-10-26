@@ -1,21 +1,22 @@
 /**
  * مرجع روابط وحدة الإرشاد — مصدر واحد للتحديث
  * الصفحات يمكنها استخدام window.CP_GUIDANCE_LINKS عند الحاجة
- * تاريخ آخر مراجعة يدوية: 2026-10-22
+ * آخر مراجعة روابط بعد فحص HTTP: 2026-10-26
  */
 window.CP_GUIDANCE_LINKS = {
   academy: "/academy/",
   guidance: "/academy/guidance/",
   diploma: "/academy/guidance/diploma/",
   plan: "/academy/guidance/diploma/plan.html",
-  assessment: "/academy/guidance/diploma/assessment.html", // مرحلة 2
-  graduation: "/academy/guidance/diploma/graduation.html", // مرحلة 3
+  assessment: "/academy/guidance/diploma/assessment.html",
+  graduation: "/academy/guidance/diploma/graduation.html",
   roadmap: "/academy/guidance/roadmap.html",
   connect: "/academy/guidance/connect.html",
   faq: "/academy/guidance/faq.html",
-  support: "/academy/guidance/support.html", // مرحلة 2
+  support: "/academy/guidance/support.html",
+  contact: "/academy/guidance/contact.html",
 
-  // موارد المنصة الموجودة
+  // موارد المنصة (مسارات تأكدت بفحص HTTP حيث أمكن)
   tvtcPath: "/pathways/tvtc-cs-security.html",
   pathways: "/pathways/",
   coursesQuarters: "/pathways/courses.html",
@@ -32,13 +33,12 @@ window.CP_GUIDANCE_LINKS = {
   awareness: "/resources/awareness.html",
   freePlatforms: "/resources/platforms.html",
   cysguide: "/cysguide/index.html",
-  contact: "/contact.html",
   contactForm: "/academy/guidance/contact.html",
   questions: "/questions.html",
   studentDashboard: "/academy/student-dashboard.html",
 
   meta: {
-    lastReviewed: "2026-10-22",
+    lastReviewed: "2026-10-26",
     note: "لا تُخترع روابط جديدة هنا دون تحقق فعلي من المنصة"
   }
 };
