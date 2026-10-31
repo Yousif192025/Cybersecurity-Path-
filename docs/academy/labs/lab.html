@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>تفاصيل مختبر | Labs Center</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/labs.css" />
+</head>
+<body class="labs-body">
+  <div class="labs-shell">
+    <div class="labs-topnav">
+      <a class="labs-brand" href="/academy/labs/">CyberPath <span>Labs</span></a>
+      <nav aria-label="تنقل مركز المختبرات">
+        <a href="/academy/labs/">المركز</a>
+        <a href="/academy/labs/lab.html" aria-current="page">التفاصيل</a>
+        <a href="/academy/labs/run.html">التشغيل</a>
+        <a href="/academy/labs/results.html">النتائج</a>
+        <a href="/academy/">الأكاديمية</a>
+      </nav>
+    </div>
+    <main>
+      <p class="eyebrow" style="color:var(--labs-cyan);font-weight:700;font-size:0.85rem">Lab Details</p>
+      <h1 style="margin-top:0.25rem">تفاصيل المختبر</h1>
+      <p class="section-desc">عرض Metadata عند توفر المعرف في السجل. المحتوى التشغيلي يُحمَّل في مرحلة لاحقة.</p>
+      <div class="labs-card" style="margin-top:1rem">
+        <p>المعرف: <code id="lab-id-display">—</code></p>
+        <div id="lab-meta-mount"><p class="section-desc">لا بيانات بعد.</p></div>
+        <div class="labs-hero-actions" style="margin-top:1rem">
+          <a class="btn-labs btn-labs-primary" id="link-run" href="/academy/labs/run.html">تشغيل</a>
+          <a class="btn-labs btn-labs-ghost" href="/academy/labs/">العودة للمركز</a>
+        </div>
+      </div>
+    </main>
+    <footer class="labs-footer"><span>Labs Center</span><a href="/academy/labs/">الرئيسية</a></footer>
+  </div>
+  <script src="js/labs-data.js"></script>
+  <script src="js/labs-router.js"></script>
+  <script>
+    (function () {
+      var id = new URLSearchParams(location.search).get("id");
+      document.getElementById("lab-id-display").textContent = id || "(لا يوجد id)";
+      document.getElementById("link-run").href = LabsRouter.labRun(id || "");
+      if (!id) return;
+      LabsData.loadLabsIndex().then(function (index) {
+        var lab = LabsData.getLabById(index, id);
+        var mount = document.getElementById("lab-meta-mount");
+        if (!lab) {
+          mount.innerHTML = "<p>لا يوجد مختبر بهذا المعرف في السجل.</p>";
+          return;
+        }
+        mount.innerHTML = "<ul style='margin:0;padding-right:1.1rem'>" +
+          "<li>العنوان: " + (lab.title || "") + "</li>" +
+          "<li>المجال: " + (lab.domain || "") + "</li>" +
+          "<li>المستوى: " + (lab.level || "") + "</li>" +
+          "<li>النوع: " + (lab.type || "") + "</li>" +
+          "<li>الحالة: " + (lab.status || "") + "</li></ul>";
+      }).catch(function () {
+        document.getElementById("lab-meta-mount").innerHTML = "<p>تعذر تحميل البيانات.</p>";
+      });
+    })();
+  </script>
+</body>
+</html>
