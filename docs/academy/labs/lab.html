@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>تفاصيل مختبر | Labs Center</title>
-  <meta name="robots" content="noindex,nofollow" />
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/labs.css" />
 </head>
@@ -22,13 +21,14 @@
     </div>
     <main>
       <p class="eyebrow" style="color:var(--labs-cyan);font-weight:700;font-size:0.85rem">Lab Details</p>
-      <h1 style="margin-top:0.25rem">تفاصيل المختبر</h1>
-      <p class="section-desc">عرض Metadata عند توفر المعرف في السجل. المحتوى التشغيلي يُحمَّل في مرحلة لاحقة.</p>
+      <h1 id="lab-title" style="margin-top:0.25rem">تفاصيل المختبر</h1>
+      <p id="lab-summary" class="section-desc"></p>
       <div class="labs-card" style="margin-top:1rem">
         <p>المعرف: <code id="lab-id-display">—</code></p>
-        <div id="lab-meta-mount"><p class="section-desc">لا بيانات بعد.</p></div>
+        <div id="lab-meta-mount"><p class="section-desc">جاري التحميل…</p></div>
         <div class="labs-hero-actions" style="margin-top:1rem">
-          <a class="btn-labs btn-labs-primary" id="link-run" href="/academy/labs/run.html">تشغيل</a>
+          <a class="btn-labs btn-labs-primary" id="link-run" href="/academy/labs/run.html">بدء المختبر</a>
+          <a class="btn-labs btn-labs-ghost" id="link-workshop" href="#" hidden>ورشة مرتبطة (اختياري)</a>
           <a class="btn-labs btn-labs-ghost" href="/academy/labs/">العودة للمركز</a>
         </div>
       </div>
@@ -39,10 +39,10 @@
   <script src="js/labs-router.js"></script>
   <script>
     (function () {
-      var id = new URLSearchParams(location.search).get("id");
-      document.getElementById("lab-id-display").textContent = id || "(لا يوجد id)";
-      document.getElementById("link-run").href = LabsRouter.labRun(id || "");
-      if (!id) return;
+      var id = new URLSearchParams(location.search).get("id") || "lab-soc-phishing-email-01";
+      document.getElementById("lab-id-display").textContent = id;
+      document.getElementById("link-run").href =
+        LabsRouter.labRun(id, "simulation");
       LabsData.loadLabsIndex().then(function (index) {
         var lab = LabsData.getLabById(index, id);
         var mount = document.getElementById("lab-meta-mount");
@@ -50,14 +50,30 @@
           mount.innerHTML = "<p>لا يوجد مختبر بهذا المعرف في السجل.</p>";
           return;
         }
-        mount.innerHTML = "<ul style='margin:0;padding-right:1.1rem'>" +
-          "<li>العنوان: " + (lab.title || "") + "</li>" +
-          "<li>المجال: " + (lab.domain || "") + "</li>" +
-          "<li>المستوى: " + (lab.level || "") + "</li>" +
+        document.getElementById("lab-title").textContent = lab.title || id;
+        document.getElementById("lab-summary").textContent = lab.summary || "";
+        document.title = (lab.title || "مختبر") + " | Labs Center";
+        mount.innerHTML =
+          "<ul style='margin:0;padding-right:1.1rem'>" +
+          "<li>المجال: " + (lab.domainLabel || lab.domain || "") + "</li>" +
+          "<li>المستوى: " + (lab.levelLabel || lab.level || "") + "</li>" +
           "<li>النوع: " + (lab.type || "") + "</li>" +
+          "<li>المدة التقديرية: " + (lab.durationMinutes || "—") + " دقيقة</li>" +
           "<li>الحالة: " + (lab.status || "") + "</li></ul>";
+        if (lab.relatedWorkshop) {
+          var w = document.getElementById("link-workshop");
+          w.hidden = false;
+          w.href = lab.relatedWorkshop;
+        }
+        if (lab.type) {
+          document.getElementById("link-run").href = LabsRouter.labRun(
+            id,
+            LabsRouter.runnerForType(lab.type)
+          );
+        }
       }).catch(function () {
-        document.getElementById("lab-meta-mount").innerHTML = "<p>تعذر تحميل البيانات.</p>";
+        document.getElementById("lab-meta-mount").innerHTML =
+          "<p>تعذر تحميل البيانات.</p>";
       });
     })();
   </script>
