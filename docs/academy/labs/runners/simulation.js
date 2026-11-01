@@ -1,5 +1,7 @@
 /**
- * Simulation runner — loads content + assessment and runs in-browser lab.
+ * Simulation runner — generic assessment engine.
+ * Compatible with Lab 1 keys/feedback and Lab 6 acceptableIds/criticalIds/axes.
+ * No per-lab-id branches.
  */
 (function (global) {
   global.LabsRunners = global.LabsRunners || {};
@@ -11,16 +13,8 @@
     return n;
   }
 
-  function resolveDataUrl(ref) {
-    if (!ref) return null;
-    if (/^https?:\/\//i.test(ref)) return ref;
-    return new URL("../data/" + ref.replace(/^\/+/, ""), document.currentScript.src).href;
-  }
-
-  // Fallback when currentScript is null (deferred): relative to page
   function pageDataUrl(ref) {
-    if (!ref) return null;
-    return new URL("data/" + ref.replace(/^data\//, ""), window.location.href).href;
+    return new URL("data/" + String(ref).replace(/^data\//, ""), window.location.href).href;
   }
 
   async function fetchJson(url) {
@@ -29,72 +23,232 @@
     return res.json();
   }
 
-  function score(assessment, answers) {
-    var key = assessment.key;
-    var fb = assessment.feedback || {};
-    var messages = [];
-    var q1ok = false;
-    var q2ok = false;
-    var q3ok = false;
-    var q4ok = false;
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
 
-    // Q1
-    var selected = answers.q1 || [];
-    var correctSet = key.q1.correctIds || [];
-    var hits = selected.filter(function (id) {
-      return correctSet.indexOf(id) !== -1;
+  function includesId(arr, id) {
+    return Array.isArray(arr) && arr.indexOf(id) !== -1;
+  }
+
+  function pushUnique(list, msg) {
+    if (msg && list.indexOf(msg) === -1) list.push(msg);
+  }
+
+  function keywordHit(textLower, kw) {
+    return textLower.indexOf(String(kw).toLowerCase()) !== -1;
+  }
+
+  /**
+   * When requireDecisionTheme is true without explicit decisionKeywords,
+   * treat hintKeywords matching these stems as decision-oriented.
+   */
+  function isDecisionOrientedKeyword(kw) {
+    var s = String(kw).toLowerCase().trim();
+    var phrases = [
+      "إبلاغ", "ابلاغ", "بلغ",
+      "لا أفتح", "لا افتح", "لا أضغط", "لا اضغط",
+      "عدم فتح", "عدم الضغط", "عدم التفاعل",
+      "عزل", "تصعيد", "توثيق", "تجاهل",
+      "حذف", "احتواء", "توصية"
+    ];
+    return phrases.some(function (phrase) {
+      return s.indexOf(phrase) !== -1;
     });
-    q1ok = hits.length >= (key.q1.minCorrect || 3);
-    if (selected.indexOf("i6") !== -1) messages.push(fb.q1_time || "");
-    if (!q1ok) messages.push(fb.partialIndicators || "");
+  }
 
-    // Q2
-    q2ok = answers.q2 === key.q2.correctId;
-    if (!q2ok) messages.push(fb.q2_wrong || "");
+  function scoreMulti(q, keyPart, selected, fb, messages) {
+    selected = Array.isArray(selected) ? selected : [];
+    keyPart = keyPart || {};
+    var correctIds = keyPart.correctIds || [];
+    var distractors = keyPart.distractorIds || [];
+    var minCorrect =
+      keyPart.minCorrect != null ? keyPart.minCorrect : correctIds.length;
+    var hits = selected.filter(function (id) {
+      return includesId(correctIds, id);
+    });
+    var fps = selected.filter(function (id) {
+      return includesId(distractors, id);
+    });
 
-    // Q3
-    q3ok = answers.q3 === key.q3.correctId;
-    if (!q3ok) {
-      var k = "q3_" + answers.q3;
-      if (fb[k]) messages.push(fb[k]);
+    // maxFalsePositives: only enforced when the property is present (Lab 1 omits it)
+    var ok = hits.length >= minCorrect;
+    if (Object.prototype.hasOwnProperty.call(keyPart, "maxFalsePositives")) {
+      var maxFP = keyPart.maxFalsePositives;
+      if (typeof maxFP === "number" && fps.length > maxFP) ok = false;
     }
 
-    // Q4
-    var text = (answers.q4 || "").trim();
-    var q4key = key.q4 || {};
-    var longEnough = text.length >= (q4key.minLength || 20);
-    var hitsKw = 0;
+    // Distractor feedback (e.g. Lab 1 q1_time) without failing when maxFP absent
+    if (fps.length) {
+      // Named map in key: distractorFeedback: { "i6": "q1_time" }
+      var map = keyPart.distractorFeedback || {};
+      fps.forEach(function (fid) {
+        if (map[fid] && fb[map[fid]]) pushUnique(messages, fb[map[fid]]);
+        else if (fb[q.id + "_distractor_" + fid])
+          pushUnique(messages, fb[q.id + "_distractor_" + fid]);
+      });
+      // Conventional feedback key: <qId>_time when any distractor selected
+      if (fb[q.id + "_time"]) pushUnique(messages, fb[q.id + "_time"]);
+    }
+
+    if (!ok) {
+      if (fb[q.id + "_weak"]) pushUnique(messages, fb[q.id + "_weak"]);
+      if (fb.partialIndicators) pushUnique(messages, fb.partialIndicators);
+    }
+
+    return { ok: ok, critical: false };
+  }
+
+  function scoreSingle(q, keyPart, val, fb, messages) {
+    keyPart = keyPart || {};
+    val = val || null;
+
+    if (includesId(keyPart.criticalIds, val)) {
+      if (fb[q.id + "_critical_" + val])
+        pushUnique(messages, fb[q.id + "_critical_" + val]);
+      else if (fb[q.id + "_" + val]) pushUnique(messages, fb[q.id + "_" + val]);
+      else if (fb[q.id + "_wrong"]) pushUnique(messages, fb[q.id + "_wrong"]);
+      return { ok: false, critical: true };
+    }
+
+    var ok = false;
+    if (Array.isArray(keyPart.acceptableIds) && keyPart.acceptableIds.length) {
+      ok = includesId(keyPart.acceptableIds, val);
+    } else if (keyPart.correctId != null) {
+      ok = val === keyPart.correctId;
+    } else {
+      ok = true;
+    }
+
+    if (!ok) {
+      if (fb[q.id + "_" + val]) pushUnique(messages, fb[q.id + "_" + val]);
+      else if (fb[q.id + "_wrong"]) pushUnique(messages, fb[q.id + "_wrong"]);
+    }
+    return { ok: ok, critical: false };
+  }
+
+  function scoreText(q, keyPart, answer, fb, messages) {
+    keyPart = keyPart || {};
+    var text = String(answer || "").trim();
+    var minLen =
+      keyPart.minLength != null
+        ? keyPart.minLength
+        : q.minLength != null
+          ? q.minLength
+          : 20;
     var lower = text.toLowerCase();
-    (q4key.hintKeywords || []).forEach(function (kw) {
-      if (lower.indexOf(String(kw).toLowerCase()) !== -1) hitsKw++;
+    var longEnough = text.length >= minLen;
+    var ok = false;
+
+    if (Array.isArray(keyPart.axes) && keyPart.axes.length) {
+      var axisHits = 0;
+      keyPart.axes.forEach(function (axis) {
+        var hit = (axis.keywords || []).some(function (kw) {
+          return keywordHit(lower, kw);
+        });
+        if (hit) axisHits++;
+      });
+      var need =
+        keyPart.minAxisHits != null ? keyPart.minAxisHits : keyPart.axes.length;
+      ok = longEnough && axisHits >= need;
+    } else {
+      var hints = keyPart.hintKeywords || [];
+      var kwHits = 0;
+      hints.forEach(function (kw) {
+        if (keywordHit(lower, kw)) kwHits++;
+      });
+      var minKw = keyPart.minKeywordHits != null ? keyPart.minKeywordHits : 2;
+      ok = longEnough && (hints.length ? kwHits >= minKw : longEnough);
+
+      // requireDecisionTheme: must also reflect action/decision, not indicators only
+      if (ok && keyPart.requireDecisionTheme) {
+        var decisionList = keyPart.decisionKeywords;
+        if (!Array.isArray(decisionList) || !decisionList.length) {
+          decisionList = hints.filter(isDecisionOrientedKeyword);
+        }
+        var decisionHits = 0;
+        decisionList.forEach(function (kw) {
+          if (keywordHit(lower, kw)) decisionHits++;
+        });
+        var minDec =
+          keyPart.minDecisionHits != null ? keyPart.minDecisionHits : 1;
+        if (decisionHits < minDec) ok = false;
+      }
+    }
+
+    if (!ok) {
+      if (fb[q.id + "_weak"]) pushUnique(messages, fb[q.id + "_weak"]);
+      else if (fb.q4_weak) pushUnique(messages, fb.q4_weak);
+      else if (fb.q5_weak) pushUnique(messages, fb.q5_weak);
+    }
+    return { ok: ok, critical: false };
+  }
+
+  function scoreQuestion(q, keyPart, answer, fb, messages) {
+    if (!keyPart) return { ok: true, critical: false };
+    if (q.type === "multi") return scoreMulti(q, keyPart, answer, fb, messages);
+    if (q.type === "single") return scoreSingle(q, keyPart, answer, fb, messages);
+    if (q.type === "text") return scoreText(q, keyPart, answer, fb, messages);
+    return { ok: true, critical: false };
+  }
+
+  function scoreAll(assessment, answers) {
+    var key = assessment.key || {};
+    var fb = assessment.feedback || {};
+    var questions = assessment.questions || [];
+    var parts = {};
+    var critical = false;
+    var allOk = true;
+    var messages = [];
+
+    questions.forEach(function (q) {
+      var r = scoreQuestion(q, key[q.id], answers[q.id], fb, messages);
+      parts[q.id] = r.ok;
+      if (r.critical) critical = true;
+      if (!r.ok) allOk = false;
     });
-    q4ok = longEnough && hitsKw >= (q4key.minKeywordHits || 2);
-    if (!q4ok) messages.push(fb.q4_weak || "");
 
-    var complete =
-      q2ok &&
-      q3ok &&
-      q1ok &&
-      q4ok;
-
-    if (complete) messages = [fb.success || "أحسنت."];
-
-    // unique non-empty messages
-    var seen = {};
-    messages = messages.filter(function (m) {
-      if (!m || seen[m]) return false;
-      seen[m] = true;
-      return true;
-    });
+    var complete = allOk && !critical;
+    if (complete) {
+      // Keep soft advisories (e.g. distractor time note) after success
+      var advisories = messages.slice();
+      messages = [fb.success || "أحسنت."];
+      advisories.forEach(function (m) {
+        if (m && m !== messages[0] && messages.indexOf(m) === -1) messages.push(m);
+      });
+    }
 
     return {
       complete: complete,
-      q1ok: q1ok,
-      q2ok: q2ok,
-      q3ok: q3ok,
-      q4ok: q4ok,
+      critical: critical,
+      parts: parts,
       messages: messages
     };
+  }
+
+  function collectAnswers(form, questions) {
+    var answers = {};
+    questions.forEach(function (q) {
+      if (q.type === "multi") {
+        answers[q.id] = [];
+        form
+          .querySelectorAll('input[name="' + q.id + '"]:checked')
+          .forEach(function (inp) {
+            answers[q.id].push(inp.value);
+          });
+      } else if (q.type === "single") {
+        var sel = form.querySelector('input[name="' + q.id + '"]:checked');
+        answers[q.id] = sel ? sel.value : null;
+      } else if (q.type === "text") {
+        var ta = form.querySelector('[name="' + q.id + '"]');
+        answers[q.id] = ta ? ta.value : "";
+      }
+    });
+    return answers;
   }
 
   function render(ctx, content, assessment) {
@@ -102,62 +256,102 @@
     mount.innerHTML = "";
     mount.classList.add("lab-sim");
 
-    var title = el("h2", null, "تشغيل المحاكاة");
-    mount.appendChild(title);
+    mount.appendChild(el("h2", null, "تشغيل المحاكاة"));
+    if (content.intro) mount.appendChild(el("p", "sim-intro", content.intro));
 
-    if (content.intro) {
-      mount.appendChild(el("p", "sim-intro", content.intro));
+    if (content.context) {
+      var ctxBox = el("section", "sim-block");
+      ctxBox.appendChild(el("h3", null, "السياق"));
+      var ul = el("ul");
+      Object.keys(content.context).forEach(function (k) {
+        ul.appendChild(el("li", null, content.context[k]));
+      });
+      ctxBox.appendChild(ul);
+      mount.appendChild(ctxBox);
     }
 
-    // Context
-    var ctxBox = el("section", "sim-block");
-    ctxBox.appendChild(el("h3", null, "السياق"));
-    if (content.context) {
-      var c = content.context;
-      var ul = el("ul");
-      ["role", "situation", "known", "unknown"].forEach(function (k) {
-        if (c[k]) {
-          var li = el("li", null, c[k]);
-          ul.appendChild(li);
-        }
+    if (content.alertCard) {
+      var ac = el("section", "sim-block");
+      ac.appendChild(el("h3", null, content.alertCard.title || "التنبيه"));
+      var al = el("ul");
+      (content.alertCard.lines || []).forEach(function (line) {
+        al.appendChild(el("li", null, line));
       });
-      if (c.expectedMailDomain) {
-        ul.appendChild(
-          el("li", null, "النطاق المتوقع لبريد المؤسسة: " + c.expectedMailDomain)
+      ac.appendChild(al);
+      if (content.processDetails) {
+        var pd = content.processDetails;
+        ac.appendChild(
+          el(
+            "p",
+            "sim-note",
+            "تفاصيل عملية رمزية: " +
+              (pd.name || "") +
+              " | " +
+              (pd.path || "") +
+              " | PID " +
+              (pd.pid || "") +
+              " | وجهة " +
+              (pd.destination || "")
+          )
         );
       }
-      ctxBox.appendChild(ul);
+      mount.appendChild(ac);
     }
-    mount.appendChild(ctxBox);
 
-    // Message card
-    var msg = content.message || {};
-    var msgBox = el("section", "sim-block sim-email");
-    msgBox.appendChild(el("h3", null, "الرسالة التدريبية"));
-    var meta = el("div", "sim-email-meta");
-    meta.innerHTML =
-      "<div><strong>المرسل الظاهر:</strong> " +
-      escapeHtml(msg.displayName || "") +
-      "</div>" +
-      "<div><strong>عنوان المرسل:</strong> <code>" +
-      escapeHtml(msg.from || "") +
-      "</code></div>" +
-      "<div><strong>Reply-To:</strong> <code>" +
-      escapeHtml(msg.replyTo || "") +
-      "</code></div>" +
-      "<div><strong>الموضوع:</strong> " +
-      escapeHtml(msg.subject || "") +
-      "</div>" +
-      "<div><strong>وقت الاستلام:</strong> " +
-      escapeHtml(msg.receivedAt || "") +
-      "</div>";
-    msgBox.appendChild(meta);
-    var body = el("pre", "sim-email-body", msg.body || "");
-    msgBox.appendChild(body);
-    if (msg.note) msgBox.appendChild(el("p", "sim-note", msg.note));
-    mount.appendChild(msgBox);
+    if (content.message) {
+      var msg = content.message;
+      var msgBox = el("section", "sim-block sim-email");
+      msgBox.appendChild(el("h3", null, "الرسالة التدريبية"));
+      var meta = el("div", "sim-email-meta");
+      meta.innerHTML =
+        "<div><strong>المرسل الظاهر:</strong> " +
+        escapeHtml(msg.displayName || "") +
+        "</div>" +
+        "<div><strong>عنوان المرسل:</strong> <code>" +
+        escapeHtml(msg.from || "") +
+        "</code></div>" +
+        "<div><strong>Reply-To:</strong> <code>" +
+        escapeHtml(msg.replyTo || "") +
+        "</code></div>" +
+        "<div><strong>الموضوع:</strong> " +
+        escapeHtml(msg.subject || "") +
+        "</div>" +
+        "<div><strong>وقت الاستلام:</strong> " +
+        escapeHtml(msg.receivedAt || "") +
+        "</div>";
+      msgBox.appendChild(meta);
+      msgBox.appendChild(el("pre", "sim-email-body", msg.body || ""));
+      if (msg.note) msgBox.appendChild(el("p", "sim-note", msg.note));
+      mount.appendChild(msgBox);
+    }
 
-    // Safety
+    if (content.events && content.events.length) {
+      var tb = el("section", "sim-block");
+      tb.appendChild(el("h3", null, "الجدول الزمني للأدلة"));
+      var table = document.createElement("table");
+      table.className = "sim-log-table";
+      table.innerHTML =
+        "<thead><tr><th>المعرّف</th><th>الوقت</th><th>الحدث</th><th>ملاحظة</th></tr></thead>";
+      var tbody = document.createElement("tbody");
+      content.events.forEach(function (row) {
+        var tr = document.createElement("tr");
+        tr.innerHTML =
+          "<td><code>" +
+          escapeHtml(row.id) +
+          "</code></td><td>" +
+          escapeHtml(row.time || "") +
+          "</td><td>" +
+          escapeHtml(row.event || "") +
+          "</td><td>" +
+          escapeHtml(row.note || "") +
+          "</td>";
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      tb.appendChild(table);
+      mount.appendChild(tb);
+    }
+
     if (content.safety && content.safety.length) {
       var saf = el("section", "sim-block");
       saf.appendChild(el("h3", null, "السلامة"));
@@ -169,17 +363,28 @@
       mount.appendChild(saf);
     }
 
-    // Form
+    if (content.instructions && content.instructions.length) {
+      var ins = el("section", "sim-block");
+      ins.appendChild(el("h3", null, "التعليمات"));
+      var iu = el("ul");
+      content.instructions.forEach(function (s) {
+        iu.appendChild(el("li", null, s));
+      });
+      ins.appendChild(iu);
+      mount.appendChild(ins);
+    }
+
     var form = el("form", "sim-form");
     form.setAttribute("novalidate", "true");
     form.appendChild(el("h3", null, "المهام"));
 
-    (assessment.questions || []).forEach(function (q, idx) {
+    var questions = assessment.questions || [];
+    questions.forEach(function (q, idx) {
       var fieldset = el("fieldset", "sim-q");
-      var legend = el("legend", null, "سؤال " + (idx + 1));
-      fieldset.appendChild(legend);
+      fieldset.appendChild(
+        el("legend", null, q.section || "سؤال " + (idx + 1))
+      );
       fieldset.appendChild(el("p", "sim-prompt", q.prompt));
-
       if (q.type === "multi" || q.type === "single") {
         (q.options || []).forEach(function (opt) {
           var label = el("label", "sim-option");
@@ -195,8 +400,8 @@
         var ta = document.createElement("textarea");
         ta.name = q.id;
         ta.rows = 4;
-        ta.placeholder = q.placeholder || "";
         ta.className = "sim-textarea";
+        ta.placeholder = q.placeholder || "";
         fieldset.appendChild(ta);
       }
       form.appendChild(fieldset);
@@ -214,33 +419,36 @@
 
     form.addEventListener("submit", function (e) {
       e.preventDefault();
-      var answers = { q1: [], q2: null, q3: null, q4: "" };
-      var fd = new FormData(form);
-      form.querySelectorAll('input[name="q1"]:checked').forEach(function (inp) {
-        answers.q1.push(inp.value);
-      });
-      answers.q2 = (form.querySelector('input[name="q2"]:checked') || {}).value || null;
-      answers.q3 = (form.querySelector('input[name="q3"]:checked') || {}).value || null;
-      answers.q4 = (form.querySelector('[name="q4"]') || {}).value || "";
+      var answers = collectAnswers(form, questions);
+      var outcome = scoreAll(assessment, answers);
 
-      var outcome = score(assessment, answers);
       resultBox.hidden = false;
-      resultBox.innerHTML = "";
       resultBox.className =
         "sim-result " + (outcome.complete ? "sim-result-ok" : "sim-result-bad");
-
+      resultBox.innerHTML = "";
       resultBox.appendChild(
         el(
           "h3",
           null,
-          outcome.complete ? "اكتمل المختبر" : "لم يكتمل بعد — راجع التغذية الراجعة"
+          outcome.complete
+            ? "اكتمل المختبر"
+            : outcome.critical
+              ? "لم يكتمل — خطأ حرج في الاستجابة أو الإجراء"
+              : "لم يكتمل بعد — راجع التغذية الراجعة"
         )
       );
       var list = el("ul");
-      list.appendChild(el("li", null, "المؤشرات: " + (outcome.q1ok ? "مستوفاة" : "غير مستوفاة")));
-      list.appendChild(el("li", null, "السياق: " + (outcome.q2ok ? "صحيح" : "غير صحيح")));
-      list.appendChild(el("li", null, "القرار: " + (outcome.q3ok ? "صحيح" : "غير صحيح")));
-      list.appendChild(el("li", null, "التبرير: " + (outcome.q4ok ? "مقبول" : "يحتاج تحسينًا")));
+      questions.forEach(function (q) {
+        list.appendChild(
+          el(
+            "li",
+            null,
+            (q.section || q.id) +
+              ": " +
+              (outcome.parts[q.id] ? "مستوفى" : "غير مستوفى")
+          )
+        );
+      });
       resultBox.appendChild(list);
       outcome.messages.forEach(function (m) {
         resultBox.appendChild(el("p", null, m));
@@ -248,16 +456,12 @@
 
       try {
         sessionStorage.setItem(
-          "labs:result:lab-soc-phishing-email-01",
+          "labs:result:" + (content.id || assessment.id || "lab"),
           JSON.stringify({
             at: Date.now(),
             complete: outcome.complete,
-            parts: {
-              q1: outcome.q1ok,
-              q2: outcome.q2ok,
-              q3: outcome.q3ok,
-              q4: outcome.q4ok
-            }
+            critical: outcome.critical,
+            parts: outcome.parts
           })
         );
       } catch (err) {}
@@ -265,8 +469,8 @@
       var resLink = document.createElement("a");
       resLink.className = "btn-labs btn-labs-ghost";
       resLink.href =
-        "/academy/labs/results.html?id=" +
-        encodeURIComponent(content.id || "lab-soc-phishing-email-01");
+         "results.html?id=" +
+        encodeURIComponent(content.id || assessment.id || "");
       resLink.textContent = "عرض صفحة النتائج";
       resultBox.appendChild(resLink);
       resultBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -275,13 +479,8 @@
     mount.appendChild(form);
   }
 
-  function escapeHtml(s) {
-    return String(s)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
-  }
+  // Export scoreAll for automated tests (Node / console)
+  global.LabsSimulationScore = { scoreAll: scoreAll };
 
   global.LabsRunners.simulation = {
     id: "simulation",
@@ -290,7 +489,7 @@
       var labId = ctx.labId || (ctx.meta && ctx.meta.id);
       if (!labId) {
         ctx.mount.innerHTML =
-          "<p class='phase-note'>حدد معرف المختبر في الرابط: <code>?id=lab-soc-phishing-email-01</code></p>";
+          "<p class='phase-note'>حدد معرف المختبر: <code>?id=…&runner=simulation</code></p>";
         return;
       }
       ctx.mount.innerHTML = "<p>جاري تحميل محتوى المختبر…</p>";
@@ -301,10 +500,8 @@
           meta = global.LabsData.getLabById(index, labId);
         }
         if (!meta) throw new Error("المختبر غير موجود في السجل");
-        var contentUrl = pageDataUrl(meta.contentRef);
-        var assessUrl = pageDataUrl(meta.assessmentRef);
-        var content = await fetchJson(contentUrl);
-        var assessment = await fetchJson(assessUrl);
+        var content = await fetchJson(pageDataUrl(meta.contentRef));
+        var assessment = await fetchJson(pageDataUrl(meta.assessmentRef));
         render(ctx, content, assessment);
       } catch (e) {
         ctx.mount.innerHTML =
@@ -315,4 +512,4 @@
       }
     }
   };
-})(window);
+})(typeof window !== "undefined" ? window : global);
