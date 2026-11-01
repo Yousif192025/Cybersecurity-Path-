@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>نتائج مختبر | Labs Center</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/labs.css" />
+</head>
+<body class="labs-body">
+  <div class="labs-shell">
+    <div class="labs-topnav">
+      <a class="labs-brand" href="/academy/labs/">CyberPath <span>Labs</span></a>
+      <nav aria-label="تنقل مركز المختبرات">
+        <a href="/academy/labs/">المركز</a>
+        <a href="/academy/labs/lab.html">التفاصيل</a>
+        <a href="/academy/labs/run.html">التشغيل</a>
+        <a href="/academy/labs/results.html" aria-current="page">النتائج</a>
+        <a href="/academy/">الأكاديمية</a>
+      </nav>
+    </div>
+    <main>
+      <h1>نتائج المختبر</h1>
+      <div class="labs-card">
+        <p>المعرف: <code id="lab-id-display">—</code></p>
+        <div id="result-mount"><p class="section-desc">لا نتيجة محفوظة في هذه الجلسة بعد.</p></div>
+        <div class="labs-hero-actions" style="margin-top:1rem">
+          <a class="btn-labs btn-labs-primary" id="link-retry" href="/academy/labs/run.html">إعادة المحاولة</a>
+          <a class="btn-labs btn-labs-ghost" id="link-details" href="/academy/labs/lab.html">التفاصيل</a>
+          <a class="btn-labs btn-labs-ghost" href="/academy/labs/">المركز</a>
+        </div>
+      </div>
+      <p class="phase-note">النتائج تُحفظ مؤقتًا في المتصفح (sessionStorage) فقط — بدون حساب أو خادم.</p>
+    </main>
+    <footer class="labs-footer"><span>Labs Center</span></footer>
+  </div>
+  <script src="js/labs-router.js"></script>
+  <script>
+    (function () {
+      var id =
+        new URLSearchParams(location.search).get("id") ||
+        "lab-soc-phishing-email-01";
+      document.getElementById("lab-id-display").textContent = id;
+      document.getElementById("link-details").href = LabsRouter.labDetails(id);
+      document.getElementById("link-retry").href = LabsRouter.labRun(
+        id,
+        "simulation"
+      );
+      var mount = document.getElementById("result-mount");
+      try {
+        var raw = sessionStorage.getItem("labs:result:" + id);
+        if (!raw) return;
+        var data = JSON.parse(raw);
+        mount.innerHTML =
+          "<p><strong>" +
+          (data.complete ? "مكتمل" : "غير مكتمل") +
+          "</strong></p>" +
+          "<ul style='padding-right:1.1rem'>" +
+          "<li>المؤشرات: " +
+          (data.parts && data.parts.q1 ? "نعم" : "لا") +
+          "</li>" +
+          "<li>السياق: " +
+          (data.parts && data.parts.q2 ? "نعم" : "لا") +
+          "</li>" +
+          "<li>القرار: " +
+          (data.parts && data.parts.q3 ? "نعم" : "لا") +
+          "</li>" +
+          "<li>التبرير: " +
+          (data.parts && data.parts.q4 ? "نعم" : "لا") +
+          "</li></ul>";
+      } catch (e) {}
+    })();
+  </script>
+</body>
+</html>
