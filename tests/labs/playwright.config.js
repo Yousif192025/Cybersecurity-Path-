@@ -1,7 +1,5 @@
 const { defineConfig } = require("@playwright/test");
 const path = require("path");
-
-/** Serve static site from repo docs/ (Vercel publish root). */
 const docsRoot = path.resolve(__dirname, "../../docs");
 
 module.exports = defineConfig({

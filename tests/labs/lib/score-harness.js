@@ -1,7 +1,8 @@
 /**
- * Load simulation.js in Node and expose LabsSimulationScore.scoreAll.
+ * Load live-compatible simulation.js in Node and expose scoreAll.
  */
 const fs = require("fs");
+const path = require("path");
 const vm = require("vm");
 
 function loadScoreAll(simulationJsPath) {
