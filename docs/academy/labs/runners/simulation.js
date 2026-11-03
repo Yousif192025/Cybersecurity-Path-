@@ -61,13 +61,24 @@
     });
   }
 
+  function isPlainObject(v) {
+    return v !== null && typeof v === "object" && !Array.isArray(v);
+  }
+
+  function asArray(v) {
+    return Array.isArray(v) ? v : null;
+  }
+
+  /** Non-negative finite number bound; invalid -> null (caller fail-closes). */
+  function isValidBound(v) {
+    return typeof v === "number" && isFinite(v) && v >= 0 && !isNaN(v);
+  }
+
   function scoreMulti(q, keyPart, selected, fb, messages) {
     selected = Array.isArray(selected) ? selected : [];
-    keyPart = keyPart || {};
-    var correctIds = keyPart.correctIds || [];
-    var distractors = keyPart.distractorIds || [];
-    var minCorrect =
-      keyPart.minCorrect != null ? keyPart.minCorrect : correctIds.length;
+    keyPart = isPlainObject(keyPart) ? keyPart : {};
+    var correctIds = asArray(keyPart.correctIds) || [];
+    var distractors = asArray(keyPart.distractorIds) || [];
     var hits = selected.filter(function (id) {
       return includesId(correctIds, id);
     });
@@ -75,23 +86,49 @@
       return includesId(distractors, id);
     });
 
-    // maxFalsePositives: only enforced when the property is present (Lab 1 omits it)
-    var ok = hits.length >= minCorrect;
+    // Fail-closed: missing/invalid/empty correctIds never pass (even minCorrect: 0)
+    var ok = false;
+    if (Array.isArray(keyPart.correctIds) && correctIds.length) {
+      var minCorrect = correctIds.length;
+      var minCorrectInvalid = false;
+      if (Object.prototype.hasOwnProperty.call(keyPart, "minCorrect")) {
+        var mc = keyPart.minCorrect;
+        // Must be finite non-negative integer, not exceeding correctIds.length
+        if (
+          typeof mc !== "number" ||
+          !isFinite(mc) ||
+          isNaN(mc) ||
+          mc < 0 ||
+          Math.floor(mc) !== mc ||
+          mc > correctIds.length
+        ) {
+          minCorrectInvalid = true;
+        } else {
+          minCorrect = mc;
+        }
+      }
+      if (!minCorrectInvalid) {
+        ok = hits.length >= minCorrect;
+      }
+    }
     if (Object.prototype.hasOwnProperty.call(keyPart, "maxFalsePositives")) {
       var maxFP = keyPart.maxFalsePositives;
-      if (typeof maxFP === "number" && fps.length > maxFP) ok = false;
+      if (!isValidBound(maxFP)) {
+        ok = false;
+      } else if (fps.length > maxFP) {
+        ok = false;
+      }
     }
 
-    // Distractor feedback (e.g. Lab 1 q1_time) without failing when maxFP absent
     if (fps.length) {
-      // Named map in key: distractorFeedback: { "i6": "q1_time" }
-      var map = keyPart.distractorFeedback || {};
+      var map = isPlainObject(keyPart.distractorFeedback)
+        ? keyPart.distractorFeedback
+        : {};
       fps.forEach(function (fid) {
         if (map[fid] && fb[map[fid]]) pushUnique(messages, fb[map[fid]]);
         else if (fb[q.id + "_distractor_" + fid])
           pushUnique(messages, fb[q.id + "_distractor_" + fid]);
       });
-      // Conventional feedback key: <qId>_time when any distractor selected
       if (fb[q.id + "_time"]) pushUnique(messages, fb[q.id + "_time"]);
     }
 
@@ -104,10 +141,11 @@
   }
 
   function scoreSingle(q, keyPart, val, fb, messages) {
-    keyPart = keyPart || {};
-    val = val || null;
+    keyPart = isPlainObject(keyPart) ? keyPart : {};
+    val = val == null || val === "" ? null : val;
 
-    if (includesId(keyPart.criticalIds, val)) {
+    var criticalIds = asArray(keyPart.criticalIds) || [];
+    if (includesId(criticalIds, val)) {
       if (fb[q.id + "_critical_" + val])
         pushUnique(messages, fb[q.id + "_critical_" + val]);
       else if (fb[q.id + "_" + val]) pushUnique(messages, fb[q.id + "_" + val]);
@@ -116,12 +154,15 @@
     }
 
     var ok = false;
-    if (Array.isArray(keyPart.acceptableIds) && keyPart.acceptableIds.length) {
-      ok = includesId(keyPart.acceptableIds, val);
-    } else if (keyPart.correctId != null) {
-      ok = val === keyPart.correctId;
+    var acceptable = asArray(keyPart.acceptableIds);
+    if (acceptable && acceptable.length) {
+      ok = includesId(acceptable, val);
+    } else if (Object.prototype.hasOwnProperty.call(keyPart, "correctId")) {
+      // null/undefined correctId is not a valid answer key
+      if (keyPart.correctId == null) ok = false;
+      else ok = val === keyPart.correctId;
     } else {
-      ok = true;
+      ok = false;
     }
 
     if (!ok) {
@@ -132,89 +173,162 @@
   }
 
   function scoreText(q, keyPart, answer, fb, messages) {
-    keyPart = keyPart || {};
-    var text = String(answer || "").trim();
-    var minLen =
-      keyPart.minLength != null
-        ? keyPart.minLength
-        : q.minLength != null
-          ? q.minLength
-          : 20;
-    var lower = text.toLowerCase();
-    var longEnough = text.length >= minLen;
+    keyPart = isPlainObject(keyPart) ? keyPart : {};
+    // Reject non-string answers — no String() coercion
+    if (typeof answer !== "string") {
+      if (q && fb[q.id + "_weak"]) pushUnique(messages, fb[q.id + "_weak"]);
+      if (q && fb.q4_weak && q.id === "q4") pushUnique(messages, fb.q4_weak);
+      return { ok: false, critical: false };
+    }
+    var text = answer.trim();
     var ok = false;
 
-    if (Array.isArray(keyPart.axes) && keyPart.axes.length) {
+    // Resolve minLength with fail-closed on invalid explicit values
+    var minLen = 20;
+    if (Object.prototype.hasOwnProperty.call(keyPart, "minLength")) {
+      if (!isValidBound(keyPart.minLength)) {
+        if (fb[q.id + "_weak"]) pushUnique(messages, fb[q.id + "_weak"]);
+        return { ok: false, critical: false };
+      }
+      minLen = keyPart.minLength;
+    } else if (q && Object.prototype.hasOwnProperty.call(q, "minLength")) {
+      if (!isValidBound(q.minLength)) {
+        if (fb[q.id + "_weak"]) pushUnique(messages, fb[q.id + "_weak"]);
+        return { ok: false, critical: false };
+      }
+      minLen = q.minLength;
+    }
+    var longEnough = text.length >= minLen;
+    var lower = text.toLowerCase();
+
+    var axes = asArray(keyPart.axes);
+    if (axes && axes.length) {
       var axisHits = 0;
-      keyPart.axes.forEach(function (axis) {
-        var hit = (axis.keywords || []).some(function (kw) {
+      axes.forEach(function (axis) {
+        if (!isPlainObject(axis)) return;
+        var kws = asArray(axis.keywords) || [];
+        var hit = kws.some(function (kw) {
           return keywordHit(lower, kw);
         });
         if (hit) axisHits++;
       });
-      var need =
-        keyPart.minAxisHits != null ? keyPart.minAxisHits : keyPart.axes.length;
+      var need = axes.length;
+      if (Object.prototype.hasOwnProperty.call(keyPart, "minAxisHits")) {
+        if (!isValidBound(keyPart.minAxisHits) || keyPart.minAxisHits > axes.length) {
+          if (fb[q.id + "_weak"]) pushUnique(messages, fb[q.id + "_weak"]);
+          return { ok: false, critical: false };
+        }
+        need = keyPart.minAxisHits;
+      }
       ok = longEnough && axisHits >= need;
     } else {
-      var hints = keyPart.hintKeywords || [];
+      var hints = asArray(keyPart.hintKeywords) || [];
       var kwHits = 0;
       hints.forEach(function (kw) {
         if (keywordHit(lower, kw)) kwHits++;
       });
-      var minKw = keyPart.minKeywordHits != null ? keyPart.minKeywordHits : 2;
-      ok = longEnough && (hints.length ? kwHits >= minKw : longEnough);
+      var minKw = 2;
+      if (Object.prototype.hasOwnProperty.call(keyPart, "minKeywordHits")) {
+        if (!isValidBound(keyPart.minKeywordHits)) {
+          if (fb[q.id + "_weak"]) pushUnique(messages, fb[q.id + "_weak"]);
+          return { ok: false, critical: false };
+        }
+        minKw = keyPart.minKeywordHits;
+      }
+      if (!hints.length) {
+        ok = longEnough && minKw === 0;
+      } else {
+        ok = longEnough && kwHits >= minKw;
+      }
 
-      // requireDecisionTheme: must also reflect action/decision, not indicators only
       if (ok && keyPart.requireDecisionTheme) {
-        var decisionList = keyPart.decisionKeywords;
-        if (!Array.isArray(decisionList) || !decisionList.length) {
+        var decisionList = asArray(keyPart.decisionKeywords);
+        if (!decisionList || !decisionList.length) {
           decisionList = hints.filter(isDecisionOrientedKeyword);
         }
         var decisionHits = 0;
         decisionList.forEach(function (kw) {
           if (keywordHit(lower, kw)) decisionHits++;
         });
-        var minDec =
-          keyPart.minDecisionHits != null ? keyPart.minDecisionHits : 1;
-        if (decisionHits < minDec) ok = false;
+        var minDec = 1;
+        if (Object.prototype.hasOwnProperty.call(keyPart, "minDecisionHits")) {
+          if (!isValidBound(keyPart.minDecisionHits)) {
+            ok = false;
+          } else {
+            minDec = keyPart.minDecisionHits;
+            if (decisionHits < minDec) ok = false;
+          }
+        } else if (decisionHits < minDec) {
+          ok = false;
+        }
       }
     }
 
     if (!ok) {
       if (fb[q.id + "_weak"]) pushUnique(messages, fb[q.id + "_weak"]);
-      else if (fb.q4_weak) pushUnique(messages, fb.q4_weak);
-      else if (fb.q5_weak) pushUnique(messages, fb.q5_weak);
+      if (fb.q4_weak && q.id === "q4") pushUnique(messages, fb.q4_weak);
     }
     return { ok: ok, critical: false };
   }
 
   function scoreQuestion(q, keyPart, answer, fb, messages) {
-    if (!keyPart) return { ok: true, critical: false };
+    if (!isPlainObject(q) || !q.id) {
+      return { ok: false, critical: false };
+    }
+    if (!isPlainObject(keyPart)) {
+      if (fb[q.id + "_weak"]) pushUnique(messages, fb[q.id + "_weak"]);
+      else if (fb[q.id + "_wrong"]) pushUnique(messages, fb[q.id + "_wrong"]);
+      return { ok: false, critical: false };
+    }
     if (q.type === "multi") return scoreMulti(q, keyPart, answer, fb, messages);
     if (q.type === "single") return scoreSingle(q, keyPart, answer, fb, messages);
     if (q.type === "text") return scoreText(q, keyPart, answer, fb, messages);
-    return { ok: true, critical: false };
+    if (fb[q.id + "_weak"]) pushUnique(messages, fb[q.id + "_weak"]);
+    return { ok: false, critical: false };
   }
 
   function scoreAll(assessment, answers) {
-    var key = assessment.key || {};
-    var fb = assessment.feedback || {};
-    var questions = assessment.questions || [];
+    if (!isPlainObject(assessment)) {
+      return {
+        complete: false,
+        critical: false,
+        parts: {},
+        messages: ["بيانات التقييم غير صالحة."]
+      };
+    }
+    var key = isPlainObject(assessment.key) ? assessment.key : {};
+    var fb = isPlainObject(assessment.feedback) ? assessment.feedback : {};
+    var questions = asArray(assessment.questions);
+    if (!questions) questions = [];
+    answers = isPlainObject(answers) ? answers : {};
+
     var parts = {};
     var critical = false;
     var allOk = true;
     var messages = [];
 
+    if (!questions.length) {
+      allOk = false;
+      pushUnique(messages, fb.incomplete || "لا توجد أسئلة قابلة للتقييم.");
+    }
+
     questions.forEach(function (q) {
+      if (!isPlainObject(q) || !q.id) {
+        allOk = false;
+        return;
+      }
       var r = scoreQuestion(q, key[q.id], answers[q.id], fb, messages);
-      parts[q.id] = r.ok;
+      parts[q.id] = !!r.ok;
       if (r.critical) critical = true;
       if (!r.ok) allOk = false;
     });
 
+    if (!Object.keys(key).length && questions.length) {
+      allOk = false;
+    }
+
     var complete = allOk && !critical;
     if (complete) {
-      // Keep soft advisories (e.g. distractor time note) after success
       var advisories = messages.slice();
       messages = [fb.success || "أحسنت."];
       advisories.forEach(function (m) {
@@ -232,20 +346,41 @@
 
   function collectAnswers(form, questions) {
     var answers = {};
+    if (!form || !Array.isArray(questions)) return answers;
     questions.forEach(function (q) {
+      if (!isPlainObject(q) || q.id == null || q.id === "") return;
+      var id = String(q.id);
       if (q.type === "multi") {
-        answers[q.id] = [];
-        form
-          .querySelectorAll('input[name="' + q.id + '"]:checked')
-          .forEach(function (inp) {
-            answers[q.id].push(inp.value);
-          });
+        answers[id] = [];
+        var list = form.elements.namedItem(id);
+        if (!list) return;
+        // RadioNodeList or single element
+        if (typeof list.length === "number" && list.nodeType == null) {
+          for (var i = 0; i < list.length; i++) {
+            if (list[i] && list[i].checked) answers[id].push(list[i].value);
+          }
+        } else if (list.checked) {
+          answers[id].push(list.value);
+        }
       } else if (q.type === "single") {
-        var sel = form.querySelector('input[name="' + q.id + '"]:checked');
-        answers[q.id] = sel ? sel.value : null;
+        var sel = null;
+        var nodes = form.elements.namedItem(id);
+        if (nodes) {
+          if (typeof nodes.length === "number" && nodes.nodeType == null) {
+            for (var j = 0; j < nodes.length; j++) {
+              if (nodes[j] && nodes[j].checked) {
+                sel = nodes[j];
+                break;
+              }
+            }
+          } else if (nodes.checked) {
+            sel = nodes;
+          }
+        }
+        answers[id] = sel ? sel.value : null;
       } else if (q.type === "text") {
-        var ta = form.querySelector('[name="' + q.id + '"]');
-        answers[q.id] = ta ? ta.value : "";
+        var ta = form.elements.namedItem(id);
+        answers[id] = ta && typeof ta.value === "string" ? ta.value : "";
       }
     });
     return answers;
@@ -378,38 +513,95 @@
     form.setAttribute("novalidate", "true");
     form.appendChild(el("h3", null, "المهام"));
 
-    var questions = assessment.questions || [];
+    var questions = Array.isArray(assessment && assessment.questions)
+      ? assessment.questions
+      : [];
+    var renderedCount = 0;
+    var invalidData = false;
+    if (!questions.length) {
+      invalidData = true;
+      form.appendChild(
+        el("p", "sim-note", "بيانات التقييم غير صالحة: لا توجد أسئلة للعرض.")
+      );
+    }
     questions.forEach(function (q, idx) {
+      if (!q || typeof q !== "object" || q.id == null || q.id === "") {
+        invalidData = true;
+        form.appendChild(
+          el("p", "sim-note", "بيانات غير صالحة: سؤال بدون معرّف (#" + (idx + 1) + ").")
+        );
+        return;
+      }
+      if (!q.type || (q.type !== "multi" && q.type !== "single" && q.type !== "text")) {
+        invalidData = true;
+        form.appendChild(
+          el(
+            "p",
+            "sim-note",
+            "بيانات غير صالحة: نوع سؤال غير معروف للمعرّف " + String(q.id) + "."
+          )
+        );
+        return;
+      }
       var fieldset = el("fieldset", "sim-q");
       fieldset.appendChild(
         el("legend", null, q.section || "سؤال " + (idx + 1))
       );
-      fieldset.appendChild(el("p", "sim-prompt", q.prompt));
+      fieldset.appendChild(el("p", "sim-prompt", q.prompt || ""));
       if (q.type === "multi" || q.type === "single") {
-        (q.options || []).forEach(function (opt) {
+        var opts = Array.isArray(q.options) ? q.options : [];
+        var validOpts = 0;
+        opts.forEach(function (opt) {
+          if (!opt || typeof opt !== "object" || opt.id == null) {
+            invalidData = true;
+            return;
+          }
+          validOpts++;
           var label = el("label", "sim-option");
           var input = document.createElement("input");
           input.type = q.type === "multi" ? "checkbox" : "radio";
-          input.name = q.id;
-          input.value = opt.id;
+          input.name = String(q.id);
+          input.value = String(opt.id);
           label.appendChild(input);
-          label.appendChild(document.createTextNode(" " + opt.label));
+          label.appendChild(
+            document.createTextNode(" " + (opt.label != null ? String(opt.label) : ""))
+          );
           fieldset.appendChild(label);
         });
+        if (!validOpts) {
+          invalidData = true;
+          fieldset.appendChild(
+            el("p", "sim-note", "بيانات غير صالحة: لا توجد خيارات صالحة لهذا السؤال.")
+          );
+        }
       } else if (q.type === "text") {
         var ta = document.createElement("textarea");
-        ta.name = q.id;
+        ta.name = String(q.id);
         ta.rows = 4;
         ta.className = "sim-textarea";
         ta.placeholder = q.placeholder || "";
         fieldset.appendChild(ta);
       }
       form.appendChild(fieldset);
+      renderedCount++;
     });
+    if (invalidData) {
+      form.appendChild(
+        el(
+          "p",
+          "sim-note",
+          "تعذّر بناء نموذج تقييم كامل بسبب بيانات غير صالحة. لن يُقبل الإرسال."
+        )
+      );
+    }
 
     var actions = el("div", "sim-actions");
     var submit = el("button", "btn-labs btn-labs-primary", "إرسال الإجابات");
     submit.type = "submit";
+    if (invalidData || !renderedCount) {
+      submit.disabled = true;
+      submit.setAttribute("aria-disabled", "true");
+    }
     actions.appendChild(submit);
     form.appendChild(actions);
 
