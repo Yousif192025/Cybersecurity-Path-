@@ -9,7 +9,7 @@ const { loadScoreAll } = require("../lib/score-harness");
 const { score: scoreFixed } = require("../lib/fixed-data-score");
 const baselines = require("../cases/baselines");
 
-const DOCS = path.resolve(__dirname, "../../../docs/academy/labs");
+const DOCS = path.resolve(__dirname, "../..");
 const scoreAll = loadScoreAll(path.join(DOCS, "runners/simulation.js"));
 
 function loadJSON(rel) {

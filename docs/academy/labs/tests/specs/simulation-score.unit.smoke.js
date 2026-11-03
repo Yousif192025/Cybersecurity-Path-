@@ -2,7 +2,7 @@
 const path = require("path");
 const { loadScoreAll } = require("../lib/score-harness");
 
-const sim = path.resolve(__dirname, "../../../docs/academy/labs/runners/simulation.js");
+const sim = path.resolve(__dirname, "../../runners/simulation.js");
 const scoreAll = loadScoreAll(sim);
 if (typeof scoreAll !== "function") {
   console.error("scoreAll missing");

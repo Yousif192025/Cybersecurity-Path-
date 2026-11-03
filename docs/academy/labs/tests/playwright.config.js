@@ -1,6 +1,6 @@
 const { defineConfig } = require("@playwright/test");
 const path = require("path");
-const docsRoot = path.resolve(__dirname, "../../docs");
+const docsRoot = path.resolve(__dirname, "../../..");
 
 module.exports = defineConfig({
   testDir: "./specs",

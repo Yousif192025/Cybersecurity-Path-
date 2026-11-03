@@ -5,7 +5,7 @@ Isolated test package. **Does not modify** `docs/academy/labs` content, root `pa
 ## Install (once)
 
 ```bash
-cd tests/labs
+cd docs/academy/labs/tests
 npm install
 npx playwright install --with-deps chromium
 ```

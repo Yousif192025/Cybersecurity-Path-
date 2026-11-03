@@ -26,7 +26,7 @@ function loadFixedDataScore(fixedDataJsPath) {
 
 const defaultPath = path.resolve(
   __dirname,
-  "../../../docs/academy/labs/runners/fixed-data.js"
+  "../../runners/fixed-data.js"
 );
 const score = loadFixedDataScore(defaultPath);
 
