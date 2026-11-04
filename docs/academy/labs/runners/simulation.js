@@ -462,7 +462,9 @@
 
     if (content.events && content.events.length) {
       var tb = el("section", "sim-block");
-      tb.appendChild(el("h3", null, "الجدول الزمني للأدلة"));
+      tb.appendChild(
+        el("h3", null, content.eventsTitle || "الجدول الزمني للأدلة")
+      );
       var table = document.createElement("table");
       table.className = "sim-log-table";
       table.innerHTML =

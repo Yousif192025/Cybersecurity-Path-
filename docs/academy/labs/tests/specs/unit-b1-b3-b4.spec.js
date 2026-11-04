@@ -31,6 +31,7 @@ function loadJSON(rel) {
 const lab1 = loadJSON("data/assessment/lab-soc-phishing-email-01.json");
 const lab2 = loadJSON("data/assessment/lab-soc-log-triage-01.json");
 const lab6 = loadJSON("data/assessment/lab-soc-incident-response-01.json");
+const lab3 = loadJSON("data/assessment/lab-network-wireshark-01.json");
 const index = loadJSON("data/labs-index.json");
 
 const results = [];
@@ -56,6 +57,7 @@ function clone(o) {
 record("B4", "REG-01", index.labs.some((l) => l.id === "lab-soc-phishing-email-01" && l.type === "simulation"));
 record("B4", "REG-02", index.labs.some((l) => l.id === "lab-soc-log-triage-01" && l.type === "fixed_data"));
 record("B4", "REG-03", index.labs.some((l) => l.id === "lab-soc-incident-response-01" && l.type === "simulation"));
+record("B4", "REG-04", index.labs.some((l) => l.id === "lab-network-wireshark-01" && l.type === "simulation"));
 
 // ---------- B1 ----------
 (function () {
@@ -924,6 +926,51 @@ record("B4", "REG-03", index.labs.some((l) => l.id === "lab-soc-incident-respons
   o = scoreAll(lab1, baselines.B1);
   record("B4", "MC-06", o.complete === true, `lab1 baseline after minCorrect patch`);
 })();
+
+
+// ---------- L3 Network Wireshark (simulation) ----------
+(function () {
+  const good = {
+    q1: ["p06", "p07", "p08", "p10", "p11", "p13"],
+    q2: "b",
+    q3: "b",
+    q4:
+      "يظهر DNS لنطاق غير مألوف ثم اتصال HTTP على 8080 نحو 198.51.100.66 مع مسار install. أنصح بمرشح ip.addr ومتابعة التحليل دون الجزم بالاختراق."
+  };
+
+  let o = scoreAll(lab3, good);
+  record("L3", "L3-01", o.complete === true && o.parts.q1 && o.parts.q2 && o.parts.q3 && o.parts.q4, `complete=${o.complete}`);
+
+  o = scoreAll(lab3, Object.assign({}, good, { q1: ["p01", "p03", "p05"] }));
+  record("L3", "L3-02", o.complete === false && o.parts.q1 === false, `q1=${o.parts.q1}`);
+
+  o = scoreAll(lab3, Object.assign({}, good, { q1: ["p06", "p07", "p08", "p10", "p11", "p13", "p01", "p14"] }));
+  record("L3", "L3-03", o.complete === false && o.parts.q1 === false, `maxFP two distractors`);
+
+  o = scoreAll(lab3, Object.assign({}, good, { q2: "a" }));
+  record("L3", "L3-04", o.parts.q2 === false && !o.complete, `q2 wrong`);
+
+  o = scoreAll(lab3, Object.assign({}, good, { q3: "c" }));
+  record("L3", "L3-05", o.parts.q3 === false && !o.complete, `q3 wrong`);
+
+  o = scoreAll(lab3, Object.assign({}, good, { q4: "قصير جدا" }));
+  record("L3", "L3-06", o.parts.q4 === false && !o.complete, `q4 short`);
+
+  o = scoreAll(lab3, Object.assign({}, good, {
+    q4: "هناك DNS وHTTP على 8080 و198.51 لكن بدون اقتراح إجراء"
+  }));
+  record("L3", "L3-07", o.parts.q4 === false, `q4 weak decision q4=${o.parts.q4}`);
+
+  o = scoreAll(lab3, { q1: [], q2: null, q3: null, q4: "" });
+  record("L3", "L3-08", !o.complete && !o.parts.q1 && !o.parts.q2 && !o.parts.q3 && !o.parts.q4, `empty`);
+
+  o = scoreAll(lab1, baselines.B1);
+  record("L3", "L3-09", o.complete === true, `lab1 regression`);
+
+  o = scoreAll(lab6, baselines.B6);
+  record("L3", "L3-10", o.complete === true, `lab6 regression complete=${o.complete}`);
+})();
+
 
 // summary
 const by = {};
