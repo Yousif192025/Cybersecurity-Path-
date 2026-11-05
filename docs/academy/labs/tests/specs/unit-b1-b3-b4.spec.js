@@ -1088,6 +1088,7 @@ record("B4", "REG-04", index.labs.some((l) => l.id === "lab-network-wireshark-01
   const lab4 = loadJSON("data/assessment/lab-web-vuln-assess-01.json");
 
   record("B4", "REG-06", index.labs.some((l) => l.id === "lab-web-vuln-assess-01" && l.type === "web_vulnerability_assessment"));
+record("B4", "REG-07", index.labs.some((l) => l.id === "lab-forensics-file-investigation-01" && l.type === "simulation"));
 
   const good = {
     selectedWeaknesses: lab4.weaknessIds.slice(),
@@ -1157,6 +1158,59 @@ record("B4", "REG-04", index.labs.some((l) => l.id === "lab-network-wireshark-01
     }
   });
   record("L4", "L4-11", o.complete === true && o.parts.discover && o.parts.risk && o.parts.priority && o.parts.remediation, `ref complete=${o.complete}`);
+})();
+
+
+// ---------- L7 Digital forensics (simulation) ----------
+(function () {
+  const lab7 = loadJSON("data/assessment/lab-forensics-file-investigation-01.json");
+  const content7 = loadJSON("data/content/lab-forensics-file-investigation-01.json");
+  record("L7", "L7-00", content7.events && content7.events.length === 7 && content7.id === lab7.id, "content/assessment id+events");
+
+  const B = {
+    q1: ["i1", "i2", "i3", "i4"],
+    q1b: "b",
+    q2: "b",
+    q2b: "b",
+    q3a: "b",
+    q3b: "b",
+    q3c: "b",
+    q3d: "c",
+    q4: "c",
+    q5: "على HR-WS-027 سُجّل تنزيل وتشغيل ملف Payroll مشبوه بعد دخول من عنوان خارجي. الأدلة تشمل الهاش والزمن واتصال example وpowershell. يُوصى بالتوثيق والعزل وفق السياسة. لم يُثبت تسريب أو انتشار بعد."
+  };
+  let o = scoreAll(lab7, B);
+  record("L7", "L7-01", o.complete === true && !o.critical, `complete=${o.complete} critical=${o.critical}`);
+
+  o = scoreAll(lab7, { ...B, q1: ["i1", "i5"] });
+  record("L7", "L7-02", !o.complete && !o.parts.q1, `q1 weak/fp`);
+
+  o = scoreAll(lab7, { ...B, q1b: "c" });
+  record("L7", "L7-03", !o.complete && o.critical === true, `critical q1b`);
+
+  o = scoreAll(lab7, { ...B, q2: "a" });
+  record("L7", "L7-04", !o.complete && !o.parts.q2, `q2 wrong`);
+
+  o = scoreAll(lab7, { ...B, q4: "a" });
+  record("L7", "L7-05", !o.complete && o.critical === true, `critical q4`);
+
+  o = scoreAll(lab7, { ...B, q5: "قصير" });
+  record("L7", "L7-06", !o.complete && !o.parts.q5, `q5 short`);
+
+  // regression published simulation labs still score
+  o = scoreAll(lab6, {
+    q1: lab6.key.q1.correctIds.slice(),
+    q1b: lab6.key.q1b.correctId,
+    q2: lab6.key.q2.correctId,
+    q2b: lab6.key.q2b.correctId,
+    q3a: lab6.key.q3a.correctId,
+    q3b: lab6.key.q3b.correctId,
+    q3c: lab6.key.q3c.correctId,
+    q3d: lab6.key.q3d.correctId,
+    q4: lab6.key.q4.acceptableIds[0],
+    q5: "تنبيه EDR على FIN-WS مع عملية من Temp واتصال example. الأدلة الزمن والنطاق. عزل وتوثيق وتصعيد. لم يُثبت تسريب أو انتشار."
+  });
+  record("L7", "L7-07", o.complete === true, `lab6 still complete=${o.complete}`);
 })();
 
 // summary
