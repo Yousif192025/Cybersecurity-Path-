@@ -1089,6 +1089,7 @@ record("B4", "REG-04", index.labs.some((l) => l.id === "lab-network-wireshark-01
 
   record("B4", "REG-06", index.labs.some((l) => l.id === "lab-web-vuln-assess-01" && l.type === "web_vulnerability_assessment"));
 record("B4", "REG-07", index.labs.some((l) => l.id === "lab-forensics-file-investigation-01" && l.type === "simulation"));
+record("B4", "REG-08", index.labs.some((l) => l.id === "lab-cloud-security-assessment-01" && l.type === "cloud_security_assessment"));
 
   const good = {
     selectedWeaknesses: lab4.weaknessIds.slice(),
@@ -1211,6 +1212,69 @@ record("B4", "REG-07", index.labs.some((l) => l.id === "lab-forensics-file-inves
     q5: "تنبيه EDR على FIN-WS مع عملية من Temp واتصال example. الأدلة الزمن والنطاق. عزل وتوثيق وتصعيد. لم يُثبت تسريب أو انتشار."
   });
   record("L7", "L7-07", o.complete === true, `lab6 still complete=${o.complete}`);
+})();
+
+
+// ---------- L8 Cloud security assessment ----------
+(function () {
+  const fs = require("fs");
+  const path = require("path");
+  const vm = require("vm");
+  const code = fs.readFileSync(path.join(DOCS, "runners/cloud-security-assessment.js"), "utf8");
+  const sandbox = { console, window: {}, global: {} };
+  sandbox.window = sandbox;
+  sandbox.global = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(code, sandbox);
+  const scoreC = sandbox.LabsCloudSecurityAssessmentScore.scoreCloudSecurityAssessment;
+  const lab8 = loadJSON("data/assessment/lab-cloud-security-assessment-01.json");
+  const content8 = loadJSON("data/content/lab-cloud-security-assessment-01.json");
+  record("L8", "L8-00", content8.devices && content8.devices.length >= 6 && content8.id === lab8.id, "resources");
+
+  const reportOk =
+    "مراجعة بيئة أفق السحابية أظهرت تخزين رواتب بوصول عام وSSH مكشوف وحساب بلا MFA. يُوصى بحظر العام وتقييد SSH وتفعيل MFA. لم يُثبت استغلال بعد؛ التقييم جزئي قبل المعالجة.";
+  const good = {
+    selectedWeaknesses: lab8.weaknessIds.slice(),
+    risks: Object.assign({}, lab8.riskKey),
+    priorityOrder: lab8.priorityTop.concat(["c-backup-open", "c-iam-role-wild"]),
+    remediation: Object.assign({}, lab8.remediationKey),
+    reportText: reportOk
+  };
+  let o = scoreC(lab8, good);
+  record("L8", "L8-01", o.complete === true && o.parts.report, `complete=${o.complete}`);
+
+  o = scoreC(lab8, { ...good, selectedWeaknesses: ["c-ssh-open"] });
+  record("L8", "L8-02", !o.complete && !o.parts.discover, "few findings");
+
+  o = scoreC(lab8, {
+    ...good,
+    selectedWeaknesses: lab8.weaknessIds.concat(["s-trail-on", "s-db-sg"])
+  });
+  record("L8", "L8-03", !o.complete && !o.parts.discover, "too many FP");
+
+  o = scoreC(lab8, {
+    ...good,
+    risks: Object.fromEntries(lab8.weaknessIds.map((id) => [id, "low"]))
+  });
+  record("L8", "L8-04", !o.complete && !o.parts.risk, "bad risk");
+
+  o = scoreC(lab8, { ...good, priorityOrder: ["c-imdsv1", "c-no-access-log"] });
+  record("L8", "L8-05", !o.complete && !o.parts.priority, "bad priority");
+
+  o = scoreC(lab8, {
+    ...good,
+    remediation: Object.fromEntries(lab8.weaknessIds.map((id) => [id, "ignore-finding"]))
+  });
+  record("L8", "L8-06", !o.complete && !o.parts.remediation, "bad rem");
+
+  o = scoreC(lab8, { ...good, reportText: "قصير" });
+  record("L8", "L8-07", !o.complete && !o.parts.report, "short report");
+
+  o = scoreC(lab8, {
+    ...good,
+    selectedWeaknesses: lab8.weaknessIds.concat(["s-finance-readonly"])
+  });
+  record("L8", "L8-08", o.parts.discover === true, "one FP allowed");
 })();
 
 // summary

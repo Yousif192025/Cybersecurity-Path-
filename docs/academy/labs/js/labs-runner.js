@@ -9,7 +9,8 @@
     "independent-challenge": "independent-challenge",
     "external-guided": "external-guided",
     "network-assessment": "network-assessment",
-    "web-vulnerability-assessment": "web-vulnerability-assessment"
+    "web-vulnerability-assessment": "web-vulnerability-assessment",
+    "cloud-security-assessment": "cloud-security-assessment"
   };
 
   function resolveRunnerKey(searchParams, labMeta) {

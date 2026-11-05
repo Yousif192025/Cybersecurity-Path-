@@ -1,0 +1,211 @@
+{
+  "id": "lab-cloud-security-assessment-01",
+  "version": 1,
+  "intro": "أنت محلل أمن سحابي لدى «شركة أفق للحلول الرقمية — Horizon Digital Solutions» (بيئة تدريبية اصطناعية). أثناء مراجعة دورية ظهرت مؤشرات على إعدادات قد تسمح بوصول غير مصرح أو صلاحيات أوسع من اللازم. افحص الموارد، ميّز الآمن عن غير الآمن، وقيّم المخاطر ورتّب المعالجة. لا يوجد اتصال بأي سحابة حقيقية.",
+  "context": {
+    "org": "Horizon Digital Solutions — بيئة سحابية تدريبية",
+    "scope": "IAM، التخزين، الشبكة، الحوسبة، السجلات، النسخ الاحتياطي",
+    "constraint": "جميع المعرّفات والنطاقات والـ ARN اصطناعية (example.test). لا مفاتيح API حقيقية."
+  },
+  "safety": [
+    "لا حسابات أو مفاتيح أو أسرار حقيقية.",
+    "لا اتصال بـ AWS/Azure/GCP أو فحص شبكات حية.",
+    "النشاط تعليمي دفاعي فقط."
+  ],
+  "instructions": [
+    "استعرض كل مورد في اللوحة واقرأ إعداداته.",
+    "في ورقة العمل: علّم نقاط الضعف الحقيقية فقط؛ بعض الموارد آمنة (إيجابية كاذبة إن اختيرت).",
+    "صنّف خطورة كل ضعف مختار، رتّب الأولوية، واختر المعالجة.",
+    "اكتب تقريرًا موجزًا يغطي الملخص والمخاطر والتوصيات وما لم يُبالغ فيه."
+  ],
+  "devices": [
+    {
+      "id": "iam-users",
+      "name": "IAM — المستخدمون والأدوار",
+      "role": "هوية وصلاحيات",
+      "ip": "horizon-iam.example.test",
+      "sections": [
+        {
+          "title": "حسابات بارزة",
+          "lines": [
+            "user/finance.reader — سياسات: BillingReadOnly (مبدأ أقل صلاحية — سليم)",
+            "user/ops.admin — سياسات: AdministratorAccess — MFA: Disabled",
+            "role/app-deploy — سياسات: * على Resource * (صلاحيات خدمة واسعة بلا قيد مورد)"
+          ]
+        },
+        {
+          "title": "ملاحظات مراجعة",
+          "lines": [
+            "آخر دخول ops.admin من عنوان مكتبي داخلي معروف.",
+            "لا توجد سياسة تمنع إنشاء مفاتيح وصول طويلة الأمد لحساب ops.admin."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "storage",
+      "name": "Object Storage — الحاويات",
+      "role": "تخزين كائنات",
+      "ip": "s3.horizon.example.test",
+      "sections": [
+        {
+          "title": "الحاويات",
+          "lines": [
+            "bucket/hr-payroll-archive — PublicAccess: AllowAll (قائمة وقراءة عامة) — Encryption: None",
+            "bucket/app-static-assets — PublicAccess: Blocked — Encryption: AES256 — سليم للمحتوى العام المقصود عبر CDN داخلي فقط",
+            "سياسة إضافية على hr-payroll-archive: Principal=* Action=s3:GetObject"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "network",
+      "name": "Virtual Network & Security Groups",
+      "role": "شبكة وقواعد وصول",
+      "ip": "vpc-horizon-train",
+      "sections": [
+        {
+          "title": "شبكات فرعية",
+          "lines": [
+            "subnet-public-a — 10.10.0.0/24 (عامة مع Internet Gateway)",
+            "subnet-private-b — 10.10.10.0/24 (خاصة — NAT فقط) — سليم لأعباء داخلية"
+          ]
+        },
+        {
+          "title": "Security Groups",
+          "lines": [
+            "sg-web: inbound TCP 443 from 0.0.0.0/0 (متوقع لواجهة عامة محدودة)",
+            "sg-mgmt: inbound TCP 22 from 0.0.0.0/0 إلى مثيلات الإدارة (SSH مكشوف للعامة)",
+            "sg-db: inbound TCP 5432 from sg-app only — سليم"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "compute",
+      "name": "Compute Instances",
+      "role": "خوادم وتطبيقات",
+      "ip": "ec2.horizon.example.test",
+      "sections": [
+        {
+          "title": "المثيلات",
+          "lines": [
+            "i-app-01 (subnet-private-b) — لا منفذ إدارة عام — سليم نسبيًا",
+            "i-bastion-01 (subnet-public-a) — مرتبط بـ sg-mgmt (SSH من أي مصدر) — Metadata IMDSv1 مفعّل"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "logging",
+      "name": "Audit Logging & Monitoring",
+      "role": "سجلات وتنبيهات",
+      "ip": "logs.horizon.example.test",
+      "sections": [
+        {
+          "title": "التسجيل",
+          "lines": [
+            "CloudTrail المؤسسي: مفعّل على الحساب مع أرشفة مشفّرة — سليم",
+            "bucket/hr-payroll-archive: Server Access Logging = Off",
+            "تنبيه GuardDuty-like لتسجيل دخول بدون MFA: Disabled"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "backup",
+      "name": "Backup Storage",
+      "role": "نسخ احتياطي واستعادة",
+      "ip": "backup.horizon.example.test",
+      "sections": [
+        {
+          "title": "النسخ",
+          "lines": [
+            "backup/db-nightly — Encryption: AES256 — Access: role/backup-operator فقط — سليم",
+            "backup/hr-weekly — Encryption: None — ACL: AuthenticatedUsers قابل للقائمة"
+          ]
+        }
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "id": "c-iam-admin-no-mfa",
+      "deviceId": "iam-users",
+      "label": "حساب إداري بدون MFA (ops.admin)",
+      "detail": "AdministratorAccess مع MFA معطّل."
+    },
+    {
+      "id": "c-iam-role-wild",
+      "deviceId": "iam-users",
+      "label": "دور خدمة بصلاحيات * واسعة (app-deploy)",
+      "detail": "سياسة غير مقيّدة على الموارد."
+    },
+    {
+      "id": "c-s3-public-payroll",
+      "deviceId": "storage",
+      "label": "حاوية رواتب بوصول عام وبدون تشفير",
+      "detail": "hr-payroll-archive AllowAll + Encryption None."
+    },
+    {
+      "id": "c-ssh-open",
+      "deviceId": "network",
+      "label": "SSH إداري مكشوف من 0.0.0.0/0",
+      "detail": "sg-mgmt يسمح TCP 22 من أي مصدر."
+    },
+    {
+      "id": "c-imdsv1",
+      "deviceId": "compute",
+      "label": "IMDSv1 مفعّل على bastion",
+      "detail": "يزيد خطر سرقة بيانات التعريف عند وجود ثغرة على المضيف."
+    },
+    {
+      "id": "c-no-access-log",
+      "deviceId": "logging",
+      "label": "تعطيل سجلات وصول حاوية الرواتب",
+      "detail": "Server Access Logging = Off على hr-payroll-archive."
+    },
+    {
+      "id": "c-alert-off",
+      "deviceId": "logging",
+      "label": "تنبيه الدخول بدون MFA معطّل",
+      "detail": "لا تنبيه عند استخدام ops.admin بلا MFA."
+    },
+    {
+      "id": "c-backup-open",
+      "deviceId": "backup",
+      "label": "نسخة احتياطية HR بلا تشفير وACL واسع",
+      "detail": "backup/hr-weekly غير مشفّر وقابل للقائمة من AuthenticatedUsers."
+    },
+    {
+      "id": "s-finance-readonly",
+      "deviceId": "iam-users",
+      "label": "finance.reader بصلاحية قراءة فوترة فقط",
+      "detail": "مبدأ أقل صلاحية — إعداد سليم."
+    },
+    {
+      "id": "s-static-blocked",
+      "deviceId": "storage",
+      "label": "حاوية الأصول مع حظر الوصول العام",
+      "detail": "app-static-assets محمية — سليمة في هذا السيناريو."
+    },
+    {
+      "id": "s-db-sg",
+      "deviceId": "network",
+      "label": "قاعدة بيانات مقيّدة بـ sg-app فقط",
+      "detail": "sg-db سليم."
+    },
+    {
+      "id": "s-trail-on",
+      "deviceId": "logging",
+      "label": "سجل تدقيق حساب مفعّل ومشفّر",
+      "detail": "Trail مؤسسي سليم."
+    },
+    {
+      "id": "s-db-backup",
+      "deviceId": "backup",
+      "label": "نسخة db-nightly مشفّرة ومقيّدة الدور",
+      "detail": "إعداد سليم."
+    }
+  ]
+}
