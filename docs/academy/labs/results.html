@@ -34,41 +34,179 @@
     </main>
     <footer class="labs-footer"><span>Labs Center</span></footer>
   </div>
+  <script src="js/labs-data.js"></script>
   <script src="js/labs-router.js"></script>
   <script>
     (function () {
+      function latestStoredLabId() {
+        var bestId = null;
+        var bestAt = -1;
+        try {
+          for (var i = 0; i < sessionStorage.length; i++) {
+            var k = sessionStorage.key(i);
+            if (!k || k.indexOf("labs:result:") !== 0) continue;
+            var raw = sessionStorage.getItem(k);
+            if (!raw) continue;
+            try {
+              var d = JSON.parse(raw);
+              var at = d && typeof d.at === "number" ? d.at : 0;
+              if (at >= bestAt) {
+                bestAt = at;
+                bestId = k.slice("labs:result:".length);
+              }
+            } catch (err) {}
+          }
+        } catch (e) {}
+        return bestId;
+      }
+
       var id =
         new URLSearchParams(location.search).get("id") ||
+        latestStoredLabId() ||
         "lab-soc-phishing-email-01";
-      document.getElementById("lab-id-display").textContent = id;
+      // Never treat id as HTML
+      document.getElementById("lab-id-display").textContent = String(id);
       document.getElementById("link-details").href = LabsRouter.labDetails(id);
-      document.getElementById("link-retry").href = LabsRouter.labRun(
-        id,
-        "simulation"
-      );
+
+      var labels = {
+        q1: "المؤشرات / الجزء 1",
+        q1b: "تصنيف أولي",
+        q2: "السياق / الجزء 2",
+        q2b: "تسلسل زمني",
+        q3: "القرار",
+        q3a: "نوع الحادث",
+        q3b: "الأولوية",
+        q3c: "مؤكد",
+        q3d: "غير مؤكد",
+        q4: "الاحتواء / التبرير",
+        q5: "تقرير الحادث",
+        discover: "اكتشاف نقاط الضعف",
+        risk: "تصنيف الخطورة",
+        priority: "ترتيب الأولوية",
+        remediation: "إجراءات المعالجة"
+      };
+
       var mount = document.getElementById("result-mount");
+      while (mount.firstChild) mount.removeChild(mount.firstChild);
+
+      function appendMsg(text, className) {
+        var p = document.createElement("p");
+        if (className) p.className = className;
+        p.textContent = text;
+        mount.appendChild(p);
+      }
+
+      function renderParts(parts) {
+        if (!parts || typeof parts !== "object" || Array.isArray(parts)) {
+          appendMsg("لا توجد تفاصيل أجزاء محفوظة.", "section-desc");
+          return;
+        }
+        var keys = Object.keys(parts);
+        if (!keys.length) {
+          appendMsg("لا توجد تفاصيل أجزاء محفوظة.", "section-desc");
+          return;
+        }
+        var ul = document.createElement("ul");
+        ul.style.paddingRight = "1.1rem";
+        keys.forEach(function (k) {
+          var li = document.createElement("li");
+          var label = labels[k] || String(k);
+          var yes = !!parts[k];
+          li.textContent = label + ": " + (yes ? "نعم" : "لا");
+          ul.appendChild(li);
+        });
+        mount.appendChild(ul);
+      }
+
       try {
         var raw = sessionStorage.getItem("labs:result:" + id);
-        if (!raw) return;
-        var data = JSON.parse(raw);
-        mount.innerHTML =
-          "<p><strong>" +
-          (data.complete ? "مكتمل" : "غير مكتمل") +
-          "</strong></p>" +
-          "<ul style='padding-right:1.1rem'>" +
-          "<li>المؤشرات: " +
-          (data.parts && data.parts.q1 ? "نعم" : "لا") +
-          "</li>" +
-          "<li>السياق: " +
-          (data.parts && data.parts.q2 ? "نعم" : "لا") +
-          "</li>" +
-          "<li>القرار: " +
-          (data.parts && data.parts.q3 ? "نعم" : "لا") +
-          "</li>" +
-          "<li>التبرير: " +
-          (data.parts && data.parts.q4 ? "نعم" : "لا") +
-          "</li></ul>";
-      } catch (e) {}
+        if (!raw) {
+          appendMsg("لا نتيجة محفوظة في هذه الجلسة بعد.", "section-desc");
+        } else {
+          var data = JSON.parse(raw);
+          if (!data || typeof data !== "object" || Array.isArray(data)) {
+            appendMsg("صيغة نتيجة المحاولة غير متوقعة.", "section-desc");
+          } else {
+            var status = document.createElement("p");
+            var strong = document.createElement("strong");
+            var statusText = data.complete ? "مكتمل" : "غير مكتمل";
+            if (data.critical) statusText += " (إجراء حرج)";
+            strong.textContent = statusText;
+            status.appendChild(strong);
+            mount.appendChild(status);
+            renderParts(data.parts);
+          if (data.feedback) {
+            appendMsg(String(data.feedback), "section-desc");
+          }
+          if (data.report && typeof data.report === "object") {
+            var r = data.report;
+            if (r.discoveredCorrect && r.discoveredCorrect.length) {
+              appendMsg("اكتشافات صحيحة: " + r.discoveredCorrect.join(", "), "section-desc");
+            }
+            if (r.discoveredMissed && r.discoveredMissed.length) {
+              appendMsg("اكتشافات فائتة: " + r.discoveredMissed.join(", "), "section-desc");
+            }
+            if (r.falsePositives && r.falsePositives.length) {
+              appendMsg("إيجابيات كاذبة: " + r.falsePositives.join(", "), "section-desc");
+            }
+            if (typeof r.riskHits === "number") {
+              appendMsg("تصنيفات خطورة صحيحة: " + r.riskHits, "section-desc");
+            }
+            if (typeof r.priorityHits === "number") {
+              appendMsg("إصابات أولوية (ضمن أعلى المراتب): " + r.priorityHits, "section-desc");
+            }
+            if (typeof r.remediationHits === "number") {
+              appendMsg("معالجات صحيحة: " + r.remediationHits, "section-desc");
+            }
+            if (r.messages && r.messages.length) {
+              r.messages.forEach(function (msg) {
+                appendMsg(String(msg), "section-desc");
+              });
+            }
+          }
+          }
+        }
+      } catch (e) {
+        appendMsg("تعذر قراءة نتيجة المحاولة (بيانات تالفة أو غير صالحة).", "section-desc");
+      }
+
+      var retry = document.getElementById("link-retry");
+      // Safe default: details page, not a wrong runner
+      retry.removeAttribute("href");
+      retry.setAttribute("aria-disabled", "true");
+      retry.textContent = "جاري تحديد مسار الإعادة…";
+
+      function setRetry(runner) {
+        if (!runner) {
+          retry.href = LabsRouter.labDetails(id);
+          retry.textContent = "التفاصيل (تعذر تحديد المشغّل)";
+          retry.removeAttribute("aria-disabled");
+          return;
+        }
+        retry.href = LabsRouter.labRun(id, runner);
+        retry.textContent = "إعادة المحاولة";
+        retry.removeAttribute("aria-disabled");
+      }
+
+      if (!window.LabsData || typeof LabsData.loadLabsIndex !== "function") {
+        setRetry(null);
+      } else {
+        LabsData.loadLabsIndex()
+          .then(function (index) {
+            var lab =
+              typeof LabsData.getLabById === "function"
+                ? LabsData.getLabById(index, id)
+                : null;
+            var runner =
+              lab && lab.type && typeof LabsRouter.runnerForType === "function"
+                ? LabsRouter.runnerForType(lab.type)
+                : null;
+            setRetry(runner);
+          })
+          .catch(function () {
+            setRetry(null);
+          });
+      }
     })();
   </script>
 </body>

@@ -972,6 +972,106 @@ record("B4", "REG-04", index.labs.some((l) => l.id === "lab-network-wireshark-01
 })();
 
 
+// ---------- L5 Network assessment ----------
+(function () {
+  const fs = require("fs");
+  const path = require("path");
+  const vm = require("vm");
+  const code = fs.readFileSync(path.join(DOCS, "runners/network-assessment.js"), "utf8");
+  const sandbox = { console, window: {}, global: {} };
+  sandbox.window = sandbox;
+  sandbox.global = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(code, sandbox);
+  const scoreNA = sandbox.LabsNetworkAssessmentScore.scoreNetworkAssessment;
+  const lab5 = loadJSON("data/assessment/lab-network-config-assess-01.json");
+
+  record("B4", "REG-05", index.labs.some((l) => l.id === "lab-network-config-assess-01" && l.type === "network_assessment"));
+
+  const good = {
+    selectedWeaknesses: lab5.weaknessIds.slice(),
+    risks: Object.assign({}, lab5.riskKey),
+    priorityOrder: lab5.priorityTop.slice(),
+    remediation: Object.assign({}, lab5.remediationKey)
+  };
+  let o = scoreNA(lab5, good);
+  record("L5", "L5-01", o.complete && o.parts.discover && o.parts.risk && o.parts.priority && o.parts.remediation, `complete=${o.complete}`);
+
+  o = scoreNA(lab5, { ...good, selectedWeaknesses: ["f-rdp-any"] });
+  record("L5", "L5-02", !o.complete && !o.parts.discover, `discover=${o.parts.discover}`);
+
+  o = scoreNA(lab5, {
+    ...good,
+    selectedWeaknesses: lab5.weaknessIds.concat(["s-deny-any", "s-backup-job"])
+  });
+  record("L5", "L5-03", !o.complete && !o.parts.discover, `fp should fail discover`);
+
+  o = scoreNA(lab5, {
+    ...good,
+    risks: { "f-rdp-any": "low", "f-ssh-root-pass": "low", "f-vlan-mgmt-leak": "low", "f-dns-recursion": "low", "f-smb-everyone": "low" }
+  });
+  record("L5", "L5-04", !o.complete && !o.parts.risk, `risk=${o.parts.risk}`);
+
+  o = scoreNA(lab5, {
+    ...good,
+    priorityOrder: ["f-dns-recursion", "f-smb-everyone", "s-backup-job"]
+  });
+  record("L5", "L5-05", !o.complete && !o.parts.priority, `priority=${o.parts.priority}`);
+
+  o = scoreNA(lab5, {
+    ...good,
+    remediation: {
+      "f-rdp-any": "open-more-ports",
+      "f-ssh-root-pass": "ignore-finding",
+      "f-vlan-mgmt-leak": "disable-backup",
+      "f-dns-recursion": "open-more-ports",
+      "f-smb-everyone": "ignore-finding"
+    }
+  });
+  record("L5", "L5-06", !o.complete && !o.parts.remediation, `rem=${o.parts.remediation}`);
+
+  // one FP allowed
+  o = scoreNA(lab5, {
+    ...good,
+    selectedWeaknesses: lab5.weaknessIds.concat(["s-https-mgmt"])
+  });
+  record("L5", "L5-07", o.parts.discover === true, `one FP still discover=${o.parts.discover}`);
+
+  // duplicate ids in priority must not inflate hits
+  o = scoreNA(lab5, {
+    ...good,
+    priorityOrder: ["f-rdp-any", "f-rdp-any", "f-rdp-any", "f-dns-recursion"]
+  });
+  record("L5", "L5-08", !o.complete && !o.parts.priority, `dup priority priority=${o.parts.priority}`);
+
+  // non-selected / secure ids in priority list ignored; good order of selected weaknesses still ok
+  o = scoreNA(lab5, {
+    ...good,
+    priorityOrder: ["s-deny-any", "f-rdp-any", "f-ssh-root-pass", "f-vlan-mgmt-leak"]
+  });
+  record("L5", "L5-09", o.parts.priority === true, `secure prefix stripped priority=${o.parts.priority}`);
+
+  // priority item not in selectedWeaknesses ignored
+  o = scoreNA(lab5, {
+    ...good,
+    selectedWeaknesses: ["f-rdp-any", "f-ssh-root-pass", "f-vlan-mgmt-leak", "f-dns-recursion"],
+    priorityOrder: ["f-smb-everyone", "f-dns-recursion", "f-smb-everyone"],
+    risks: {
+      "f-rdp-any": "high",
+      "f-ssh-root-pass": "high",
+      "f-vlan-mgmt-leak": "high",
+      "f-dns-recursion": "medium"
+    },
+    remediation: {
+      "f-rdp-any": "restrict-rdp-source",
+      "f-ssh-root-pass": "ssh-key-no-root-pass",
+      "f-vlan-mgmt-leak": "isolate-mgmt-vlan",
+      "f-dns-recursion": "limit-dns-recursion"
+    }
+  });
+  record("L5", "L5-10", !o.parts.priority, `unselected id in priority ignored -> weak order`);
+})();
+
 // summary
 const by = {};
 for (const r of results) {
@@ -981,6 +1081,9 @@ for (const r of results) {
   else if (r.status === "skip") by[r.group].skip++;
   else by[r.group].fail++;
 }
+
+
+
 console.log("\n=== SUMMARY ===");
 let tp = 0,
   ts = 0,

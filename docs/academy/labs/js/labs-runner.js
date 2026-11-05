@@ -7,7 +7,8 @@
     simulation: "simulation",
     "fixed-data": "fixed-data",
     "independent-challenge": "independent-challenge",
-    "external-guided": "external-guided"
+    "external-guided": "external-guided",
+    "network-assessment": "network-assessment"
   };
 
   function resolveRunnerKey(searchParams, labMeta) {

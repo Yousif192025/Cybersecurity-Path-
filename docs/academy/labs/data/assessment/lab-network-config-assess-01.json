@@ -1,0 +1,57 @@
+{
+  "id": "lab-network-config-assess-01",
+  "version": 1,
+  "schema": "network-assessment-v1",
+  "weaknessIds": ["f-rdp-any", "f-ssh-root-pass", "f-vlan-mgmt-leak", "f-dns-recursion", "f-smb-everyone"],
+  "secureIds": ["s-https-mgmt", "s-backup-job", "s-deny-any"],
+  "maxFalsePositives": 1,
+  "minWeaknesses": 4,
+  "riskKey": {
+    "f-rdp-any": "high",
+    "f-ssh-root-pass": "high",
+    "f-vlan-mgmt-leak": "high",
+    "f-dns-recursion": "medium",
+    "f-smb-everyone": "medium"
+  },
+  "minRiskCorrect": 4,
+  "priorityTop": ["f-rdp-any", "f-ssh-root-pass", "f-vlan-mgmt-leak"],
+  "minPriorityHits": 2,
+  "remediationKey": {
+    "f-rdp-any": "restrict-rdp-source",
+    "f-ssh-root-pass": "ssh-key-no-root-pass",
+    "f-vlan-mgmt-leak": "isolate-mgmt-vlan",
+    "f-dns-recursion": "limit-dns-recursion",
+    "f-smb-everyone": "harden-smb-share"
+  },
+  "minRemediationCorrect": 4,
+  "remediationOptions": [
+    { "id": "restrict-rdp-source", "label": "تقييد مصدر RDP بشبكات الإدارة أو VPN وإزالة any من القاعدة" },
+    { "id": "ssh-key-no-root-pass", "label": "تعطيل دخول root بكلمة مرور وفرض المفاتيح وتقليص AllowUsers" },
+    { "id": "isolate-mgmt-vlan", "label": "عزل VLAN الإدارة ومنع trunk غير الضروري من منافذ المستخدمين" },
+    { "id": "limit-dns-recursion", "label": "تقييد recursion والاستعلام بشبكات داخلية موثوقة فقط" },
+    { "id": "harden-smb-share", "label": "إزالة Everyone وتقييد المشاركة بمجموعات محددة وجدار مضيف" },
+    { "id": "disable-backup", "label": "إيقاف النسخ الاحتياطي بالكامل" },
+    { "id": "open-more-ports", "label": "فتح منافذ إضافية من الإنترنت لتسهيل الدعم" },
+    { "id": "ignore-finding", "label": "تجاهل الملاحظة وعدم التغيير" }
+  ],
+  "riskOptions": [
+    { "id": "high", "label": "عالية" },
+    { "id": "medium", "label": "متوسطة" },
+    { "id": "low", "label": "منخفضة" }
+  ],
+  "completion": {
+    "requireDiscover": true,
+    "requireRisk": true,
+    "requirePriority": true,
+    "requireRemediation": true
+  },
+  "feedback": {
+    "success": "تحليل منظم: ميّزت الضعف الحقيقي، وقدّرت الخطورة، ورتّبت الأولوية، واخترت معالجة مناسبة.",
+    "discover_weak": "فاتك اكتشاف عدد كافٍ من نقاط الضعف الحقيقية. راجع قواعد RDP وSSH وVLAN وDNS وSMB.",
+    "discover_fp": "صنّفت إعدادًا سليمًا أو غير حرج كضعف. فرّق بين التحكم الدفاعي (مثل deny any) والمخاطر الفعلية.",
+    "risk_weak": "تصنيف الخطورة غير متسق مع أثر الاستغلال (التعرض للإنترنت أو سيطرة إدارية أعلى خطورة).",
+    "priority_weak": "أولوية المعالجة لم تضع التعرض العالي (RDP مفتوح / SSH root / تسرب إدارة) في المقدمة.",
+    "remediation_weak": "بعض إجراءات المعالجة لا تعالج جذر المشكلة أو تُضعف الوضع الأمني.",
+    "partial": "أداء جزئي: راجع التغذية الراجعة لكل محور وحاول مرة أخرى."
+  }
+}

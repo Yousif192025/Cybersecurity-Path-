@@ -1,45 +1,59 @@
 /**
- * Labs Center — internal path helpers (Phase 1)
- * Keeps navigation inside /academy/labs/ without touching the rest of the platform.
+ * Labs Center — internal path helpers
+ * Base path is derived from the current page URL so the same files work on
+ * Vercel (/academy/labs/...) and Codespaces (/docs/academy/labs/... from repo root).
  */
 (function (global) {
-  const BASE = "/academy/labs/";
+  function detectBase() {
+    try {
+      var path = global.location && global.location.pathname ? global.location.pathname : "";
+      var marker = "/labs/";
+      var i = path.lastIndexOf(marker);
+      if (i >= 0) return path.slice(0, i + marker.length);
+    } catch (e) {
+      /* ignore */
+    }
+    return "/academy/labs/";
+  }
 
   function labsHome() {
-    return BASE;
+    return detectBase();
   }
 
   function labDetails(id) {
-    const q = id ? ("?id=" + encodeURIComponent(id)) : "";
-    return BASE + "lab.html" + q;
+    var q = id ? "?id=" + encodeURIComponent(id) : "";
+    return detectBase() + "lab.html" + q;
   }
 
   function labRun(id, runner) {
-    const params = new URLSearchParams();
+    var params = new URLSearchParams();
     if (id) params.set("id", id);
     if (runner) params.set("runner", runner);
-    const qs = params.toString();
-    return BASE + "run.html" + (qs ? "?" + qs : "");
+    var qs = params.toString();
+    return detectBase() + "run.html" + (qs ? "?" + qs : "");
   }
 
   function labResults(id) {
-    const q = id ? ("?id=" + encodeURIComponent(id)) : "";
-    return BASE + "results.html" + q;
+    var q = id ? "?id=" + encodeURIComponent(id) : "";
+    return detectBase() + "results.html" + q;
   }
 
   /** Map lab type metadata to runner key */
   function runnerForType(labType) {
-    const map = {
+    var map = {
       simulation: "simulation",
       fixed_data: "fixed-data",
       independent_challenge: "independent-challenge",
-      external_guided: "external-guided"
+      external_guided: "external-guided",
+      network_assessment: "network-assessment"
     };
     return map[labType] || null;
   }
 
   global.LabsRouter = {
-    BASE: BASE,
+    get BASE() {
+      return detectBase();
+    },
     labsHome: labsHome,
     labDetails: labDetails,
     labRun: labRun,
