@@ -1,0 +1,219 @@
+{
+  "id": "lab-web-vuln-assess-01",
+  "version": 1,
+  "intro": "أنت مختبر تطبيقات ويب في مهمة مراجعة أمنية لمتجر «CyberMart Training Store» الافتراضي. جميع الصفحات والطلبات والسجلات مصطنعة للتدريب فقط، ولا يوجد اتصال بأي نظام حقيقي.",
+  "context": {
+    "app": "CyberMart Training Store — متجر إلكتروني تدريبي",
+    "scope": "واجهة تسجيل الدخول، البحث، تفاصيل الطلب، لوحة إدارة مبسطة، وسجلات خادم ويب",
+    "constraint": "لا تُنفَّذ طلبات خارج هذه الشاشة. حلّل الأدلة المعروضة فقط."
+  },
+  "safety": [
+    "النطاقات والمعرّفات والحمولات تدريبية (example.test).",
+    "لا تحاول استغلال مواقع حقيقية أو إدخال حمولات على أنظمة خارج المختبر.",
+    "الهدف اكتشاف وتصنيف ومعالجة مفاهيمية، وليس اختراقًا حيًا."
+  ],
+  "instructions": [
+    "استعرض كل واجهة في لوحة أسطح التطبيق واقرأ الأدلة والطلبات.",
+    "في ورقة العمل: علّم الثغرات الحقيقية فقط؛ بعض العناصر ضوابط سليمة (إيجابيات كاذبة إن اختيرت).",
+    "صنّف خطورة كل ثغرة تظهر بعد اختيارك.",
+    "رتّب أولوية المعالجة بأزرار أعلى/أسفل دون كتابة معرّفات.",
+    "اختر إجراء المعالجة المناسب لكل ثغرة مختارة، ثم أرسل التقييم."
+  ],
+  "surfaces": [
+    {
+      "id": "login",
+      "name": "صفحة تسجيل الدخول",
+      "role": "مصادقة المستخدمين",
+      "url": "https://shop.cybermart.example.test/login",
+      "sections": [
+        {
+          "title": "نموذج الطلب (مقتطف)",
+          "lines": [
+            "POST /login HTTP/1.1",
+            "Host: shop.cybermart.example.test",
+            "Content-Type: application/x-www-form-urlencoded",
+            "",
+            "username=guest&password=guest"
+          ]
+        },
+        {
+          "title": "ملاحظة من مطور سابق (تعليق في القالب)",
+          "lines": [
+            "// TODO: remove debug — query built as:",
+            "// SELECT * FROM users WHERE username='\" + user + \"' AND password='\" + pass + \"'",
+            "// لم تُستخدم استعلامات مُجهَّزة (prepared statements)."
+          ]
+        },
+        {
+          "title": "استجابة عند خطأ شائع",
+          "lines": [
+            "HTTP/1.1 200 OK",
+            "Set-Cookie: CMSESSID=1001; Path=/; HttpOnly",
+            "Body: Invalid password for user 'admin' — user exists."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "orders",
+      "name": "تفاصيل الطلب",
+      "role": "عرض طلب العميل",
+      "url": "https://shop.cybermart.example.test/orders?id=1042",
+      "sections": [
+        {
+          "title": "طلب HTTP",
+          "lines": [
+            "GET /orders?id=1042 HTTP/1.1",
+            "Cookie: CMSESSID=1001",
+            "",
+            "ملاحظة: تغيير id إلى 1041 يعرض طلب مستخدم آخر دون تحقق ملكية."
+          ]
+        },
+        {
+          "title": "استجابة مختصرة",
+          "lines": [
+            "Order #1041 — customer: sara@example.test — total: 420.00 SAR",
+            "Ship to: [redacted training address]",
+            "لا يظهر فحص (currentUser.id === order.ownerId) في مسار العرض."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search",
+      "name": "بحث المنتجات",
+      "role": "عرض نتائج البحث",
+      "url": "https://shop.cybermart.example.test/search?q=",
+      "sections": [
+        {
+          "title": "مثال إدخال",
+          "lines": [
+            "GET /search?q=<script>document.title='x'</script>",
+            "الاستجابة تعيد قيمة q داخل div.result-title دون ترميز HTML."
+          ]
+        },
+        {
+          "title": "مقتطف HTML",
+          "lines": [
+            "<div class=\"result-title\">نتائج لـ: <script>document.title='x'</script></div>",
+            "Content-Type: text/html; charset=utf-8"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "admin-debug",
+      "name": "مسار إدارة / تشخيص",
+      "role": "ملفات وأعلام تهيئة",
+      "url": "https://shop.cybermart.example.test/admin/",
+      "sections": [
+        {
+          "title": "استجابة /admin/",
+          "lines": [
+            "HTTP/1.1 200 OK",
+            "Index of /admin/",
+            "  config.backup.json",
+            "  phpinfo.php",
+            "  .env.sample"
+          ]
+        },
+        {
+          "title": "من ملف التهيئة الظاهر",
+          "lines": [
+            "APP_DEBUG=true",
+            "DISPLAY_ERRORS=On",
+            "STACK_TRACES=public"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "session",
+      "name": "إدارة الجلسة",
+      "role": "كوكيز وإعادة تعيين كلمة المرور",
+      "url": "https://shop.cybermart.example.test/account/session",
+      "sections": [
+        {
+          "title": "كوكيز بعد تسجيل الدخول",
+          "lines": [
+            "Set-Cookie: CMSESSID=1001; Path=/",
+            "(لا Secure، لا SameSite؛ القيمة متسلسلة للمستخدمين: 1001, 1002, 1003…)"
+          ]
+        },
+        {
+          "title": "إعادة تعيين كلمة المرور",
+          "lines": [
+            "GET /reset?token=1001",
+            "الرمز = رقم معرف المستخدم، صالح بلا انتهاء زمني واضح في السجل."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hardening-notes",
+      "name": "ضوابط موجودة (للمقارنة)",
+      "role": "إعدادات يُفضّل عدم اعتبارها ثغرات",
+      "url": "https://shop.cybermart.example.test/",
+      "sections": [
+        {
+          "title": "ملاحظات دفاع",
+          "lines": [
+            "الموقع يُخدم عبر HTTPS في البيئة التدريبية المفترضة.",
+            "حقل كلمة المرور من نوع password (لا يظهر النص في الواجهة).",
+            "نموذج إتمام الشراء يتضمن حقل csrf_token عشوائي في هذه النسخة."
+          ]
+        }
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "id": "v-sqli",
+      "surfaceId": "login",
+      "label": "حقن SQL في مسار تسجيل الدخول",
+      "detail": "بناء الاستعلام بدمج مدخلات المستخدم دون استعلامات مُجهَّزة."
+    },
+    {
+      "id": "v-idor",
+      "surfaceId": "orders",
+      "label": "IDOR / كسر التحكم بالوصول على الطلبات",
+      "detail": "تغيير معرّف الطلب يعرض بيانات مستخدم آخر دون تحقق ملكية."
+    },
+    {
+      "id": "v-xss",
+      "surfaceId": "search",
+      "label": "XSS منعكس في نتائج البحث",
+      "detail": "إعادة عرض معامل q داخل HTML دون ترميز."
+    },
+    {
+      "id": "v-misconfig",
+      "surfaceId": "admin-debug",
+      "label": "سوء تهيئة أمنية (تعداد ملفات + وضع تصحيح عام)",
+      "detail": "فهرسة /admin/ و APP_DEBUG مع تتبع أخطاء علني."
+    },
+    {
+      "id": "v-session",
+      "surfaceId": "session",
+      "label": "إدارة جلسة / مصادقة ضعيفة",
+      "detail": "معرف جلسة متوقع ورموز إعادة تعيين قابلة للتخمين دون ضوابط كافية."
+    },
+    {
+      "id": "s-https",
+      "surfaceId": "hardening-notes",
+      "label": "تقديم الموقع عبر HTTPS",
+      "detail": "استخدام HTTPS في السيناريو التدريبي يُعد ممارسة سليمة وليس ثغرة."
+    },
+    {
+      "id": "s-password-field",
+      "surfaceId": "hardening-notes",
+      "label": "حقل كلمة المرور من نوع password",
+      "detail": "إخفاء إدخال كلمة المرور في الواجهة سلوك متوقع."
+    },
+    {
+      "id": "s-csrf-token",
+      "surfaceId": "hardening-notes",
+      "label": "وجود csrf_token في نموذج الشراء",
+      "detail": "رمز CSRF في نموذج الدفع يشير إلى حماية مقصودة في هذا الدليل."
+    }
+  ]
+}

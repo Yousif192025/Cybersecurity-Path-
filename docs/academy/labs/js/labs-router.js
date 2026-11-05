@@ -45,7 +45,8 @@
       fixed_data: "fixed-data",
       independent_challenge: "independent-challenge",
       external_guided: "external-guided",
-      network_assessment: "network-assessment"
+      network_assessment: "network-assessment",
+      web_vulnerability_assessment: "web-vulnerability-assessment"
     };
     return map[labType] || null;
   }

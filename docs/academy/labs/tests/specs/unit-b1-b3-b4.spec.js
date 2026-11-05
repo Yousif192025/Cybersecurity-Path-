@@ -1072,6 +1072,93 @@ record("B4", "REG-04", index.labs.some((l) => l.id === "lab-network-wireshark-01
   record("L5", "L5-10", !o.parts.priority, `unselected id in priority ignored -> weak order`);
 })();
 
+
+// ---------- L4 Web vulnerability assessment ----------
+(function () {
+  const fs = require("fs");
+  const path = require("path");
+  const vm = require("vm");
+  const code = fs.readFileSync(path.join(DOCS, "runners/web-vulnerability-assessment.js"), "utf8");
+  const sandbox = { console, window: {}, global: {} };
+  sandbox.window = sandbox;
+  sandbox.global = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(code, sandbox);
+  const scoreW = sandbox.LabsWebVulnerabilityAssessmentScore.scoreWebVulnerabilityAssessment;
+  const lab4 = loadJSON("data/assessment/lab-web-vuln-assess-01.json");
+
+  record("B4", "REG-06", index.labs.some((l) => l.id === "lab-web-vuln-assess-01" && l.type === "web_vulnerability_assessment"));
+
+  const good = {
+    selectedWeaknesses: lab4.weaknessIds.slice(),
+    risks: Object.assign({}, lab4.riskKey),
+    priorityOrder: ["v-sqli", "v-session", "v-idor", "v-misconfig", "v-xss"],
+    remediation: Object.assign({}, lab4.remediationKey)
+  };
+  let o = scoreW(lab4, good);
+  record("L4", "L4-01", o.complete && o.parts.discover && o.parts.risk && o.parts.priority && o.parts.remediation, `complete=${o.complete}`);
+
+  o = scoreW(lab4, { ...good, selectedWeaknesses: ["v-sqli"] });
+  record("L4", "L4-02", !o.complete && !o.parts.discover, `discover=${o.parts.discover}`);
+
+  o = scoreW(lab4, { ...good, selectedWeaknesses: lab4.weaknessIds.concat(["s-https", "s-csrf-token"]) });
+  record("L4", "L4-03", !o.complete && !o.parts.discover, `too many FP`);
+
+  o = scoreW(lab4, {
+    ...good,
+    risks: { "v-sqli": "low", "v-idor": "low", "v-xss": "low", "v-misconfig": "low", "v-session": "low" }
+  });
+  record("L4", "L4-04", !o.complete && !o.parts.risk, `risk=${o.parts.risk}`);
+
+  o = scoreW(lab4, { ...good, priorityOrder: ["v-xss", "v-misconfig", "s-https"] });
+  record("L4", "L4-05", !o.complete && !o.parts.priority, `priority=${o.parts.priority}`);
+
+  o = scoreW(lab4, {
+    ...good,
+    remediation: {
+      "v-sqli": "disable-https",
+      "v-idor": "ignore-finding",
+      "v-xss": "remove-csrf",
+      "v-misconfig": "disable-https",
+      "v-session": "ignore-finding"
+    }
+  });
+  record("L4", "L4-06", !o.complete && !o.parts.remediation, `rem=${o.parts.remediation}`);
+
+  o = scoreW(lab4, { ...good, selectedWeaknesses: lab4.weaknessIds.concat(["s-password-field"]) });
+  record("L4", "L4-07", o.parts.discover === true, `one FP allowed discover=${o.parts.discover}`);
+
+  o = scoreW(lab4, { ...good, priorityOrder: ["v-sqli", "v-sqli", "v-sqli"] });
+  record("L4", "L4-08", !o.parts.priority, `dup priority`);
+
+  o = scoreW(lab4, { ...good, priorityOrder: ["s-https", "v-sqli", "v-session", "v-idor"] });
+  record("L4", "L4-09", o.parts.priority === true, `secure prefix stripped`);
+
+  o = scoreW(lab4, { ...good, selectedWeaknesses: lab4.weaknessIds, priorityOrder: ["not-a-vuln", "v-xss"] });
+  record("L4", "L4-10", !o.parts.priority, `invalid ids ignored`);
+
+  // reference complete set from delivery brief
+  o = scoreW(lab4, {
+    selectedWeaknesses: ["v-sqli", "v-idor", "v-xss", "v-misconfig", "v-session"],
+    risks: {
+      "v-sqli": "high",
+      "v-idor": "high",
+      "v-xss": "medium",
+      "v-misconfig": "medium",
+      "v-session": "high"
+    },
+    priorityOrder: ["v-sqli", "v-session", "v-idor", "v-misconfig", "v-xss"],
+    remediation: {
+      "v-sqli": "prepared-statements",
+      "v-idor": "owner-check",
+      "v-xss": "output-encode",
+      "v-misconfig": "lock-admin-debug",
+      "v-session": "secure-session-tokens"
+    }
+  });
+  record("L4", "L4-11", o.complete === true && o.parts.discover && o.parts.risk && o.parts.priority && o.parts.remediation, `ref complete=${o.complete}`);
+})();
+
 // summary
 const by = {};
 for (const r of results) {

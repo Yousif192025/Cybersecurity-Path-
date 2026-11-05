@@ -8,7 +8,8 @@
     "fixed-data": "fixed-data",
     "independent-challenge": "independent-challenge",
     "external-guided": "external-guided",
-    "network-assessment": "network-assessment"
+    "network-assessment": "network-assessment",
+    "web-vulnerability-assessment": "web-vulnerability-assessment"
   };
 
   function resolveRunnerKey(searchParams, labMeta) {
