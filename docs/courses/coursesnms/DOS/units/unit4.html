@@ -112,8 +112,11 @@ Ethernet adapter Ethernet0:
       <h3>الصيغة</h3>
       <div class="code-block">
         <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
-        <pre><code>ping [host]
-ping -n 4 [host]</code></pre>
+        <pre><code>ping [host]</code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>ping -n 4 [host]</code></pre>
       </div>
       <p><strong>شرح الخيارات:</strong></p>
       <ul>
@@ -146,9 +149,15 @@ Ping statistics for 192.168.10.99:
     Packets: Sent = 4, Received = 0, Lost = 4 (100% loss)</code></pre>
       </div>
       <p><strong>تفسير النتائج:</strong> النجاح يعني أن الهدف يرد. الفشل قد يعني أن الهدف لا يعمل، أو يحجب ICMP، أو هناك مشكلة في المسار.</p>
+      <p><strong>ملاحظة حول TTL:</strong></p>
+      <ul>
+        <li><code>TTL</code> هو <strong>حد القفزات المتبقي</strong> في الحزمة عند وصولها إليك، ويقل بمقدار قفزة واحدة مع كل جهاز توجيه يمر به.</li>
+        <li>القيمة الابتدائية لـ TTL تختلف حسب نظام التشغيل والجهة المرسلة (مثلًا 64 أو 128 أو 255).</li>
+        <li>لذلك <strong>لا يمكن تقدير عدد القفزات التي قطعتها الحزمة</strong> اعتمادًا على TTL وحده، إلا إذا عرفت القيمة الابتدائية التي استخدمها المرسل.</li>
+      </ul>
       <p><strong>الاستخدام الأمني:</strong> كشف أجهزة لا ترد على ICMP (قد تكون محمية أو مشبوهة).</p>
-      <p><strong>الأخطاء الشائعة:</strong> اعتبار عدم الرد دليلًا قاطعًا على أن الجهاز غير موجود.</p>
-      <p><strong>سؤال تحليلي:</strong> ما معنى <code>TTL=117</code>؟ (تلميح: عدد القفزات المتبقية).</p>
+      <p><strong>الأخطاء الشائعة:</strong> اعتبار عدم الرد دليلًا قاطعًا على أن الجهاز غير موجود، أو تفسير TTL كعدد قفزات دون معرفة القيمة الابتدائية.</p>
+      <p><strong>سؤال تحليلي:</strong> ماذا يعنيه <code>TTL=117</code> بالضبط؟</p>
     </section>
 
     <!-- ============ 3. tracert / pathping ============ -->
@@ -179,7 +188,33 @@ over a maximum of 30 hops:
 
 Trace complete.</code></pre>
       </div>
-      <p><strong>تفسير النتائج:</strong> كل سطر قفزة. النجوم تعني أن القفزة لا ترد على ICMP لكن المسار قد يستمر.</p>
+      <p><strong>مخرجات افتراضية (pathping):</strong></p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">output</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>Tracing route to example.com [93.184.216.34]
+over a maximum of 30 hops:
+  0  LAB-PC-01.local.lab [192.168.10.25]
+  1  192.168.10.1
+  2  10.0.0.1
+  3     *        *        *
+  4  93.184.216.34
+
+Computing statistics for 100 seconds...
+            Source to Here   This Node/Link
+Hop  RTT    Lost/Sent = Pct  Lost/Sent = Pct  Address
+  0                                           LAB-PC-01.local.lab [192.168.10.25]
+                                0/ 100 =  0%   |
+  1    1ms     0/ 100 =  0%     0/ 100 =  0%  192.168.10.1
+                                0/ 100 =  0%   |
+  2    5ms     0/ 100 =  0%     0/ 100 =  0%  10.0.0.1
+                                0/ 100 =  0%   |
+  3  ---     100/ 100 =100%   100/ 100 =100%  -
+                                0/ 100 =  0%   |
+  4   14ms     0/ 100 =  0%     0/ 100 =  0%  93.184.216.34
+
+Trace complete.</code></pre>
+      </div>
+      <p><strong>تفسير النتائج:</strong> كل سطر قفزة. النجوم تعني أن القفزة لا ترد على ICMP لكن المسار قد يستمر. <code>pathping</code> يضيف إحصاءات فقدان الحزم لكل قفزة.</p>
       <p><strong>الاستخدام الأمني:</strong> كشف بنية الشبكة والمسارات غير المتوقعة.</p>
       <p><strong>الأخطاء الشائعة:</strong> تفسير النجوم كفشل كامل للمسار.</p>
       <p><strong>سؤال تحليلي:</strong> لماذا قد تظهر نجوم في منتصف المسار مع نجاح الهدف؟</p>
@@ -266,7 +301,7 @@ Address:  192.168.10.10
     <!-- ============ 6. arp ============ -->
     <section class="card">
       <h2>6) جدول ARP — arp -a</h2>
-      <p><strong>الهدف:</strong> عرض الأجهزة المجاورة في الشبكة المحلية وربط IP بـ MAC.</p>
+      <p><strong>الهدف:</strong> عرض ارتباطات عناوين IP بعناوين MAC المعروفة في جدول ARP.</p>
 
       <div class="code-block">
         <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
@@ -282,9 +317,14 @@ Address:  192.168.10.10
   192.168.10.10         aa-bb-cc-dd-ee-ff     dynamic
   192.168.10.255        ff-ff-ff-ff-ff-ff     static</code></pre>
       </div>
-      <p><strong>تفسير النتائج:</strong> كل سطر جهاز معروف في الشبكة المحلية. <code>dynamic</code> يعني تعلّم تلقائيًا.</p>
-      <p><strong>الاستخدام الأمني:</strong> كشف أجهزة غير مصرح بها في الشبكة المحلية.</p>
-      <p><strong>الأخطاء الشائعة:</strong> الاعتقاد أن الجدول يشمل كل الشبكة؛ هو محدود بالأجهزة التي تواصلت معها مؤخرًا.</p>
+      <p><strong>تفسير النتائج:</strong></p>
+      <ul>
+        <li><code>arp -a</code> يعرض ارتباطات IP بـ MAC <strong>المعروفة في جدول ARP</strong>، وليس جردًا كاملًا لأجهزة الشبكة.</li>
+        <li>قد يحتوي الجدول على عناوين بث (مثل <code>192.168.10.255</code>) أو إدخالات ثابتة، وليس أجهزة فردية فقط.</li>
+        <li><code>dynamic</code> يعني تعلّمًا تلقائيًا عبر ARP، و<code>static</code> يعني إدخالًا ثابتًا.</li>
+      </ul>
+      <p><strong>الاستخدام الأمني:</strong> كشف أجهزة غير مصرح بها في الشبكة المحلية (مع إدراك أن الجدول قد لا يكون شاملًا).</p>
+      <p><strong>الأخطاء الشائعة:</strong> الاعتقاد أن الجدول يشمل كل الشبكة؛ هو محدود بالإدخالات المعروفة وقد تتضمن عناوين بث وإدخالات ثابتة.</p>
       <p><strong>سؤال تحليلي:</strong> لماذا يظهر عنوان MAC ثابت لـ <code>192.168.10.255</code>؟</p>
     </section>
 
@@ -360,10 +400,10 @@ Network Destination        Netmask          Gateway       Interface  Metric
       <div class="callout info">
         الأوامر المدعومة: <code>ipconfig</code>, <code>ipconfig /all</code>,
         <code>ping 8.8.8.8</code>, <code>ping 192.168.10.99</code>,
-        <code>tracert example.com</code>, <code>nslookup example.com</code>,
-        <code>nslookup nonexistent.example</code>, <code>netstat -ano</code>,
-        <code>arp -a</code>, <code>getmac</code>, <code>route print</code>,
-        <code>help</code>, <code>cls</code>.
+        <code>tracert example.com</code>, <code>pathping example.com</code>,
+        <code>nslookup example.com</code>, <code>nslookup nonexistent.example</code>,
+        <code>netstat -ano</code>, <code>arp -a</code>, <code>getmac</code>,
+        <code>route print</code>, <code>help</code>, <code>cls</code>.
       </div>
 
       <div class="cmd-sim" id="cmd-sim">
@@ -388,10 +428,11 @@ Network Destination        Netmask          Gateway       Interface  Metric
       <h2>الأخطاء الشائعة في الوحدة</h2>
       <ul class="check-list">
         <li>اعتبار عدم رد ping دليلًا قاطعًا على عدم وجود الجهاز.</li>
+        <li>تفسير TTL كعدد قفزات دون معرفة القيمة الابتدائية.</li>
         <li>تفسير النجوم في tracert كفشل كامل للمسار.</li>
         <li>الاعتقاد أن فشل DNS يعني عدم وجود اتصال إنترنت.</li>
         <li>الاعتقاد أن كل منفذ مستمع خطر.</li>
-        <li>الاعتقاد أن جدول ARP يشمل كل الشبكة.</li>
+        <li>الاعتقاد أن جدول ARP يمثل جردًا كاملًا لأجهزة الشبكة.</li>
         <li>الاعتماد على MAC للتعريف المطلق رغم إمكانية تزويره.</li>
         <li>تعديل جدول التوجيه دون فهم.</li>
       </ul>
@@ -403,9 +444,10 @@ Network Destination        Netmask          Gateway       Interface  Metric
       <ol class="steps">
         <li>في المحاكي، اكتب <code>ipconfig</code> ثم <code>ipconfig /all</code> وقارن.</li>
         <li>اكتب <code>ping 8.8.8.8</code> و<code>ping 192.168.10.99</code> وقارن بين النجاح والفشل.</li>
+        <li>اكتب <code>tracert example.com</code> و<code>pathping example.com</code> وقارن بينهما.</li>
         <li>اكتب <code>nslookup example.com</code> و<code>nslookup nonexistent.example</code>.</li>
         <li>اكتب <code>netstat -ano</code> وحدد الاتصالات النشطة والمنافذ المستمعة.</li>
-        <li>اكتب <code>arp -a</code> وحدد الأجهزة المجاورة.</li>
+        <li>اكتب <code>arp -a</code> وحدد الإدخالات الديناميكية والثابتة.</li>
         <li>اكتب <code>route print</code> وحدد المسار الافتراضي.</li>
       </ol>
     </section>
@@ -434,6 +476,7 @@ Network Destination        Netmask          Gateway       Interface  Metric
         <li><a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/ipconfig" target="_blank" rel="noopener">Microsoft Learn — ipconfig</a></li>
         <li><a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/ping" target="_blank" rel="noopener">Microsoft Learn — ping</a></li>
         <li><a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/tracert" target="_blank" rel="noopener">Microsoft Learn — tracert</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/pathping" target="_blank" rel="noopener">Microsoft Learn — pathping</a></li>
         <li><a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/nslookup" target="_blank" rel="noopener">Microsoft Learn — nslookup</a></li>
         <li><a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/netstat" target="_blank" rel="noopener">Microsoft Learn — netstat</a></li>
         <li><a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/arp" target="_blank" rel="noopener">Microsoft Learn — arp</a></li>
@@ -591,6 +634,30 @@ Network Destination        Netmask          Gateway       Interface  Metric
           "",
           "Trace complete."
         ],
+        "pathping example.com": [
+          "Tracing route to example.com [93.184.216.34]",
+          "over a maximum of 30 hops:",
+          "  0  LAB-PC-01.local.lab [192.168.10.25]",
+          "  1  192.168.10.1",
+          "  2  10.0.0.1",
+          "  3     *        *        *",
+          "  4  93.184.216.34",
+          "",
+          "Computing statistics for 100 seconds...",
+          "            Source to Here   This Node/Link",
+          "Hop  RTT    Lost/Sent = Pct  Lost/Sent = Pct  Address",
+          "  0                                           LAB-PC-01.local.lab [192.168.10.25]",
+          "                                0/ 100 =  0%   |",
+          "  1    1ms     0/ 100 =  0%     0/ 100 =  0%  192.168.10.1",
+          "                                0/ 100 =  0%   |",
+          "  2    5ms     0/ 100 =  0%     0/ 100 =  0%  10.0.0.1",
+          "                                0/ 100 =  0%   |",
+          "  3  ---     100/ 100 =100%   100/ 100 =100%  -",
+          "                                0/ 100 =  0%   |",
+          "  4   14ms     0/ 100 =  0%     0/ 100 =  0%  93.184.216.34",
+          "",
+          "Trace complete."
+        ],
         "nslookup example.com": [
           "Server:  dns.local.lab",
           "Address:  192.168.10.10",
@@ -644,6 +711,7 @@ Network Destination        Netmask          Gateway       Interface  Metric
           "  ping 8.8.8.8",
           "  ping 192.168.10.99",
           "  tracert example.com",
+          "  pathping example.com",
           "  nslookup example.com",
           "  nslookup nonexistent.example",
           "  netstat -ano",
@@ -673,11 +741,11 @@ Network Destination        Netmask          Gateway       Interface  Metric
           options: [
             "عدد الحزم المرسلة",
             "زمن الاستجابة",
-            "عدد القفزات المتبقية قبل انتهاء صلاحية الحزمة",
+            "حد القفزات المتبقي في الحزمة",
             "عنوان المنفذ"
           ],
           answer: 2,
-          explain: "TTL هو عدد القفزات المتبقية. القيمة الأولية النموذجية 128، و117 تعني أن الحزمة عبرت 11 قفزة تقريبًا."
+          explain: "TTL هو حد القفزات المتبقي. تقدير عدد القفزات التي قطعتها الحزمة يتطلب معرفة القيمة الابتدائية التي استخدمها المرسل."
         },
         "ping 192.168.10.99": {
           question: "أي مما يلي قد يفسر عدم رد ping على جهاز في الشبكة المحلية؟",
@@ -689,6 +757,17 @@ Network Destination        Netmask          Gateway       Interface  Metric
           ],
           answer: 0,
           explain: "الجهاز قد يكون مغلقًا أو جدار حمايته يحجب ICMP. عدم الرد ليس دليلًا قاطعًا على عدم وجوده."
+        },
+        "pathping example.com": {
+          question: "ما الميزة الأساسية التي يضيفها pathping على tracert؟",
+          options: [
+            "يعرض عنوان MAC لكل قفزة",
+            "يحسب إحصاءات فقدان الحزم لكل قفزة",
+            "يستعلم عن DNS",
+            "يعرض جدول التوجيه"
+          ],
+          answer: 1,
+          explain: "pathping يجمع بين tracert وإحصاءات فقدان الحزم لكل قفزة، ما يساعد في تحديد مصدر المشكلة."
         },
         "nslookup nonexistent.example": {
           question: "ماذا يعني الرد 'Non-existent domain' في nslookup؟",
@@ -868,6 +947,17 @@ Network Destination        Netmask          Gateway       Interface  Metric
           explain: "ping يرسل ICMP Echo Request ويتحقق من الرد."
         },
         {
+          q: "ماذا يعني TTL في نتيجة ping؟",
+          options: [
+            "عدد الحزم المرسلة",
+            "حد القفزات المتبقي في الحزمة",
+            "عدد القفزات التي قطعتها الحزمة دائمًا",
+            "عنوان البوابة"
+          ],
+          answer: 1,
+          explain: "TTL هو حد القفزات المتبقي. تقدير عدد القفزات يتطلب معرفة القيمة الابتدائية."
+        },
+        {
           q: "ماذا تعني النجوم في منتصف نتيجة tracert؟",
           options: [
             "فشل كامل للمسار",
@@ -879,10 +969,15 @@ Network Destination        Netmask          Gateway       Interface  Metric
           explain: "النجوم تعني عدم رد القفزة على ICMP، وقد يكمل المسار."
         },
         {
-          q: "أي أمر يستعلم عن سجلات DNS؟",
-          options: ["nslookup", "ping", "netstat", "arp"],
-          answer: 0,
-          explain: "nslookup يستعلم عن سجلات DNS."
+          q: "ما الميزة التي يضيفها pathping على tracert؟",
+          options: [
+            "عرض MAC لكل قفزة",
+            "إحصاءات فقدان الحزم لكل قفزة",
+            "استعلام DNS",
+            "عرض جدول التوجيه"
+          ],
+          answer: 1,
+          explain: "pathping يجمع بين tracert وإحصاءات فقدان الحزم لتحديد مصدر المشكلة."
         },
         {
           q: "ما وظيفة الخيار -o في netstat -ano؟",
@@ -896,16 +991,15 @@ Network Destination        Netmask          Gateway       Interface  Metric
           explain: "-o يعرض PID العملية المرتبطة بكل اتصال."
         },
         {
-          q: "أي أمر يعرض جدول ARP؟",
-          options: ["arp -a", "getmac", "route print", "netstat -a"],
-          answer: 0,
-          explain: "arp -a يعرض ربط IP بـ MAC للأجهزة المجاورة."
-        },
-        {
-          q: "أي أمر يعرض عنوان MAC لبطاقات الشبكة؟",
-          options: ["getmac", "arp -a", "ipconfig", "netstat"],
-          answer: 0,
-          explain: "getmac يعرض عناوين MAC لبطاقات الشبكة."
+          q: "ماذا يمثل جدول arp -a؟",
+          options: [
+            "جردًا كاملًا لأجهزة الشبكة",
+            "ارتباطات IP بـ MAC المعروفة في جدول ARP",
+            "جدول التوجيه",
+            "قائمة خوادم DNS"
+          ],
+          answer: 1,
+          explain: "arp -a يعرض الإدخالات المعروفة في جدول ARP، وقد تتضمن بثًا وإدخالات ثابتة."
         },
         {
           q: "ماذا يمثل 0.0.0.0/0 في route print؟",
