@@ -75,17 +75,23 @@
 
       <h3>المجموعة المحلية (Local Group)</h3>
       <p>
-        هي وعاء يجمع عدة حسابات لمنحها صلاحيات مشتركة. مثال:
-        <code>Administrators</code>، <code>Users</code>. عند إضافة مستخدم إلى
-        مجموعة، يرث صلاحياتها. المجموعة ليست حسابًا؛ لا تسجّل الدخول بنفسها.
+        هي وعاء يجمع عدة هويات (حسابات أو مجموعات) لمنحها صلاحيات مشتركة. مثال:
+        <code>Administrators</code>، <code>Users</code>. المجموعة ليست حسابًا؛
+        لا تسجّل الدخول بنفسها. عند إضافة مستخدم إلى مجموعة، تصبح عضويته جزءًا
+        من <strong>Access Token</strong> الخاص بجلسته، ويؤثر ذلك في تقييم
+        الوصول وفق ACL.
       </p>
 
       <h3>هوية المستخدم وSID (Security Identifier)</h3>
       <p>
         كل حساب ومجموعة في Windows له <strong>SID</strong> فريد، يُستخدم داخليًا
-        لتحديد الهوية في الصلاحيات. حتى لو تغيّر اسم المستخدم، يبقى SID ثابتًا.
-        مثال SID افتراضي: <code>S-1-5-21-1111111111-2222222222-3333333333-1001</code>.
+        لتحديد الهوية في الصلاحيات. مثال SID افتراضي:
+        <code>S-1-5-21-1111111111-2222222222-3333333333-1001</code>.
       </p>
+      <ul>
+        <li>إذا <strong>أُعيدت تسمية الحساب نفسه</strong>، يبقى SID ثابتًا؛ لأن التسمية مجرد سمة عرض.</li>
+        <li>إذا <strong>حُذف الحساب وأُنشئ حساب جديد بالاسم نفسه</strong>، فسيحصل الحساب الجديد على SID جديد، ولا يحتفظ بـ SID القديم.</li>
+      </ul>
 
       <h3>صلاحيات NTFS (NTFS Permissions)</h3>
       <p>
@@ -101,11 +107,16 @@
 
       <h3>Allow وDeny</h3>
       <p>
-        <code>Allow</code> يمنح الصلاحية، و<code>Deny</code> يمنعها.
-        في العادة، <strong>المنع (Deny) يتقدم على السماح (Allow)</strong> عند
-        التعارض، لكن الصلاحيات الفعلية تتأثر أيضًا بتراكم الصلاحيات وعضوية
-        المجموعات.
+        <code>Allow</code> يمنح الوصول، و<code>Deny</code> يمنعه. لكن النتيجة
+        الفعلية ليست مجرد "المنع يتقدم دائمًا"، بل تتأثر بعدة عوامل:
       </p>
+      <ul>
+        <li><strong>ترتيب ACE داخل ACL:</strong> غالبًا تُقيَّم إدخالات Deny قبل Allow، لكن الترتيب الداخلي مهم.</li>
+        <li><strong>نوع الوصول المطلوب:</strong> قد يكون Deny على الكتابة فقط بينما Allow على القراءة نافذًا.</li>
+        <li><strong>الوراثة (Inheritance):</strong> الصلاحيات الموروثة من المجلد الأب قد تتعارض مع المباشرة.</li>
+        <li><strong>عضوية المجموعات:</strong> المستخدم قد يحصل على Allow من مجموعة، وDeny من مجموعة أخرى.</li>
+        <li><strong>Access Token:</strong> الصلاحيات الفعلية تُقيَّم مقابل ما يحتويه رمز وصول الجلسة.</li>
+      </ul>
 
       <h3>مبدأ أقل صلاحية (Least Privilege)</h3>
       <p>
@@ -116,7 +127,7 @@
       <div class="callout info">
         <strong>ملاحظة مهمة:</strong> ظهور مستخدم في مجموعة معينة لا يعني أن جميع
         صلاحياته على ملف ما واضحة دون تحليل ACL الفعلي. الصلاحيات الفعلية
-        تتأثر بالوراثة، والمنع، وتراكم العضويات.
+        تتأثر بالوراثة، والمنع، وتراكم العضويات، ومحتوى Access Token.
       </div>
     </section>
 
@@ -149,14 +160,14 @@
         <div class="code-header"><span class="code-lang">output</span><button class="copy-btn" type="button">نسخ</button></div>
         <pre><code>USER INFORMATION
 ----------------
-User Name      SID
-============== ================================================
+User Name             SID
+===================== ================================================
 lab-pc-01\lab.student S-1-5-21-1111111111-2222222222-3333333333-1001</code></pre>
       </div>
-      <p><strong>تفسير أمني:</strong> SID هو الهوية الحقيقية في الصلاحيات. تغيير الاسم لا يغيّر SID.</p>
+      <p><strong>تفسير أمني:</strong> SID هو الهوية الحقيقية في الصلاحيات. تغيير اسم الحساب نفسه لا يغيّر SID، أما حذف الحساب وإنشاء حساب جديد بالاسم نفسه فينتج SID جديد.</p>
 
       <h3>whoami /groups</h3>
-      <p><strong>الوظيفة:</strong> يعرض مجموعات المستخدم الحالي.</p>
+      <p><strong>الوظيفة:</strong> يعرض مجموعات المستخدم الحالي مع خصائصها.</p>
       <div class="code-block">
         <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
         <pre><code>whoami /groups</code></pre>
@@ -166,16 +177,23 @@ lab-pc-01\lab.student S-1-5-21-1111111111-2222222222-3333333333-1001</code></pre
         <div class="code-header"><span class="code-lang">output</span><button class="copy-btn" type="button">نسخ</button></div>
         <pre><code>GROUP INFORMATION
 -----------------
-Group Name                             Type             SID
-====================================== ================ ================================================
-Everyone                               Well-known group S-1-1-0
-BUILTIN\Users                          Alias            S-1-5-32-545
-BUILTIN\Administrators                 Alias            S-1-5-32-544</code></pre>
+Group Name                             Type             SID                                            Attributes
+====================================== ================ ============================================== ==================================================
+Everyone                               Well-known group S-1-1-0                                        Mandatory group, Enabled by default, Enabled group
+BUILTIN\Users                          Alias            S-1-5-32-545                                   Mandatory group, Enabled by default, Enabled group
+BUILTIN\Administrators                 Alias            S-1-5-32-544                                   Mandatory group, Enabled by default, Enabled group, Group used for deny only
+NT AUTHORITY\INTERACTIVE               Well-known group S-1-5-4                                        Mandatory group, Enabled by default, Enabled group
+NT AUTHORITY\Authenticated Users       Well-known group S-1-5-11                                       Mandatory group, Enabled by default, Enabled group</code></pre>
       </div>
-      <p><strong>تفسير أمني:</strong> ظهور <code>Administrators</code> مؤشر مهم، لكنه <strong>لا يثبت</strong> أن الجلسة مرتفعة الصلاحيات بسبب UAC. تحقق من حالة المجموعة.</p>
+      <p><strong>تفسير أمني:</strong></p>
+      <ul>
+        <li>ظهور <code>Administrators</code> مؤشر مهم، لكنه <strong>لا يثبت</strong> أن الجلسة تمتلك صلاحيات إدارية كاملة.</li>
+        <li>عبارة <code>Group used for deny only</code> تشير إلى أن هذه المجموعة في رمز الوصول الحالي تُستخدم أساسًا لرفض الوصول، وليس لمنح صلاحيات إدارية كاملة. هذا مرتبط بآلية UAC وتصفية الرمز (Token Filtering) عند تشغيل العمليات بصلاحيات عادية.</li>
+        <li>لتحليل أدق، افحص <code>Attributes</code> لكل مجموعة، لا مجرد ظهور اسمها.</li>
+      </ul>
 
       <h3>whoami /priv</h3>
-      <p><strong>الوظيفة:</strong> يعرض الصلاحيات الخاصة (Privileges) للجلسة الحالية.</p>
+      <p><strong>الوظيفة:</strong> يعرض الامتيازات (Privileges) في الجلسة الحالية.</p>
       <div class="code-block">
         <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
         <pre><code>whoami /priv</code></pre>
@@ -191,7 +209,12 @@ SeShutdownPrivilege           Shut down the system                 Disabled
 SeChangeNotifyPrivilege       Bypass traverse checking             Enabled
 SeIncreaseWorkingSetPrivilege Increase a process working set       Disabled</code></pre>
       </div>
-      <p><strong>تفسير أمني:</strong> الصلاحيات الممكّنة (Enabled) تعمل فعليًا. الصلاحيات الحساسة مثل <code>SeDebugPrivilege</code> تستدعي انتباهًا.</p>
+      <p><strong>تفسير أمني:</strong></p>
+      <ul>
+        <li><code>Enabled</code> تعني أن الامتياز <strong>متاح للاستخدام</strong> في الجلسة، وليس بالضرورة أنه استُخدم فعليًا.</li>
+        <li><code>Disabled</code> تعني أن الامتياز موجود لكنه غير مفعّل حاليًا؛ قد يُفعَّل عند الحاجة عبر API.</li>
+        <li>الامتيازات الحساسة مثل <code>SeDebugPrivilege</code> تستدعي انتباهًا خاصًا.</li>
+      </ul>
     </section>
 
     <!-- ============ net user ============ -->
@@ -222,7 +245,7 @@ The command completed successfully.</code></pre>
         <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
         <pre><code>net user lab.student</code></pre>
       </div>
-      <p><strong>مخرجات افتراضية:</strong></p>
+      <p><strong>مخرجات افتراضية (متسقة مع عضوية Administrators):</strong></p>
       <div class="code-block">
         <div class="code-header"><span class="code-lang">output</span><button class="copy-btn" type="button">نسخ</button></div>
         <pre><code>User name                    lab.student
@@ -243,11 +266,11 @@ User profile
 Home directory
 Last logon                   11/07/2026 9:00:00 AM
 Logon hours allowed          All
-Local Group Memberships      *Users
+Local Group Memberships      *Administrators     *Users
 Global Group memberships     *None
 The command completed successfully.</code></pre>
       </div>
-      <p><strong>تفسير أمني:</strong> الحقول المهمة: <code>Account active</code>، <code>Password required</code>، <code>Local Group Memberships</code>، <code>Account expires</code>.</p>
+      <p><strong>تفسير أمني:</strong> الحقول المهمة: <code>Account active</code>، <code>Password required</code>، <code>Local Group Memberships</code>، <code>Account expires</code>. عضوية <code>Administrators</code> هنا متسقة مع مخرجات <code>net localgroup Administrators</code>.</p>
     </section>
 
     <!-- ============ net localgroup ============ -->
@@ -291,7 +314,7 @@ Administrator
 lab.student
 The command completed successfully.</code></pre>
       </div>
-      <p><strong>تفسير أمني:</strong> عضوية <code>lab.student</code> في Administrators قد تكون مؤشرًا على منح صلاحيات غير مبررة. هذا لا يعني اختراقًا مؤكدًا، لكنه يستدعي التحقق.</p>
+      <p><strong>تفسير أمني:</strong> عضوية <code>lab.student</code> في Administrators مؤشر يستدعي التحقق (من أضافه؟ متى؟ لماذا؟). وجوده في المجموعة لا يعني تلقائيًا أن كل جلساته مرتفعة الصلاحيات بسبب UAC.</p>
 
       <h3>net localgroup Users</h3>
       <p><strong>الوظيفة:</strong> عرض أعضاء مجموعة Users.</p>
@@ -364,11 +387,30 @@ Successfully processed 1 files; Failed processing 0 files</code></pre>
         </table>
       </div>
 
+      <h3>مثال افتراضي على Deny (توضيحي فقط، غير معروض في المحاكي)</h3>
+      <p>
+        لو أضفنا إلى ACL للمجلد <code>C:\Lab\Reports</code> إدخال منع صريح
+        لمجموعة <code>Users</code> على صلاحية الكتابة، قد يظهر في
+        <code>icacls</code> بالشكل التقريبي التالي:
+      </p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">output</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>C:\Lab\Reports BUILTIN\Users:(OI)(CI)(DENY)(W)
+               BUILTIN\Users:(OI)(CI)(RX)
+               BUILTIN\Administrators:(OI)(CI)(F)</code></pre>
+      </div>
+      <p>
+        في هذا المثال، <code>(DENY)(W)</code> يمنع الكتابة لمجموعة Users، لكن
+        <code>(RX)</code> يمنح القراءة والتنفيذ. النتيجة الفعلية تعتمد على ترتيب
+        ACE، والوراثة، وعضويات المستخدم، ومحتوى Access Token. هذا المثال
+        للتوضيح فقط، والمحاكي لا يعرضه.
+      </p>
+
       <p><strong>تفسير أمني:</strong></p>
       <ul>
         <li>منح <code>BUILTIN\Users</code> صلاحية <code>(F)</code> على مجلد حساس مخالفة لمبدأ أقل صلاحية.</li>
-        <li>وجود <code>Deny</code> قد يتعارض مع <code>Allow</code>، والنتيجة الفعلية تحتاج تحليلًا دقيقًا.</li>
-        <li>الصلاحيات الفعلية تتأثر بالوراثة وعضوية المجموعات، وليست مجرد مجموع مباشر.</li>
+        <li>وجود <code>Deny</code> قد يتعارض مع <code>Allow</code>، والنتيجة الفعلية تحتاج تحليلًا دقيقًا يأخذ ترتيب ACE والوراثة وعضويات المجموعات في الاعتبار.</li>
+        <li>الصلاحيات الفعلية تتأثر بالوراثة وعضوية المجموعات ومحتوى Access Token، وليست مجرد مجموع مباشر.</li>
       </ul>
     </section>
 
@@ -429,12 +471,12 @@ Successfully processed 1 files; Failed processing 0 files</code></pre>
       <h2>تمارين وأنشطة تحليلية</h2>
       <ol class="steps">
         <li>في المحاكي، نفّذ <code>whoami /user</code> وحدد SID المستخدم.</li>
-        <li>نفّذ <code>whoami /groups</code> وحدد المجموعات التي ينتمي إليها.</li>
+        <li>نفّذ <code>whoami /groups</code> وحدد المجموعات وخصائصها، خصوصًا <code>Group used for deny only</code>.</li>
         <li>نفّذ <code>net localgroup Administrators</code> وحلل العضويات.</li>
-        <li>نفّذ <code>net user</code> وحدد الحسابات غير المتوقعة.</li>
-        <li>نفّذ <code>net localgroup</code> وحدد المجموعات الحساسة.</li>
+        <li>نفّذ <code>net user lab.student</code> وتحقق من اتساق عضوياته مع مخرجات المجموعة.</li>
         <li>نفّذ <code>icacls C:\Lab\Reports</code> وفسّر الرموز <code>(F)</code>, <code>(RX)</code>, <code>(OI)</code>, <code>(CI)</code>.</li>
         <li>اكتشف صلاحية غير مناسبة في مخرجات <code>icacls</code> واقترح تفسيرًا أمنيًا.</li>
+        <li>اقرأ المثال النظري لـ <code>(DENY)(W)</code> واشرح كيف يمكن أن يؤثر في الوصول الفعلي.</li>
       </ol>
     </section>
 
@@ -553,13 +595,13 @@ Successfully processed 1 files; Failed processing 0 files</code></pre>
         "whoami /groups": [
           "GROUP INFORMATION",
           "-----------------",
-          "Group Name                             Type             SID",
-          "====================================== ================ ================================================",
-          "Everyone                               Well-known group S-1-1-0",
-          "BUILTIN\\Users                          Alias            S-1-5-32-545",
-          "BUILTIN\\Administrators                 Alias            S-1-5-32-544",
-          "NT AUTHORITY\\INTERACTIVE               Well-known group S-1-5-4",
-          "NT AUTHORITY\\Authenticated Users       Well-known group S-1-5-11"
+          "Group Name                             Type             SID                                            Attributes",
+          "====================================== ================ ============================================== ==================================================",
+          "Everyone                               Well-known group S-1-1-0                                        Mandatory group, Enabled by default, Enabled group",
+          "BUILTIN\\Users                          Alias            S-1-5-32-545                                   Mandatory group, Enabled by default, Enabled group",
+          "BUILTIN\\Administrators                 Alias            S-1-5-32-544                                   Mandatory group, Enabled by default, Enabled group, Group used for deny only",
+          "NT AUTHORITY\\INTERACTIVE               Well-known group S-1-5-4                                        Mandatory group, Enabled by default, Enabled group",
+          "NT AUTHORITY\\Authenticated Users       Well-known group S-1-5-11                                       Mandatory group, Enabled by default, Enabled group"
         ],
         "whoami /priv": [
           "PRIVILEGES INFORMATION",
@@ -597,7 +639,7 @@ Successfully processed 1 files; Failed processing 0 files</code></pre>
           "Home directory",
           "Last logon                   11/07/2026 9:00:00 AM",
           "Logon hours allowed          All",
-          "Local Group Memberships      *Users",
+          "Local Group Memberships      *Administrators     *Users",
           "Global Group memberships     *None",
           "The command completed successfully."
         ],
