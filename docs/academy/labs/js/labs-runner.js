@@ -10,7 +10,8 @@
     "external-guided": "external-guided",
     "network-assessment": "network-assessment",
     "web-vulnerability-assessment": "web-vulnerability-assessment",
-    "cloud-security-assessment": "cloud-security-assessment"
+    "cloud-security-assessment": "cloud-security-assessment",
+    "digital-forensics": "digital-forensics"
   };
 
   function resolveRunnerKey(searchParams, labMeta) {

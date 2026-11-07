@@ -1088,7 +1088,7 @@ record("B4", "REG-04", index.labs.some((l) => l.id === "lab-network-wireshark-01
   const lab4 = loadJSON("data/assessment/lab-web-vuln-assess-01.json");
 
   record("B4", "REG-06", index.labs.some((l) => l.id === "lab-web-vuln-assess-01" && l.type === "web_vulnerability_assessment"));
-record("B4", "REG-07", index.labs.some((l) => l.id === "lab-forensics-file-investigation-01" && l.type === "simulation"));
+record("B4", "REG-07", index.labs.some((l) => l.id === "lab-forensics-file-investigation-01" && l.type === "digital_forensics"));
 record("B4", "REG-08", index.labs.some((l) => l.id === "lab-cloud-security-assessment-01" && l.type === "cloud_security_assessment"));
 
   const good = {
@@ -1162,56 +1162,70 @@ record("B4", "REG-08", index.labs.some((l) => l.id === "lab-cloud-security-asses
 })();
 
 
-// ---------- L7 Digital forensics (simulation) ----------
+// ---------- L7 Digital forensics (interactive runner) ----------
 (function () {
+  const fs = require("fs");
+  const path = require("path");
+  const vm = require("vm");
+  const code = fs.readFileSync(path.join(DOCS, "runners/digital-forensics.js"), "utf8");
+  const sandbox = { console, window: {}, global: {} };
+  sandbox.window = sandbox;
+  sandbox.global = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(code, sandbox);
+  const scoreF = sandbox.LabsDigitalForensicsScore.scoreForensics;
   const lab7 = loadJSON("data/assessment/lab-forensics-file-investigation-01.json");
   const content7 = loadJSON("data/content/lab-forensics-file-investigation-01.json");
-  record("L7", "L7-00", content7.events && content7.events.length === 7 && content7.id === lab7.id, "content/assessment id+events");
 
-  const B = {
-    q1: ["i1", "i2", "i3", "i4"],
-    q1b: "b",
-    q2: "b",
-    q2b: "b",
-    q3a: "b",
-    q3b: "b",
-    q3c: "b",
-    q3d: "c",
-    q4: "c",
-    q5: "على HR-WS-027 سُجّل تنزيل وتشغيل ملف Payroll مشبوه بعد دخول من عنوان خارجي. الأدلة تشمل الهاش والزمن واتصال example وpowershell. يُوصى بالتوثيق والعزل وفق السياسة. لم يُثبت تسريب أو انتشار بعد."
+  record("L7", "L7-00", content7.events && content7.events.length === 7 && content7.id === lab7.id && !!(content7.file && content7.file.sha256), "content schema");
+
+  const goodClass = Object.assign({}, lab7.classificationKey);
+  const good = {
+    panelsOpened: lab7.requiredEvidencePanels.slice(),
+    processInspected: true,
+    timelineOrder: lab7.timelineOrder.slice(),
+    classification: goodClass,
+    responseId: lab7.correctResponseId,
+    reportText: "على HR-WS-027 للمستخدم n.salem ظهر Payroll_Export_v2.exe بعد دخول من 203.0.113.88 ثم تشغيل PID 5188 مع powershell واتصال updates-cdn.example.test وإنشاء config.dat. SHA-256 موثق. لم يثبت تسريب أو انتشار."
   };
-  let o = scoreAll(lab7, B);
-  record("L7", "L7-01", o.complete === true && !o.critical, `complete=${o.complete} critical=${o.critical}`);
+  let o = scoreF(lab7, good);
+  record("L7", "L7-01", o.complete === true && o.parts.explore && o.parts.timeline && o.parts.classification && o.parts.response && o.parts.report, `complete=${o.complete}`);
 
-  o = scoreAll(lab7, { ...B, q1: ["i1", "i5"] });
-  record("L7", "L7-02", !o.complete && !o.parts.q1, `q1 weak/fp`);
+  o = scoreF(lab7, { ...good, panelsOpened: ["panel-file"], processInspected: false });
+  record("L7", "L7-02", !o.complete && !o.parts.explore, `explore=${o.parts.explore}`);
 
-  o = scoreAll(lab7, { ...B, q1b: "c" });
-  record("L7", "L7-03", !o.complete && o.critical === true, `critical q1b`);
+  o = scoreF(lab7, { ...good, timelineOrder: lab7.timelineOrder.slice().reverse() });
+  record("L7", "L7-03", !o.complete && !o.parts.timeline, `timeline=${o.parts.timeline}`);
 
-  o = scoreAll(lab7, { ...B, q2: "a" });
-  record("L7", "L7-04", !o.complete && !o.parts.q2, `q2 wrong`);
-
-  o = scoreAll(lab7, { ...B, q4: "a" });
-  record("L7", "L7-05", !o.complete && o.critical === true, `critical q4`);
-
-  o = scoreAll(lab7, { ...B, q5: "قصير" });
-  record("L7", "L7-06", !o.complete && !o.parts.q5, `q5 short`);
-
-  // regression published simulation labs still score
-  o = scoreAll(lab6, {
-    q1: lab6.key.q1.correctIds.slice(),
-    q1b: lab6.key.q1b.correctId,
-    q2: lab6.key.q2.correctId,
-    q2b: lab6.key.q2b.correctId,
-    q3a: lab6.key.q3a.correctId,
-    q3b: lab6.key.q3b.correctId,
-    q3c: lab6.key.q3c.correctId,
-    q3d: lab6.key.q3d.correctId,
-    q4: lab6.key.q4.acceptableIds[0],
-    q5: "تنبيه EDR على FIN-WS مع عملية من Temp واتصال example. الأدلة الزمن والنطاق. عزل وتوثيق وتصعيد. لم يُثبت تسريب أو انتشار."
+  o = scoreF(lab7, {
+    ...good,
+    classification: {
+      "c-hash": "misleading",
+      "c-ps": "misleading",
+      "c-cdn": "misleading",
+      "c-config": "misleading",
+      "c-login": "misleading",
+      "c-breach": "confirmed",
+      "c-allhosts": "confirmed",
+      "c-name": "confirmed"
+    }
   });
-  record("L7", "L7-07", o.complete === true, `lab6 still complete=${o.complete}`);
+  record("L7", "L7-04", !o.complete && !o.parts.classification, `class=${o.parts.classification}`);
+
+  o = scoreF(lab7, { ...good, responseId: "r-run-local" });
+  record("L7", "L7-05", !o.complete && !o.parts.response, `response=${o.parts.response}`);
+
+  o = scoreF(lab7, { ...good, reportText: "قصير" });
+  record("L7", "L7-06", !o.complete && !o.parts.report, `report=${o.parts.report}`);
+
+  const hashOk = content7.file.sha256 === "e7c2a91f4b8d3e6a0c5f1d8b2a7e4c9f6d3b0a8e5c2f9d6b3a0e7c4f1d8b5a2e";
+  record("L7", "L7-07", hashOk && content7.file.name === "Payroll_Export_v2.exe" && content7.context.host === "HR-WS-027", "identity fields");
+
+  // Regression: simulation labs still score
+  o = scoreAll(lab1, baselines.B1);
+  record("L7", "L7-08", o.complete === true, `lab1 regression`);
+  o = scoreAll(lab6, baselines.B6);
+  record("L7", "L7-09", o.complete === true, `lab6 regression`);
 })();
 
 
