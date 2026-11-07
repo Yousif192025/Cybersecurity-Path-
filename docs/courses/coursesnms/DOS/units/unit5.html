@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>الوحدة 5: المستخدمون والمجموعات والصلاحيات | CyberPath</title>
+  <link rel="stylesheet" href="../assets/css/course.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="../index.html">CyberPath</a>
+      <nav class="main-nav" aria-label="التنقل الرئيسي">
+        <a href="../index.html">الرئيسية</a>
+        <a href="unit5.html" class="active">الوحدات</a>
+        <a href="../final-exam.html">الاختبار النهائي</a>
+        <a href="../final-project.html">المشروع</a>
+        <a href="../references.html">المراجع</a>
+      </nav>
+      <button id="theme-toggle" class="icon-btn" aria-label="تبديل الوضع الليلي">🌙</button>
+    </div>
+    <div class="progress-bar" aria-hidden="true"><span id="progress-fill"></span></div>
+  </header>
+
+  <main class="container">
+    <p class="muted" style="margin-top:1.2rem">الوحدة 5 من 10</p>
+    <h1>المستخدمون والمجموعات والصلاحيات</h1>
+    <p class="subtitle">Windows Users, Groups &amp; Permissions</p>
+
+    <!-- ============ مقدمة ============ -->
+    <section class="card">
+      <h2>مقدمة وأهمية الوحدة</h2>
+      <p>
+        فهم المستخدمين والمجموعات والصلاحيات هو أساس أي تحليل أمني على Windows.
+        عندما تفحص نظامًا، تحتاج إلى معرفة: من المستخدمون؟ ما مجموعاتهم؟ ما
+        صلاحياتهم على الملفات؟ هل هناك حساب غير متوقع؟ هل هناك عضوية غير
+        مبررة في <code>Administrators</code>؟
+      </p>
+      <p>
+        في هذه الوحدة ستتعلم أوامر CMD الأساسية لجمع هذه المعلومات وتحليلها
+        <strong>دفاعيًا</strong>. جميع البيانات في المحاكي خيالية ومخصصة
+        للمختبر، ولا تُنفَّذ أي أوامر على جهازك.
+      </p>
+      <div class="callout warn">
+        <strong>تنبيه أمني:</strong> هذه الوحدة تعليمية فقط. لا تُنفِّذ أي أمر على
+        جهازك أو جهاز غيرك دون تصريح. لا تنشئ مستخدمين أو تعدّل صلاحيات على
+        أنظمة حقيقية.
+      </div>
+    </section>
+
+    <!-- ============ أهداف ============ -->
+    <section class="card">
+      <h2>أهداف التعلم</h2>
+      <ul class="check-list">
+        <li>التمييز بين حساب المستخدم المحلي والمجموعة المحلية.</li>
+        <li>فهم مفهوم هوية المستخدم SID.</li>
+        <li>التعرف على أوامر CMD التي تعرض المستخدمين والمجموعات.</li>
+        <li>فهم الفرق بين صلاحيات المستخدم وعضويته في المجموعات.</li>
+        <li>قراءة وتحليل صلاحيات NTFS باستخدام <code>icacls</code>.</li>
+        <li>فهم مبدأ أقل صلاحية (Least Privilege).</li>
+        <li>تفسير المخرجات واكتشاف مؤشرات أمنية غير معتادة.</li>
+      </ul>
+    </section>
+
+    <!-- ============ المفاهيم الأساسية ============ -->
+    <section class="card">
+      <h2>المفاهيم الأساسية</h2>
+
+      <h3>حساب المستخدم المحلي (Local User Account)</h3>
+      <p>
+        هو حساب موجود على الجهاز نفسه، وليس ضمن نطاق (Domain). مثال: حساب
+        <code>lab.student</code> الموجود على جهاز مختبر. لكل حساب اسم، وكلمة
+        مرور، ومجموعات ينتمي إليها.
+      </p>
+
+      <h3>المجموعة المحلية (Local Group)</h3>
+      <p>
+        هي وعاء يجمع عدة حسابات لمنحها صلاحيات مشتركة. مثال:
+        <code>Administrators</code>، <code>Users</code>. عند إضافة مستخدم إلى
+        مجموعة، يرث صلاحياتها. المجموعة ليست حسابًا؛ لا تسجّل الدخول بنفسها.
+      </p>
+
+      <h3>هوية المستخدم وSID (Security Identifier)</h3>
+      <p>
+        كل حساب ومجموعة في Windows له <strong>SID</strong> فريد، يُستخدم داخليًا
+        لتحديد الهوية في الصلاحيات. حتى لو تغيّر اسم المستخدم، يبقى SID ثابتًا.
+        مثال SID افتراضي: <code>S-1-5-21-1111111111-2222222222-3333333333-1001</code>.
+      </p>
+
+      <h3>صلاحيات NTFS (NTFS Permissions)</h3>
+      <p>
+        هي صلاحيات تُطبَّق على الملفات والمجلدات في أنظمة NTFS. تحدد من يمكنه
+        القراءة أو الكتابة أو التنفيذ أو التعديل أو التحكم الكامل.
+      </p>
+
+      <h3>ACL وACE</h3>
+      <ul>
+        <li><strong>ACL (Access Control List):</strong> قائمة التحكم بالوصول المرتبطة بكائن (ملف/مجلد).</li>
+        <li><strong>ACE (Access Control Entry):</strong> إدخال واحد داخل ACL يحدد هوية (مستخدم/مجموعة) ونوع الصلاحية (Allow أو Deny).</li>
+      </ul>
+
+      <h3>Allow وDeny</h3>
+      <p>
+        <code>Allow</code> يمنح الصلاحية، و<code>Deny</code> يمنعها.
+        في العادة، <strong>المنع (Deny) يتقدم على السماح (Allow)</strong> عند
+        التعارض، لكن الصلاحيات الفعلية تتأثر أيضًا بتراكم الصلاحيات وعضوية
+        المجموعات.
+      </p>
+
+      <h3>مبدأ أقل صلاحية (Least Privilege)</h3>
+      <p>
+        يمنح المستخدم أو التطبيق الحد الأدنى من الصلاحيات اللازمة لأداء المهمة.
+        هذا يقلل الأثر عند حدوث خطأ أو اختراق.
+      </p>
+
+      <div class="callout info">
+        <strong>ملاحظة مهمة:</strong> ظهور مستخدم في مجموعة معينة لا يعني أن جميع
+        صلاحياته على ملف ما واضحة دون تحليل ACL الفعلي. الصلاحيات الفعلية
+        تتأثر بالوراثة، والمنع، وتراكم العضويات.
+      </div>
+    </section>
+
+    <!-- ============ whoami ============ -->
+    <section class="card">
+      <h2>أولًا: هوية المستخدم — whoami</h2>
+      <p><strong>الهدف:</strong> عرض هوية المستخدم الحالية ومعلوماتها.</p>
+
+      <h3>whoami</h3>
+      <p><strong>الوظيفة:</strong> يعرض اسم النطاق أو الجهاز ثم اسم المستخدم.</p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>whoami</code></pre>
+      </div>
+      <p><strong>مخرجات افتراضية:</strong></p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">output</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>lab-pc-01\lab.student</code></pre>
+      </div>
+      <p><strong>تفسير أمني:</strong> يحدد هوية الجلسة الحالية، وهو نقطة البداية لأي تحليل صلاحيات.</p>
+
+      <h3>whoami /user</h3>
+      <p><strong>الوظيفة:</strong> يعرض SID المستخدم الحالي.</p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>whoami /user</code></pre>
+      </div>
+      <p><strong>مخرجات افتراضية:</strong></p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">output</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>USER INFORMATION
+----------------
+User Name      SID
+============== ================================================
+lab-pc-01\lab.student S-1-5-21-1111111111-2222222222-3333333333-1001</code></pre>
+      </div>
+      <p><strong>تفسير أمني:</strong> SID هو الهوية الحقيقية في الصلاحيات. تغيير الاسم لا يغيّر SID.</p>
+
+      <h3>whoami /groups</h3>
+      <p><strong>الوظيفة:</strong> يعرض مجموعات المستخدم الحالي.</p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>whoami /groups</code></pre>
+      </div>
+      <p><strong>مخرجات افتراضية (مختصرة):</strong></p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">output</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>GROUP INFORMATION
+-----------------
+Group Name                             Type             SID
+====================================== ================ ================================================
+Everyone                               Well-known group S-1-1-0
+BUILTIN\Users                          Alias            S-1-5-32-545
+BUILTIN\Administrators                 Alias            S-1-5-32-544</code></pre>
+      </div>
+      <p><strong>تفسير أمني:</strong> ظهور <code>Administrators</code> مؤشر مهم، لكنه <strong>لا يثبت</strong> أن الجلسة مرتفعة الصلاحيات بسبب UAC. تحقق من حالة المجموعة.</p>
+
+      <h3>whoami /priv</h3>
+      <p><strong>الوظيفة:</strong> يعرض الصلاحيات الخاصة (Privileges) للجلسة الحالية.</p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>whoami /priv</code></pre>
+      </div>
+      <p><strong>مخرجات افتراضية (مختصرة):</strong></p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">output</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>PRIVILEGES INFORMATION
+----------------------
+Privilege Name                Description                          State
+============================= ==================================== ========
+SeShutdownPrivilege           Shut down the system                 Disabled
+SeChangeNotifyPrivilege       Bypass traverse checking             Enabled
+SeIncreaseWorkingSetPrivilege Increase a process working set       Disabled</code></pre>
+      </div>
+      <p><strong>تفسير أمني:</strong> الصلاحيات الممكّنة (Enabled) تعمل فعليًا. الصلاحيات الحساسة مثل <code>SeDebugPrivilege</code> تستدعي انتباهًا.</p>
+    </section>
+
+    <!-- ============ net user ============ -->
+    <section class="card">
+      <h2>ثانيًا: حسابات المستخدمين — net user</h2>
+
+      <h3>net user</h3>
+      <p><strong>الوظيفة:</strong> عرض قائمة حسابات المستخدمين المحليين.</p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>net user</code></pre>
+      </div>
+      <p><strong>مخرجات افتراضية:</strong></p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">output</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>User accounts for \\LAB-PC-01
+-------------------------------------------------------------------------------
+Administrator            DefaultAccount           Guest
+lab.student              WDAGUtilityAccount
+-------------------------------------------------------------------------------
+The command completed successfully.</code></pre>
+      </div>
+      <p><strong>تفسير أمني:</strong> ابحث عن حسابات غير متوقعة أو غير مستخدمة. الحسابات الافتراضية مثل <code>Guest</code> تستدعي التحقق.</p>
+
+      <h3>net user lab.student</h3>
+      <p><strong>الوظيفة:</strong> عرض معلومات حساب محدد.</p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>net user lab.student</code></pre>
+      </div>
+      <p><strong>مخرجات افتراضية:</strong></p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">output</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>User name                    lab.student
+Full Name                    Lab Student
+Comment
+User's comment
+Country/region code          001 (Default)
+Account active               Yes
+Account expires              Never
+Password last set            11/01/2026 10:00:00 AM
+Password expires             Never
+Password changeable          11/01/2026 10:00:00 AM
+Password required            Yes
+User may change password     Yes
+Workstations allowed         All
+Logon script
+User profile
+Home directory
+Last logon                   11/07/2026 9:00:00 AM
+Logon hours allowed          All
+Local Group Memberships      *Users
+Global Group memberships     *None
+The command completed successfully.</code></pre>
+      </div>
+      <p><strong>تفسير أمني:</strong> الحقول المهمة: <code>Account active</code>، <code>Password required</code>، <code>Local Group Memberships</code>، <code>Account expires</code>.</p>
+    </section>
+
+    <!-- ============ net localgroup ============ -->
+    <section class="card">
+      <h2>ثالثًا: المجموعات المحلية — net localgroup</h2>
+
+      <h3>net localgroup</h3>
+      <p><strong>الوظيفة:</strong> عرض قائمة المجموعات المحلية.</p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>net localgroup</code></pre>
+      </div>
+      <p><strong>مخرجات افتراضية (مختصرة):</strong></p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">output</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>Aliases for \\LAB-PC-01
+-------------------------------------------------------------------------------
+*Administrators
+*Backup Operators
+*Guests
+*Users
+-------------------------------------------------------------------------------
+The command completed successfully.</code></pre>
+      </div>
+      <p><strong>تفسير أمني:</strong> المجموعات الحساسة مثل <code>Administrators</code> و<code>Backup Operators</code> تستدعي مراجعة أعضائها.</p>
+
+      <h3>net localgroup Administrators</h3>
+      <p><strong>الوظيفة:</strong> عرض أعضاء مجموعة Administrators.</p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>net localgroup Administrators</code></pre>
+      </div>
+      <p><strong>مخرجات افتراضية:</strong></p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">output</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>Alias name     Administrators
+Comment        Administrators have complete and unrestricted access to the computer/domain
+Members
+-------------------------------------------------------------------------------
+Administrator
+lab.student
+The command completed successfully.</code></pre>
+      </div>
+      <p><strong>تفسير أمني:</strong> عضوية <code>lab.student</code> في Administrators قد تكون مؤشرًا على منح صلاحيات غير مبررة. هذا لا يعني اختراقًا مؤكدًا، لكنه يستدعي التحقق.</p>
+
+      <h3>net localgroup Users</h3>
+      <p><strong>الوظيفة:</strong> عرض أعضاء مجموعة Users.</p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>net localgroup Users</code></pre>
+      </div>
+      <p><strong>مخرجات افتراضية:</strong></p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">output</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>Alias name     Users
+Comment        Users are prevented from making accidental or intentional system-wide changes
+Members
+-------------------------------------------------------------------------------
+NT AUTHORITY\Authenticated Users
+NT AUTHORITY\INTERACTIVE
+The command completed successfully.</code></pre>
+      </div>
+      <p><strong>تفسير أمني:</strong> المجموعة الافتراضية للحسابات العادية. عضوياتها يجب أن تكون محدودة.</p>
+    </section>
+
+    <!-- ============ icacls ============ -->
+    <section class="card">
+      <h2>رابعًا: صلاحيات الملفات — icacls</h2>
+      <p><strong>الهدف:</strong> عرض صلاحيات NTFS لملف أو مجلد.</p>
+
+      <h3>icacls C:\Lab\Reports</h3>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>icacls C:\Lab\Reports</code></pre>
+      </div>
+      <p><strong>مخرجات افتراضية:</strong></p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">output</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>C:\Lab\Reports LAB-PC-01\lab.student:(OI)(CI)(F)
+               BUILTIN\Users:(OI)(CI)(RX)
+               BUILTIN\Administrators:(OI)(CI)(F)
+
+Successfully processed 1 files; Failed processing 0 files</code></pre>
+      </div>
+
+      <h3>icacls C:\Lab\Reports\report.txt</h3>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>icacls C:\Lab\Reports\report.txt</code></pre>
+      </div>
+      <p><strong>مخرجات افتراضية:</strong></p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">output</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>C:\Lab\Reports\report.txt LAB-PC-01\lab.student:(F)
+                         BUILTIN\Users:(RX)
+                         BUILTIN\Administrators:(F)
+
+Successfully processed 1 files; Failed processing 0 files</code></pre>
+      </div>
+
+      <h3>معنى الرموز</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>الرمز</th><th>المعنى</th></tr></thead>
+          <tbody>
+            <tr><td><code>F</code></td><td>Full Control — تحكم كامل</td></tr>
+            <tr><td><code>M</code></td><td>Modify — تعديل</td></tr>
+            <tr><td><code>RX</code></td><td>Read &amp; Execute — قراءة وتنفيذ</td></tr>
+            <tr><td><code>R</code></td><td>Read — قراءة</td></tr>
+            <tr><td><code>W</code></td><td>Write — كتابة</td></tr>
+            <tr><td><code>(OI)</code></td><td>Object Inherit — وراثة للملفات</td></tr>
+            <tr><td><code>(CI)</code></td><td>Container Inherit — وراثة للمجلدات</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p><strong>تفسير أمني:</strong></p>
+      <ul>
+        <li>منح <code>BUILTIN\Users</code> صلاحية <code>(F)</code> على مجلد حساس مخالفة لمبدأ أقل صلاحية.</li>
+        <li>وجود <code>Deny</code> قد يتعارض مع <code>Allow</code>، والنتيجة الفعلية تحتاج تحليلًا دقيقًا.</li>
+        <li>الصلاحيات الفعلية تتأثر بالوراثة وعضوية المجموعات، وليست مجرد مجموع مباشر.</li>
+      </ul>
+    </section>
+
+    <!-- ============ المحاكي ============ -->
+    <section class="card">
+      <h2>المحاكي التفاعلي</h2>
+      <p>
+        هذا المحاكي يعرض <strong>بيانات خيالية ثابتة</strong> لأغراض تعليمية.
+        لا ينفذ أي أمر فعلي، ولا يقرأ بيانات جهازك، ولا يتصل بأي شبكة.
+      </p>
+      <div class="callout warn">
+        <strong>هذه نتائج محاكاة تعليمية وليست بيانات حقيقية من جهازك.</strong>
+      </div>
+      <div class="callout info">
+        الأوامر المدعومة: <code>whoami</code>, <code>whoami /user</code>,
+        <code>whoami /groups</code>, <code>whoami /priv</code>,
+        <code>net user</code>, <code>net user lab.student</code>,
+        <code>net localgroup</code>, <code>net localgroup Administrators</code>,
+        <code>net localgroup Users</code>, <code>icacls C:\Lab\Reports</code>,
+        <code>icacls C:\Lab\Reports\report.txt</code>,
+        <code>help</code>, <code>cls</code>.
+      </div>
+
+      <div class="cmd-sim" id="cmd-sim">
+        <div class="cmd-sim-header">
+          <span class="cmd-sim-title">C:\Users\lab.student&gt; sim.exe</span>
+          <span class="cmd-sim-badge">محاكاة</span>
+        </div>
+        <div class="cmd-sim-output" id="cmd-output" aria-live="polite"></div>
+        <form class="cmd-sim-input" id="cmd-form" autocomplete="off">
+          <label for="cmd-input" class="visually-hidden">أدخل الأمر</label>
+          <span class="cmd-prompt">C:\&gt;</span>
+          <input type="text" id="cmd-input" name="cmd-input" placeholder="اكتب أمرًا هنا…" dir="ltr" />
+          <button type="submit" class="btn primary">تشغيل</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ============ التحليل الأمني ============ -->
+    <section class="card">
+      <h2>التحليل الأمني — مؤشرات تستدعي التحقق</h2>
+      <ul class="check-list">
+        <li>حساب غير متوقع في قائمة <code>net user</code> (مثل حساب باسم غريب أو غير مستخدم).</li>
+        <li>عضوية غير مبررة في <code>Administrators</code> (مثل <code>lab.student</code>).</li>
+        <li>صلاحية <code>(F)</code> لمجموعة عامة مثل <code>Users</code> على مجلد حساس.</li>
+        <li>منح صلاحيات لمجموعة عامة دون حاجة واضحة.</li>
+        <li>تعارض <code>Allow</code> و<code>Deny</code> على نفس المورد.</li>
+        <li>مخالفة مبدأ أقل صلاحية (منح صلاحيات أوسع من اللازم).</li>
+      </ul>
+      <div class="callout info">
+        <strong>تنبيه:</strong> هذه المؤشرات لا تعني اختراقًا مؤكدًا. هي نقاط تستدعي
+        التحقق والسياق: من أنشأ الحساب؟ متى؟ لماذا؟ هل هناك توثيق؟
+      </div>
+    </section>
+
+    <!-- ============ تمارين ============ -->
+    <section class="card">
+      <h2>تمارين وأنشطة تحليلية</h2>
+      <ol class="steps">
+        <li>في المحاكي، نفّذ <code>whoami /user</code> وحدد SID المستخدم.</li>
+        <li>نفّذ <code>whoami /groups</code> وحدد المجموعات التي ينتمي إليها.</li>
+        <li>نفّذ <code>net localgroup Administrators</code> وحلل العضويات.</li>
+        <li>نفّذ <code>net user</code> وحدد الحسابات غير المتوقعة.</li>
+        <li>نفّذ <code>net localgroup</code> وحدد المجموعات الحساسة.</li>
+        <li>نفّذ <code>icacls C:\Lab\Reports</code> وفسّر الرموز <code>(F)</code>, <code>(RX)</code>, <code>(OI)</code>, <code>(CI)</code>.</li>
+        <li>اكتشف صلاحية غير مناسبة في مخرجات <code>icacls</code> واقترح تفسيرًا أمنيًا.</li>
+      </ol>
+    </section>
+
+    <!-- ============ اختبار ============ -->
+    <section class="card">
+      <h2>اختبار قصير</h2>
+      <div id="quiz" data-quiz="unit5"></div>
+    </section>
+
+    <!-- ============ ملخص ============ -->
+    <section class="card">
+      <h2>ملخص</h2>
+      <p>
+        تعرفنا على حسابات المستخدمين المحليين والمجموعات المحلية، ومفهوم SID،
+        وأوامر <code>whoami</code> و<code>net user</code> و<code>net localgroup</code>،
+        وصلاحيات NTFS عبر <code>icacls</code>، ومفاهيم ACL وACE وAllow وDeny،
+        ومبدأ أقل صلاحية. جميع البيانات في المحاكي خيالية، ولا تُنفَّذ أي أوامر
+        على جهازك.
+      </p>
+    </section>
+
+    <!-- ============ مراجع ============ -->
+    <section class="card">
+      <h2>مراجع موثوقة</h2>
+      <ul>
+        <li><a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/whoami" target="_blank" rel="noopener">Microsoft Learn — whoami</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/net-user" target="_blank" rel="noopener">Microsoft Learn — net user</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/net-localgroup" target="_blank" rel="noopener">Microsoft Learn — net localgroup</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/icacls" target="_blank" rel="noopener">Microsoft Learn — icacls</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/windows/win32/secauthz/access-control-lists" target="_blank" rel="noopener">Microsoft Learn — Access Control Lists (ACL)</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/windows/win32/secauthz/access-control-entries" target="_blank" rel="noopener">Microsoft Learn — Access Control Entries (ACE)</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/windows-server/storage/file-server/ntfs-overview" target="_blank" rel="noopener">Microsoft Learn — NTFS Overview</a></li>
+      </ul>
+    </section>
+
+    <nav class="unit-nav">
+      <a class="btn ghost" href="unit4.html">→ الوحدة 4</a>
+      <a class="btn primary" href="unit6.html">الوحدة 6: العمليات والخدمات في Windows ←</a>
+    </nav>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container"><p class="muted">CyberPath — للاستخدام في بيئات مختبرية مصرّح بها.</p></div>
+  </footer>
+
+  <style>
+    /* محاكي CMD — تنسيقات محلية لا تؤثر على بقية الصفحة */
+    .visually-hidden {
+      position: absolute; width: 1px; height: 1px; overflow: hidden;
+      clip: rect(0 0 0 0); white-space: nowrap;
+    }
+    .cmd-sim {
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      overflow: hidden;
+      background: #0a0f1c;
+      margin-top: 1rem;
+    }
+    .cmd-sim-header {
+      display: flex; align-items: center; justify-content: space-between;
+      background: #0e1526; border-bottom: 1px solid var(--border);
+      padding: .45rem .8rem; direction: ltr;
+    }
+    .cmd-sim-title {
+      font-family: "Cascadia Code", Consolas, monospace;
+      font-size: .8rem; color: var(--muted);
+    }
+    .cmd-sim-badge {
+      background: rgba(34,211,238,.15); color: var(--primary);
+      border: 1px solid rgba(34,211,238,.35);
+      border-radius: 999px; padding: .1rem .6rem; font-size: .72rem;
+    }
+    .cmd-sim-output {
+      padding: .8rem 1rem; min-height: 160px; max-height: 360px;
+      overflow-y: auto; direction: ltr; text-align: left;
+      font-family: "Cascadia Code", Consolas, monospace;
+      font-size: .9rem; color: #d7e2f5; white-space: pre-wrap;
+    }
+    .cmd-sim-output .line-cmd { color: #7dd3fc; }
+    .cmd-sim-output .line-err { color: #f87171; }
+    .cmd-sim-output .line-ok  { color: #34d399; }
+    .cmd-sim-input {
+      display: flex; align-items: center; gap: .5rem;
+      border-top: 1px solid var(--border); background: #0e1526;
+      padding: .5rem .8rem; direction: ltr;
+    }
+    .cmd-sim-input .cmd-prompt {
+      font-family: "Cascadia Code", Consolas, monospace;
+      color: var(--primary); font-size: .9rem;
+    }
+    .cmd-sim-input input {
+      flex: 1; background: #0a0f1c; border: 1px solid var(--border);
+      color: #d7e2f5; border-radius: 8px; padding: .45rem .7rem;
+      font-family: "Cascadia Code", Consolas, monospace; font-size: .9rem;
+    }
+    .cmd-sim-input input:focus { outline: none; border-color: var(--primary); }
+  </style>
+
+  <script>
+    /* ============================================================
+       محاكي CMD — بيانات خيالية ثابتة فقط
+       لا eval، لا Function، لا fetch، لا APIs، لا تنفيذ فعلي.
+       ============================================================ */
+    (function () {
+      const SIM = {
+        "whoami": [
+          "lab-pc-01\\lab.student"
+        ],
+        "whoami /user": [
+          "USER INFORMATION",
+          "----------------",
+          "User Name             SID",
+          "===================== ================================================",
+          "lab-pc-01\\lab.student S-1-5-21-1111111111-2222222222-3333333333-1001"
+        ],
+        "whoami /groups": [
+          "GROUP INFORMATION",
+          "-----------------",
+          "Group Name                             Type             SID",
+          "====================================== ================ ================================================",
+          "Everyone                               Well-known group S-1-1-0",
+          "BUILTIN\\Users                          Alias            S-1-5-32-545",
+          "BUILTIN\\Administrators                 Alias            S-1-5-32-544",
+          "NT AUTHORITY\\INTERACTIVE               Well-known group S-1-5-4",
+          "NT AUTHORITY\\Authenticated Users       Well-known group S-1-5-11"
+        ],
+        "whoami /priv": [
+          "PRIVILEGES INFORMATION",
+          "----------------------",
+          "Privilege Name                Description                          State",
+          "============================= ==================================== ========",
+          "SeShutdownPrivilege           Shut down the system                 Disabled",
+          "SeChangeNotifyPrivilege       Bypass traverse checking             Enabled",
+          "SeIncreaseWorkingSetPrivilege Increase a process working set       Disabled"
+        ],
+        "net user": [
+          "User accounts for \\\\LAB-PC-01",
+          "-------------------------------------------------------------------------------",
+          "Administrator            DefaultAccount           Guest",
+          "lab.student              WDAGUtilityAccount",
+          "-------------------------------------------------------------------------------",
+          "The command completed successfully."
+        ],
+        "net user lab.student": [
+          "User name                    lab.student",
+          "Full Name                    Lab Student",
+          "Comment",
+          "User's comment",
+          "Country/region code          001 (Default)",
+          "Account active               Yes",
+          "Account expires              Never",
+          "Password last set            11/01/2026 10:00:00 AM",
+          "Password expires             Never",
+          "Password changeable          11/01/2026 10:00:00 AM",
+          "Password required            Yes",
+          "User may change password     Yes",
+          "Workstations allowed         All",
+          "Logon script",
+          "User profile",
+          "Home directory",
+          "Last logon                   11/07/2026 9:00:00 AM",
+          "Logon hours allowed          All",
+          "Local Group Memberships      *Users",
+          "Global Group memberships     *None",
+          "The command completed successfully."
+        ],
+        "net localgroup": [
+          "Aliases for \\\\LAB-PC-01",
+          "-------------------------------------------------------------------------------",
+          "*Administrators",
+          "*Backup Operators",
+          "*Guests",
+          "*Users",
+          "-------------------------------------------------------------------------------",
+          "The command completed successfully."
+        ],
+        "net localgroup Administrators": [
+          "Alias name     Administrators",
+          "Comment        Administrators have complete and unrestricted access to the computer/domain",
+          "Members",
+          "-------------------------------------------------------------------------------",
+          "Administrator",
+          "lab.student",
+          "The command completed successfully."
+        ],
+        "net localgroup Users": [
+          "Alias name     Users",
+          "Comment        Users are prevented from making accidental or intentional system-wide changes",
+          "Members",
+          "-------------------------------------------------------------------------------",
+          "NT AUTHORITY\\Authenticated Users",
+          "NT AUTHORITY\\INTERACTIVE",
+          "The command completed successfully."
+        ],
+        "icacls C:\\Lab\\Reports": [
+          "C:\\Lab\\Reports LAB-PC-01\\lab.student:(OI)(CI)(F)",
+          "               BUILTIN\\Users:(OI)(CI)(RX)",
+          "               BUILTIN\\Administrators:(OI)(CI)(F)",
+          "",
+          "Successfully processed 1 files; Failed processing 0 files"
+        ],
+        "icacls C:\\Lab\\Reports\\report.txt": [
+          "C:\\Lab\\Reports\\report.txt LAB-PC-01\\lab.student:(F)",
+          "                         BUILTIN\\Users:(RX)",
+          "                         BUILTIN\\Administrators:(F)",
+          "",
+          "Successfully processed 1 files; Failed processing 0 files"
+        ],
+        "help": [
+          "المحاكي يدعم الأوامر التالية (محاكاة فقط، بدون تنفيذ فعلي):",
+          "  whoami",
+          "  whoami /user",
+          "  whoami /groups",
+          "  whoami /priv",
+          "  net user",
+          "  net user lab.student",
+          "  net localgroup",
+          "  net localgroup Administrators",
+          "  net localgroup Users",
+          "  icacls C:\\Lab\\Reports",
+          "  icacls C:\\Lab\\Reports\\report.txt",
+          "  cls",
+          "  help"
+        ]
+      };
+
+      const outputEl = document.getElementById("cmd-output");
+      const formEl = document.getElementById("cmd-form");
+      const inputEl = document.getElementById("cmd-input");
+
+      if (!outputEl || !formEl || !inputEl) return;
+
+      function appendLine(text, cls) {
+        const div = document.createElement("div");
+        if (cls) div.className = cls;
+        div.textContent = text;
+        outputEl.appendChild(div);
+      }
+
+      function appendBlock(lines) {
+        lines.forEach((l) => appendLine(l));
+      }
+
+      function runCommand(raw) {
+        const cmd = raw.trim();
+        if (!cmd) return;
+
+        appendLine("C:\\> " + cmd, "line-cmd");
+
+        if (cmd.toLowerCase() === "cls") {
+          outputEl.innerHTML = "";
+          return;
+        }
+
+        const key = Object.keys(SIM).find(
+          (k) => k.toLowerCase() === cmd.toLowerCase()
+        );
+
+        if (key) {
+          appendBlock(SIM[key]);
+        } else {
+          appendLine(
+            "'" + cmd + "' is not supported in this simulator.",
+            "line-err"
+          );
+          appendLine(
+            "Type 'help' to see the supported commands.",
+            "line-err"
+          );
+        }
+
+        appendLine("");
+        outputEl.scrollTop = outputEl.scrollHeight;
+      }
+
+      formEl.addEventListener("submit", (e) => {
+        e.preventDefault();
+        runCommand(inputEl.value);
+        inputEl.value = "";
+        inputEl.focus();
+      });
+
+      appendLine("CyberPath CMD Simulator — محاكاة تعليمية فقط", "line-ok");
+      appendLine("هذه نتائج محاكاة تعليمية وليست بيانات حقيقية من جهازك.", "line-ok");
+      appendLine("اكتب 'help' لعرض الأوامر المدعومة.", "line-ok");
+      appendLine("");
+      inputEl.focus();
+    })();
+  </script>
+
+  <script>
+    window.QUIZZES = window.QUIZZES || {};
+    window.QUIZZES["unit5"] = {
+      title: "اختبار الوحدة 5",
+      questions: [
+        {
+          q: "ما الفرق الأساسي بين حساب المستخدم والمجموعة؟",
+          options: [
+            "المستخدم هوية تُسجّل الدخول، والمجموعة وعاء يضم هويات لمنحها صلاحيات مشتركة",
+            "المجموعة هوية تُسجّل الدخول، والمستخدم وعاء",
+            "لا فرق بينهما",
+            "المجموعة تحتوي على SID واحد فقط"
+          ],
+          answer: 0,
+          explain: "المستخدم حساب يُسجّل الدخول، والمجموعة وعاء يجمع حسابات لمنحها صلاحيات مشتركة."
+        },
+        {
+          q: "ما وظيفة SID؟",
+          options: [
+            "تحديد هوية الحساب أو المجموعة في الصلاحيات",
+            "تخزين كلمة المرور",
+            "إدارة الشبكة",
+            "تسريع النظام"
+          ],
+          answer: 0,
+          explain: "SID هو معرف أمني فريد يُستخدم داخليًا لتحديد الهوية في الصلاحيات."
+        },
+        {
+          q: "أي أمر يعرض SID المستخدم الحالي؟",
+          options: ["whoami", "whoami /user", "whoami /groups", "whoami /priv"],
+          answer: 1,
+          explain: "whoami /user يعرض SID المستخدم الحالي."
+        },
+        {
+          q: "أي أمر يعرض قائمة حسابات المستخدمين المحليين؟",
+          options: ["net user", "net localgroup", "whoami", "icacls"],
+          answer: 0,
+          explain: "net user يعرض قائمة الحسابات المحلية."
+        },
+        {
+          q: "أي أمر يعرض أعضاء مجموعة Administrators؟",
+          options: [
+            "net localgroup Administrators",
+            "net user Administrators",
+            "whoami /groups",
+            "icacls Administrators"
+          ],
+          answer: 0,
+          explain: "net localgroup Administrators يعرض أعضاء المجموعة."
+        },
+        {
+          q: "ماذا يعني الرمز F في مخرجات icacls؟",
+          options: ["Full Control", "File Only", "Folder Only", "Fast Access"],
+          answer: 0,
+          explain: "F = Full Control (تحكم كامل)."
+        },
+        {
+          q: "ماذا يعني الرمز RX في مخرجات icacls؟",
+          options: ["Read & Execute", "Read Only", "Write", "Modify"],
+          answer: 0,
+          explain: "RX = Read & Execute (قراءة وتنفيذ)."
+        },
+        {
+          q: "ما الفرق بين ACL وACE؟",
+          options: [
+            "ACL قائمة التحكم بالوصول، وACE إدخال واحد داخلها",
+            "ACE قائمة، وACL إدخال",
+            "لا فرق",
+            "ACL للأقراص، وACE للشبكة"
+          ],
+          answer: 0,
+          explain: "ACL هي القائمة، وACE إدخال واحد يحدد هوية ونوع صلاحية."
+        },
+        {
+          q: "ما مبدأ أقل صلاحية (Least Privilege)؟",
+          options: [
+            "منح المستخدم الحد الأدنى من الصلاحيات اللازمة للمهمة",
+            "منح المستخدم كل الصلاحيات",
+            "منع كل الصلاحيات",
+            "منح الصلاحيات للمجموعات فقط"
+          ],
+          answer: 0,
+          explain: "أقل صلاحية تعني منح الحد الأدنى اللازم لتقليل الأثر عند الخطأ أو الاختراق."
+        },
+        {
+          q: "ظهور مستخدم عادي في مجموعة Administrators — ما التفسير الأمني الصحيح؟",
+          options: [
+            "اختراق مؤكد",
+            "مؤشر يستدعي التحقق والسياق وليس دليلًا قاطعًا على اختراق",
+            "خطأ في النظام دائمًا",
+            "أمر طبيعي لا يستدعي أي مراجعة"
+          ],
+          answer: 1,
+          explain: "عضوية غير مبررة في Administrators مؤشر يستدعي التحقق، لكنها ليست دليلًا قاطعًا على اختراق."
+        }
+      ]
+    };
+  </script>
+  <script src="../assets/js/course.js"></script>
+  <script src="../assets/js/quiz.js"></script>
+</body>
+</html>
