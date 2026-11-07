@@ -1,9 +1,13 @@
-/* CyberPath DOS Course — interactions */
-
+/* CyberPath DOS Course — shared interactions
+   - Theme toggle
+   - Scroll progress
+   - Code copy buttons (new .code-block structure)
+   - Active nav highlight
+*/
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
   initProgress();
-  initCopyButtons();
+  initCodeCopy();
   initActiveNav();
 });
 
@@ -12,19 +16,18 @@ function initTheme() {
   const btn = document.getElementById("theme-toggle");
   const saved = localStorage.getItem("cyberpath-theme") || "dark";
   document.documentElement.setAttribute("data-theme", saved);
-  if (btn) {
-    btn.textContent = saved === "dark" ? "🌙" : "☀️";
-    btn.addEventListener("click", () => {
-      const current = document.documentElement.getAttribute("data-theme");
-      const next = current === "dark" ? "light" : "dark";
-      document.documentElement.setAttribute("data-theme", next);
-      localStorage.setItem("cyberpath-theme", next);
-      btn.textContent = next === "dark" ? "🌙" : "☀️";
-    });
-  }
+  if (!btn) return;
+  btn.textContent = saved === "dark" ? "🌙" : "☀️";
+  btn.addEventListener("click", () => {
+    const current = document.documentElement.getAttribute("data-theme");
+    const next = current === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    localStorage.setItem("cyberpath-theme", next);
+    btn.textContent = next === "dark" ? "🌙" : "☀️";
+  });
 }
 
-/* ---------- Progress bar (based on scroll) ---------- */
+/* ---------- Progress bar ---------- */
 function initProgress() {
   const fill = document.getElementById("progress-fill");
   if (!fill) return;
@@ -37,41 +40,39 @@ function initProgress() {
   update();
 }
 
-/* ---------- Copy buttons ---------- */
-function initCopyButtons() {
-  document.querySelectorAll("pre").forEach((pre) => {
-    if (pre.querySelector(".copy-btn")) return;
-    const btn = document.createElement("button");
-    btn.className = "copy-btn";
-    btn.type = "button";
-    btn.textContent = "نسخ";
+/* ---------- Code copy (header-button pattern) ---------- */
+function initCodeCopy() {
+  document.querySelectorAll(".code-block").forEach((block) => {
+    const btn = block.querySelector(".copy-btn");
+    const codeEl = block.querySelector("pre code") || block.querySelector("pre");
+    if (!btn || !codeEl) return;
+
     btn.addEventListener("click", async () => {
-      const text = pre.querySelector("code")?.innerText ?? pre.innerText;
+      const text = codeEl.innerText.replace(/\n+$/, "");
       try {
-        await navigator.clipboard.writeText(text.trim());
-        btn.textContent = "تم النسخ ✔";
-        btn.classList.add("copied");
+        await navigator.clipboard.writeText(text);
       } catch {
-        // fallback
         const ta = document.createElement("textarea");
-        ta.value = text.trim();
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
         document.body.appendChild(ta);
         ta.select();
-        document.execCommand("copy");
+        try { document.execCommand("copy"); } catch {}
         ta.remove();
-        btn.textContent = "تم النسخ ✔";
-        btn.classList.add("copied");
       }
+      const original = btn.textContent;
+      btn.textContent = "تم النسخ ✔";
+      btn.classList.add("copied");
       setTimeout(() => {
-        btn.textContent = "نسخ";
+        btn.textContent = original;
         btn.classList.remove("copied");
       }, 1600);
     });
-    pre.appendChild(btn);
   });
 }
 
-/* ---------- Active nav highlight ---------- */
+/* ---------- Active nav ---------- */
 function initActiveNav() {
   const path = location.pathname.split("/").pop() || "index.html";
   document.querySelectorAll(".main-nav a").forEach((a) => {
