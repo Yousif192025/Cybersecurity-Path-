@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>الوحدة 4: الشبكات والاستطلاع الأساسي | CyberPath</title>
+  <link rel="stylesheet" href="../assets/css/course.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="../index.html">CyberPath</a>
+      <nav class="main-nav" aria-label="التنقل الرئيسي">
+        <a href="../index.html">الرئيسية</a>
+        <a href="unit4.html" class="active">الوحدات</a>
+        <a href="../final-exam.html">الاختبار النهائي</a>
+        <a href="../final-project.html">المشروع</a>
+        <a href="../references.html">المراجع</a>
+      </nav>
+      <button id="theme-toggle" class="icon-btn" aria-label="تبديل الوضع الليلي">🌙</button>
+    </div>
+    <div class="progress-bar" aria-hidden="true"><span id="progress-fill"></span></div>
+  </header>
+
+  <main class="container">
+    <p class="muted" style="margin-top:1.2rem">الوحدة 4 من 10</p>
+    <h1>الشبكات والاستطلاع الأساسي</h1>
+    <p class="subtitle">Networking and Basic Reconnaissance</p>
+
+    <!-- ============ مقدمة ============ -->
+    <section class="card">
+      <h2>مقدمة وأهمية الوحدة</h2>
+      <p>
+        الشبكة هي قلب أي بيئة أمنية. لفهم حادث أمني أو تقييم نظام، يجب أن تعرف
+        كيف يتصل الجهاز بالشبكة، ما عنوانه، ما بوابته، ما خادم DNS الذي
+        يستخدمه، ما الاتصالات المفتوحة، وما الأجهزة المجاورة في الشبكة المحلية.
+      </p>
+      <p>
+        في هذه الوحدة ستتعلم أوامر CMD الأساسية لجمع هذه المعلومات وتحليلها
+        <strong>دفاعيًا</strong>. جميع الأمثلة افتراضية ومحاكاة داخل الصفحة،
+        ولا تُنفَّذ على جهازك أو شبكتك.
+      </p>
+      <div class="callout warn">
+        <strong>تنبيه أمني أساسي:</strong> هذه الوحدة تعليمية فقط. لا تُنفِّذ أي أمر
+        على شبكة حقيقية دون تصريح صريح. لا تستخدم هذه الأدوات لفحص أجهزة
+        الآخرين أو شبكاتهم.
+      </div>
+    </section>
+
+    <!-- ============ أهداف ============ -->
+    <section class="card">
+      <h2>أهداف الوحدة</h2>
+      <ul class="check-list">
+        <li>قراءة إعدادات الشبكة باستخدام <code>ipconfig</code> و <code>ipconfig /all</code>.</li>
+        <li>اختبار الاتصال وتحليل نتائج <code>ping</code>.</li>
+        <li>فهم مسار الاتصال باستخدام <code>tracert</code> و <code>pathping</code>.</li>
+        <li>تنفيذ استعلامات DNS باستخدام <code>nslookup</code>.</li>
+        <li>تحليل الاتصالات والمنافذ باستخدام <code>netstat -ano</code>.</li>
+        <li>قراءة جدول ARP باستخدام <code>arp -a</code>.</li>
+        <li>معرفة عنوان MAC باستخدام <code>getmac</code>.</li>
+        <li>فهم جدول التوجيه باستخدام <code>route print</code>.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 1. ipconfig ============ -->
+    <section class="card">
+      <h2>1) إعدادات الشبكة — ipconfig</h2>
+      <p><strong>الهدف:</strong> عرض إعدادات الشبكة الأساسية: عنوان IP، قناع الشبكة، البوابة الافتراضية.</p>
+      <p><strong>متى نستخدمه؟</strong> في بداية أي تحقيق شبكي لمعرفة هوية الجهاز على الشبكة.</p>
+
+      <h3>الصيغة</h3>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>ipconfig</code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>ipconfig /all</code></pre>
+      </div>
+      <p><strong>شرح الخيارات:</strong></p>
+      <ul>
+        <li>بدون خيار: ملخص سريع للإعدادات.</li>
+        <li><code>/all</code>: تفاصيل كاملة تشمل MAC وDNS وDHCP.</li>
+      </ul>
+
+      <p><strong>مخرجات افتراضية (ipconfig):</strong></p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">output</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>Windows IP Configuration
+
+Ethernet adapter Ethernet0:
+
+   Connection-specific DNS Suffix  . : local.lab
+   Link-local IPv6 Address . . . . . : fe80::a1b2:c3d4:e5f6:7890%12
+   IPv4 Address. . . . . . . . . . . : 192.168.10.25
+   Subnet Mask . . . . . . . . . . . : 255.255.255.0
+   Default Gateway . . . . . . . . . : 192.168.10.1</code></pre>
+      </div>
+      <p><strong>تفسير النتائج:</strong> الجهاز في شبكة <code>192.168.10.0/24</code>، بوابته <code>192.168.10.1</code>.</p>
+      <p><strong>الاستخدام الأمني:</strong> تحديد نطاق الشبكة المحلية لتقييم تعرض الأجهزة.</p>
+      <p><strong>الأخطاء الشائعة:</strong> الاعتقاد أن غياب البوابة يعني عدم وجود شبكة؛ قد يكون الاتصال محليًا فقط.</p>
+      <p><strong>تمرين:</strong> افتح المحاكي لاحقًا واكتب <code>ipconfig</code> ولاحظ الفرق مع <code>ipconfig /all</code>.</p>
+      <p><strong>سؤال تحليلي:</strong> ماذا يعني عنوان يبدأ بـ <code>169.254.x.x</code>؟</p>
+    </section>
+
+    <!-- ============ 2. ping ============ -->
+    <section class="card">
+      <h2>2) اختبار الاتصال — ping</h2>
+      <p><strong>الهدف:</strong> اختبار إمكانية الوصول إلى مضيف والتحقق من زمن الاستجابة.</p>
+      <p><strong>متى نستخدمه؟</strong> للتحقق من اتصال أساسي قبل أي تحليل أعمق.</p>
+
+      <h3>الصيغة</h3>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>ping [host]
+ping -n 4 [host]</code></pre>
+      </div>
+      <p><strong>شرح الخيارات:</strong></p>
+      <ul>
+        <li><code>[host]</code>: عنوان IP أو اسم نطاق.</li>
+        <li><code>-n</code>: عدد الحزم المرسلة.</li>
+      </ul>
+
+      <p><strong>مخرجات افتراضية (نجاح):</strong></p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">output</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>Pinging 8.8.8.8 with 32 bytes of data:
+Reply from 8.8.8.8: bytes=32 time=14ms TTL=117
+Reply from 8.8.8.8: bytes=32 time=15ms TTL=117
+Reply from 8.8.8.8: bytes=32 time=13ms TTL=117
+Reply from 8.8.8.8: bytes=32 time=14ms TTL=117
+
+Ping statistics for 8.8.8.8:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)</code></pre>
+      </div>
+      <p><strong>مخرجات افتراضية (فشل):</strong></p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">output</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>Pinging 192.168.10.99 with 32 bytes of data:
+Request timed out.
+Request timed out.
+Request timed out.
+Request timed out.
+
+Ping statistics for 192.168.10.99:
+    Packets: Sent = 4, Received = 0, Lost = 4 (100% loss)</code></pre>
+      </div>
+      <p><strong>تفسير النتائج:</strong> النجاح يعني أن الهدف يرد. الفشل قد يعني أن الهدف لا يعمل، أو يحجب ICMP، أو هناك مشكلة في المسار.</p>
+      <p><strong>الاستخدام الأمني:</strong> كشف أجهزة لا ترد على ICMP (قد تكون محمية أو مشبوهة).</p>
+      <p><strong>الأخطاء الشائعة:</strong> اعتبار عدم الرد دليلًا قاطعًا على أن الجهاز غير موجود.</p>
+      <p><strong>سؤال تحليلي:</strong> ما معنى <code>TTL=117</code>؟ (تلميح: عدد القفزات المتبقية).</p>
+    </section>
+
+    <!-- ============ 3. tracert / pathping ============ -->
+    <section class="card">
+      <h2>3) مسار الاتصال — tracert و pathping</h2>
+      <p><strong>الهدف:</strong> تتبع القفزات بين جهازك والهدف.</p>
+
+      <h3>الصيغة</h3>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>tracert [host]</code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>pathping [host]</code></pre>
+      </div>
+
+      <p><strong>مخرجات افتراضية (tracert):</strong></p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">output</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>Tracing route to example.com [93.184.216.34]
+over a maximum of 30 hops:
+
+  1     1 ms     1 ms     1 ms  192.168.10.1
+  2     5 ms     6 ms     5 ms  10.0.0.1
+  3     *        *        *     Request timed out.
+  4    14 ms    13 ms    14 ms  93.184.216.34
+
+Trace complete.</code></pre>
+      </div>
+      <p><strong>تفسير النتائج:</strong> كل سطر قفزة. النجوم تعني أن القفزة لا ترد على ICMP لكن المسار قد يستمر.</p>
+      <p><strong>الاستخدام الأمني:</strong> كشف بنية الشبكة والمسارات غير المتوقعة.</p>
+      <p><strong>الأخطاء الشائعة:</strong> تفسير النجوم كفشل كامل للمسار.</p>
+      <p><strong>سؤال تحليلي:</strong> لماذا قد تظهر نجوم في منتصف المسار مع نجاح الهدف؟</p>
+    </section>
+
+    <!-- ============ 4. nslookup ============ -->
+    <section class="card">
+      <h2>4) استعلامات DNS — nslookup</h2>
+      <p><strong>الهدف:</strong> الاستعلام عن سجلات DNS لاسم نطاق.</p>
+
+      <h3>الصيغة</h3>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>nslookup [domain]</code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>nslookup [domain] [dns-server]</code></pre>
+      </div>
+
+      <p><strong>مخرجات افتراضية (نجاح):</strong></p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">output</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>Server:  dns.local.lab
+Address:  192.168.10.10
+
+Non-authoritative answer:
+Name:    example.com
+Addresses:  93.184.216.34</code></pre>
+      </div>
+      <p><strong>مخرجات افتراضية (فشل):</strong></p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">output</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>Server:  dns.local.lab
+Address:  192.168.10.10
+
+*** dns.local.lab can't find nonexistent.example: Non-existent domain</code></pre>
+      </div>
+      <p><strong>تفسير النتائج:</strong> النجاح يعرض عنوان IP. الفشل يعني أن الاسم غير موجود أو أن DNS لا يستطيع الحل.</p>
+      <p><strong>الاستخدام الأمني:</strong> كشف أسماء نطاقات مشبوهة أو خوادم DNS غير متوقعة.</p>
+      <p><strong>الأخطاء الشائعة:</strong> الاعتقاد أن فشل DNS يعني عدم وجود اتصال إنترنت.</p>
+      <p><strong>سؤال تحليلي:</strong> ما الفرق بين الرد "authoritative" و"non-authoritative"؟</p>
+    </section>
+
+    <!-- ============ 5. netstat ============ -->
+    <section class="card">
+      <h2>5) الاتصالات والمنافذ — netstat</h2>
+      <p><strong>الهدف:</strong> عرض الاتصالات النشطة والمنافذ المفتوحة.</p>
+
+      <h3>الصيغة</h3>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>netstat -ano</code></pre>
+      </div>
+      <p><strong>شرح الخيارات:</strong></p>
+      <ul>
+        <li><code>-a</code>: كل الاتصالات والمنافذ المستمعة.</li>
+        <li><code>-n</code>: عرض العناوين كأرقام لا أسماء.</li>
+        <li><code>-o</code>: عرض PID العملية.</li>
+      </ul>
+
+      <p><strong>مخرجات افتراضية:</strong></p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">output</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>Active Connections
+
+  Proto  Local Address          Foreign Address        State           PID
+  TCP    0.0.0.0:135            0.0.0.0:0              LISTENING       1024
+  TCP    192.168.10.25:49812    93.184.216.34:443      ESTABLISHED     4321
+  TCP    192.168.10.25:49813    93.184.216.34:443      ESTABLISHED     4321
+  UDP    0.0.0.0:5353           *:*                                    2210</code></pre>
+      </div>
+      <p><strong>تفسير النتائج:</strong></p>
+      <ul>
+        <li><code>LISTENING</code>: منفذ ينتظر اتصالات.</li>
+        <li><code>ESTABLISHED</code>: اتصال نشط.</li>
+        <li><code>PID</code>: معرّف العملية، يمكن ربطه بـ <code>tasklist</code>.</li>
+      </ul>
+      <p><strong>الاستخدام الأمني:</strong> كشف اتصالات غير متوقعة أو منافذ مستمعة مشبوهة.</p>
+      <p><strong>الأخطاء الشائعة:</strong> الاعتقاد أن كل منفذ مستمع خطر؛ بعضها خدمات نظام مشروعة.</p>
+      <p><strong>سؤال تحليلي:</strong> كيف تربط PID بعملية معروفة؟</p>
+    </section>
+
+    <!-- ============ 6. arp ============ -->
+    <section class="card">
+      <h2>6) جدول ARP — arp -a</h2>
+      <p><strong>الهدف:</strong> عرض الأجهزة المجاورة في الشبكة المحلية وربط IP بـ MAC.</p>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>arp -a</code></pre>
+      </div>
+
+      <p><strong>مخرجات افتراضية:</strong></p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">output</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>Interface: 192.168.10.25 --- 0xc
+  Internet Address      Physical Address      Type
+  192.168.10.1          00-11-22-33-44-55     dynamic
+  192.168.10.10         aa-bb-cc-dd-ee-ff     dynamic
+  192.168.10.255        ff-ff-ff-ff-ff-ff     static</code></pre>
+      </div>
+      <p><strong>تفسير النتائج:</strong> كل سطر جهاز معروف في الشبكة المحلية. <code>dynamic</code> يعني تعلّم تلقائيًا.</p>
+      <p><strong>الاستخدام الأمني:</strong> كشف أجهزة غير مصرح بها في الشبكة المحلية.</p>
+      <p><strong>الأخطاء الشائعة:</strong> الاعتقاد أن الجدول يشمل كل الشبكة؛ هو محدود بالأجهزة التي تواصلت معها مؤخرًا.</p>
+      <p><strong>سؤال تحليلي:</strong> لماذا يظهر عنوان MAC ثابت لـ <code>192.168.10.255</code>؟</p>
+    </section>
+
+    <!-- ============ 7. getmac ============ -->
+    <section class="card">
+      <h2>7) عنوان MAC — getmac</h2>
+      <p><strong>الهدف:</strong> عرض عناوين MAC لبطاقات الشبكة في الجهاز.</p>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>getmac</code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>getmac /v</code></pre>
+      </div>
+
+      <p><strong>مخرجات افتراضية:</strong></p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">output</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>Physical Address    Transport Name
+==================  ===========================================
+A1-B2-C3-D4-E5-F6   \Device\Tcpip_{GUID}</code></pre>
+      </div>
+      <p><strong>تفسير النتائج:</strong> عنوان MAC الفريد لبطاقة الشبكة.</p>
+      <p><strong>الاستخدام الأمني:</strong> التحقق من تطابق MAC مع الأجهزة المعروفة.</p>
+      <p><strong>الأخطاء الشائعة:</strong> الاعتقاد أن MAC يمكن الاعتماد عليه دائمًا للتعريف؛ يمكن تزويره.</p>
+      <p><strong>سؤال تحليلي:</strong> ما فائدة <code>/v</code> في <code>getmac</code>؟</p>
+    </section>
+
+    <!-- ============ 8. route print ============ -->
+    <section class="card">
+      <h2>8) جدول التوجيه — route print</h2>
+      <p><strong>الهدف:</strong> عرض جدول التوجيه الذي يحدد كيف يصل الجهاز إلى الشبكات.</p>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>route print</code></pre>
+      </div>
+
+      <p><strong>مخرجات افتراضية (مختصرة):</strong></p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">output</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>IPv4 Route Table
+===========================================================================
+Active Routes:
+Network Destination        Netmask          Gateway       Interface  Metric
+          0.0.0.0          0.0.0.0      192.168.10.1    192.168.10.25     25
+        127.0.0.0        255.0.0.0         On-link         127.0.0.1    331
+      192.168.10.0    255.255.255.0         On-link      192.168.10.25    281
+    192.168.10.255  255.255.255.255         On-link      192.168.10.25    281
+===========================================================================</code></pre>
+      </div>
+      <p><strong>تفسير النتائج:</strong></p>
+      <ul>
+        <li><code>0.0.0.0/0</code>: المسار الافتراضي (البوابة).</li>
+        <li><code>On-link</code>: الشبكة المحلية مباشرة.</li>
+        <li><code>Metric</code>: أولوية المسار عند التعارض.</li>
+      </ul>
+      <p><strong>الاستخدام الأمني:</strong> كشف مسارات غير متوقعة قد تشير إلى إعادة توجيه مشبوهة.</p>
+      <p><strong>الأخطاء الشائعة:</strong> تعديل الجدول دون فهم؛ قد يقطع الاتصال.</p>
+      <p><strong>سؤال تحليلي:</strong> ماذا يعني وجود مسارين افتراضيين بقيم Metric مختلفة؟</p>
+    </section>
+
+    <!-- ============ المحاكي ============ -->
+    <section class="card">
+      <h2>المحاكي التفاعلي</h2>
+      <p>
+        هذا المحاكي يعرض <strong>بيانات افتراضية ثابتة</strong> لأغراض تعليمية.
+        لا يتصل بأي شبكة، ولا ينفذ أي أمر فعلي، ولا يقرأ أي بيانات من جهازك.
+        اكتب الأوامر المدعومة أدناه لمشاهدة مخرجات افتراضية.
+      </p>
+      <div class="callout info">
+        الأوامر المدعومة: <code>ipconfig</code>, <code>ipconfig /all</code>,
+        <code>ping 8.8.8.8</code>, <code>ping 192.168.10.99</code>,
+        <code>tracert example.com</code>, <code>nslookup example.com</code>,
+        <code>nslookup nonexistent.example</code>, <code>netstat -ano</code>,
+        <code>arp -a</code>, <code>getmac</code>, <code>route print</code>,
+        <code>help</code>, <code>cls</code>.
+      </div>
+
+      <div class="cmd-sim" id="cmd-sim">
+        <div class="cmd-sim-header">
+          <span class="cmd-sim-title">C:\Users\Analyst&gt; sim.exe</span>
+          <span class="cmd-sim-badge">محاكاة</span>
+        </div>
+        <div class="cmd-sim-output" id="cmd-output" aria-live="polite"></div>
+        <form class="cmd-sim-input" id="cmd-form" autocomplete="off">
+          <label for="cmd-input" class="visually-hidden">أدخل الأمر</label>
+          <span class="cmd-prompt">C:\&gt;</span>
+          <input type="text" id="cmd-input" name="cmd-input" placeholder="اكتب أمرًا هنا…" dir="ltr" />
+          <button type="submit" class="btn primary">تشغيل</button>
+        </form>
+      </div>
+
+      <div id="analysis-question" class="card" style="display:none; margin-top:1rem;"></div>
+    </section>
+
+    <!-- ============ أخطاء شائعة ============ -->
+    <section class="card">
+      <h2>الأخطاء الشائعة في الوحدة</h2>
+      <ul class="check-list">
+        <li>اعتبار عدم رد ping دليلًا قاطعًا على عدم وجود الجهاز.</li>
+        <li>تفسير النجوم في tracert كفشل كامل للمسار.</li>
+        <li>الاعتقاد أن فشل DNS يعني عدم وجود اتصال إنترنت.</li>
+        <li>الاعتقاد أن كل منفذ مستمع خطر.</li>
+        <li>الاعتقاد أن جدول ARP يشمل كل الشبكة.</li>
+        <li>الاعتماد على MAC للتعريف المطلق رغم إمكانية تزويره.</li>
+        <li>تعديل جدول التوجيه دون فهم.</li>
+      </ul>
+    </section>
+
+    <!-- ============ تمارين ============ -->
+    <section class="card">
+      <h2>تمارين وتحديات</h2>
+      <ol class="steps">
+        <li>في المحاكي، اكتب <code>ipconfig</code> ثم <code>ipconfig /all</code> وقارن.</li>
+        <li>اكتب <code>ping 8.8.8.8</code> و<code>ping 192.168.10.99</code> وقارن بين النجاح والفشل.</li>
+        <li>اكتب <code>nslookup example.com</code> و<code>nslookup nonexistent.example</code>.</li>
+        <li>اكتب <code>netstat -ano</code> وحدد الاتصالات النشطة والمنافذ المستمعة.</li>
+        <li>اكتب <code>arp -a</code> وحدد الأجهزة المجاورة.</li>
+        <li>اكتب <code>route print</code> وحدد المسار الافتراضي.</li>
+      </ol>
+    </section>
+
+    <!-- ============ اختبار ============ -->
+    <section class="card">
+      <h2>اختبار قصير</h2>
+      <div id="quiz" data-quiz="unit4"></div>
+    </section>
+
+    <!-- ============ ملخص ============ -->
+    <section class="card">
+      <h2>ملخص</h2>
+      <p>
+        تعرفنا على إعدادات الشبكة (ipconfig)، اختبار الاتصال (ping)، تتبع المسار
+        (tracert/pathping)، استعلامات DNS (nslookup)، الاتصالات والمنافذ
+        (netstat -ano)، جدول ARP (arp -a)، عنوان MAC (getmac)، وجدول التوجيه
+        (route print). جميع الأمثلة افتراضية، والمحاكي لا ينفذ أي أمر فعلي.
+      </p>
+    </section>
+
+    <!-- ============ مراجع ============ -->
+    <section class="card">
+      <h2>مراجع موثوقة</h2>
+      <ul>
+        <li><a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/ipconfig" target="_blank" rel="noopener">Microsoft Learn — ipconfig</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/ping" target="_blank" rel="noopener">Microsoft Learn — ping</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/tracert" target="_blank" rel="noopener">Microsoft Learn — tracert</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/nslookup" target="_blank" rel="noopener">Microsoft Learn — nslookup</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/netstat" target="_blank" rel="noopener">Microsoft Learn — netstat</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/arp" target="_blank" rel="noopener">Microsoft Learn — arp</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/getmac" target="_blank" rel="noopener">Microsoft Learn — getmac</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/route_ws2008" target="_blank" rel="noopener">Microsoft Learn — route</a></li>
+      </ul>
+    </section>
+
+    <nav class="unit-nav">
+      <a class="btn ghost" href="unit3.html">→ الوحدة 3</a>
+      <a class="btn primary" href="unit5.html">الوحدة 5: المستخدمون والمجموعات والصلاحيات ←</a>
+    </nav>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container"><p class="muted">CyberPath — للاستخدام في بيئات مختبرية مصرّح بها.</p></div>
+  </footer>
+
+  <style>
+    /* محاكي CMD — تنسيقات محلية لا تؤثر على بقية الصفحة */
+    .visually-hidden {
+      position: absolute; width: 1px; height: 1px; overflow: hidden;
+      clip: rect(0 0 0 0); white-space: nowrap;
+    }
+    .cmd-sim {
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      overflow: hidden;
+      background: #0a0f1c;
+      margin-top: 1rem;
+    }
+    .cmd-sim-header {
+      display: flex; align-items: center; justify-content: space-between;
+      background: #0e1526; border-bottom: 1px solid var(--border);
+      padding: .45rem .8rem; direction: ltr;
+    }
+    .cmd-sim-title {
+      font-family: "Cascadia Code", Consolas, monospace;
+      font-size: .8rem; color: var(--muted);
+    }
+    .cmd-sim-badge {
+      background: rgba(34,211,238,.15); color: var(--primary);
+      border: 1px solid rgba(34,211,238,.35);
+      border-radius: 999px; padding: .1rem .6rem; font-size: .72rem;
+    }
+    .cmd-sim-output {
+      padding: .8rem 1rem; min-height: 160px; max-height: 360px;
+      overflow-y: auto; direction: ltr; text-align: left;
+      font-family: "Cascadia Code", Consolas, monospace;
+      font-size: .9rem; color: #d7e2f5; white-space: pre-wrap;
+    }
+    .cmd-sim-output .line-cmd { color: #7dd3fc; }
+    .cmd-sim-output .line-err { color: #f87171; }
+    .cmd-sim-output .line-ok  { color: #34d399; }
+    .cmd-sim-input {
+      display: flex; align-items: center; gap: .5rem;
+      border-top: 1px solid var(--border); background: #0e1526;
+      padding: .5rem .8rem; direction: ltr;
+    }
+    .cmd-sim-input .cmd-prompt {
+      font-family: "Cascadia Code", Consolas, monospace;
+      color: var(--primary); font-size: .9rem;
+    }
+    .cmd-sim-input input {
+      flex: 1; background: #0a0f1c; border: 1px solid var(--border);
+      color: #d7e2f5; border-radius: 8px; padding: .45rem .7rem;
+      font-family: "Cascadia Code", Consolas, monospace; font-size: .9rem;
+    }
+    .cmd-sim-input input:focus { outline: none; border-color: var(--primary); }
+    .analysis-q { margin-top: 1rem; }
+    .analysis-q .analysis-opt {
+      display: block; padding: .35rem .5rem; margin: .2rem 0;
+      border-radius: 8px; border: 1px solid var(--border);
+      background: var(--bg-soft); cursor: pointer; color: var(--muted);
+    }
+    .analysis-q .analysis-opt:hover { border-color: var(--primary); }
+    .analysis-q .analysis-opt.correct { border-color: var(--success); color: var(--success); }
+    .analysis-q .analysis-opt.wrong { border-color: var(--danger); color: var(--danger); }
+    .analysis-q .analysis-feedback { margin-top: .5rem; font-weight: 600; }
+  </style>
+
+  <script>
+    /* ============================================================
+       محاكي CMD — بيانات افتراضية ثابتة فقط
+       لا fetch، لا APIs، لا تنفيذ أوامر، لا اتصال شبكي.
+       ============================================================ */
+    (function () {
+      const SIM = {
+        "ipconfig": [
+          "Windows IP Configuration",
+          "",
+          "Ethernet adapter Ethernet0:",
+          "",
+          "   Connection-specific DNS Suffix  . : local.lab",
+          "   Link-local IPv6 Address . . . . . : fe80::a1b2:c3d4:e5f6:7890%12",
+          "   IPv4 Address. . . . . . . . . . . : 192.168.10.25",
+          "   Subnet Mask . . . . . . . . . . . : 255.255.255.0",
+          "   Default Gateway . . . . . . . . . : 192.168.10.1"
+        ],
+        "ipconfig /all": [
+          "Windows IP Configuration",
+          "",
+          "   Host Name . . . . . . . . . . . . : LAB-PC-01",
+          "   Primary Dns Suffix  . . . . . . . : local.lab",
+          "   Node Type . . . . . . . . . . . . : Hybrid",
+          "   IP Routing Enabled. . . . . . . . : No",
+          "   WINS Proxy Enabled. . . . . . . . : No",
+          "   DNS Suffix Search List. . . . . . : local.lab",
+          "",
+          "Ethernet adapter Ethernet0:",
+          "",
+          "   Connection-specific DNS Suffix  . : local.lab",
+          "   Description . . . . . . . . . . . : Intel(R) Ethernet Connection",
+          "   Physical Address. . . . . . . . . : A1-B2-C3-D4-E5-F6",
+          "   DHCP Enabled. . . . . . . . . . . : Yes",
+          "   IPv4 Address. . . . . . . . . . . : 192.168.10.25(Preferred)",
+          "   Subnet Mask . . . . . . . . . . . : 255.255.255.0",
+          "   Lease Obtained. . . . . . . . . . : Friday, November 6, 2026 9:00:00 AM",
+          "   Lease Expires . . . . . . . . . . : Saturday, November 7, 2026 9:00:00 AM",
+          "   Default Gateway . . . . . . . . . : 192.168.10.1",
+          "   DHCP Server . . . . . . . . . . . : 192.168.10.1",
+          "   DNS Servers . . . . . . . . . . . : 192.168.10.10",
+          "   NetBIOS over Tcpip. . . . . . . . : Enabled"
+        ],
+        "ping 8.8.8.8": [
+          "Pinging 8.8.8.8 with 32 bytes of data:",
+          "Reply from 8.8.8.8: bytes=32 time=14ms TTL=117",
+          "Reply from 8.8.8.8: bytes=32 time=15ms TTL=117",
+          "Reply from 8.8.8.8: bytes=32 time=13ms TTL=117",
+          "Reply from 8.8.8.8: bytes=32 time=14ms TTL=117",
+          "",
+          "Ping statistics for 8.8.8.8:",
+          "    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),",
+          "Approximate round trip times in milli-seconds:",
+          "    Minimum = 13ms, Maximum = 15ms, Average = 14ms"
+        ],
+        "ping 192.168.10.99": [
+          "Pinging 192.168.10.99 with 32 bytes of data:",
+          "Request timed out.",
+          "Request timed out.",
+          "Request timed out.",
+          "Request timed out.",
+          "",
+          "Ping statistics for 192.168.10.99:",
+          "    Packets: Sent = 4, Received = 0, Lost = 4 (100% loss),"
+        ],
+        "tracert example.com": [
+          "Tracing route to example.com [93.184.216.34]",
+          "over a maximum of 30 hops:",
+          "",
+          "  1     1 ms     1 ms     1 ms  192.168.10.1",
+          "  2     5 ms     6 ms     5 ms  10.0.0.1",
+          "  3     *        *        *     Request timed out.",
+          "  4    14 ms    13 ms    14 ms  93.184.216.34",
+          "",
+          "Trace complete."
+        ],
+        "nslookup example.com": [
+          "Server:  dns.local.lab",
+          "Address:  192.168.10.10",
+          "",
+          "Non-authoritative answer:",
+          "Name:    example.com",
+          "Addresses:  93.184.216.34"
+        ],
+        "nslookup nonexistent.example": [
+          "Server:  dns.local.lab",
+          "Address:  192.168.10.10",
+          "",
+          "*** dns.local.lab can't find nonexistent.example: Non-existent domain"
+        ],
+        "netstat -ano": [
+          "Active Connections",
+          "",
+          "  Proto  Local Address          Foreign Address        State           PID",
+          "  TCP    0.0.0.0:135            0.0.0.0:0              LISTENING       1024",
+          "  TCP    192.168.10.25:49812    93.184.216.34:443      ESTABLISHED     4321",
+          "  TCP    192.168.10.25:49813    93.184.216.34:443      ESTABLISHED     4321",
+          "  UDP    0.0.0.0:5353           *:*                                    2210"
+        ],
+        "arp -a": [
+          "Interface: 192.168.10.25 --- 0xc",
+          "  Internet Address      Physical Address      Type",
+          "  192.168.10.1          00-11-22-33-44-55     dynamic",
+          "  192.168.10.10         aa-bb-cc-dd-ee-ff     dynamic",
+          "  192.168.10.255        ff-ff-ff-ff-ff-ff     static"
+        ],
+        "getmac": [
+          "Physical Address    Transport Name",
+          "==================  ===========================================",
+          "A1-B2-C3-D4-E5-F6   \\Device\\Tcpip_{GUID}"
+        ],
+        "route print": [
+          "IPv4 Route Table",
+          "===========================================================================",
+          "Active Routes:",
+          "Network Destination        Netmask          Gateway       Interface  Metric",
+          "          0.0.0.0          0.0.0.0      192.168.10.1    192.168.10.25     25",
+          "        127.0.0.0        255.0.0.0         On-link         127.0.0.1    331",
+          "      192.168.10.0    255.255.255.0         On-link      192.168.10.25    281",
+          "    192.168.10.255  255.255.255.255         On-link      192.168.10.25    281",
+          "==========================================================================="
+        ],
+        "help": [
+          "المحاكي يدعم الأوامر التالية (محاكاة فقط، بدون تنفيذ فعلي):",
+          "  ipconfig",
+          "  ipconfig /all",
+          "  ping 8.8.8.8",
+          "  ping 192.168.10.99",
+          "  tracert example.com",
+          "  nslookup example.com",
+          "  nslookup nonexistent.example",
+          "  netstat -ano",
+          "  arp -a",
+          "  getmac",
+          "  route print",
+          "  cls",
+          "  help"
+        ]
+      };
+
+      // أسئلة تحليلية تُعرض بعد بعض الأوامر
+      const ANALYSIS = {
+        "ipconfig": {
+          question: "ماذا يعني عنوان يبدأ بـ 169.254.x.x في نتيجة ipconfig؟",
+          options: [
+            "عنوان عام من مزود الخدمة",
+            "عنوان link-local عند فشل الحصول على عنوان من DHCP",
+            "عنوان البوابة الافتراضية",
+            "عنوان خادم DNS"
+          ],
+          answer: 1,
+          explain: "عنوان 169.254.x.x هو APIPA، يظهر عندما يفشل DHCP في إسناد عنوان."
+        },
+        "ping 8.8.8.8": {
+          question: "ماذا يعني TTL=117 في نتيجة ping؟",
+          options: [
+            "عدد الحزم المرسلة",
+            "زمن الاستجابة",
+            "عدد القفزات المتبقية قبل انتهاء صلاحية الحزمة",
+            "عنوان المنفذ"
+          ],
+          answer: 2,
+          explain: "TTL هو عدد القفزات المتبقية. القيمة الأولية النموذجية 128، و117 تعني أن الحزمة عبرت 11 قفزة تقريبًا."
+        },
+        "ping 192.168.10.99": {
+          question: "أي مما يلي قد يفسر عدم رد ping على جهاز في الشبكة المحلية؟",
+          options: [
+            "الجهاز مغلق أو يحجب ICMP",
+            "الجهاز يستخدم HTTPS فقط",
+            "البوابة الافتراضية معطلة دائمًا",
+            "DNS غير مُهيأ"
+          ],
+          answer: 0,
+          explain: "الجهاز قد يكون مغلقًا أو جدار حمايته يحجب ICMP. عدم الرد ليس دليلًا قاطعًا على عدم وجوده."
+        },
+        "nslookup nonexistent.example": {
+          question: "ماذا يعني الرد 'Non-existent domain' في nslookup؟",
+          options: [
+            "الاسم موجود لكن DNS بطيء",
+            "الاسم غير موجود في DNS",
+            "الاتصال بالإنترنت مقطوع",
+            "الجهاز لا يملك عنوان IP"
+          ],
+          answer: 1,
+          explain: "الرسالة تعني أن خادم DNS لم يجد سجلًا لهذا الاسم."
+        },
+        "netstat -ano": {
+          question: "كيف تربط اتصالًا في netstat -ano بعملية معروفة؟",
+          options: [
+            "عبر عنوان MAC",
+            "عبر PID باستخدام tasklist",
+            "عبر nslookup",
+            "عبر route print"
+          ],
+          answer: 1,
+          explain: "PID في netstat يمكن مطابقته مع tasklist لعرض اسم العملية."
+        },
+        "arp -a": {
+          question: "لماذا يظهر MAC ثابت ff-ff-ff-ff-ff-ff لعنوان البث؟",
+          options: [
+            "لأنه عنوان بث لا يحتاج تعلمًا فرديًا",
+            "لأن ARP معطل",
+            "لأنه خطأ في الشبكة",
+            "لأنه عنوان بوابة"
+          ],
+          answer: 0,
+          explain: "ff-ff-ff-ff-ff-ff هو عنوان MAC للبث، ويظهر ثابتًا لأنه ليس جهازًا فرديًا."
+        }
+      };
+
+      const outputEl = document.getElementById("cmd-output");
+      const formEl = document.getElementById("cmd-form");
+      const inputEl = document.getElementById("cmd-input");
+      const analysisEl = document.getElementById("analysis-question");
+
+      if (!outputEl || !formEl || !inputEl) return;
+
+      function appendLine(text, cls) {
+        const div = document.createElement("div");
+        if (cls) div.className = cls;
+        div.textContent = text;
+        outputEl.appendChild(div);
+      }
+
+      function appendBlock(lines) {
+        lines.forEach((l) => appendLine(l));
+      }
+
+      function showAnalysis(cmd) {
+        const q = ANALYSIS[cmd];
+        if (!q) {
+          analysisEl.style.display = "none";
+          analysisEl.innerHTML = "";
+          return;
+        }
+        analysisEl.style.display = "block";
+        analysisEl.innerHTML =
+          '<h3>سؤال تحليلي</h3>' +
+          '<p>' + q.question + '</p>' +
+          '<div class="analysis-options"></div>' +
+          '<div class="analysis-feedback" aria-live="polite"></div>';
+
+        const optsWrap = analysisEl.querySelector(".analysis-options");
+        const feedback = analysisEl.querySelector(".analysis-feedback");
+
+        q.options.forEach((opt, i) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "analysis-opt";
+          btn.textContent = (i + 1) + ") " + opt;
+          btn.addEventListener("click", () => {
+            optsWrap.querySelectorAll(".analysis-opt").forEach((b) => {
+              b.classList.remove("correct", "wrong");
+              b.disabled = true;
+            });
+            if (i === q.answer) {
+              btn.classList.add("correct");
+              feedback.style.color = "var(--success)";
+              feedback.textContent = "✔ صحيح. " + q.explain;
+            } else {
+              btn.classList.add("wrong");
+              optsWrap.querySelectorAll(".analysis-opt")[q.answer]
+                .classList.add("correct");
+              feedback.style.color = "var(--danger)";
+              feedback.textContent =
+                "✘ غير صحيح. الإجابة الصحيحة: " +
+                q.options[q.answer] + ". " + q.explain;
+            }
+          });
+          optsWrap.appendChild(btn);
+        });
+      }
+
+      function runCommand(raw) {
+        const cmd = raw.trim();
+        if (!cmd) return;
+
+        appendLine("C:\\> " + cmd, "line-cmd");
+
+        if (cmd.toLowerCase() === "cls") {
+          outputEl.innerHTML = "";
+          analysisEl.style.display = "none";
+          return;
+        }
+
+        const key = Object.keys(SIM).find(
+          (k) => k.toLowerCase() === cmd.toLowerCase()
+        );
+
+        if (key) {
+          appendBlock(SIM[key]);
+          showAnalysis(key);
+        } else {
+          appendLine(
+            "'" + cmd + "' is not recognized as an internal or external command,",
+            "line-err"
+          );
+          appendLine(
+            "or a supported command in this simulator. Type 'help' for the list.",
+            "line-err"
+          );
+          analysisEl.style.display = "none";
+        }
+
+        appendLine("");
+        outputEl.scrollTop = outputEl.scrollHeight;
+      }
+
+      formEl.addEventListener("submit", (e) => {
+        e.preventDefault();
+        runCommand(inputEl.value);
+        inputEl.value = "";
+        inputEl.focus();
+      });
+
+      // عرض ترحيبي
+      appendLine("CyberPath CMD Simulator — محاكاة تعليمية فقط", "line-ok");
+      appendLine("لا يتم تنفيذ أي أمر فعلي، ولا يتم الاتصال بأي شبكة.", "line-ok");
+      appendLine("اكتب 'help' لعرض الأوامر المدعومة.", "line-ok");
+      appendLine("");
+      inputEl.focus();
+    })();
+  </script>
+
+  <script>
+    window.QUIZZES = window.QUIZZES || {};
+    window.QUIZZES["unit4"] = {
+      title: "اختبار الوحدة 4",
+      questions: [
+        {
+          q: "أي أمر يعرض إعدادات الشبكة الأساسية؟",
+          options: ["ipconfig", "netstat", "arp", "route"],
+          answer: 0,
+          explain: "ipconfig يعرض عنوان IP والقناع والبوابة."
+        },
+        {
+          q: "ما معنى 169.254.x.x في نتيجة ipconfig؟",
+          options: [
+            "عنوان عام",
+            "عنوان link-local عند فشل DHCP",
+            "عنوان بوابة",
+            "عنوان DNS"
+          ],
+          answer: 1,
+          explain: "هو عنوان APIPA يظهر عند فشل الحصول على عنوان من DHCP."
+        },
+        {
+          q: "أي أمر يختبر إمكانية الوصول لمضيف؟",
+          options: ["ping", "tracert", "nslookup", "netstat"],
+          answer: 0,
+          explain: "ping يرسل ICMP Echo Request ويتحقق من الرد."
+        },
+        {
+          q: "ماذا تعني النجوم في منتصف نتيجة tracert؟",
+          options: [
+            "فشل كامل للمسار",
+            "قفزة لا ترد على ICMP لكن المسار يستمر",
+            "خطأ في الأمر",
+            "عنوان بوابة"
+          ],
+          answer: 1,
+          explain: "النجوم تعني عدم رد القفزة على ICMP، وقد يكمل المسار."
+        },
+        {
+          q: "أي أمر يستعلم عن سجلات DNS؟",
+          options: ["nslookup", "ping", "netstat", "arp"],
+          answer: 0,
+          explain: "nslookup يستعلم عن سجلات DNS."
+        },
+        {
+          q: "ما وظيفة الخيار -o في netstat -ano؟",
+          options: [
+            "عرض PID العملية",
+            "عرض العناوين كأسماء",
+            "عرض UDP فقط",
+            "عرض TCP فقط"
+          ],
+          answer: 0,
+          explain: "-o يعرض PID العملية المرتبطة بكل اتصال."
+        },
+        {
+          q: "أي أمر يعرض جدول ARP؟",
+          options: ["arp -a", "getmac", "route print", "netstat -a"],
+          answer: 0,
+          explain: "arp -a يعرض ربط IP بـ MAC للأجهزة المجاورة."
+        },
+        {
+          q: "أي أمر يعرض عنوان MAC لبطاقات الشبكة؟",
+          options: ["getmac", "arp -a", "ipconfig", "netstat"],
+          answer: 0,
+          explain: "getmac يعرض عناوين MAC لبطاقات الشبكة."
+        },
+        {
+          q: "ماذا يمثل 0.0.0.0/0 في route print؟",
+          options: [
+            "مسار محلي",
+            "المسار الافتراضي (البوابة)",
+            "عنوان بث",
+            "عنوان DNS"
+          ],
+          answer: 1,
+          explain: "0.0.0.0/0 هو المسار الافتراضي الذي يوجّه الترافيك عبر البوابة."
+        },
+        {
+          q: "صح أم خطأ: عدم رد ping دليل قاطع على عدم وجود الجهاز.",
+          options: ["صح", "خطأ"],
+          answer: 1,
+          explain: "قد يحجب الجهاز ICMP أو يكون جدار حمايته يمنع الرد."
+        }
+      ]
+    };
+  </script>
+  <script src="../assets/js/course.js"></script>
+  <script src="../assets/js/quiz.js"></script>
+</body>
+</html>
