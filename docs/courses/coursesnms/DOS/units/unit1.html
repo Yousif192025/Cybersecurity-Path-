@@ -29,11 +29,14 @@
     <section class="card">
       <h2>مقدمة</h2>
       <p>
-        سطر أوامر Windows (Command Prompt أو CMD) هو واجهة نصية تتيح لك التحكم
-        الكامل في النظام عبر كتابة أوامر بدلًا من النقر على الواجهة الرسومية.
-        في مجال الأمن السيبراني، يُعد CMD أداة أساسية لجمع المعلومات، فحص
-        الحالة الأمنية، والتحقيق في الحوادث، لأن معظم الأوامر سريعة، قابلة
-        للتسجيل، ويمكن أتمتتها داخل سكربتات.
+        سطر أوامر Windows (Command Prompt) هو واجهة نصية تتيح لك التحكم الكامل
+        في النظام عبر كتابة الأوامر. في الأمن السيبراني يُستخدم CMD لجمع
+        المعلومات، فحص الحالة الأمنية، التحقيق في الحوادث، وتوثيق الأدلة،
+        لأنه سريع وقابل للتسجيل والأتمتة.
+      </p>
+      <p>
+        في هذه الوحدة لن تكتفي بقراءة الأوامر، بل ستنفذها بنفسك خطوة بخطوة داخل
+        بيئة آمنة.
       </p>
     </section>
 
@@ -41,138 +44,314 @@
       <h2>أهداف الوحدة</h2>
       <ul class="check-list">
         <li>فهم طبيعة CMD والفرق بينه وبين PowerShell.</li>
-        <li>فتح CMD بصلاحيات عادية وبصلاحيات مسؤول.</li>
+        <li>فتح CMD بالوضع العادي وبوضع المسؤول.</li>
+        <li>قراءة موجه الأوامر والمسار الحالي.</li>
         <li>فهم بنية الأمر: الأمر + الخيارات + المعاملات.</li>
-        <li>استخدام نظام المساعدة لعرض توثيق أي أمر.</li>
-        <li>التعرف على الأوامر الخطرة وكيفية تجنبها.</li>
+        <li>استخدام نظام المساعدة <code>help</code> و <code>/?</code>.</li>
+        <li>استخدام أوامر أساسية: <code>cls</code>, <code>echo</code>, <code>title</code>, <code>ver</code>, <code>exit</code>.</li>
+        <li>التمييز بين الأوامر الآمنة والأوامر التي تحتاج حذرًا.</li>
       </ul>
     </section>
 
+    <!-- ============ 1. ما هو CMD ============ -->
     <section class="card">
-      <h2>شرح نظري</h2>
-      <p>
-        يعمل CMD عبر ملف <code>cmd.exe</code> الموجود في
-        <code>C:\Windows\System32\</code>. عند كتابة أمر، يبحث CMD عنه
-        بالترتيب: أوامر داخلية، ثم مسارات <code>PATH</code>، ثم الامتدادات
-        القابلة للتنفيذ (<code>.exe</code>, <code>.bat</code>, <code>.cmd</code>).
-      </p>
-      <p>
-        الصلاحيات مهمة جدًا: بعض الأوامر (مثل تعديل جدار الحماية أو إنشاء
-        مستخدم) تتطلب تشغيل CMD <strong>كمسؤول (Administrator)</strong>.
-        يمكنك معرفة ما إذا كنت مسؤولًا عبر الأمر <code>whoami /groups</code>
-        أو ببساطة ملاحظة عنوان النافذة (يظهر "Administrator" في العنوان عند
-        التشغيل المرتفع).
-      </p>
+      <h2>1) ما هو CMD؟</h2>
+      <p><strong>CMD (Command Prompt)</strong> هو مفسر أوامر نصي في Windows، يعمل عبر الملف <code>cmd.exe</code> الموجود في <code>C:\Windows\System32\</code>. تكتب فيه أمرًا فينفذه النظام ويعرض النتيجة نصيًا.</p>
+      <p>الميزة الأساسية: قابل للتوثيق والأتمتة. كل ما تفعله يمكن تسجيله وحفظه في ملف، وهذا أساس التحقيق الأمني.</p>
+    </section>
+
+    <!-- ============ 2. CMD vs PowerShell ============ -->
+    <section class="card">
+      <h2>2) الفرق بين CMD و PowerShell</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>الجانب</th><th>CMD</th><th>PowerShell</th></tr></thead>
+          <tbody>
+            <tr><td>النوع</td><td>مفسر أوامر نصي</td><td>بيئة أتمتة كائنية</td></tr>
+            <tr><td>المخرجات</td><td>نصوص</td><td>كائنات (Objects)</td></tr>
+            <tr><td>التوسعة</td><td>ملفات <code>.bat</code> / <code>.cmd</code></td><td>سكربتات <code>.ps1</code></td></tr>
+            <tr><td>الاستخدام</td><td>أوامر سريعة ومباشرة</td><td>أتمتة معقدة وفلترة متقدمة</td></tr>
+          </tbody>
+        </table>
+      </div>
       <div class="callout info">
-        <strong>CMD مقابل PowerShell:</strong> CMD بسيط وسريع للأوامر المباشرة،
-        أما PowerShell فهو بيئة أتمتة حديثة تعتمد على الكائنات (Objects).
-        سنستخدم CMD هنا كأساس، وسنمهد لـ PowerShell في الوحدة 10.
+        في هذا المقرر نبني على CMD كأساس، وسنمهّد للانتقال إلى PowerShell في الوحدة 10.
       </div>
     </section>
 
+    <!-- ============ 3. فتح CMD ============ -->
     <section class="card">
-      <h2>شرح تفصيلي للأوامر</h2>
-
-      <h3>1) فتح CMD</h3>
-      <p>طرق شائعة:</p>
-      <pre><code>Win + R → اكتب cmd → Enter
-Win + X → Terminal (Admin)  أو  Windows PowerShell (Admin)
-اكتب في شريط العنوان لمجلد: cmd  ثم Enter</code></pre>
-
-      <h3>2) <code>help</code> و <code>/?</code></h3>
-      <p>الصيغة:</p>
-      <pre><code>help
-help [command]
-[command] /?</code></pre>
-      <p>مثال:</p>
-      <pre><code>help dir
-dir /?</code></pre>
-      <p>النتيجة المتوقعة: عرض توثيق الأمر مع الخيارات المتاحة.</p>
-      <p>التفسير: استخدم <code>/?</code> عند نسيان خيارات أي أمر؛ هي أسرع طريقة للتحقق بدلًا من البحث على الإنترنت.</p>
-
-      <h3>3) <code>cls</code></h3>
-      <p>الصيغة:</p>
-      <pre><code>cls</code></pre>
-      <p>الوظيفة: مسح الشاشة. مفيد قبل التقاط مخرجات نظيفة.</p>
-
-      <h3>4) <code>echo</code></h3>
-      <p>الصيغة:</p>
-      <pre><code>echo [text]
-echo %USERNAME%</code></pre>
-      <p>مثال:</p>
-      <pre><code>echo Hello CyberPath
-echo %USERPROFILE%</code></pre>
-      <p>النتيجة: طباعة النص أو قيمة متغير البيئة.</p>
-
-      <h3>5) <code>exit</code></h3>
-      <p>الصيغة:</p>
-      <pre><code>exit</code></pre>
-      <p>الوظيفة: إغلاق نافذة CMD.</p>
-
-      <h3>6) <code>title</code></h3>
-      <p>الصيغة:</p>
-      <pre><code>title [نص]</code></pre>
-      <p>مثال:</p>
-      <pre><code>title Security Audit Session</code></pre>
-      <p>يفيد في تمييز نافذة التحقيق عند فتح عدة نوافذ.</p>
-    </section>
-
-    <section class="card">
-      <h2>الاستخدامات الأمنية</h2>
-      <ul class="check-list">
-        <li>توثيق كل خطوة تحقيق عبر <code>echo</code> و<code>title</code>.</li>
-        <li>التحقق من الصلاحيات قبل تنفيذ أوامر حساسة.</li>
-        <li>استخدام <code>/?</code> لتفادي أخطاء الأوامر الخطرة.</li>
-      </ul>
-    </section>
-
-    <section class="card">
-      <h2>الأخطاء الشائعة</h2>
-      <ul class="check-list">
-        <li>نسيان أن الأمر يحتاج صلاحيات مسؤول.</li>
-        <li>كتابة المسار بـ / بدلًا من \ في أوامر Windows.</li>
-        <li>نسخ أوامر من الإنترنت دون فهمها — خطر أمني حقيقي.</li>
-      </ul>
-      <div class="callout warn">
-        <strong>تحذير:</strong> لا تشغّل أوامر من مصادر غير موثوقة على جهازك
-        الشخصي. استخدم دائمًا جهازًا افتراضيًا (VM) للتدريب.
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>تمارين عملية</h2>
-      <ol>
-        <li>افتح CMD كمسؤول وتحقق من <code>whoami</code>.</li>
-        <li>اعرض توثيق الأمر <code>copy</code>.</li>
-        <li>اطبع قيمة <code>%USERNAME%</code> و <code>%COMPUTERNAME%</code>.</li>
+      <h2>3) كيفية فتح CMD</h2>
+      <p>هذه خطوات تنفيذها على واجهة Windows وليست أوامر CMD:</p>
+      <ol class="steps">
+        <li>اضغط <code>Win + R</code> لفتح نافذة التشغيل.</li>
+        <li>اكتب <code>cmd</code> ثم اضغط <code>Enter</code>.</li>
+        <li>تظهر نافذة سوداء فيها موجه الأوامر.</li>
+      </ol>
+      <p>طرق بديلة:</p>
+      <ol class="steps">
+        <li>اضغط <code>Win + X</code> ثم اختر <em>Terminal</em> أو <em>Windows PowerShell</em>.</li>
+        <li>من شريط عنوان أي مجلد في المستكشف، اكتب <code>cmd</code> واضغط <code>Enter</code> لفتح CMD في ذلك المسار.</li>
       </ol>
     </section>
 
+    <!-- ============ 4. التشغيل كمسؤول ============ -->
+    <section class="card">
+      <h2>4) الفرق بين التشغيل العادي والتشغيل كمسؤول</h2>
+      <p>بعض الأوامر (تعديل جدار الحماية، إنشاء مستخدم، تعديل الخدمات) تتطلب صلاحيات مرتفعة. عند التشغيل كمسؤول يظهر في عنوان النافذة <em>Administrator</em>.</p>
+      <p>خطوات فتح CMD كمسؤول:</p>
+      <ol class="steps">
+        <li>اضغط <code>Win</code> واكتب <code>cmd</code>.</li>
+        <li>انقر بزر الفأرة الأيمن على <em>Command Prompt</em>.</li>
+        <li>اختر <em>Run as administrator</em>.</li>
+        <li>وافق على نافذة UAC.</li>
+      </ol>
+      <div class="callout warn">
+        <strong>تحذير:</strong> لا تشغّل CMD كمسؤول إلا عند الحاجة الفعلية، لتقليل الأثر عند تنفيذ أمر خاطئ.
+      </div>
+    </section>
+
+    <!-- ============ 5. موجه الأوامر والمسار ============ -->
+    <section class="card">
+      <h2>5) التعرف على موجه الأوامر والمسار الحالي</h2>
+      <p>يبدأ كل سطر بمسار مثل <code>C:\Users\Yousif&gt;</code>. ما بعد <code>&gt;</code> هو مكان كتابة الأوامر.</p>
+      <p>لمعرفة المسار الحالي نستخدم الأمر:</p>
+
+      <h3>الأمر: cd (عرض المسار الحالي)</h3>
+      <p><strong>الهدف التعليمي:</strong> معرفة المجلد الذي تعمل فيه حاليًا.</p>
+      <p><strong>متى نستخدمه؟</strong> قبل أي عملية ملفات، للتأكد أنك في المكان الصحيح.</p>
+      <p><strong>المتطلبات:</strong> لا يحتاج صلاحيات خاصة.</p>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>cd</code></pre>
+      </div>
+
+      <p><strong>مثال عملي:</strong> نفّذ الأمر في نافذة CMD جديدة.</p>
+      <p><strong>المخرجات المتوقعة (نموذج):</strong></p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">output</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>C:\Users\Yousif</code></pre>
+      </div>
+      <p><strong>تفسير المخرجات:</strong> السطر يعني أنك تعمل داخل مجلد المستخدم Yousif.</p>
+      <p><strong>الاستخدام الأمني:</strong> التحقق من مسار التنفيذ قبل حفظ الأدلة في مكان معروف.</p>
+      <p><strong>الأخطاء الشائعة:</strong> كتابة مسار خاطئ بعد <code>cd</code> يعطي رسالة "The system cannot find the path specified".</p>
+      <p><strong>تمرين:</strong> نفّذ <code>cd</code> ثم اكتب النتيجة التي ظهرت لك.</p>
+      <p><strong>سؤال تطبيقي:</strong> ماذا يعني إن ظهر المسار <code>C:\Windows\System32</code> بعد تنفيذ <code>cd</code>؟</p>
+    </section>
+
+    <!-- ============ 6. بنية الأوامر ============ -->
+    <section class="card">
+      <h2>6) فهم بنية الأوامر</h2>
+      <p>الأمر في CMD يتكون من ثلاثة أجزاء:</p>
+      <ul>
+        <li><strong>الأمر:</strong> اسم الأداة، مثل <code>dir</code>.</li>
+        <li><strong>الخيارات (Options):</strong> تبدأ بـ <code>/</code> مثل <code>/a</code>.</li>
+        <li><strong>المعاملات (Arguments):</strong> قيم يمررها الأمر، مثل اسم ملف أو مسار.</li>
+      </ul>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>dir C:\Users /a</code></pre>
+      </div>
+      <p>هنا: <code>dir</code> الأمر، <code>C:\Users</code> معامل، <code>/a</code> خيار.</p>
+    </section>
+
+    <!-- ============ 7. help ============ -->
+    <section class="card">
+      <h2>7) استخدام help</h2>
+      <p><strong>الهدف:</strong> عرض قائمة الأوامر أو توثيق أمر محدد.</p>
+      <p><strong>متى نستخدمه؟</strong> عند نسيان صيغة أمر أو خياراته.</p>
+      <p><strong>المتطلبات:</strong> لا يحتاج صلاحيات.</p>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>help</code></pre>
+      </div>
+      <p><strong>المخرجات المتوقعة:</strong> قائمة بالأوامر الداخلية في CMD.</p>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>help dir</code></pre>
+      </div>
+      <p><strong>المخرجات المتوقعة:</strong> توثيق الأمر <code>dir</code> مع خياراته.</p>
+      <p><strong>التفسير:</strong> اقرأ قسم <em>Syntax</em> لمعرفة الصيغة العامة.</p>
+      <p><strong>الاستخدام الأمني:</strong> تفادي أخطاء الأوامر الخطرة بالرجوع للتوثيق.</p>
+      <p><strong>خطأ شائع:</strong> <code>help</code> لا يعمل مع كل الأدوات الخارجية؛ استخدم <code>/?</code> لتغطية أوسع.</p>
+      <p><strong>تمرين:</strong> اعرض توثيق <code>copy</code>.</p>
+      <p><strong>سؤال تطبيقي:</strong> أي أمر يعرض توثيق <code>net</code>؟</p>
+    </section>
+
+    <!-- ============ 8. /? ============ -->
+    <section class="card">
+      <h2>8) استخدام /? للحصول على المساعدة</h2>
+      <p><strong>الهدف:</strong> الحصول على المساعدة لأي أمر تقريبًا.</p>
+      <p><strong>متى نستخدمه؟</strong> عندما لا يوفّر <code>help</code> توثيقًا.</p>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>dir /?</code></pre>
+      </div>
+      <p><strong>المخرجات المتوقعة:</strong> توثيق <code>dir</code> كامل مع الخيارات.</p>
+      <p><strong>التفسير:</strong> نفس توثيق <code>help dir</code> لكن يعمل مع أدوات خارجية أيضًا.</p>
+      <p><strong>الاستخدام الأمني:</strong> قبل تنفيذ أي أمر غير مألوف، اقرأ توثيقه.</p>
+      <p><strong>خطأ شائع:</strong> كتابة <code>?</code> دون <code>/</code> لا يعمل.</p>
+      <p><strong>تمرين:</strong> اعرض توثيق <code>tasklist</code>.</p>
+      <p><strong>سؤال تطبيقي:</strong> ما الفرق بين <code>help dir</code> و <code>dir /?</code>؟</p>
+    </section>
+
+    <!-- ============ 9. cls ============ -->
+    <section class="card">
+      <h2>9) استخدام cls</h2>
+      <p><strong>الهدف:</strong> مسح الشاشة لبدء جلسة نظيفة.</p>
+      <p><strong>متى نستخدمه؟</strong> قبل التقاط مخرجات نظيفة أو بدء فحص جديد.</p>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>cls</code></pre>
+      </div>
+      <p><strong>المخرجات المتوقعة:</strong> شاشة فارغة مع موجه الأوامر أعلى النافذة.</p>
+      <p><strong>التفسير:</strong> لا يحذف شيئًا من النظام، فقط يمسح عرض النافذة.</p>
+      <p><strong>الاستخدام الأمني:</strong> بدء تحقيق بمخرجات نظيفة قابلة للتوثيق.</p>
+      <p><strong>خطأ شائع:</strong> الاعتقاد أن <code>cls</code> يمسح السجلات — لا يفعل.</p>
+      <p><strong>تمرين:</strong> نفّذ <code>help</code> ثم <code>cls</code>.</p>
+      <p><strong>سؤال تطبيقي:</strong> هل يؤثر <code>cls</code> على سجلات Windows؟</p>
+    </section>
+
+    <!-- ============ 10. echo ============ -->
+    <section class="card">
+      <h2>10) استخدام echo</h2>
+      <p><strong>الهدف:</strong> طباعة نص أو قيمة متغير بيئة.</p>
+      <p><strong>متى نستخدمه؟</strong> للتوثيق السريع أو لقراءة متغيرات مثل اسم المستخدم.</p>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>echo Hello CyberPath</code></pre>
+      </div>
+      <p><strong>المخرجات المتوقعة:</strong> <code>Hello CyberPath</code>.</p>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>echo %USERNAME%</code></pre>
+      </div>
+      <p><strong>المخرجات المتوقعة (نموذج):</strong> <code>Yousif</code>.</p>
+      <p><strong>التفسير:</strong> <code>%USERNAME%</code> متغير بيئة يعرض اسم المستخدم الحالي.</p>
+      <p><strong>الاستخدام الأمني:</strong> إدراج اسم المستخدم والجهاز في تقرير التحقيق تلقائيًا.</p>
+      <p><strong>خطأ شائع:</strong> نسيان إشارات <code>%</code> حول اسم المتغير فيظهر النص حرفيًا.</p>
+      <p><strong>تمرين:</strong> اطبع قيمة <code>%COMPUTERNAME%</code>.</p>
+      <p><strong>سؤال تطبيقي:</strong> أي متغير يعرض مسار مجلد المستخدم؟</p>
+    </section>
+
+    <!-- ============ 11. title ============ -->
+    <section class="card">
+      <h2>11) استخدام title</h2>
+      <p><strong>الهدف:</strong> تغيير عنوان نافذة CMD.</p>
+      <p><strong>متى نستخدمه؟</strong> عند فتح عدة نوافذ للتمييز بينها أثناء التحقيق.</p>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>title Security Audit Session</code></pre>
+      </div>
+      <p><strong>المخرجات المتوقعة:</strong> يتغير عنوان النافذة إلى النص المكتوب.</p>
+      <p><strong>التفسير:</strong> العنوان أداة تنظيمية، لا يؤثر على النظام.</p>
+      <p><strong>الاستخدام الأمني:</strong> تمييز نوافذ التحقيق بحسب الهدف أو الوقت.</p>
+      <p><strong>خطأ شائع:</strong> عدم استخدام علامات تنصيص عند وجود مسافات معقدة (نادرًا ما يلزم).</p>
+      <p><strong>تمرين:</strong> غيّر العنوان إلى "CyberPath Unit1".</p>
+      <p><strong>سؤال تطبيقي:</strong> لماذا يفيد <code>title</code> أثناء التحقيق؟</p>
+    </section>
+
+    <!-- ============ 12. ver ============ -->
+    <section class="card">
+      <h2>12) استخدام ver</h2>
+      <p><strong>الهدف:</strong> عرض إصدار Windows.</p>
+      <p><strong>متى نستخدمه؟</strong> للتحقق السريع من إصدار النظام قبل أي فحص أمني.</p>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>ver</code></pre>
+      </div>
+      <p><strong>المخرجات المتوقعة (نموذج):</strong></p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">output</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>Microsoft Windows [Version 10.0.22631.3085]</code></pre>
+      </div>
+      <p><strong>التفسير:</strong> الرقم الأول 10 أو 11 يدل على الإصدار الرئيسي. الأرقام اللاحقة تفاصيل البناء.</p>
+      <p><strong>الاستخدام الأمني:</strong> تسجيل إصدار النظام في تقرير التقييم.</p>
+      <p><strong>خطأ شائع:</strong> توقع تفاصيل أكثر مما يعرضه <code>ver</code>؛ للتفاصيل استخدم <code>systeminfo</code>.</p>
+      <p><strong>تمرين:</strong> نفّذ <code>ver</code> وسجّل الناتج.</p>
+      <p><strong>سؤال تطبيقي:</strong> ما الفرق بين <code>ver</code> و <code>systeminfo</code>؟</p>
+    </section>
+
+    <!-- ============ 13. exit ============ -->
+    <section class="card">
+      <h2>13) استخدام exit</h2>
+      <p><strong>الهدف:</strong> إغلاق نافذة CMD أو إنهاء سكربت.</p>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">cmd</span><button class="copy-btn" type="button">نسخ</button></div>
+        <pre><code>exit</code></pre>
+      </div>
+      <p><strong>المخرجات المتوقعة:</strong> تُغلق النافذة فورًا.</p>
+      <p><strong>التفسير:</strong> في السكربتات، <code>exit /b</code> ينهي السكربت دون إغلاق النافذة.</p>
+      <p><strong>الاستخدام الأمني:</strong> إنهاء جلسة تحقيق بعد حفظ المخرجات.</p>
+      <p><strong>خطأ شائع:</strong> استخدام <code>exit</code> داخل سكربت قبل حفظ المخرجات.</p>
+      <p><strong>تمرين:</strong> احفظ مخرجات <code>ver</code> في ملف ثم نفّذ <code>exit</code>.</p>
+      <p><strong>سؤال تطبيقي:</strong> ما الفرق بين <code>exit</code> و <code>exit /b</code>؟</p>
+    </section>
+
+    <!-- ============ الأخطاء الشائعة ============ -->
+    <section class="card">
+      <h2>الأخطاء الشائعة في الوحدة</h2>
+      <ul class="check-list">
+        <li>نسيان أن الأمر يحتاج صلاحيات مسؤول.</li>
+        <li>استخدام <code>/</code> بدلًا من <code>\</code> في مسارات Windows.</li>
+        <li>نسخ أوامر من الإنترنت دون فهمها.</li>
+        <li>الخلط بين خطوات واجهة Windows وأوامر CMD.</li>
+      </ul>
+      <div class="callout warn">
+        لا تنفّذ أوامر خطرة على جهازك الشخصي. استخدم دائمًا جهازًا افتراضيًا (VM).
+      </div>
+    </section>
+
+    <!-- ============ تمارين ============ -->
+    <section class="card">
+      <h2>تمارين عملية</h2>
+      <ol class="steps">
+        <li>افتح CMD عاديًا ونفّذ <code>whoami</code>.</li>
+        <li>اعرض توثيق <code>copy</code> باستخدام <code>help</code> و <code>/?</code>.</li>
+        <li>اطبع <code>%USERNAME%</code> و <code>%COMPUTERNAME%</code> و <code>%DATE%</code>.</li>
+        <li>غيّر عنوان النافذة إلى "Unit1 Lab".</li>
+        <li>نفّذ <code>ver</code> وسجّل الناتج في مفكرة.</li>
+      </ol>
+    </section>
+
+    <!-- ============ تحديات ============ -->
     <section class="card">
       <h2>تحديات تطبيقية</h2>
       <ul>
-        <li>غيّر عنوان النافذة إلى "Baseline Check".</li>
-        <li>اكتب أمرًا يطبع تاريخ اليوم باستخدام <code>echo %DATE% %TIME%</code>.</li>
-        <li>ابحث باستخدام <code>/?</code> عن خيار يعرض مساعدة الأمر <code>net</code>.</li>
+        <li>اجمع في ملف واحد اسم المستخدم واسم الجهاز وإصدار النظام باستخدام <code>echo</code> وإعادة التوجيه <code>&gt;</code>.</li>
+        <li>افتح نافذتين CMD، ضع عنوانًا مختلفًا لكل منهما.</li>
+        <li>استخدم <code>/ ?</code> لاكتشاف خيار يعرض المساعدة للأمر <code>net</code>.</li>
       </ul>
     </section>
 
+    <!-- ============ اختبار ============ -->
     <section class="card">
       <h2>اختبار قصير</h2>
       <div id="quiz" data-quiz="unit1"></div>
     </section>
 
+    <!-- ============ ملخص ============ -->
     <section class="card">
       <h2>ملخص</h2>
-      <p>تعرفنا على CMD، طريقة فتحه، بنية الأوامر، ونظام المساعدة. هذه أساسات
-      ستُستخدم في كل الوحدات القادمة.</p>
+      <p>تعرفنا على CMD، الفرق بينه وبين PowerShell، طرق فتحه، الصلاحيات، بنية الأوامر، ونظام المساعدة، وطبّقنا أوامر أساسية آمنة.</p>
     </section>
 
+    <!-- ============ مراجع ============ -->
     <section class="card">
       <h2>مراجع موثوقة</h2>
       <ul>
         <li>Microsoft Learn — Command-line reference A-Z.</li>
-        <li>وثائق cmd.exe الرسمية من Microsoft.</li>
+        <li>وثائق <code>cmd.exe</code> الرسمية.</li>
       </ul>
     </section>
 
@@ -192,25 +371,25 @@ echo %USERPROFILE%</code></pre>
       title: "اختبار الوحدة 1",
       questions: [
         {
-          q: "أي أمر يعرض توثيق أي أمر في CMD؟",
-          options: ["help [command] أو [command] /?", "man [command]", "info [command]", "doc [command]"],
-          answer: 0,
-          explain: "CMD يستخدم help أو /? للحصول على التوثيق."
+          q: "أي أمر يعرض توثيق أي أداة في CMD بشكل عام؟",
+          options: ["man [command]", "[command] /?", "doc [command]", "info [command]"],
+          answer: 1,
+          explain: "الصيغة العامة للمساعدة هي [command] /?، وتعمل مع معظم الأدوات."
         },
         {
           q: "ما الأمر الذي يمسح الشاشة؟",
           options: ["clear", "cls", "clean", "reset"],
           answer: 1,
-          explain: "cls هو أمر مسح الشاشة في CMD."
+          explain: "cls يمسح الشاشة، ولا يؤثر على سجلات النظام."
         },
         {
-          q: "أي مما يلي يعرض اسم المستخدم الحالي؟",
-          options: ["whoami", "user", "username", "me"],
+          q: "أي مما يلي يعرض إصدار Windows؟",
+          options: ["ver", "version", "winver", "osver"],
           answer: 0,
-          explain: "whoami يعرض المستخدم الحالي."
+          explain: "ver يعرض إصدار نظام التشغيل بسرعة."
         },
         {
-          q: "لتعديل جدار الحماية أو إنشاء مستخدم، يجب تشغيل CMD:",
+          q: "لتعديل جدار الحماية أو إنشاء مستخدم يجب تشغيل CMD:",
           options: ["بوضع آمن", "كمسؤول (Administrator)", "بوضع التوافق", "بدون شبكة"],
           answer: 1,
           explain: "الأوامر الحساسة تتطلب صلاحيات مرتفعة."
@@ -220,6 +399,36 @@ echo %USERPROFILE%</code></pre>
           options: ["%HOSTNAME%", "%COMPUTERNAME%", "%PC%", "%MACHINE%"],
           answer: 1,
           explain: "%COMPUTERNAME% يحتوي اسم الجهاز."
+        },
+        {
+          q: "ما وظيفة الأمر title؟",
+          options: ["تغيير اسم الملف", "تغيير عنوان نافذة CMD", "تغيير اسم المستخدم", "تغيير المسار الحالي"],
+          answer: 1,
+          explain: "title يغيّر عنوان النافذة لتمييز جلسات التحقيق."
+        },
+        {
+          q: "صح أم خطأ: cls يحذف سجلات Windows.",
+          options: ["صح", "خطأ"],
+          answer: 1,
+          explain: "cls يمسح عرض النافذة فقط، ولا يحذف أي سجلات."
+        },
+        {
+          q: "صح أم خطأ: /? يعمل مع معظم الأدوات الخارجية.",
+          options: ["صح", "خطأ"],
+          answer: 0,
+          explain: "/? يعمل مع معظم أدوات Windows بما فيها الخارجية."
+        },
+        {
+          q: "ما الفرق بين exit و exit /b؟",
+          options: ["لا فرق", "exit يغلق النافذة، exit /b ينهي السكربت فقط", "exit /b يغلق النافذة، exit ينهي السكربت", "exit /b للحالات الخاصة فقط"],
+          answer: 1,
+          explain: "exit يغلق النافذة، أما exit /b فينهي السكربت الحالي دون إغلاق النافذة."
+        },
+        {
+          q: "لحفظ نتيجة أمر في ملف بدلًا من عرضها:",
+          options: ["|", ">", "#", "&"],
+          answer: 1,
+          explain: "> لإعادة توجيه المخرجات إلى ملف."
         }
       ]
     };
