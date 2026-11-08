@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الوحدة السابعة: سجلات Windows والتحليل الأمني | أساسيات أوامر Windows CMD للأمن السيبراني</title>
+
+<!-- ===== SEO ===== -->
+<meta name="description" content="الوحدة السابعة من مقرر أساسيات أوامر Windows CMD للأمن السيبراني — سجلات Windows والتحليل الأمني: wevtutil, Event Viewer, Event IDs (4624, 4625, 1102, 6005), تحليل التسلسل الزمني، ومحاكي تفاعلي آمن واختبار من 10 أسئلة.">
+<meta name="keywords" content="Windows Event Logs, wevtutil, Event Viewer, 4624, 4625, 1102, 6005, System log, Security log, Application log, التحليل الأمني, Timeline Analysis, الأمن السيبراني, CMD">
+<meta name="author" content="CyberPath">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#0b1220">
+
+<!-- ===== الملفات المشتركة ===== -->
+<link rel="stylesheet" href="../assets/css/course.css">
+
+<!-- ===== أنماط مكملة (لا تتعارض مع course.css) ===== -->
+<style>
+  :root {
+    --u7-font-sans: 'Tajawal', system-ui, 'Segoe UI', Tahoma, Arial, sans-serif;
+    --u7-font-mono: 'JetBrains Mono', 'Cascadia Mono', Consolas, 'Courier New', monospace;
+  }
+
+  .u7-page { line-height: 1.85; font-family: var(--u7-font-sans); }
+  .u7-page h2 { font-weight: 800; }
+  .u7-page h3 { font-weight: 700; }
+  .u7-page code, .u7-page pre { font-family: var(--u7-font-mono); }
+  .u7-lead { font-size: 1.02rem; color: #4a5568; }
+
+  /* === صناديق التنبيه === */
+  .u7-alert {
+    display: flex; gap: 12px; padding: 14px 16px; border-radius: 12px;
+    margin: 16px 0; font-size: .93rem; line-height: 1.8;
+    border-right: 4px solid; background: #f7fafc;
+  }
+  .u7-alert .icon { font-size: 1.3rem; flex-shrink: 0; line-height: 1.4; }
+  .u7-alert.info { border-right-color: #3498db; background: #ebf8ff; color: #1a4971; }
+  .u7-alert.warn { border-right-color: #f39c12; background: #fffbea; color: #7b4b00; }
+  .u7-alert.danger { border-right-color: #e74c3c; background: #fdedec; color: #78281f; }
+  .u7-alert.success { border-right-color: #27ae60; background: #e8f8ee; color: #186a3b; }
+
+  /* === كتلة الأمر === */
+  .cmd-block {
+    background: #0d1117; border: 1px solid #30363d; border-radius: 12px;
+    margin: 18px 0; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,.08);
+  }
+  .cmd-block .cmd-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 14px; background: #161b22; border-bottom: 1px solid #30363d;
+    font-size: .8rem; color: #8b949e; gap: 8px;
+  }
+  .cmd-block .cmd-title {
+    display: flex; align-items: center; gap: 8px; font-weight: 700;
+    color: #58a6ff; word-break: break-all;
+  }
+  .cmd-block .cmd-title::before { content: '>_'; color: #3fb950; }
+  .cmd-block .cmd-copy {
+    background: #21262d; color: #c9d1d9; border: 1px solid #30363d;
+    border-radius: 6px; padding: 4px 10px; cursor: pointer; font-family: inherit;
+    font-size: .75rem; font-weight: 600; transition: .2s; white-space: nowrap;
+  }
+  .cmd-block .cmd-copy:hover { background: #30363d; color: #58a6ff; }
+  .cmd-block .cmd-copy.copied { background: #238636; color: #fff; border-color: #2ea043; }
+  .cmd-block pre {
+    margin: 0; padding: 14px 16px; overflow-x: auto;
+    color: #c9d1d9; font-size: .85rem; line-height: 1.7;
+    direction: ltr; text-align: left;
+  }
+  .cmd-block pre .prompt { color: #3fb950; user-select: none; }
+  .cmd-block pre .comment { color: #8b949e; font-style: italic; }
+
+  /* === بطاقات المفاهيم === */
+  .concepts-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px; margin: 16px 0;
+  }
+  .concept-card {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+    padding: 14px 16px; transition: .2s;
+  }
+  .concept-card:hover { border-color: #3498db; box-shadow: 0 4px 12px rgba(52,152,219,.1); }
+  .concept-card .term {
+    font-weight: 700; color: #1a237e; font-size: .95rem; margin-bottom: 4px;
+    font-family: var(--u7-font-mono);
+  }
+  .concept-card .term-ar { color: #3498db; font-size: .82rem; margin-bottom: 6px; }
+  .concept-card .def { font-size: .88rem; color: #4a5568; line-height: 1.7; }
+
+  /* === جدول مرجعي === */
+  .ref-table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: .9rem; }
+  .ref-table th {
+    background: #1a237e; color: #fff; padding: 10px 12px; text-align: right;
+    font-weight: 700; border: none;
+  }
+  .ref-table td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; color: #2d3748; }
+  .ref-table tr:nth-child(even) td { background: #f8fafc; }
+  .ref-table code {
+    background: #edf2f7; color: #c53030; padding: 2px 6px;
+    border-radius: 4px; font-size: .82rem;
+  }
+
+  /* === المحاكي === */
+  .sim-wrap {
+    background: linear-gradient(180deg, #0b1220 0%, #0f1b30 100%);
+    border: 1px solid #1c2d4a; border-radius: 16px;
+    overflow: hidden; margin: 18px 0; box-shadow: 0 12px 32px rgba(0,0,0,.25);
+  }
+  .sim-banner {
+    background: linear-gradient(90deg, #7b4b00, #b8860b); color: #fff;
+    padding: 10px 16px; font-size: .82rem; font-weight: 700; text-align: center;
+    letter-spacing: .2px;
+  }
+  .sim-input-row {
+    display: flex; gap: 8px; padding: 12px 14px;
+    background: #152540; border-bottom: 1px solid #1c2d4a;
+    flex-wrap: wrap;
+  }
+  .sim-input-row .prompt-label {
+    display: flex; align-items: center; gap: 6px;
+    background: #040814; color: #22d3ee;
+    padding: 8px 12px; border-radius: 8px; border: 1px solid #26405f;
+    font-family: var(--u7-font-mono); font-size: .85rem; font-weight: 700;
+    user-select: none;
+  }
+  .sim-input-row input[type="text"] {
+    flex: 1; min-width: 200px;
+    background: #040814; color: #e6edf7;
+    border: 1px solid #26405f; border-radius: 8px;
+    padding: 8px 12px; font-family: var(--u7-font-mono);
+    font-size: .85rem; direction: ltr; text-align: left;
+    outline: none; transition: .2s;
+  }
+  .sim-input-row input[type="text"]:focus {
+    border-color: #22d3ee; box-shadow: 0 0 0 2px rgba(34,211,238,.15);
+  }
+  .sim-input-row input[type="text"]::placeholder { color: #5f7395; }
+
+  .sim-toolbar {
+    display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 14px;
+    background: #152540; border-bottom: 1px solid #1c2d4a;
+  }
+  .sim-toolbar select, .sim-toolbar button,
+  .sim-input-row button {
+    font-family: inherit; font-size: .82rem; padding: 7px 12px;
+    border-radius: 8px; border: 1px solid #26405f;
+    background: #0f1b30; color: #e6edf7; cursor: pointer; transition: .2s;
+  }
+  .sim-toolbar button:hover,
+  .sim-input-row button:hover { border-color: #22d3ee; }
+  .sim-toolbar button.primary,
+  .sim-input-row button.primary {
+    background: linear-gradient(135deg, #0891b2, #22d3ee); color: #03212b;
+    border: none; font-weight: 700;
+  }
+  .sim-toolbar button.danger,
+  .sim-input-row button.danger {
+    background: transparent; color: #f87171; border-color: rgba(248,113,113,.4);
+  }
+  .sim-toolbar button.danger:hover,
+  .sim-input-row button.danger:hover { background: rgba(248,113,113,.1); }
+  .sim-toolbar select { min-width: 260px; flex: 1; }
+
+  .sim-output {
+    background: #040814; color: #c9d1d9;
+    font-family: var(--u7-font-mono);
+    font-size: .82rem; line-height: 1.65; padding: 14px 16px;
+    min-height: 180px; max-height: 420px; overflow-y: auto;
+    direction: ltr; text-align: left; white-space: pre-wrap; word-break: break-word;
+  }
+  .sim-output .sim-prompt { color: #22d3ee; font-weight: 700; }
+  .sim-output .sim-echo { color: #e6edf7; }
+  .sim-output .sim-note { color: #fbbf24; }
+  .sim-output .sim-error { color: #f87171; }
+  .sim-output .sim-success { color: #34d399; }
+
+  .sim-hint {
+    padding: 10px 14px; background: #0f1b30; border-top: 1px solid #1c2d4a;
+    font-size: .82rem; color: #94a3b8; line-height: 1.7;
+  }
+  .sim-hint strong { color: #22d3ee; }
+  .sim-hint code {
+    background: #152540; color: #22d3ee; padding: 1px 6px;
+    border-radius: 4px; font-family: var(--u7-font-mono); font-size: .78rem;
+  }
+
+  /* === التمارين === */
+  .exercise {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+    padding: 16px 18px; margin-bottom: 12px;
+  }
+  .exercise .ex-head {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+    font-weight: 700; color: #1a237e;
+  }
+  .exercise .ex-num {
+    background: #1a237e; color: #fff; width: 28px; height: 28px;
+    border-radius: 50%; display: grid; place-items: center; font-size: .82rem;
+    flex-shrink: 0;
+  }
+  .exercise .ex-body { font-size: .92rem; color: #2d3748; }
+  .exercise details { margin-top: 10px; }
+  .exercise details summary {
+    cursor: pointer; color: #0891b2; font-weight: 700; font-size: .88rem;
+    padding: 6px 10px; background: #e0f2fe; border-radius: 8px;
+    display: inline-block;
+  }
+  .exercise details[open] summary { background: #bae6fd; }
+  .exercise details .answer {
+    margin-top: 10px; padding: 12px 14px; background: #e8f8ee;
+    border-right: 3px solid #27ae60; border-radius: 8px;
+    font-size: .9rem; color: #186a3b; line-height: 1.8;
+  }
+
+  /* === الملخص === */
+  .summary-list { list-style: none; padding: 0; margin: 0; }
+  .summary-list li {
+    position: relative; padding: 8px 32px 8px 0; font-size: .93rem;
+    border-bottom: 1px dashed #e2e8f0;
+  }
+  .summary-list li:last-child { border-bottom: none; }
+  .summary-list li::before {
+    content: '✓'; position: absolute; right: 0; top: 8px;
+    color: #27ae60; font-weight: 800;
+  }
+
+  /* === التنقل === */
+  .unit-nav {
+    display: flex; justify-content: space-between; gap: 12px;
+    margin-top: 30px; flex-wrap: wrap;
+  }
+  .unit-nav a {
+    flex: 1; min-width: 200px; padding: 14px 20px; border-radius: 12px;
+    text-decoration: none; font-weight: 700; text-align: center;
+    transition: .2s; border: 1px solid #e2e8f0; background: #fff;
+    color: #1a237e;
+  }
+  .unit-nav a:hover { border-color: #3498db; box-shadow: 0 4px 12px rgba(52,152,219,.15); }
+  .unit-nav a.prev { color: #4a5568; }
+  .unit-nav a.next {
+    background: linear-gradient(135deg, #1a237e, #3949ab); color: #fff; border: none;
+  }
+  .unit-nav a.next:hover { filter: brightness(1.1); }
+
+  /* === المراجع === */
+  .refs-list { padding-right: 20px; }
+  .refs-list li { margin-bottom: 8px; font-size: .92rem; color: #4a5568; }
+  .refs-list a { color: #0891b2; text-decoration: none; }
+  .refs-list a:hover { text-decoration: underline; }
+
+  /* === استجابة === */
+  @media (max-width: 720px) {
+    .cmd-block pre { font-size: .78rem; padding: 12px; }
+    .ref-table { font-size: .82rem; }
+    .ref-table th, .ref-table td { padding: 8px 6px; }
+    .sim-toolbar select { min-width: 100%; }
+    .sim-input-row input[type="text"] { min-width: 100%; }
+    .sim-output { font-size: .76rem; max-height: 340px; }
+    .unit-nav a { min-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<main class="u7-page" dir="rtl">
+
+  <!-- ============================================================
+       1. رأس الوحدة
+       ============================================================ -->
+  <header class="unit-header" style="background:linear-gradient(135deg,#0b1220,#1a237e);color:#fff;padding:36px 24px;border-radius:0 0 24px 24px;margin-bottom:24px;">
+    <div style="max-width:960px;margin:0 auto;">
+      <p style="font-size:.85rem;opacity:.8;margin:0 0 6px;">أساسيات أوامر Windows CMD للأمن السيبراني</p>
+      <h1 style="font-size:1.9rem;font-weight:800;margin:0 0 8px;">الوحدة السابعة: سجلات Windows والتحليل الأمني</h1>
+      <p style="font-size:.95rem;opacity:.85;margin:0;font-family:var(--u7-font-mono);">Windows Event Logs &amp; Security Analysis</p>
+    </div>
+  </header>
+
+  <div style="max-width:960px;margin:0 auto;padding:0 18px 60px;">
+
+    <!-- ============================================================
+         2. مقدمة الوحدة
+         ============================================================ -->
+    <section>
+      <h2>مقدمة الوحدة</h2>
+      <p class="u7-lead">
+        في الوحدة السابقة تعرّفت على العمليات والخدمات. في هذه الوحدة ننتقل إلى <strong>الذاكرة التاريخية للنظام</strong>: سجلات أحداث Windows (Windows Event Logs).
+      </p>
+      <p>
+        هذه السجلات تسجّل ما يحدث على النظام: تسجيل الدخول، إعادة التشغيل، تثبيت البرامج، تغيير الخدمات، والأخطاء. المحلل الأمني يستخدمها <strong>لإعادة بناء ما حدث</strong> وربط الأحداث زمنيًا.
+      </p>
+      <p>
+        سنتعلّم قراءة هذه السجلات باستخدام <code>wevtutil</code> داخل <strong>محاكي تعليمي آمن</strong>، مع بيانات افتراضية ثابتة. لن تفتح سجلات جهازك، ولن تنفذ أوامر حقيقية.
+      </p>
+      <div class="u7-alert info">
+        <span class="icon">💡</span>
+        <div>جميع الأحداث والمستخدمين والأوقات في هذه الوحدة <strong>افتراضية بالكامل</strong> لأغراض التدريب.</div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         3. أهداف التعلم
+         ============================================================ -->
+    <section>
+      <h2>أهداف التعلم</h2>
+      <p>بنهاية هذه الوحدة ستكون قادرًا على:</p>
+      <ol>
+        <li>فهم أهمية سجلات Windows في التحليل الأمني.</li>
+        <li>التمييز بين سجلات System وApplication وSecurity.</li>
+        <li>فهم مستويات الأحداث: Information, Warning, Error, Critical, Audit Success, Audit Failure.</li>
+        <li>قراءة مكونات الحدث: Event ID، Source، Level، Date/Time، User، Description.</li>
+        <li>استخدام أوامر <code>wevtutil</code> الأساسية لفهم السجلات.</li>
+        <li>تفسير أرقام أحداث شائعة مثل 4624 و4625 و1102 و6005 في سياقها.</li>
+        <li>ربط الأحداث زمنيًا (Timeline Analysis) لفهم تسلسل الحوادث.</li>
+        <li>التعرف على مؤشرات تستحق التحقيق دون افتراض سوء النية تلقائيًا.</li>
+      </ol>
+    </section>
+
+    <!-- ============================================================
+         4. المفاهيم الأساسية
+         ============================================================ -->
+    <section>
+      <h2>المفاهيم الأساسية</h2>
+      <p>قبل الدخول إلى الأوامر، دعنا نثبّت المفاهيم التالية:</p>
+
+      <div class="concepts-grid">
+        <div class="concept-card">
+          <div class="term">Windows Event Logs</div>
+          <div class="term-ar">سجلات أحداث Windows</div>
+          <div class="def">خدمة نظام تسجّل الأحداث التي تطرأ على النظام والتطبيقات والأمان، وتُستخدم للتحليل الأمني واستكشاف الأخطاء.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Event Viewer</div>
+          <div class="term-ar">عارض الأحداث</div>
+          <div class="def">أداة رسومية لتصفح سجلات Windows. أوامر <code>wevtutil</code> تقدم وظائف مشابهة من سطر الأوامر.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">System Log</div>
+          <div class="term-ar">سجل النظام</div>
+          <div class="def">أحداث نظام التشغيل: بدء الخدمات، إعادة التشغيل، أخطاء العتاد، تغيير الساعة.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Application Log</div>
+          <div class="term-ar">سجل التطبيقات</div>
+          <div class="def">أحداث التطبيقات: أخطاء برامج، تعطل تطبيقات، تحديثات تطبيقات.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Security Log</div>
+          <div class="term-ar">سجل الأمان</div>
+          <div class="def">أحداث الأمن: تسجيل الدخول، تغيير الحسابات، تغيير السياسات. يُدار بواسطة سياسات التدقيق.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Event ID</div>
+          <div class="term-ar">معرّف الحدث</div>
+          <div class="def">رقم يميّز نوع الحدث. مثل 4624 (تسجيل دخول ناجح) و4625 (فشل تسجيل دخول) و1102 (مسح سجل أمني).</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Source / Provider</div>
+          <div class="term-ar">المصدر</div>
+          <div class="def">المكوّن أو الخدمة التي سجّلت الحدث، مثل <code>Microsoft-Windows-Security-Auditing</code> أو <code>Service Control Manager</code>.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Level</div>
+          <div class="term-ar">مستوى الحدث</div>
+          <div class="def">درجة أهمية الحدث: Information, Warning, Error, Critical, Audit Success, Audit Failure.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Timeline Analysis</div>
+          <div class="term-ar">التحليل الزمني</div>
+          <div class="def">ربط الأحداث وفق تسلسلها الزمني لفهم ما حدث قبل الحادث وبعده.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Audit Success / Failure</div>
+          <div class="term-ar">تدقيق نجاح / فشل</div>
+          <div class="def">مستويان في سجل الأمان: Success لنجاح عملية مُدقّقة، Failure لفشلها (مثل محاولة تسجيل دخول فاشلة).</div>
+        </div>
+      </div>
+
+      <div class="u7-alert warn">
+        <span class="icon">⚠️</span>
+        <div>
+          <strong>مهم:</strong> سجلات Windows أداة مساعدة للتحليل، لكنها ليست دليلًا قاطعًا منفردًا. الحدث يجب أن يُفسَّر في سياقه، مع مقارنة بالمعلومات الموثوقة.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         5. شرح الأوامر
+         ============================================================ -->
+    <section>
+      <h2>شرح الأوامر</h2>
+      <p>أوامر هذه الوحدة تدور حول قراءة سجلات Windows دون تعديلها. سنتعلم كل أمر مع مثال افتراضي.</p>
+
+      <!-- 5.0 wevtutil -->
+      <h3>أولًا: <code>wevtutil</code> — الأداة الأساسية</h3>
+      <p>
+        أداة سطر أوامر لقراءة وإدارة سجلات Windows. تُستخدم <strong>للاستعلام والقراءة</strong> في هذا التدريب، دون تعديل.
+        علاقتها بـ <em>Event Viewer</em> أنها تقدم وظائف مماثلة من سطر الأوامر.
+      </p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">wevtutil /?</span>
+          <button class="cmd-copy" onclick="u7Copy(this, 'wevtutil /?')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> wevtutil /?
+
+Usage: wevtutil [command] [options]
+
+Commands:
+  el      - Enumerate event logs
+  gli     - Get log information
+  qe      - Query events
+  ...</pre>
+      </div>
+      <div class="u7-alert info">
+        <span class="icon">ℹ️</span>
+        <div>الصيغة الكاملة موثقة في مراجع Microsoft. هنا نعرض فقط ما نستخدمه.</div>
+      </div>
+
+      <!-- 5.1 wevtutil el -->
+      <h3>ثانيًا: <code>wevtutil el</code> — عرض أسماء السجلات</h3>
+      <p>يعرض قائمة بأسماء جميع السجلات المتاحة على النظام.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">wevtutil el</span>
+          <button class="cmd-copy" onclick="u7Copy(this, 'wevtutil el')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> wevtutil el
+
+Application
+Security
+Setup
+System
+Windows PowerShell
+Microsoft-Windows-TaskScheduler/Operational
+...</pre>
+      </div>
+
+      <!-- 5.2 wevtutil gli System -->
+      <h3>ثالثًا: <code>wevtutil gli System</code> — معلومات سجل System</h3>
+      <p>يعرض معلومات عن سجل معين: هل التدقيق مفعّل، الحجم الأقصى، عدد الأحداث، إلخ.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">wevtutil gli System</span>
+          <button class="cmd-copy" onclick="u7Copy(this, 'wevtutil gli System')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> wevtutil gli System
+
+creationTime        : 2025-11-01T08:00:00.000Z
+lastAccessTime      : 2025-11-01T12:34:56.000Z
+lastWriteTime       : 2025-11-01T12:34:56.000Z
+fileSize            : 1048576
+attributes          : 2
+numberOfLogRecords  : 42
+oldestRecordNumber  : 1
+enabled             : true</pre>
+      </div>
+
+      <!-- 5.3 wevtutil qe System -->
+      <h3>رابعًا: <code>wevtutil qe System /c:5 /rd:true /f:text</code></h3>
+      <p>يعرض آخر 5 أحداث في سجل System بصيغة نصية. <code>/rd:true</code> يعني «الأحدث أولًا» (عكسي).</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">wevtutil qe System /c:5 /rd:true /f:text</span>
+          <button class="cmd-copy" onclick="u7Copy(this, 'wevtutil qe System /c:5 /rd:true /f:text')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> wevtutil qe System /c:5 /rd:true /f:text
+
+Event[0]:
+  Log Name: System
+  Source: Service Control Manager
+  Date: 2025-11-01T12:30:00.000Z
+  Event ID: 7036
+  Level: Information
+  Description: Service "ExampleSvc" entered running state.
+
+Event[1]:
+  Log Name: System
+  Source: Service Control Manager
+  Date: 2025-11-01T12:28:00.000Z
+  Event ID: 7036
+  Level: Information
+  Description: Service "ExampleSvc" entered stopped state.
+
+Event[2]:
+  Log Name: System
+  Source: Service Control Manager
+  Date: 2025-11-01T12:20:00.000Z
+  Event ID: 6005
+  Level: Information
+  Description: The Event log service was started.
+
+Event[3]:
+  Log Name: System
+  Source: Service Control Manager
+  Date: 2025-11-01T12:19:58.000Z
+  Event ID: 6009
+  Level: Information
+  Description: System started.
+
+Event[4]:
+  Log Name: System
+  Source: Service Control Manager
+  Date: 2025-11-01T12:00:00.000Z
+  Event ID: 6006
+  Level: Information
+  Description: The Event log service was stopped.</pre>
+      </div>
+
+      <!-- 5.4 wevtutil qe Security -->
+      <h3>خامسًا: <code>wevtutil qe Security /c:5 /rd:true /f:text</code></h3>
+      <p>يعرض آخر 5 أحداث في سجل الأمان.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">wevtutil qe Security /c:5 /rd:true /f:text</span>
+          <button class="cmd-copy" onclick="u7Copy(this, 'wevtutil qe Security /c:5 /rd:true /f:text')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> wevtutil qe Security /c:5 /rd:true /f:text
+
+Event[0]:
+  Log Name: Security
+  Source: Microsoft-Windows-Security-Auditing
+  Date: 2025-11-01T12:35:00.000Z
+  Event ID: 4624
+  Level: Audit Success
+  Description: An account was successfully logged on.
+  User: CYBERPATH\analyst1
+
+Event[1]:
+  Log Name: Security
+  Source: Microsoft-Windows-Security-Auditing
+  Date: 2025-11-01T12:33:00.000Z
+  Event ID: 4625
+  Level: Audit Failure
+  Description: An account failed to log on.
+  User: CYBERPATH\analyst1
+
+Event[2]:
+  Log Name: Security
+  Source: Microsoft-Windows-Security-Auditing
+  Date: 2025-11-01T12:32:00.000Z
+  Event ID: 4625
+  Level: Audit Failure
+  Description: An account failed to log on.
+  User: CYBERPATH\analyst1
+
+Event[3]:
+  Log Name: Security
+  Source: Microsoft-Windows-Security-Auditing
+  Date: 2025-11-01T12:31:00.000Z
+  Event ID: 4625
+  Level: Audit Failure
+  Description: An account failed to log on.
+  User: CYBERPATH\analyst1
+
+Event[4]:
+  Log Name: Security
+  Source: Microsoft-Windows-Security-Auditing
+  Date: 2025-11-01T12:30:00.000Z
+  Event ID: 4624
+  Level: Audit Success
+  Description: An account was successfully logged on.
+  User: CYBERPATH\analyst2</pre>
+      </div>
+
+      <!-- 5.5 Event ID 6005 -->
+      <h3>سادسًا: البحث عن حدث محدد — <code>EventID=6005</code></h3>
+      <p>يعرض أحداث بدء خدمة سجل الأحداث. مفيد لمعرفة أوقات إعادة التشغيل.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">wevtutil qe System /q:"*[System[(EventID=6005)]]" /f:text</span>
+          <button class="cmd-copy" onclick="u7Copy(this, 'wevtutil qe System /q:&quot;*[System[(EventID=6005)]]&quot; /f:text')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> wevtutil qe System /q:"*[System[(EventID=6005)]]" /f:text
+
+Event[0]:
+  Log Name: System
+  Source: Service Control Manager
+  Date: 2025-11-01T12:20:00.000Z
+  Event ID: 6005
+  Level: Information
+  Description: The Event log service was started.</pre>
+      </div>
+
+      <!-- 5.6 Event ID 4625 -->
+      <h3>سابعًا: البحث عن فشل تسجيل الدخول — <code>EventID=4625</code></h3>
+      <p>يعرض محاولات تسجيل الدخول الفاشلة في سجل الأمان.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">wevtutil qe Security /q:"*[System[(EventID=4625)]]" /f:text</span>
+          <button class="cmd-copy" onclick="u7Copy(this, 'wevtutil qe Security /q:&quot;*[System[(EventID=4625)]]&quot; /f:text')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> wevtutil qe Security /q:"*[System[(EventID=4625)]]" /f:text
+
+Event[0]:
+  Log Name: Security
+  Source: Microsoft-Windows-Security-Auditing
+  Date: 2025-11-01T12:33:00.000Z
+  Event ID: 4625
+  Level: Audit Failure
+  Description: An account failed to log on.
+  User: CYBERPATH\analyst1
+
+Event[1]:
+  Log Name: Security
+  Source: Microsoft-Windows-Security-Auditing
+  Date: 2025-11-01T12:32:00.000Z
+  Event ID: 4625
+  Level: Audit Failure
+  Description: An account failed to log on.
+  User: CYBERPATH\analyst1
+
+Event[2]:
+  Log Name: Security
+  Source: Microsoft-Windows-Security-Auditing
+  Date: 2025-11-01T12:31:00.000Z
+  Event ID: 4625
+  Level: Audit Failure
+  Description: An account failed to log on.
+  User: CYBERPATH\analyst1</pre>
+      </div>
+
+      <!-- 5.7 Event ID 4624 -->
+      <h3>ثامنًا: البحث عن تسجيل الدخول الناجح — <code>EventID=4624</code></h3>
+      <p>يعرض محاولات تسجيل الدخول الناجحة.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">wevtutil qe Security /q:"*[System[(EventID=4624)]]" /f:text</span>
+          <button class="cmd-copy" onclick="u7Copy(this, 'wevtutil qe Security /q:&quot;*[System[(EventID=4624)]]&quot; /f:text')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> wevtutil qe Security /q:"*[System[(EventID=4624)]]" /f:text
+
+Event[0]:
+  Log Name: Security
+  Source: Microsoft-Windows-Security-Auditing
+  Date: 2025-11-01T12:35:00.000Z
+  Event ID: 4624
+  Level: Audit Success
+  Description: An account was successfully logged on.
+  User: CYBERPATH\analyst1
+
+Event[1]:
+  Log Name: Security
+  Source: Microsoft-Windows-Security-Auditing
+  Date: 2025-11-01T12:30:00.000Z
+  Event ID: 4624
+  Level: Audit Success
+  Description: An account was successfully logged on.
+  User: CYBERPATH\analyst2</pre>
+      </div>
+
+      <!-- 5.8 Event ID 1102 -->
+      <h3>تاسعًا: البحث عن مسح سجل الأمان — <code>EventID=1102</code></h3>
+      <p>يشير إلى أن سجل الأمان قد مُسح. <strong>حدث يستحق التحقيق دائمًا</strong>، لكنه لا يثبت سوء النية تلقائيًا (قد يكون إجراءً إداريًا مشروعًا).</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">wevtutil qe Security /q:"*[System[(EventID=1102)]]" /f:text</span>
+          <button class="cmd-copy" onclick="u7Copy(this, 'wevtutil qe Security /q:&quot;*[System[(EventID=1102)]]&quot; /f:text')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> wevtutil qe Security /q:"*[System[(EventID=1102)]]" /f:text
+
+Event[0]:
+  Log Name: Security
+  Source: Microsoft-Windows-Eventlog
+  Date: 2025-11-01T13:00:00.000Z
+  Event ID: 1102
+  Level: Information
+  Description: The audit log was cleared.
+  User: CYBERPATH\admin1</pre>
+      </div>
+
+      <div class="u7-alert warn">
+        <span class="icon">⚠️</span>
+        <div>
+          <strong>تفسير Event ID يعتمد على تفاصيله وسياقه.</strong> حدث منفرد لا يثبت اختراقًا. اربط الحدث بما قبله وما بعده، وبالحسابات المعنية، وبالوقت.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         6. المحاكي التفاعلي الآمن
+         ============================================================ -->
+    <section id="simulator">
+      <h2>المحاكي التفاعلي الآمن</h2>
+      <p>
+        يمكنك <strong>كتابة الأمر بنفسك</strong> في الحقل أدناه، أو اختيار مثال جاهز. يطابق المحاكي النص المدخل مع قائمة محددة مسبقًا من المخرجات الافتراضية.
+        <strong>لا ينفذ أوامر حقيقية، ولا يقرأ Event Viewer، ولا يتصل بأي شبكة.</strong>
+      </p>
+
+      <div class="u7-alert danger">
+        <span class="icon">🛡️</span>
+        <div>
+          <strong>تنبيه:</strong> هذا محاكي تعليمي يعرض نتائج افتراضية ثابتة، ولا ينفذ أوامر حقيقية ولا يقرأ سجلات جهازك.
+        </div>
+      </div>
+
+      <div class="sim-wrap">
+        <div class="sim-banner">
+          <i class="fas fa-history"></i> محاكي سجلات Windows — نتائج افتراضية ثابتة
+        </div>
+
+        <div class="sim-input-row">
+          <span class="prompt-label" aria-hidden="true">C:\&gt;</span>
+          <input
+            type="text"
+            id="u7SimInput"
+            placeholder='اكتب أمرًا مدعومًا، مثل: wevtutil el'
+            aria-label="أدخل أمر wevtutil للمحاكاة"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+          >
+          <button class="primary" id="u7SimRunBtn" type="button">▶ تنفيذ</button>
+        </div>
+
+        <div class="sim-toolbar">
+          <select id="u7SimSelect" aria-label="أمثلة جاهزة">
+            <option value="">— اختر مثالًا جاهزًا —</option>
+            <option value="wevtutil el">wevtutil el</option>
+            <option value="wevtutil gli System">wevtutil gli System</option>
+            <option value="wevtutil qe System /c:5 /rd:true /f:text">wevtutil qe System /c:5 /rd:true /f:text</option>
+            <option value="wevtutil qe Security /c:5 /rd:true /f:text">wevtutil qe Security /c:5 /rd:true /f:text</option>
+            <option value='wevtutil qe System /q:"*[System[(EventID=6005)]]" /f:text'>wevtutil qe System /q:"*[System[(EventID=6005)]]" /f:text</option>
+            <option value='wevtutil qe Security /q:"*[System[(EventID=4625)]]" /f:text'>wevtutil qe Security /q:"*[System[(EventID=4625)]]" /f:text</option>
+            <option value='wevtutil qe Security /q:"*[System[(EventID=4624)]]" /f:text'>wevtutil qe Security /q:"*[System[(EventID=4624)]]" /f:text</option>
+            <option value='wevtutil qe Security /q:"*[System[(EventID=1102)]]" /f:text'>wevtutil qe Security /q:"*[System[(EventID=1102)]]" /f:text</option>
+          </select>
+          <button type="button" onclick="u7SimRunSelected()">▶ تنفيذ المثال</button>
+          <button type="button" onclick="u7SimReset()">↺ إعادة ضبط</button>
+          <button type="button" class="danger" onclick="u7SimClear()">✕ مسح</button>
+        </div>
+
+        <div class="sim-output" id="u7SimOutput" aria-live="polite">
+<span class="sim-note">// المحاكي جاهز. اكتب أمرًا في الحقل أعلاه أو اختر مثالًا جاهزًا.</span>
+        </div>
+
+        <div class="sim-hint">
+          <strong>الأوامر المدعومة:</strong>
+          <code>wevtutil el</code> · <code>wevtutil gli System</code> · <code>wevtutil qe System /c:5 /rd:true /f:text</code> · <code>wevtutil qe Security /c:5 /rd:true /f:text</code> · <code>wevtutil qe System /q:"*[System[(EventID=6005)]]" /f:text</code> · <code>wevtutil qe Security /q:"*[System[(EventID=4625)]]" /f:text</code> · <code>wevtutil qe Security /q:"*[System[(EventID=4624)]]" /f:text</code> · <code>wevtutil qe Security /q:"*[System[(EventID=1102)]]" /f:text</code>
+          <br>
+          <strong>ملاحظة:</strong> أوامر مثل <code>wevtutil cl</code> (مسح السجلات) و<code>wevtutil sl</code> (تعديل الإعدادات) غير مدعومة (نظرية فقط).
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         7. سيناريوهات التحليل الأمني
+         ============================================================ -->
+    <section>
+      <h2>سيناريوهات التحليل الأمني</h2>
+      <p>فيما يلي سيناريوهات افتراضية لتحليل مجموعة أحداث وربطها زمنيًا.</p>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">1</span><span>محاولات تسجيل دخول فاشلة متكررة</span></div>
+        <div class="ex-body">
+          <p>سجل الأمان يعرض 3 أحداث <code>4625</code> متتالية للحساب <code>CYBERPATH\analyst1</code> خلال دقيقتين (12:31، 12:32، 12:33).</p>
+          <p><strong>سؤال:</strong> متى تستحق هذه الأحداث التحقيق؟</p>
+          <details>
+            <summary>اعرض التحليل المتوقع</summary>
+            <div class="answer">
+              التكرار السريع لمحاولات فاشلة <strong>مؤشر يستحق التحقيق</strong>: قد يكون خطأ إدخال كلمة مرور، أو محاولة تخمين. الأهم هو ربطها بما بعدها: هل تبعها تسجيل دخول ناجح من مصدر غير معتاد؟ هل تكررت على حسابات متعددة؟ لا يمكن الحكم من الأحداث وحدها.
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">2</span><span>تسجيل دخول ناجح بعد سلسلة فاشلة</span></div>
+        <div class="ex-body">
+          <p>في 12:31–12:33 ثلاث محاولات فاشلة للحساب <code>analyst1</code>، ثم في 12:35 حدث <code>4624</code> ناجح لنفس الحساب.</p>
+          <p><strong>سؤال:</strong> كيف تحلل التسلسل؟</p>
+          <details>
+            <summary>اعرض التحليل المتوقع</summary>
+            <div class="answer">
+              التسلسل يستحق التحقيق: <strong>نجاح بعد فشل متكرر</strong> قد يعني أن كلمة المرور خُمّنت بنجاح. لكن قد يكون المستخدم أدخل كلمة المرور الصحيحة بعد خطأ. الفرق يُحسم بمعرفة: عنوان المصدر، نوع تسجيل الدخول، الوقت، وسياق المستخدم. <strong>لا تحكم من الحدث منفردًا</strong>.
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">3</span><span>حدث إعادة تشغيل النظام</span></div>
+        <div class="ex-body">
+          <p>سجل System يعرض <code>6005</code> (بدء خدمة سجل الأحداث) في 12:20، و<code>6006</code> (توقفها) في 12:00.</p>
+          <p><strong>سؤال:</strong> ماذا يعني ذلك؟</p>
+          <details>
+            <summary>اعرض التحليل المتوقع</summary>
+            <div class="answer">
+              الفرق بين <code>6006</code> (توقف خدمة السجل) و<code>6005</code> (بدءها) يشير إلى <strong>إعادة تشغيل النظام</strong> بين 12:00 و12:20. هذا حدث طبيعي، لكن في التحليل الأمني قد يكون مؤشرًا على: تثبيت تحديثات، تغيير إعدادات، أو إجراء من مهاجم. يجب ربطه بأحداث أخرى في نفس النافذة الزمنية.
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">4</span><span>حدث مسح سجل أمني (1102)</span></div>
+        <div class="ex-body">
+          <p>سجل الأمان يعرض <code>1102</code> في 13:00 من الحساب <code>CYBERPATH\admin1</code>.</p>
+          <p><strong>سؤال:</strong> ما دلالة ذلك؟</p>
+          <details>
+            <summary>اعرض التحليل المتوقع</summary>
+            <div class="answer">
+              <code>1102</code> يعني أن <strong>سجل الأمان قد مُسح</strong>. هذا حدث <strong>يستحق التحقيق دائمًا</strong>، لأنه قد يخفي آثارًا. لكنه لا يثبت سوء النية تلقائيًا: قد يكون إجراءً إداريًا مشروعًا (مثل صيانة معتمدة). المفتاح هو التحقق من: هل كان مصرحًا به؟ من قام به؟ وماذا حدث قبله وبعده؟
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">5</span><span>مقارنة بين أحداث طبيعية وأخرى غير معتادة</span></div>
+        <div class="ex-body">
+          <p>
+            <strong>طبيعي:</strong> <code>4624</code> واحد صباحًا من الحساب المعتاد، يتبعه نشاط اعتيادي.<br>
+            <strong>غير معتاد:</strong> <code>4624</code> في ساعة متأخرة من حساب غير مستخدم عادةً، يتبعه <code>1102</code> بعد دقائق.
+          </p>
+          <p><strong>سؤال:</strong> كيف تفرّق بينهما؟</p>
+          <details>
+            <summary>اعرض التحليل المتوقع</summary>
+            <div class="answer">
+              الفرق ليس في الحدث نفسه، بل في <strong>السياق</strong>: التوقيت، الحساب، تكرار الحدث، ما يليه، والمقارنة بالسلوك المعتاد. <code>4624</code> وحده ليس مؤشرًا؛ لكن اجتماعه مع توقيت غير معتاد وحساب غير معتاد و<code>1102</code> لاحق يرفع درجة الاشتباه.
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         8. التمارين والتحديات
+         ============================================================ -->
+    <section>
+      <h2>التمارين والتحديات</h2>
+      <p>استخدم المحاكي أعلاه. جميع النتائج افتراضية.</p>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">1</span><span>عرض أسماء السجلات</span></div>
+        <div class="ex-body">
+          <p>ما الأمر الذي يعرض قائمة بأسماء السجلات المتاحة؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer"><code>wevtutil el</code> — يعرض السجلات مثل System, Security, Application.</div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">2</span><span>معلومات سجل System</span></div>
+        <div class="ex-body">
+          <p>كيف تعرض معلومات سجل System (الحجم، عدد السجلات، التفعيل)؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer"><code>wevtutil gli System</code> — يعرض الحقول: fileSize، numberOfLogRecords، enabled، إلخ.</div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">3</span><span>آخر خمسة أحداث في System</span></div>
+        <div class="ex-body">
+          <p>ما الأمر الذي يعرض آخر 5 أحداث في سجل System؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer"><code>wevtutil qe System /c:5 /rd:true /f:text</code> — <code>/c:5</code> للعدد، <code>/rd:true</code> للأحدث أولًا، <code>/f:text</code> للصيغة النصية.</div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">4</span><span>البحث عن EventID=4625</span></div>
+        <div class="ex-body">
+          <p>كيف تبحث عن أحداث فشل تسجيل الدخول؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer"><code>wevtutil qe Security /q:"*[System[(EventID=4625)]]" /f:text</code></div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">5</span><span>تحليل تسلسل زمني</span></div>
+        <div class="ex-body">
+          <p>اعرض أحداث الأمان الأخيرة. هل ترى تسلسلًا يستحق التحقيق؟</p>
+          <details><summary>اعرض التحليل</summary><div class="answer">نعم: ثلاث محاولات <code>4625</code> فاشلة تتبعها <code>4624</code> ناجحة لنفس الحساب. التسلسل يستحق التحقيق، لكن الحكم النهائي يحتاج معلومات إضافية (المصدر، نوع تسجيل الدخول، سياق المستخدم).</div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">6</span><span>دلالة EventID=1102</span></div>
+        <div class="ex-body">
+          <p>ماذا يعني حدث <code>1102</code> في سجل الأمان؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer">يشير إلى أن سجل الأمان قد مُسح. يستحق التحقيق دائمًا، لكنه لا يثبت سوء النية تلقائيًا (قد يكون إجراءً إداريًا).</div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">7</span><span>الفرق بين 6005 و6006</span></div>
+        <div class="ex-body">
+          <p>ما دلالة حدثي <code>6005</code> و<code>6006</code>؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer"><code>6005</code> = بدء خدمة سجل الأحداث. <code>6006</code> = توقفها. الفرق بينهما يشير إلى إعادة تشغيل النظام.</div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">8</span><span>تحدي التحليل الزمني</span></div>
+        <div class="ex-body">
+          <p>
+            اعرض <code>wevtutil qe Security /c:5 /rd:true /f:text</code>.
+            رتّب الأحداث من الأقدم إلى الأحدث، وحدّد إن كان هناك نمط يستحق التحقيق.
+          </p>
+          <details><summary>اعرض التحليل</summary><div class="answer">
+            الترتيب من الأقدم: 12:30 (4624 ناجح)، 12:31 (4625 فاشل)، 12:32 (4625 فاشل)، 12:33 (4625 فاشل)، 12:35 (4624 ناجح). النمط: فشل متكرر ثم نجاح. يستحق التحقيق، وليس دليلًا قاطعًا.
+          </div></details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         9. الاختبار
+         ============================================================ -->
+    <section id="unit7-quiz-section">
+      <h2>الاختبار</h2>
+      <p>اختبار من 10 أسئلة يغطي مفاهيم وأوامر الوحدة.</p>
+
+      <div data-quiz="unit7"></div>
+    </section>
+
+    <!-- ============================================================
+         10. ملخص الوحدة
+         ============================================================ -->
+    <section>
+      <h2>ملخص الوحدة</h2>
+      <ul class="summary-list">
+        <li>سجلات Windows تسجّل أحداث النظام والتطبيقات والأمان، وتُستخدم للتحليل الأمني.</li>
+        <li>السجلات الرئيسية: System, Application, Security.</li>
+        <li>مستويات الأحداث: Information, Warning, Error, Critical, Audit Success, Audit Failure.</li>
+        <li>مكونات الحدث: Event ID، Source، Level، Date/Time، User، Description.</li>
+        <li><code>wevtutil</code> أداة سطر أوامر لقراءة سجلات Windows وإدارتها.</li>
+        <li><code>wevtutil el</code> يعرض أسماء السجلات، <code>wevtutil gli System</code> يعرض معلومات سجل.</li>
+        <li><code>wevtutil qe &lt;log&gt; /c:5 /rd:true /f:text</code> يعرض آخر 5 أحداث.</li>
+        <li>البحث عن Event ID محدد: <code>/q:"*[System[(EventID=XXXX)]]"</code>.</li>
+        <li>أرقام أحداث شائعة: 4624 (تسجيل ناجح)، 4625 (تسجيل فاشل)، 1102 (مسح سجل)، 6005 (بدء سجل الأحداث).</li>
+        <li>حدث منفرد لا يثبت اختراقًا؛ يجب ربطه زمنيًا وبالسياق.</li>
+      </ul>
+    </section>
+
+    <!-- ============================================================
+         11. المراجع والمصادر
+         ============================================================ -->
+    <section>
+      <h2>المراجع والمصادر</h2>
+      <ul class="refs-list">
+        <li>Microsoft Learn — <em>wevtutil</em>. <a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/wevtutil" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+        <li>Microsoft Learn — <em>Event Viewer</em>. <a href="https://learn.microsoft.com/en-us/shows/inside/event-viewer" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+        <li>Microsoft Learn — <em>Windows Security auditing</em>. <a href="https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/advanced-security-audit-policy-settings" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+        <li>Microsoft Learn — <em>4624, 4625, 1102 event IDs</em>. <a href="https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4624" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+        <li>NIST SP 800-92 — <em>Guide to Computer Security Log Management</em>.</li>
+      </ul>
+    </section>
+
+    <!-- ============================================================
+         12. روابط التنقل
+         ============================================================ -->
+    <nav class="unit-nav" aria-label="التنقل بين الوحدات">
+      <a href="unit6.html" class="prev">← الوحدة السادسة</a>
+      <a href="unit8.html" class="next">الوحدة الثامنة →</a>
+    </nav>
+
+  </div>
+</main>
+
+<!-- ===== الملفات المشتركة ===== -->
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/quiz.js"></script>
+
+<!-- ===== سكربت الوحدة ===== -->
+<script>
+/* ============================================================
+   1) أداة النسخ
+   ============================================================ */
+function u7Copy(btn, text) {
+  const done = () => {
+    const original = btn.textContent;
+    btn.textContent = '✓ تم النسخ';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.classList.remove('copied');
+    }, 1500);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => {
+      u7FallbackCopy(text); done();
+    });
+  } else {
+    u7FallbackCopy(text); done();
+  }
+}
+function u7FallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
+}
+
+/* ============================================================
+   2) المحاكي التفاعلي الآمن
+   - مطابقة نصية فقط مع مخرجات ثابتة مسبقًا
+   - لا تنفيذ، لا eval، لا fetch، لا اتصال
+   ============================================================ */
+(function () {
+  const OUTPUTS = {
+    'wevtutil el': `Application
+Security
+Setup
+System
+Windows PowerShell
+Microsoft-Windows-TaskScheduler/Operational
+Microsoft-Windows-Windows Defender/Operational
+Microsoft-Windows-Sysmon/Operational`,
+
+    'wevtutil gli System': `creationTime        : 2025-11-01T08:00:00.000Z
+lastAccessTime      : 2025-11-01T12:34:56.000Z
+lastWriteTime       : 2025-11-01T12:34:56.000Z
+fileSize            : 1048576
+attributes          : 2
+numberOfLogRecords  : 42
+oldestRecordNumber  : 1
+enabled             : true`,
+
+    'wevtutil qe System /c:5 /rd:true /f:text': `Event[0]:
+  Log Name: System
+  Source: Service Control Manager
+  Date: 2025-11-01T12:30:00.000Z
+  Event ID: 7036
+  Level: Information
+  Description: Service "ExampleSvc" entered running state.
+
+Event[1]:
+  Log Name: System
+  Source: Service Control Manager
+  Date: 2025-11-01T12:28:00.000Z
+  Event ID: 7036
+  Level: Information
+  Description: Service "ExampleSvc" entered stopped state.
+
+Event[2]:
+  Log Name: System
+  Source: Service Control Manager
+  Date: 2025-11-01T12:20:00.000Z
+  Event ID: 6005
+  Level: Information
+  Description: The Event log service was started.
+
+Event[3]:
+  Log Name: System
+  Source: Service Control Manager
+  Date: 2025-11-01T12:19:58.000Z
+  Event ID: 6009
+  Level: Information
+  Description: System started.
+
+Event[4]:
+  Log Name: System
+  Source: Service Control Manager
+  Date: 2025-11-01T12:00:00.000Z
+  Event ID: 6006
+  Level: Information
+  Description: The Event log service was stopped.`,
+
+    'wevtutil qe Security /c:5 /rd:true /f:text': `Event[0]:
+  Log Name: Security
+  Source: Microsoft-Windows-Security-Auditing
+  Date: 2025-11-01T12:35:00.000Z
+  Event ID: 4624
+  Level: Audit Success
+  Description: An account was successfully logged on.
+  User: CYBERPATH\\analyst1
+
+Event[1]:
+  Log Name: Security
+  Source: Microsoft-Windows-Security-Auditing
+  Date: 2025-11-01T12:33:00.000Z
+  Event ID: 4625
+  Level: Audit Failure
+  Description: An account failed to log on.
+  User: CYBERPATH\\analyst1
+
+Event[2]:
+  Log Name: Security
+  Source: Microsoft-Windows-Security-Auditing
+  Date: 2025-11-01T12:32:00.000Z
+  Event ID: 4625
+  Level: Audit Failure
+  Description: An account failed to log on.
+  User: CYBERPATH\\analyst1
+
+Event[3]:
+  Log Name: Security
+  Source: Microsoft-Windows-Security-Auditing
+  Date: 2025-11-01T12:31:00.000Z
+  Event ID: 4625
+  Level: Audit Failure
+  Description: An account failed to log on.
+  User: CYBERPATH\\analyst1
+
+Event[4]:
+  Log Name: Security
+  Source: Microsoft-Windows-Security-Auditing
+  Date: 2025-11-01T12:30:00.000Z
+  Event ID: 4624
+  Level: Audit Success
+  Description: An account was successfully logged on.
+  User: CYBERPATH\\analyst2`,
+
+    'wevtutil qe System /q:"*[System[(EventID=6005)]]" /f:text': `Event[0]:
+  Log Name: System
+  Source: Service Control Manager
+  Date: 2025-11-01T12:20:00.000Z
+  Event ID: 6005
+  Level: Information
+  Description: The Event log service was started.`,
+
+    'wevtutil qe Security /q:"*[System[(EventID=4625)]]" /f:text': `Event[0]:
+  Log Name: Security
+  Source: Microsoft-Windows-Security-Auditing
+  Date: 2025-11-01T12:33:00.000Z
+  Event ID: 4625
+  Level: Audit Failure
+  Description: An account failed to log on.
+  User: CYBERPATH\\analyst1
+
+Event[1]:
+  Log Name: Security
+  Source: Microsoft-Windows-Security-Auditing
+  Date: 2025-11-01T12:32:00.000Z
+  Event ID: 4625
+  Level: Audit Failure
+  Description: An account failed to log on.
+  User: CYBERPATH\\analyst1
+
+Event[2]:
+  Log Name: Security
+  Source: Microsoft-Windows-Security-Auditing
+  Date: 2025-11-01T12:31:00.000Z
+  Event ID: 4625
+  Level: Audit Failure
+  Description: An account failed to log on.
+  User: CYBERPATH\\analyst1`,
+
+    'wevtutil qe Security /q:"*[System[(EventID=4624)]]" /f:text': `Event[0]:
+  Log Name: Security
+  Source: Microsoft-Windows-Security-Auditing
+  Date: 2025-11-01T12:35:00.000Z
+  Event ID: 4624
+  Level: Audit Success
+  Description: An account was successfully logged on.
+  User: CYBERPATH\\analyst1
+
+Event[1]:
+  Log Name: Security
+  Source: Microsoft-Windows-Security-Auditing
+  Date: 2025-11-01T12:30:00.000Z
+  Event ID: 4624
+  Level: Audit Success
+  Description: An account was successfully logged on.
+  User: CYBERPATH\\analyst2`,
+
+    'wevtutil qe Security /q:"*[System[(EventID=1102)]]" /f:text': `Event[0]:
+  Log Name: Security
+  Source: Microsoft-Windows-Eventlog
+  Date: 2025-11-01T13:00:00.000Z
+  Event ID: 1102
+  Level: Information
+  Description: The audit log was cleared.
+  User: CYBERPATH\\admin1`
+  };
+
+  const EXPLANATIONS = {
+    'wevtutil el': 'يعرض قائمة بأسماء السجلات المتاحة على النظام.',
+    'wevtutil gli System': 'يعرض معلومات سجل System: الحجم، عدد السجلات، التفعيل.',
+    'wevtutil qe System /c:5 /rd:true /f:text': 'آخر 5 أحداث في سجل System (الأحدث أولًا).',
+    'wevtutil qe Security /c:5 /rd:true /f:text': 'آخر 5 أحداث في سجل الأمان — لاحظ تسلسل الفشل ثم النجاح.',
+    'wevtutil qe System /q:"*[System[(EventID=6005)]]" /f:text': 'بحث عن أحداث بدء خدمة سجل الأحداث (6005).',
+    'wevtutil qe Security /q:"*[System[(EventID=4625)]]" /f:text': 'بحث عن محاولات تسجيل الدخول الفاشلة (4625).',
+    'wevtutil qe Security /q:"*[System[(EventID=4624)]]" /f:text': 'بحث عن محاولات تسجيل الدخول الناجحة (4624).',
+    'wevtutil qe Security /q:"*[System[(EventID=1102)]]" /f:text': 'بحث عن أحداث مسح سجل الأمان (1102) — يستحق التحقيق دائمًا.'
+  };
+
+  const out = document.getElementById('u7SimOutput');
+  const select = document.getElementById('u7SimSelect');
+  const input = document.getElementById('u7SimInput');
+  const runBtn = document.getElementById('u7SimRunBtn');
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function writeLine(html) {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    out.appendChild(div);
+    out.scrollTop = out.scrollHeight;
+  }
+  function normalize(cmd) {
+    return cmd.replace(/\s+/g, ' ').trim();
+  }
+
+  function findMatch(userInput) {
+    const norm = normalize(userInput);
+    const keys = Object.keys(OUTPUTS);
+
+    // 1) مطابقة مباشرة
+    if (OUTPUTS[norm]) return norm;
+
+    // 2) مطابقة بتجاهل حالة الأحرف
+    for (const k of keys) {
+      if (normalize(k).toLowerCase() === norm.toLowerCase()) return k;
+    }
+
+    // 3) مطابقة مرنة: تطبيع المسافات حول = و ()
+    const loose = norm.toLowerCase()
+      .replace(/\s*=\s*/g, '=')
+      .replace(/\s*\[\s*/g, '[')
+      .replace(/\s*\]\s*/g, ']')
+      .replace(/\s*\(\s*/g, '(')
+      .replace(/\s*\)\s*/g, ')')
+      .replace(/\s+/g, ' ');
+
+    for (const k of keys) {
+      const kLoose = normalize(k).toLowerCase()
+        .replace(/\s*=\s*/g, '=')
+        .replace(/\s*\[\s*/g, '[')
+        .replace(/\s*\]\s*/g, ']')
+        .replace(/\s*\(\s*/g, '(')
+        .replace(/\s*\)\s*/g, ')')
+        .replace(/\s+/g, ' ');
+      if (kLoose === loose) return k;
+    }
+    return null;
+  }
+
+  function runCommand(rawInput) {
+    const cmd = String(rawInput || '').trim();
+    if (!cmd) {
+      writeLine('<span class="sim-error">⚠️ اكتب أمرًا أولًا أو اختر مثالًا جاهزًا.</span>');
+      return;
+    }
+
+    // أوامر خطرة/غير مدعومة
+    const forbidden = /^\s*wevtutil\s+(cl|sl|cs|im|um|ep|up)\b/i;
+    if (forbidden.test(cmd)) {
+      writeLine('<span class="sim-prompt">C:\\&gt;</span> <span class="sim-echo">' + escapeHtml(cmd) + '</span>');
+      writeLine('<span class="sim-error">🚫 هذا الأمر غير مدعوم في المحاكي التعليمي (نظري فقط).</span>');
+      writeLine('<span class="sim-note">💡 المحاكي لا ينفذ أوامر تُغيّر حالة النظام أو تمسح السجلات.</span>');
+      writeLine('');
+      return;
+    }
+
+    writeLine('<span class="sim-prompt">C:\\&gt;</span> <span class="sim-echo">' + escapeHtml(cmd) + '</span>');
+
+    const key = findMatch(cmd);
+    if (key && OUTPUTS[key]) {
+      writeLine('<pre style="margin:0;font-family:inherit;color:inherit;white-space:pre-wrap;">' + escapeHtml(OUTPUTS[key]) + '</pre>');
+      writeLine('<span class="sim-note">💡 ' + EXPLANATIONS[key] + '</span>');
+      writeLine('<span class="sim-note" style="font-size:.75rem;opacity:.7">ملاحظة: النتائج افتراضية ولا تعكس جهازك.</span>');
+    } else {
+      writeLine('<span class="sim-error">❌ الأمر غير مدعوم في هذا المحاكي.</span>');
+      writeLine('<span class="sim-note">💡 المدعوم: wevtutil el · wevtutil gli System · wevtutil qe System/Security /c:5 /rd:true /f:text · wevtutil qe ... /q:"*[System[(EventID=XXXX)]]" /f:text</span>');
+    }
+    writeLine('');
+  }
+
+  window.u7SimRunSelected = function () {
+    const val = select.value;
+    if (!val) {
+      writeLine('<span class="sim-error">⚠️ اختر مثالًا من القائمة أولًا.</span>');
+      return;
+    }
+    input.value = val;
+    runCommand(val);
+    select.value = '';
+  };
+
+  window.u7SimReset = function () {
+    out.innerHTML = '<span class="sim-note">// المحاكي جاهز. اكتب أمرًا في الحقل أعلاه أو اختر مثالًا جاهزًا.</span>';
+    select.value = '';
+    input.value = '';
+    input.focus();
+  };
+
+  window.u7SimClear = function () {
+    out.innerHTML = '';
+  };
+
+  runBtn.addEventListener('click', function () { runCommand(input.value); });
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      runCommand(input.value);
+    }
+  });
+  select.addEventListener('change', function () {
+    if (select.value) {
+      input.value = select.value;
+      input.focus();
+    }
+  });
+})();
+
+/* ============================================================
+   3) اختبار الوحدة — window.QUIZZES["unit7"]
+   quiz.js يكتشف [data-quiz="unit7"] ويهيئ الاختبار تلقائيًا.
+   ============================================================ */
+window.QUIZZES = window.QUIZZES || {};
+
+window.QUIZZES["unit7"] = {
+  title: "اختبار الوحدة السابعة — سجلات Windows والتحليل الأمني",
+  questions: [
+    {
+      q: "ما السجل الذي يُسجّل أحداث الأمان مثل تسجيل الدخول وتغيير الحسابات؟",
+      options: ["System", "Application", "Security", "Setup"],
+      correct: 2,
+      explanation: "سجل Security مخصص لأحداث الأمان: تسجيل الدخول، تغيير الحسابات، سياسات التدقيق."
+    },
+    {
+      q: "ماذا يعني Event ID 4625؟",
+      options: [
+        "تسجيل دخول ناجح",
+        "فشل تسجيل دخول",
+        "مسح سجل أمني",
+        "بدء خدمة سجل الأحداث"
+      ],
+      correct: 1,
+      explanation: "4625 يشير إلى محاولة تسجيل دخول فاشلة (Audit Failure)."
+    },
+    {
+      q: "ماذا يعني Event ID 4624؟",
+      options: [
+        "تسجيل دخول ناجح",
+        "فشل تسجيل دخول",
+        "مسح سجل أمني",
+        "توقف خدمة سجل الأحداث"
+      ],
+      correct: 0,
+      explanation: "4624 يشير إلى تسجيل دخول ناجح (Audit Success)."
+    },
+    {
+      q: "ما دلالة Event ID 1102؟",
+      options: [
+        "تسجيل دخول ناجح",
+        "فشل تسجيل دخول",
+        "مسح سجل الأمان",
+        "بدء خدمة سجل الأحداث"
+      ],
+      correct: 2,
+      explanation: "1102 يعني أن سجل الأمان قد مُسح. يستحق التحقيق دائمًا، لكنه لا يثبت سوء النية تلقائيًا."
+    },
+    {
+      q: "ما الأمر الذي يعرض قائمة بأسماء السجلات المتاحة؟",
+      options: [
+        "wevtutil qe",
+        "wevtutil el",
+        "wevtutil gli",
+        "wevtutil cl"
+      ],
+      correct: 1,
+      explanation: "wevtutil el يعرض أسماء السجلات المتاحة على النظام."
+    },
+    {
+      q: "ما وظيفة المعامل /rd:true في الأمر wevtutil qe System /c:5 /rd:true /f:text؟",
+      options: [
+        "عرض الأحدث أولًا (عكسي)",
+        "عرض الأقدم أولًا",
+        "تحديد عدد الأحداث",
+        "تحديد صيغة العرض"
+      ],
+      correct: 0,
+      explanation: "/rd:true يعني عكس الترتيب لعرض الأحدث أولًا. /c:5 لعدد الأحداث، /f:text للصيغة النصية."
+    },
+    {
+      q: "كيف تبحث عن أحداث Event ID = 4625 في سجل الأمان؟",
+      options: [
+        'wevtutil qe Security /q:"*[System[(EventID=4625)]]" /f:text',
+        'wevtutil qe System /q:"*[System[(EventID=4625)]]" /f:text',
+        'wevtutil el 4625',
+        'wevtutil gli 4625'
+      ],
+      correct: 0,
+      explanation: "نستخدم wevtutil qe Security مع /q للاستعلام عن EventID=4625 في سجل الأمان."
+    },
+    {
+      q: "ماذا يعني حدث 6006 في سجل System؟",
+      options: [
+        "بدء خدمة سجل الأحداث",
+        "توقف خدمة سجل الأحداث",
+        "تسجيل دخول ناجح",
+        "فشل تسجيل دخول"
+      ],
+      correct: 1,
+      explanation: "6006 = توقف خدمة سجل الأحداث. 6005 = بدؤها. الفرق يشير إلى إعادة تشغيل."
+    },
+    {
+      q: "ما التصرف الصحيح عند رؤية عدة محاولات فاشلة تتبعها محاولة ناجحة؟",
+      options: [
+        "الحكم فورًا بأن الحساب مخترق",
+        "تجاهل الأحداث لأنها طبيعية دائمًا",
+        "ربط الأحداث زمنيًا وتحليل السياق قبل الحكم",
+        "مسح السجل فورًا"
+      ],
+      correct: 2,
+      explanation: "التسلسل يستحق التحقيق، لكن الحكم يحتاج جمع السياق: مصدر الدخول، التوقيت، الحساب، الأحداث المحيطة. حدث واحد لا يثبت اختراقًا."
+    },
+    {
+      q: "أي مما يلي يصف أفضل ممارسة للتحليل الأمني للسجلات؟",
+      options: [
+        "الاعتماد على حدث واحد فقط",
+        "ربط الأحداث زمنيًا ومقارنتها بالسياق المعتاد",
+        "مسح السجلات دوريًا",
+        "تجاهل الأحداث الفاشلة"
+      ],
+      correct: 1,
+      explanation: "التحليل الأمني يعتمد على ربط الأحداث (Timeline Analysis) ومقارنتها بالسياق، لا على حدث منفرد."
+    }
+  ]
+};
+</script>
+
+</body>
+</html>
