@@ -1,0 +1,1835 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الوحدة العاشرة: الأتمتة الأساسية والانتقال إلى PowerShell | أساسيات أوامر Windows CMD للأمن السيبراني</title>
+
+<!-- ===== SEO ===== -->
+<meta name="description" content="الوحدة العاشرة والأخيرة من مقرر أساسيات أوامر Windows CMD للأمن السيبراني — الأتمتة الأساسية والانتقال إلى PowerShell: Batch, for, if, Get-Command, Pipeline, Where-Object. مع محاكي تفاعلي آمن واختبار من 10 أسئلة.">
+<meta name="keywords" content="Windows Batch, Batch Scripts, PowerShell, Get-Command, Pipeline, Where-Object, CMD Automation, الأمن السيبراني, CMD, أتمتة Windows">
+<meta name="author" content="CyberPath">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#0b1220">
+
+<!-- ===== الملفات المشتركة ===== -->
+<link rel="stylesheet" href="../assets/css/course.css">
+
+<!-- ===== أنماط القائمة الرئيسة + الوحدة ===== -->
+<style>
+  /* ============================================================
+     القائمة الرئيسة المعتمدة (مطابقة للنموذج حرفيًا)
+     ============================================================ */
+  :root {
+    --u10-font-sans: 'Tajawal', system-ui, 'Segoe UI', Tahoma, Arial, sans-serif;
+    --u10-font-mono: 'JetBrains Mono', 'Cascadia Mono', Consolas, 'Courier New', monospace;
+    --nav-bg: #0b1220;
+    --nav-bg-2: #0f1b30;
+    --nav-accent: #22d3ee;
+    --nav-text: #e6edf7;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--u10-font-sans);
+    background: #f7f9fc;
+    color: #2d3748;
+    line-height: 1.85;
+  }
+
+  /* ===== شريط التنقل العلوي ===== */
+  .main-nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: linear-gradient(135deg, var(--nav-bg), var(--nav-bg-2));
+    border-bottom: 1px solid #1c2d4a;
+    box-shadow: 0 2px 10px rgba(0,0,0,.2);
+    padding: 10px 18px;
+  }
+  .main-nav .nav-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .main-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .main-nav ul li a {
+    display: inline-block;
+    color: var(--nav-text);
+    text-decoration: none;
+    font-size: .9rem;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 8px;
+    transition: .2s;
+  }
+  .main-nav ul li a:hover {
+    background: rgba(34,211,238,.12);
+    color: #fff;
+  }
+  .main-nav ul li a.active {
+    background: rgba(34,211,238,.18);
+    color: var(--nav-accent);
+    border: 1px solid rgba(34,211,238,.35);
+  }
+  .main-nav .theme-btn {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,.3);
+    color: #fff;
+    border-radius: 8px;
+    font-size: .95rem;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: .2s;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+  .main-nav .theme-btn:hover {
+    border-color: var(--nav-accent);
+    color: var(--nav-accent);
+  }
+  .main-nav .nav-toggle {
+    display: none;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,.3);
+    color: #fff;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    padding: 4px 10px;
+    cursor: pointer;
+  }
+
+  /* ===== الوضع الليلي ===== */
+  body.dark-mode {
+    background: #0b1220;
+    color: #cbd5e1;
+  }
+  body.dark-mode .unit-header {
+    background: linear-gradient(135deg, #050a15, #0f1b30) !important;
+  }
+  body.dark-mode section h2 { color: #22d3ee; }
+  body.dark-mode section h3 { color: #93c5fd; }
+  body.dark-mode .concept-card {
+    background: #152540;
+    border-color: #26405f;
+  }
+  body.dark-mode .concept-card .term { color: #22d3ee; }
+  body.dark-mode .concept-card .def { color: #cbd5e1; }
+  body.dark-mode .exercise {
+    background: #152540;
+    border-color: #26405f;
+  }
+  body.dark-mode .exercise .ex-head { color: #93c5fd; }
+  body.dark-mode .exercise .ex-body { color: #cbd5e1; }
+  body.dark-mode .ref-table th { background: #0f1b30; }
+  body.dark-mode .ref-table td {
+    background: #152540;
+    border-color: #26405f;
+    color: #cbd5e1;
+  }
+  body.dark-mode .ref-table tr:nth-child(even) td { background: #1c2d4a; }
+  body.dark-mode .ref-table code {
+    background: #040814;
+    color: #f87171;
+  }
+  body.dark-mode .u10-alert.info { background: #0c2a4a; color: #93c5fd; }
+  body.dark-mode .u10-alert.warn { background: #3a2c00; color: #fbbf24; }
+  body.dark-mode .u10-alert.danger { background: #3a0a0a; color: #fca5a5; }
+  body.dark-mode .u10-alert.success { background: #052e16; color: #86efac; }
+  body.dark-mode .summary-list li { border-color: #26405f; }
+  body.dark-mode .unit-nav a {
+    background: #152540;
+    color: #cbd5e1;
+    border-color: #26405f;
+  }
+  body.dark-mode .unit-nav a.primary {
+    background: linear-gradient(135deg, #1a237e, #3949ab);
+    color: #fff;
+  }
+  body.dark-mode .refs-list li { color: #94a3b8; }
+  body.dark-mode .refs-list a { color: #22d3ee; }
+  body.dark-mode .exercise details summary {
+    background: #1c2d4a;
+    color: #93c5fd;
+  }
+  body.dark-mode .exercise details[open] summary { background: #26405f; }
+  body.dark-mode .exercise details .answer {
+    background: #052e16;
+    color: #86efac;
+  }
+  body.dark-mode .data-line {
+    background: rgba(148, 163, 184, .08);
+    border-left-color: #475569;
+    color: #cbd5e1;
+  }
+
+  /* ===== استجابة القائمة ===== */
+  @media (max-width: 720px) {
+    .main-nav .nav-toggle { display: inline-block; }
+    .main-nav .nav-links {
+      display: none;
+      width: 100%;
+      flex-direction: column;
+      gap: 4px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255,255,255,.15);
+    }
+    .main-nav .nav-links.open { display: flex; }
+    .main-nav ul li a { display: block; width: 100%; }
+  }
+
+  /* ============================================================
+     أنماط محتوى الوحدة
+     ============================================================ */
+  .u10-page { line-height: 1.85; font-family: var(--u10-font-sans); }
+  .u10-page h2 { font-weight: 800; }
+  .u10-page h3 { font-weight: 700; }
+  .u10-page code, .u10-page pre { font-family: var(--u10-font-mono); }
+  .u10-lead { font-size: 1.02rem; color: #4a5568; }
+
+  .u10-alert {
+    display: flex; gap: 12px; padding: 14px 16px; border-radius: 12px;
+    margin: 16px 0; font-size: .93rem; line-height: 1.8;
+    border-right: 4px solid; background: #f7fafc;
+  }
+  .u10-alert .icon { font-size: 1.3rem; flex-shrink: 0; line-height: 1.4; }
+  .u10-alert.info { border-right-color: #3498db; background: #ebf8ff; color: #1a4971; }
+  .u10-alert.warn { border-right-color: #f39c12; background: #fffbea; color: #7b4b00; }
+  .u10-alert.danger { border-right-color: #e74c3c; background: #fdedec; color: #78281f; }
+  .u10-alert.success { border-right-color: #27ae60; background: #e8f8ee; color: #186a3b; }
+
+  .cmd-block {
+    background: #0d1117; border: 1px solid #30363d; border-radius: 12px;
+    margin: 18px 0; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,.08);
+  }
+  .cmd-block .cmd-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 14px; background: #161b22; border-bottom: 1px solid #30363d;
+    font-size: .8rem; color: #8b949e; gap: 8px;
+    direction: ltr; flex-direction: row;
+  }
+  .cmd-block .cmd-title {
+    display: flex; align-items: center; gap: 8px; font-weight: 700;
+    color: #58a6ff; word-break: break-all;
+    direction: ltr; text-align: left; min-width: 0; flex: 1;
+  }
+  .cmd-block .cmd-title::before { content: '>_'; color: #3fb950; flex-shrink: 0; }
+  .cmd-block .cmd-copy {
+    background: #21262d; color: #c9d1d9; border: 1px solid #30363d;
+    border-radius: 6px; padding: 4px 10px; cursor: pointer; font-family: inherit;
+    font-size: .75rem; font-weight: 600; transition: .2s; white-space: nowrap;
+    direction: rtl; flex-shrink: 0;
+  }
+  .cmd-block .cmd-copy:hover { background: #30363d; color: #58a6ff; }
+  .cmd-block .cmd-copy.copied { background: #238636; color: #fff; border-color: #2ea043; }
+  .cmd-block pre {
+    margin: 0; padding: 14px 16px; overflow-x: auto;
+    color: #c9d1d9; font-size: .85rem; line-height: 1.7;
+    direction: ltr; text-align: left;
+  }
+  .cmd-block pre .prompt { color: #3fb950; user-select: none; }
+  .cmd-block pre .comment { color: #8b949e; font-style: italic; }
+
+  .concepts-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px; margin: 16px 0;
+  }
+  .concept-card {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+    padding: 14px 16px; transition: .2s;
+  }
+  .concept-card:hover { border-color: #3498db; box-shadow: 0 4px 12px rgba(52,152,219,.1); }
+  .concept-card .term {
+    font-weight: 700; color: #1a237e; font-size: .95rem; margin-bottom: 4px;
+    font-family: var(--u10-font-mono);
+  }
+  .concept-card .term-ar { color: #3498db; font-size: .82rem; margin-bottom: 6px; }
+  .concept-card .def { font-size: .88rem; color: #4a5568; line-height: 1.7; }
+
+  .ref-table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: .9rem; }
+  .ref-table th {
+    background: #1a237e; color: #fff; padding: 10px 12px; text-align: right;
+    font-weight: 700; border: none;
+  }
+  .ref-table td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; color: #2d3748; }
+  .ref-table tr:nth-child(even) td { background: #f8fafc; }
+  .ref-table code {
+    background: #edf2f7; color: #c53030; padding: 2px 6px;
+    border-radius: 4px; font-size: .82rem;
+  }
+
+  .sim-wrap {
+    background: linear-gradient(180deg, #0b1220 0%, #0f1b30 100%);
+    border: 1px solid #1c2d4a; border-radius: 16px;
+    overflow: hidden; margin: 18px 0; box-shadow: 0 12px 32px rgba(0,0,0,.25);
+  }
+  .sim-banner {
+    background: linear-gradient(90deg, #7b4b00, #b8860b); color: #fff;
+    padding: 10px 16px; font-size: .82rem; font-weight: 700; text-align: center;
+    letter-spacing: .2px;
+  }
+  .sim-input-row {
+    display: flex; gap: 8px; padding: 12px 14px;
+    background: #152540; border-bottom: 1px solid #1c2d4a;
+    flex-wrap: wrap; direction: ltr;
+  }
+  .sim-input-row .prompt-label {
+    display: flex; align-items: center; gap: 6px;
+    background: #040814; color: #22d3ee;
+    padding: 8px 12px; border-radius: 8px; border: 1px solid #26405f;
+    font-family: var(--u10-font-mono); font-size: .85rem; font-weight: 700;
+    user-select: none;
+  }
+  .sim-input-row input[type="text"] {
+    flex: 1; min-width: 200px;
+    background: #040814; color: #e6edf7;
+    border: 1px solid #26405f; border-radius: 8px;
+    padding: 8px 12px; font-family: var(--u10-font-mono);
+    font-size: .85rem; direction: ltr; text-align: left;
+    outline: none; transition: .2s;
+  }
+  .sim-input-row input[type="text"]:focus {
+    border-color: #22d3ee; box-shadow: 0 0 0 2px rgba(34,211,238,.15);
+  }
+  .sim-input-row input[type="text"]::placeholder { color: #5f7395; }
+
+  .sim-toolbar {
+    display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 14px;
+    background: #152540; border-bottom: 1px solid #1c2d4a;
+    direction: ltr;
+  }
+  .sim-toolbar select, .sim-toolbar button,
+  .sim-input-row button {
+    font-family: inherit; font-size: .82rem; padding: 7px 12px;
+    border-radius: 8px; border: 1px solid #26405f;
+    background: #0f1b30; color: #e6edf7; cursor: pointer; transition: .2s;
+  }
+  .sim-toolbar button:hover,
+  .sim-input-row button:hover { border-color: #22d3ee; }
+  .sim-toolbar button.primary,
+  .sim-input-row button.primary {
+    background: linear-gradient(135deg, #0891b2, #22d3ee); color: #03212b;
+    border: none; font-weight: 700;
+  }
+  .sim-toolbar button.danger,
+  .sim-input-row button.danger {
+    background: transparent; color: #f87171; border-color: rgba(248,113,113,.4);
+  }
+  .sim-toolbar button.danger:hover,
+  .sim-input-row button.danger:hover { background: rgba(248,113,113,.1); }
+  .sim-toolbar select { min-width: 260px; flex: 1; direction: ltr; }
+
+  .sim-output {
+    background: #040814; color: #c9d1d9;
+    font-family: var(--u10-font-mono);
+    font-size: .82rem; line-height: 1.65; padding: 14px 16px;
+    min-height: 180px; max-height: 420px; overflow-y: auto;
+    direction: ltr; text-align: left; white-space: pre-wrap; word-break: break-word;
+  }
+  .sim-output .sim-prompt { color: #22d3ee; font-weight: 700; }
+  .sim-output .sim-echo { color: #e6edf7; }
+  .sim-output .sim-note { color: #fbbf24; }
+  .sim-output .sim-error { color: #f87171; }
+  .sim-output .sim-success { color: #34d399; }
+
+  .sim-hint {
+    padding: 10px 14px; background: #0f1b30; border-top: 1px solid #1c2d4a;
+    font-size: .82rem; color: #94a3b8; line-height: 1.7;
+  }
+  .sim-hint strong { color: #22d3ee; }
+  .sim-hint code {
+    background: #152540; color: #22d3ee; padding: 1px 6px;
+    border-radius: 4px; font-family: var(--u10-font-mono); font-size: .78rem;
+    direction: ltr; display: inline-block;
+  }
+
+  .exercise {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+    padding: 16px 18px; margin-bottom: 12px;
+  }
+  .exercise .ex-head {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+    font-weight: 700; color: #1a237e;
+  }
+  .exercise .ex-num {
+    background: #1a237e; color: #fff; width: 28px; height: 28px;
+    border-radius: 50%; display: grid; place-items: center; font-size: .82rem;
+    flex-shrink: 0;
+  }
+  .exercise .ex-body { font-size: .92rem; color: #2d3748; }
+  .exercise details { margin-top: 10px; }
+  .exercise details summary {
+    cursor: pointer; color: #0891b2; font-weight: 700; font-size: .88rem;
+    padding: 6px 10px; background: #e0f2fe; border-radius: 8px;
+    display: inline-block;
+  }
+  .exercise details[open] summary { background: #bae6fd; }
+  .exercise details .answer {
+    margin-top: 10px; padding: 12px 14px; background: #e8f8ee;
+    border-right: 3px solid #27ae60; border-radius: 8px;
+    font-size: .9rem; color: #186a3b; line-height: 1.8;
+  }
+
+  .data-line {
+    direction: ltr;
+    text-align: left;
+    font-family: var(--u10-font-mono);
+    font-size: .88rem;
+    line-height: 1.75;
+    padding: 4px 10px;
+    margin: 4px 0;
+    background: rgba(30, 41, 59, .04);
+    border-radius: 6px;
+    border-left: 3px solid #94a3b8;
+    word-break: break-all;
+  }
+
+  .summary-list { list-style: none; padding: 0; margin: 0; }
+  .summary-list li {
+    position: relative; padding: 8px 32px 8px 0; font-size: .93rem;
+    border-bottom: 1px dashed #e2e8f0;
+  }
+  .summary-list li:last-child { border-bottom: none; }
+  .summary-list li::before {
+    content: '✓'; position: absolute; right: 0; top: 8px;
+    color: #27ae60; font-weight: 800;
+  }
+
+  .unit-nav {
+    display: flex; justify-content: space-between; gap: 12px;
+    margin-top: 30px; flex-wrap: wrap;
+  }
+  .unit-nav a {
+    flex: 1; min-width: 200px; padding: 14px 20px; border-radius: 12px;
+    text-decoration: none; font-weight: 700; text-align: center;
+    transition: .2s; border: 1px solid #e2e8f0; background: #fff;
+    color: #1a237e;
+  }
+  .unit-nav a:hover { border-color: #3498db; box-shadow: 0 4px 12px rgba(52,152,219,.15); }
+  .unit-nav a.prev { color: #4a5568; }
+  .unit-nav a.primary {
+    background: linear-gradient(135deg, #1a237e, #3949ab); color: #fff; border: none;
+  }
+  .unit-nav a.primary:hover { filter: brightness(1.1); }
+  .unit-nav a.accent {
+    background: linear-gradient(135deg, #16a085, #27ae60); color: #fff; border: none;
+  }
+  .unit-nav a.accent:hover { filter: brightness(1.1); }
+
+  .refs-list { padding-right: 20px; }
+  .refs-list li { margin-bottom: 8px; font-size: .92rem; color: #4a5568; }
+  .refs-list a { color: #0891b2; text-decoration: none; }
+  .refs-list a:hover { text-decoration: underline; }
+
+  @media (max-width: 720px) {
+    .cmd-block pre { font-size: .78rem; padding: 12px; }
+    .ref-table { font-size: .82rem; }
+    .ref-table th, .ref-table td { padding: 8px 6px; }
+    .sim-toolbar select { min-width: 100%; }
+    .sim-input-row input[type="text"] { min-width: 100%; }
+    .sim-output { font-size: .76rem; max-height: 340px; }
+    .unit-nav a { min-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     القائمة الرئيسة المعتمدة (مطابقة للنموذج حرفيًا)
+     ============================================================ -->
+<nav class="main-nav" aria-label="القائمة الرئيسة">
+  <div class="nav-inner">
+    <button class="nav-toggle" id="navToggle" aria-label="فتح القائمة" aria-expanded="false">☰</button>
+
+    <ul class="nav-links" id="navLinks">
+      <li><a href="https://cyberpath.vercel.app/courses/coursesnms/DOS/index.html">الرئيسية</a></li>
+      <li><a href="https://cyberpath.vercel.app/courses/coursesnms/DOS/units/unit1.html" class="active">الوحدات</a></li>
+      <li><a href="https://cyberpath.vercel.app/courses/coursesnms/DOS/final-exam.html">الاختبار النهائي</a></li>
+      <li><a href="https://cyberpath.vercel.app/courses/coursesnms/DOS/final-project.html">المشروع</a></li>
+      <li><a href="https://cyberpath.vercel.app/courses/coursesnms/DOS/references.html">المراجع</a></li>
+      <li><button class="theme-btn" id="themeToggle" aria-label="تبديل الوضع الليلي">🌙 الوضع الليلي</button></li>
+    </ul>
+  </div>
+</nav>
+
+<main class="u10-page" dir="rtl">
+
+  <!-- ============================================================
+       1. رأس الوحدة
+       ============================================================ -->
+  <header class="unit-header" style="background:linear-gradient(135deg,#0b1220,#1a237e);color:#fff;padding:36px 24px;border-radius:0 0 24px 24px;margin-bottom:24px;">
+    <div style="max-width:960px;margin:0 auto;">
+      <p style="font-size:.85rem;opacity:.8;margin:0 0 6px;">أساسيات أوامر Windows CMD للأمن السيبراني — الوحدة الأخيرة</p>
+      <h1 style="font-size:1.9rem;font-weight:800;margin:0 0 8px;">الوحدة العاشرة: الأتمتة الأساسية والانتقال إلى PowerShell</h1>
+      <p style="font-size:.95rem;opacity:.85;margin:0;font-family:var(--u10-font-mono);">Basic Automation &amp; Introduction to PowerShell</p>
+    </div>
+  </header>
+
+  <div style="max-width:960px;margin:0 auto;padding:0 18px 60px;">
+
+    <!-- ============================================================
+         2. المقدمة وأهداف التعلم
+         ============================================================ -->
+    <section>
+      <h2>المقدمة</h2>
+      <p class="u10-lead">
+        في الوحدات التسع السابقة تعلمت أوامر CMD واحدة تلو الأخرى. في هذه الوحدة الأخيرة ننتقل من <strong>تنفيذ الأمر الواحد</strong> إلى <strong>بناء سكربتات قابلة للتكرار</strong>، ونمهّد الطريق للانتقال إلى <strong>PowerShell</strong> كأداة أتمتة أقوى وأكثر مرونة.
+      </p>
+      <p>
+        هدف هذه الوحدة ليس تحويلك إلى مطور سكربتات محترف، بل تعليمك:
+      </p>
+      <ul>
+        <li>كيف تُجمَّع الأوامر في ملف Batch وتُشغَّل بأمان.</li>
+        <li>كيف تُدار الشروط والحلقات في CMD.</li>
+        <li>كيف يُستخدم PowerShell للأتمتة والتحليل.</li>
+        <li>كيف تميّز بين سكربت مشروع وسكربت مجهول المصدر.</li>
+      </ul>
+      <div class="u10-alert info">
+        <span class="icon">💡</span>
+        <div>جميع الأمثلة والمخرجات في هذه الوحدة <strong>افتراضية</strong> لأغراض التدريب. المحاكي لا ينفذ أوامر حقيقية ولا يقرأ جهازك.</div>
+      </div>
+
+      <h2>أهداف التعلم</h2>
+      <p>بنهاية هذه الوحدة ستكون قادرًا على:</p>
+      <ol>
+        <li>فهم مفهوم أتمتة المهام في Windows وفوائدها الأمنية والإدارية.</li>
+        <li>التمييز بين تنفيذ الأمر يدويًا وتجميعه في ملف Batch.</li>
+        <li>كتابة سكربت Batch بسيط باستخدام: <code>@echo off</code>, <code>echo</code>, <code>set</code>, <code>if</code>, <code>for</code>, <code>pause</code>, <code>exit /b</code>.</li>
+        <li>فهم ترتيب شروط <code>if errorlevel</code> وأهميته.</li>
+        <li>استخدام <code>for %%A in (...)</code> و<code>for /f</code> للمعالجة التكرارية.</li>
+        <li>فهم الفرق الجوهري بين CMD (نصوص) وPowerShell (كائنات).</li>
+        <li>استخدام أوامر PowerShell الأساسية: <code>Get-Command</code>, <code>Get-Date</code>, <code>Get-Process</code>, <code>Where-Object</code>, <code>Select-Object</code>, <code>Measure-Object</code>.</li>
+        <li>فهم Pipeline ونقل الكائنات عبر <code>|</code>.</li>
+        <li>التمييز بين أتمتة مشروعة وسكربتات مجهولة المصدر.</li>
+      </ol>
+    </section>
+
+    <!-- ============================================================
+         3. المحور الأول: مقدمة إلى الأتمتة
+         ============================================================ -->
+    <section>
+      <h2>المحور الأول: مقدمة إلى الأتمتة</h2>
+      <p>
+        أتمتة المهام تعني <strong>تحويل سلسلة من الأوامر المتكررة إلى سكربت</strong> ينفذها تلقائيًا. بدلًا من كتابة الأوامر واحدًا تلو الآخر كل يوم، تُكتب مرة واحدة وتُشغَّل متى احتجت.
+      </p>
+
+      <h3>فوائد الأتمتة</h3>
+      <ul>
+        <li><strong>توفير الوقت</strong>: سكربت واحد بدل عشرات الأوامر اليومية.</li>
+        <li><strong>تقليل الخطأ البشري</strong>: السكربت ينفذ نفس الخطوات بدقة.</li>
+        <li><strong>إمكانية المراجعة</strong>: يمكن قراءة السكربت وفهم ما سيفعله قبل تشغيله.</li>
+        <li><strong>الأتمتة الأمنية</strong>: جمع السجلات، تحليل العمليات، إعداد تقارير دورية.</li>
+      </ul>
+
+      <h3>يدويًا مقابل Batch</h3>
+      <div class="concept-card" style="margin: 14px 0;">
+        <div class="def">
+          <strong>يدويًا:</strong> تكتب الأمر في CMD، تضغط Enter، تكرر العملية.
+          <br>
+          <strong>في Batch:</strong> تجمع الأوامر في ملف <code>.bat</code>، تشغّله مرة واحدة، فينفذ كل الأوامر بالتسلسل.
+        </div>
+      </div>
+
+      <h3>حدود CMD ومتى تكون PowerShell أنسب</h3>
+      <table class="ref-table">
+        <thead><tr><th>الحالة</th><th>CMD / Batch</th><th>PowerShell</th></tr></thead>
+        <tbody>
+          <tr><td>أوامر بسيطة متتالية</td><td>مناسب</td><td>مناسب</td></tr>
+          <tr><td>معالجة كائنات معقدة (عمليات، خدمات)</td><td>محدود</td><td>ممتاز</td></tr>
+          <tr><td>تصفية وفرز وتحديد أعمدة</td><td>صعب</td><td>سهل جدًا</td></tr>
+          <tr><td>الأتمتة الإدارية الكبيرة</td><td>محدود</td><td>الأفضل</td></tr>
+          <tr><td>بيئات قديمة أو خفيفة</td><td>الأنسب</td><td>قد يحتاج تثبيتًا</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============================================================
+         4. المحور الثاني: ملفات Batch
+         ============================================================ -->
+    <section>
+      <h2>المحور الثاني: ملفات Batch</h2>
+
+      <h3>ما هو ملف Batch؟</h3>
+      <p>
+        ملف Batch هو ملف نصي بامتداد <code>.bat</code> أو <code>.cmd</code> يحتوي أوامر CMD تُنفذ بالتسلسل عند تشغيل الملف. يُشغَّل من CMD بكتابة اسمه (أو بمسار كامل).
+      </p>
+
+      <h3>بنية ملف Batch النموذجية</h3>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">example.bat</span>
+          <button class="cmd-copy" onclick="u10Copy(this, '@echo off\nrem مثال تعليمي\nset LABNAME=CyberPath\nif exist \"C:\\Windows\" (\n    echo النظام موجود\n) else (\n    echo تحقق من المسار\n)\npause')">📋 نسخ</span>
+        </div>
+<pre><span class="comment">@echo off</span>
+<span class="comment">rem مثال تعليمي</span>
+<span class="comment">set LABNAME=CyberPath</span>
+<span class="comment">if exist "C:\Windows" (</span>
+<span class="comment">    echo النظام موجود</span>
+<span class="comment">) else (</span>
+<span class="comment">    echo تحقق من المسار</span>
+<span class="comment">)</span>
+<span class="comment">pause</span></pre>
+      </div>
+
+      <h3>الأمر <code>@echo off</code></h3>
+      <ul>
+        <li><strong>الصيغة:</strong> <code>@echo off</code></li>
+        <li><strong>الوظيفة:</strong> يمنع عرض الأوامر نفسها أثناء التنفيذ (يبقي المخرجات فقط).</li>
+        <li><strong>ملاحظة:</strong> العلامة <code>@</code> قبل <code>echo</code> تمنع عرض الأمر نفسه أيضًا.</li>
+        <li><strong>الخطأ الشائع:</strong> نسيانه فيظهر كل سطر من السكربت قبل تنفيذه.</li>
+      </ul>
+
+      <h3>الأمر <code>echo</code></h3>
+      <ul>
+        <li><strong>الصيغة:</strong> <code>echo [النص]</code></li>
+        <li><strong>الوظيفة:</strong> طباعة نص أو متغير على الشاشة.</li>
+        <li><strong>مثال:</strong> <code>echo Hello CyberPath</code> → يعرض <code>Hello CyberPath</code>.</li>
+        <li><strong>الخطأ الشائع:</strong> وضع علامات اقتباس حول النص عند عدم الحاجة، فتظهر ضمن المخرجات.</li>
+      </ul>
+
+      <h3>الأمر <code>rem</code></h3>
+      <ul>
+        <li><strong>الصيغة:</strong> <code>rem [نص]</code> أو <code>:: [نص]</code></li>
+        <li><strong>الوظيفة:</strong> تعليق — لا يُنفذ، يُستخدم للتوثيق.</li>
+        <li><strong>مثال:</strong> <code>rem هذا سطر تعليقي</code></li>
+      </ul>
+
+      <h3>الأمر <code>set</code></h3>
+      <ul>
+        <li><strong>الصيغة:</strong> <code>set VAR=value</code></li>
+        <li><strong>الوظيفة:</strong> تعريف متغير واستخدامه لاحقًا بـ <code>%VAR%</code>.</li>
+        <li><strong>مثال:</strong> <code>set LAB=CyberPath</code> ثم <code>echo %LAB%</code> → يعرض <code>CyberPath</code>.</li>
+        <li><strong>الخطأ الشائع:</strong> وجود مسافة حول <code>=</code> فيصبح الاسم مختلفًا.</li>
+      </ul>
+
+      <h3>الأمر <code>pause</code></h3>
+      <ul>
+        <li><strong>الوظيفة:</strong> يوقف التنفيذ حتى يضغط المستخدم أي مفتاح.</li>
+        <li><strong>الفائدة:</strong> إتاحة الفرصة لقراءة المخرجات قبل إغلاق النافذة.</li>
+      </ul>
+
+      <h3>الأمر <code>exit /b</code></h3>
+      <ul>
+        <li><strong>الوظيفة:</strong> الخروج من السكربت (أو من روتين فرعي) دون إغلاق نافذة CMD بالكامل.</li>
+        <li><strong>الاستخدام:</strong> <code>exit /b 0</code> للنجاح، <code>exit /b 1</code> للفشل.</li>
+      </ul>
+
+      <h3>المتغير <code>%ERRORLEVEL%</code></h3>
+      <ul>
+        <li><strong>الوظيفة:</strong> يحمل رمز نتيجة آخر أمر نُفذ: <code>0</code> = نجاح، غير ذلك = خطأ.</li>
+        <li><strong>الاستخدام:</strong> <code>if %ERRORLEVEL% NEQ 0 echo فشل الأمر</code></li>
+      </ul>
+
+      <div class="u10-alert warn">
+        <span class="icon">⚠️</span>
+        <div>
+          <strong>مهم:</strong> <code>ERRORLEVEL</code> يُضبط بواسطة الأمر السابق فقط. أي أمر بينك وبين الأمر المراد فحصه سيعيد ضبطه.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         5. المحور الثالث: الشروط والتحكم
+         ============================================================ -->
+    <section>
+      <h2>المحور الثالث: الشروط والتحكم في سير التنفيذ</h2>
+
+      <h3>الأمر <code>if</code></h3>
+      <p>الصيغة الأساسية:</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">if</span>
+          <button class="cmd-copy" onclick="u10Copy(this, 'if condition ( commands ) else ( commands )')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> if condition (
+    <span class="comment">rem تنفيذ عند تحقق الشرط</span>
+) else (
+    <span class="comment">rem تنفيذ عند عدم تحقق الشرط</span>
+)</pre>
+      </div>
+
+      <h3>الأمر <code>if exist</code></h3>
+      <p>يتحقق من وجود ملف أو مجلد:</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">if exist</span>
+          <button class="cmd-copy" onclick="u10Copy(this, 'if exist \"C:\\Windows\" echo yes')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> if exist "C:\Windows" echo النظام موجود</pre>
+      </div>
+
+      <h3>الأمر <code>if errorlevel</code></h3>
+      <p>يتحقق من قيمة <code>ERRORLEVEL</code>:</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">if errorlevel</span>
+          <button class="cmd-copy" onclick="u10Copy(this, 'if errorlevel 1 echo فشل الأمر')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> if errorlevel 1 echo فشل الأمر</pre>
+      </div>
+
+      <div class="u10-alert danger">
+        <span class="icon">🚫</span>
+        <div>
+          <strong>تحذير ترتيب مهم:</strong> <code>if errorlevel N</code> يتحقق عندما تكون قيمة ERRORLEVEL <strong>مساوية أو أكبر</strong> من N. لذلك يجب فحص القيم الأعلى أولًا:
+          <br>
+          <code>if errorlevel 3 ...</code> ثم <code>if errorlevel 2 ...</code> ثم <code>if errorlevel 1 ...</code>
+          <br>
+          عكس الترتيب سيجعل الشروط الأولى تلتقط كل الحالات.
+        </div>
+      </div>
+
+      <h3><code>goto</code> و<code>:label</code></h3>
+      <p>للانتقال إلى قسم محدد داخل السكربت:</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">goto / label</span>
+          <button class="cmd-copy" onclick="u10Copy(this, 'goto end\n:end\necho done')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> goto end
+<span class="comment">rem ... أوامر أخرى ...</span>
+:end
+echo done</pre>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         6. المحور الرابع: حلقات FOR
+         ============================================================ -->
+    <section>
+      <h2>المحور الرابع: الحلقات باستخدام FOR</h2>
+
+      <h3>الصيغة الأساسية</h3>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">for %%A in (...) do ...</span>
+          <button class="cmd-copy" onclick="u10Copy(this, 'for %%A in (alpha beta gamma) do echo Item: %%A')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> for %%A in (alpha beta gamma) do echo Item: %%A
+
+Item: alpha
+Item: beta
+Item: gamma</pre>
+      </div>
+
+      <div class="u10-alert warn">
+        <span class="icon">⚠️</span>
+        <div>
+          <strong>فرق مهم:</strong> في سطر الأوامر التفاعلي تستخدم <code>%A</code> (علامة واحدة). داخل ملف Batch تستخدم <code>%%A</code> (علامتان).
+        </div>
+      </div>
+
+      <h3><code>for /f</code> لقراءة أسطر</h3>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">for /f</span>
+          <button class="cmd-copy" onclick="u10Copy(this, 'for /f \"tokens=*\" %%L in (list.txt) do echo Line: %%L')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> for /f "tokens=*" %%L in (list.txt) do echo Line: %%L
+
+Line: alpha
+Line: beta
+Line: gamma</pre>
+      </div>
+
+      <h3>مثال تحليلي: معالجة أسماء ملفات افتراضية</h3>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">for + معالجة</span>
+          <button class="cmd-copy" onclick="u10Copy(this, 'for %%F in (log1.txt log2.txt log3.txt) do echo Processing: %%F')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> for %%F in (log1.txt log2.txt log3.txt) do echo Processing: %%F
+
+Processing: log1.txt
+Processing: log2.txt
+Processing: log3.txt</pre>
+      </div>
+      <p><strong>الاستخدام الأمني:</strong> تكرار فحص ملفات سجل افتراضية، أو تلخيص بيانات من ملفات متعددة. لا تُستخدم هذه الأمثلة للوصول إلى ملفات حقيقية في هذا التدريب.</p>
+    </section>
+
+    <!-- ============================================================
+         7. المحور الخامس: سكربت Batch تعليمي متكامل
+         ============================================================ -->
+    <section>
+      <h2>المحور الخامس: بناء سكربت Batch تعليمي</h2>
+      <p>سكربت افتراضي يوضح: عنوان تقرير، متغيرات، شرط، حلقة FOR، وملخص.</p>
+
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">report.bat</span>
+          <button class="cmd-copy" onclick="u10Copy(this, '@echo off\nset LAB=CyberPath\nset STATUS=READY\necho === Security Report ===\necho Lab: %LAB%\necho Status: %STATUS%\nif \"%STATUS%\"==\"READY\" (\n    echo Analysis can proceed.\n) else (\n    echo Analysis blocked.\n)\necho --- Processing items ---\nfor %%I in (alpha beta gamma) do echo Item: %%I\necho --- End of report ---\npause')">📋 نسخ</button>
+        </div>
+<pre><span class="comment">@echo off</span>
+<span class="comment">set LAB=CyberPath</span>
+<span class="comment">set STATUS=READY</span>
+echo === Security Report ===
+echo Lab: %LAB%
+echo Status: %STATUS%
+if "%STATUS%"=="READY" (
+    echo Analysis can proceed.
+) else (
+    echo Analysis blocked.
+)
+echo --- Processing items ---
+for %%I in (alpha beta gamma) do echo Item: %%I
+echo --- End of report ---
+pause</pre>
+      </div>
+
+      <h3>المخرجات المتوقعة</h3>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">output</span>
+          <span style="color:#8b949e;font-size:.75rem">نص عادي</span>
+        </div>
+<pre>=== Security Report ===
+Lab: CyberPath
+Status: READY
+Analysis can proceed.
+--- Processing items ---
+Item: alpha
+Item: beta
+Item: gamma
+--- End of report ---
+Press any key to continue . . .</pre>
+      </div>
+
+      <h3>شرح سطر بسطر</h3>
+      <ul>
+        <li><code>@echo off</code> — إخفاء عرض الأوامر نفسها.</li>
+        <li><code>set LAB=CyberPath</code> — تعريف متغير باسم المختبر.</li>
+        <li><code>set STATUS=READY</code> — تعريف حالة افتراضية.</li>
+        <li>سطور <code>echo</code> — طباعة بيانات التقرير.</li>
+        <li><code>if "%STATUS%"=="READY"</code> — فحص الحالة واتخاذ قرار.</li>
+        <li><code>for %%I in (alpha beta gamma)</code> — تكرار على عناصر افتراضية.</li>
+        <li><code>pause</code> — إيقاف مؤقت لقراءة المخرجات.</li>
+      </ul>
+    </section>
+
+    <!-- ============================================================
+         8. المحور السادس: مقدمة إلى PowerShell
+         ============================================================ -->
+    <section>
+      <h2>المحور السادس: مقدمة إلى PowerShell</h2>
+
+      <h3>ما هو PowerShell؟</h3>
+      <p>
+        PowerShell هو <strong>إطار أتمتة وإدارة تكوين</strong> من Microsoft، يعتمد على <strong>سطر أوامر</strong> و<strong>لغة سكربت</strong> معًا. يختلف عن CMD في أنه يتعامل مع <strong>كائنات (Objects)</strong> بدلًا من مجرد نصوص.
+      </p>
+
+      <h3>الفرق بين CMD وPowerShell</h3>
+      <table class="ref-table">
+        <thead><tr><th>الجانب</th><th>CMD</th><th>PowerShell</th></tr></thead>
+        <tbody>
+          <tr><td>وحدة البيانات</td><td>نصوص (Strings)</td><td>كائنات (Objects)</td></tr>
+          <tr><td>المخرجات</td><td>نص عادي</td><td>كائنات قابلة للتصفية والاختيار</td></tr>
+          <tr><td>الأوامر</td><td>أوامر CMD</td><td>Cmdlets بأسلوب Verb-Noun</td></tr>
+          <tr><td>الأتمتة</td><td>Batch بسيط</td><td>سكربتات متقدمة</td></tr>
+          <tr><td>التعامل مع البيانات</td><td>محدود</td><td>مرن جدًا</td></tr>
+        </tbody>
+      </table>
+
+      <h3>مفهوم Cmdlets ونمط Verb-Noun</h3>
+      <p>
+        كل أمر في PowerShell يُسمى <strong>Cmdlet</strong> ويتبع نمط <code>Verb-Noun</code> (فعل - اسم)، مثل:
+      </p>
+      <ul>
+        <li><code>Get-Process</code> — Get (فعل) + Process (اسم).</li>
+        <li><code>Get-Service</code> — Get (فعل) + Service (اسم).</li>
+        <li><code>Select-Object</code> — Select (فعل) + Object (اسم).</li>
+      </ul>
+      <p>هذا النمط يجعل الأوامر متوقعة وقابلة للاكتشاف.</p>
+
+      <h3>مفهوم Pipeline بـ <code>|</code></h3>
+      <p>
+        خط الأنابيب (<code>|</code>) يمرر مخرجات أمر إلى أمر آخر. في PowerShell، تُمرَّر <strong>الكائنات</strong>، مما يتيح للأمر التالي التعامل مع خصائصها مباشرة.
+      </p>
+
+      <h3>Windows PowerShell 5.1 و PowerShell 7</h3>
+      <p>
+        Windows PowerShell 5.1 مدمج في Windows. PowerShell 7 إصدار أحدث ومتعدد المنصات. في هذا التدريب لا تحتاج إلى تفاصيل الإصدارات — المبادئ والأوامر الأساسية متشابهة.
+      </p>
+    </section>
+
+    <!-- ============================================================
+         9. المحور السابع: أوامر PowerShell الأساسية
+         ============================================================ -->
+    <section>
+      <h2>المحور السابع: أوامر PowerShell الأساسية</h2>
+
+      <h3><code>Get-Help</code></h3>
+      <p><strong>الصيغة:</strong> <code>Get-Help &lt;command&gt;</code></p>
+      <p><strong>الوظيفة:</strong> عرض المساعدة التفصيلية لأي أمر.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">Get-Help Get-Process</span>
+          <button class="cmd-copy" onclick="u10Copy(this, 'Get-Help Get-Process')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">PS C:\&gt;</span> Get-Help Get-Process
+
+NAME
+    Get-Process
+
+SYNOPSIS
+    Gets the processes that are running on the local computer.
+
+SYNTAX
+    Get-Process [[-Name] &lt;String[]&gt;] ...
+
+DESCRIPTION
+    The Get-Process cmdlet gets the process that's running on a local or remote computer.</pre>
+      </div>
+
+      <h3><code>Get-Command</code></h3>
+      <p><strong>الوظيفة:</strong> عرض قائمة بالأوامر المتاحة.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">Get-Command</span>
+          <button class="cmd-copy" onclick="u10Copy(this, 'Get-Command Get-*')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">PS C:\&gt;</span> Get-Command Get-*
+
+CommandType     Name                    Version    Source
+-----------     ----                    -------    ------
+Cmdlet          Get-Command             3.1.0.0    Microsoft.PowerShell.Core
+Cmdlet          Get-Date                3.1.0.0    Microsoft.PowerShell.Utility
+Cmdlet          Get-ChildItem           3.1.0.0    Microsoft.PowerShell.Management
+Cmdlet          Get-Process             3.1.0.0    Microsoft.PowerShell.Management
+Cmdlet          Get-Service             3.1.0.0    Microsoft.PowerShell.Management</pre>
+      </div>
+
+      <h3><code>Get-Date</code></h3>
+      <p><strong>الوظيفة:</strong> عرض التاريخ والوقت الحاليين.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">Get-Date</span>
+          <button class="cmd-copy" onclick="u10Copy(this, 'Get-Date')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">PS C:\&gt;</span> Get-Date
+
+Monday, November 3, 2025 10:42:15 AM</pre>
+      </div>
+
+      <h3><code>Get-Location</code></h3>
+      <p><strong>الوظيفة:</strong> عرض المجلد الحالي.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">Get-Location</span>
+          <button class="cmd-copy" onclick="u10Copy(this, 'Get-Location')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">PS C:\&gt;</span> Get-Location
+
+Path
+----
+C:\Users\Analyst</pre>
+      </div>
+
+      <h3><code>Get-ChildItem</code></h3>
+      <p><strong>الوظيفة:</strong> عرض محتويات مجلد.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">Get-ChildItem</span>
+          <button class="cmd-copy" onclick="u10Copy(this, 'Get-ChildItem C:\\Demo')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">PS C:\&gt;</span> Get-ChildItem C:\Demo
+
+    Directory: C:\Demo
+
+Mode    LastWriteTime      Length  Name
+----    -------------      ------  ----
+-a---   11/1/2025 9:00 AM   1024   alpha.txt
+-a---   11/1/2025 9:05 AM   2048   beta.txt
+-a---   11/1/2025 9:10 AM   4096   gamma.txt</pre>
+      </div>
+
+      <h3><code>Get-Process</code></h3>
+      <p><strong>الوظيفة:</strong> عرض العمليات الجارية.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">Get-Process</span>
+          <button class="cmd-copy" onclick="u10Copy(this, 'Get-Process')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">PS C:\&gt;</span> Get-Process
+
+Handles  NPM(K)  PM(K)  WS(K)   Id  ProcessName
+-------  ------  -----  -----   --  -----------
+    512      25  18560  24210  872  explorer
+    220      14   5240   9180 1024  notepad
+    180      11   4120   6810 3412  svchost</pre>
+      </div>
+
+      <h3><code>Get-Service</code></h3>
+      <p><strong>الوظيفة:</strong> عرض حالة الخدمات.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">Get-Service</span>
+          <button class="cmd-copy" onclick="u10Copy(this, 'Get-Service')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">PS C:\&gt;</span> Get-Service
+
+Status   Name               DisplayName
+------   ----               -----------
+Running  AudioSrv           Windows Audio
+Running  BFE                Base Filtering Engine
+Running  Dhcp               DHCP Client
+Stopped  ExampleSvc         Example Service</pre>
+      </div>
+
+      <h3><code>Get-ComputerInfo</code> (تعريفي)</h3>
+      <p><strong>الوظيفة:</strong> عرض معلومات النظام (الإصدار، المعالج، الذاكرة).</p>
+      <p><strong>ملاحظة:</strong> هذا الأمر قد يعرض بيانات حقيقية على جهازك. هنا نستخدم بيانات افتراضية فقط للتوضيح.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">Get-ComputerInfo (نظري)</span>
+          <button class="cmd-copy" onclick="u10Copy(this, 'Get-ComputerInfo')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">PS C:\&gt;</span> Get-ComputerInfo
+
+WindowsProductName : Windows 10 Pro
+WindowsVersion     : 22H2
+OsHardwareAbstractionLayer : 10.0.19041
+CsProcessors       : {Example CPU @ 3.20 GHz}</pre>
+      </div>
+      <div class="u10-alert warn">
+        <span class="icon">⚠️</span>
+        <div>
+          <strong>ملاحظة سلامة:</strong> لا تطلب من الطالب تنفيذ <code>Get-ComputerInfo</code> على جهازه في هذا التدريب — نكتفي بالبيانات الافتراضية أعلاه.
+        </div>
+      </div>
+
+      <h3><code>Where-Object</code></h3>
+      <p><strong>الوظيفة:</strong> تصفية الكائنات بشرط.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">Where-Object</span>
+          <button class="cmd-copy" onclick="u10Copy(this, 'Get-Process | Where-Object { $_.ProcessName -eq \"notepad\" }')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">PS C:\&gt;</span> Get-Process | Where-Object { $_.ProcessName -eq "notepad" }
+
+Handles  NPM(K)  PM(K)  WS(K)   Id  ProcessName
+-------  ------  -----  -----   --  -----------
+    220      14   5240   9180 1024  notepad</pre>
+      </div>
+
+      <h3><code>Select-Object</code></h3>
+      <p><strong>الوظيفة:</strong> اختيار أعمدة محددة من الكائن.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">Select-Object</span>
+          <button class="cmd-copy" onclick="u10Copy(this, 'Get-Process | Select-Object ProcessName, Id')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">PS C:\&gt;</span> Get-Process | Select-Object ProcessName, Id
+
+ProcessName    Id
+-----------    --
+explorer      872
+notepad      1024
+svchost      3412</pre>
+      </div>
+
+      <h3><code>Format-Table</code></h3>
+      <p><strong>الوظيفة:</strong> تنسيق المخرجات في جدول.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">Format-Table</span>
+          <button class="cmd-copy" onclick="u10Copy(this, 'Get-Process | Select-Object ProcessName, Id | Format-Table')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">PS C:\&gt;</span> Get-Process | Select-Object ProcessName, Id | Format-Table
+
+ProcessName    Id
+-----------    --
+explorer      872
+notepad      1024
+svchost      3412</pre>
+      </div>
+
+      <h3><code>Measure-Object</code></h3>
+      <p><strong>الوظيفة:</strong> حساب إحصاءات (عدد، مجموع، متوسط، أدنى، أقصى).</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">Measure-Object</span>
+          <button class="cmd-copy" onclick="u10Copy(this, 'Get-Process | Measure-Object')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">PS C:\&gt;</span> Get-Process | Measure-Object
+
+Count    : 3
+Average  :
+Sum      :
+Maximum  :
+Minimum  :
+Property :</pre>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         10. المحور الثامن: Pipeline
+         ============================================================ -->
+    <section>
+      <h2>المحور الثامن: Pipeline في PowerShell</h2>
+      <p>
+        الـ Pipeline يمرر مخرجات أمر إلى أمر آخر باستخدام <code>|</code>. المميز في PowerShell أن الممرَّر هو <strong>كائنات</strong>، وليس مجرد نصوص.
+      </p>
+
+      <h3>مثال 1: تصفية قائمة عمليات افتراضية</h3>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">Where-Object</span>
+          <button class="cmd-copy" onclick="u10Copy(this, 'Get-Process | Where-Object { $_.ProcessName -eq \"svchost\" }')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">PS C:\&gt;</span> Get-Process | Where-Object { $_.ProcessName -eq "svchost" }
+
+Handles  NPM(K)  PM(K)  WS(K)   Id  ProcessName
+-------  ------  -----  -----   --  -----------
+    180      11   4120   6810 3412  svchost</pre>
+      </div>
+
+      <h3>مثال 2: اختيار أعمدة محددة</h3>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">Select-Object</span>
+          <button class="cmd-copy" onclick="u10Copy(this, 'Get-Process | Select-Object ProcessName, Id')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">PS C:\&gt;</span> Get-Process | Select-Object ProcessName, Id
+
+ProcessName    Id
+-----------    --
+explorer      872
+notepad      1024
+svchost      3412</pre>
+      </div>
+
+      <h3>مثال 3: ترتيب النتائج</h3>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">Sort-Object</span>
+          <button class="cmd-copy" onclick="u10Copy(this, 'Get-Process | Sort-Object Id')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">PS C:\&gt;</span> Get-Process | Sort-Object Id
+
+Handles  NPM(K)  PM(K)  WS(K)   Id  ProcessName
+-------  ------  -----  -----   --  -----------
+    512      25  18560  24210  872  explorer
+    220      14   5240   9180 1024  notepad
+    180      11   4120   6810 3412  svchost</pre>
+      </div>
+
+      <h3>مثال 4: حساب عدد العناصر</h3>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">Measure-Object</span>
+          <button class="cmd-copy" onclick="u10Copy(this, 'Get-Service | Measure-Object')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">PS C:\&gt;</span> Get-Service | Measure-Object
+
+Count    : 4</pre>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         11. المحور التاسع: الأتمتة والتحليل الأمني
+         ============================================================ -->
+    <section>
+      <h2>المحور التاسع: الأتمتة والتحليل الأمني</h2>
+      <p>يمكن استخدام Batch وPowerShell في:</p>
+      <ul>
+        <li><strong>تنظيم التقارير</strong>: جمع بيانات دورية إلى ملف واحد.</li>
+        <li><strong>تحليل السجلات</strong>: فحص ملفات افتراضية وتلخيصها.</li>
+        <li><strong>تصنيف العمليات والخدمات</strong>: عرض العمليات النشطة أو الخدمات المتوقفة.</li>
+        <li><strong>تلخيص نتائج الفحص</strong>: استخدام <code>Measure-Object</code> لعدّ النتائج.</li>
+        <li><strong>بناء إجراءات متكررة</strong>: سكربتات تُشغَّل أسبوعيًا أو بعد كل فحص.</li>
+      </ul>
+
+      <div class="u10-alert danger">
+        <span class="icon">🚫</span>
+        <div>
+          <strong>تحذير أمني مهم:</strong> لا تشغّل ملفات <code>.bat</code> أو <code>.ps1</code> من مصدر مجهول. قد تحتوي على أوامر خبيثة، أو تعديلات على النظام، أو تسريب بيانات. راجع محتوى السكربت، مصدره، وصلاحياته قبل الاعتماد.
+        </div>
+      </div>
+
+      <h3>مؤشرات سكربت مشبوه</h3>
+      <ul>
+        <li>سكربت مشفر أو غامض غير قابل للقراءة.</li>
+        <li>يطلب صلاحيات إدارية دون مبرر واضح.</li>
+        <li>يحاول تعطيل Firewall أو مضاد الفيروسات.</li>
+        <li>يتصل بعناوين شبكية غير معروفة.</li>
+        <li>ينشئ مهامًا مجدولة أو مفاتيح بدء تشغيل.</li>
+        <li>يعمل من مسار مؤقت أو من مجلد المستخدم العام.</li>
+      </ul>
+    </section>
+
+    <!-- ============================================================
+         12. المحاكي التفاعلي الآمن
+         ============================================================ -->
+    <section id="simulator">
+      <h2>المحاكي التفاعلي الآمن</h2>
+      <p>
+        اكتب الأمر بنفسك أو اختر مثالًا جاهزًا. المحاكي يعرض مخرجات افتراضية ثابتة للأوامر المدعومة.
+        <strong>لا ينفذ أوامر حقيقية، ولا يقرأ جهازك، ولا يتصل بأي شبكة.</strong>
+      </p>
+
+      <div class="u10-alert danger">
+        <span class="icon">🛡️</span>
+        <div>
+          <strong>تنبيه:</strong> هذا محاكي تعليمي يعرض نتائج افتراضية ثابتة، ولا ينفذ أوامر Batch أو PowerShell حقيقية.
+        </div>
+      </div>
+
+      <div class="sim-wrap">
+        <div class="sim-banner">
+          <i class="fas fa-terminal"></i> محاكي الأتمتة — نتائج افتراضية ثابتة
+        </div>
+
+        <div class="sim-input-row">
+          <span class="prompt-label" aria-hidden="true">C:\&gt;</span>
+          <input
+            type="text"
+            id="u10SimInput"
+            placeholder="اكتب أمرًا مدعومًا، مثل: Get-Process"
+            aria-label="أدخل أمرًا للمحاكاة"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+          >
+          <button class="primary" id="u10SimRunBtn" type="button">▶ تنفيذ</button>
+        </div>
+
+        <div class="sim-toolbar">
+          <select id="u10SimSelect" aria-label="أمثلة جاهزة">
+            <option value="">— اختر مثالًا جاهزًا —</option>
+            <optgroup label="Batch">
+              <option value="echo Hello CyberPath">echo Hello CyberPath</option>
+              <option value='set LAB=CyberPath'>set LAB=CyberPath</option>
+              <option value='if "%STATUS%"=="READY" echo Analysis can proceed.'>if "%STATUS%"=="READY" echo Analysis can proceed.</option>
+              <option value="for %%I in (alpha beta gamma) do echo Item: %%I">for %%I in (alpha beta gamma) do echo Item: %%I</option>
+              <option value="pause">pause</option>
+              <option value="rem هذا سطر تعليقي">rem هذا سطر تعليقي</option>
+            </optgroup>
+            <optgroup label="PowerShell">
+              <option value="Get-Help Get-Process">Get-Help Get-Process</option>
+              <option value="Get-Command Get-*">Get-Command Get-*</option>
+              <option value="Get-Date">Get-Date</option>
+              <option value="Get-Location">Get-Location</option>
+              <option value="Get-ChildItem">Get-ChildItem</option>
+              <option value="Get-Process">Get-Process</option>
+              <option value="Get-Service">Get-Service</option>
+              <option value='Get-Process | Where-Object { $_.ProcessName -eq "notepad" }'>Get-Process | Where-Object { $_.ProcessName -eq "notepad" }</option>
+              <option value="Get-Process | Select-Object ProcessName, Id">Get-Process | Select-Object ProcessName, Id</option>
+              <option value="Get-Process | Select-Object ProcessName, Id | Format-Table">Get-Process | Select-Object ProcessName, Id | Format-Table</option>
+              <option value="Get-Process | Measure-Object">Get-Process | Measure-Object</option>
+            </optgroup>
+          </select>
+          <button type="button" onclick="u10SimRunSelected()">▶ تنفيذ المثال</button>
+          <button type="button" onclick="u10SimReset()">↺ إعادة ضبط</button>
+          <button type="button" class="danger" onclick="u10SimClear()">✕ مسح</button>
+        </div>
+
+        <div class="sim-output" id="u10SimOutput" aria-live="polite">
+<span class="sim-note">// المحاكي جاهز. اكتب أمرًا في الحقل أعلاه أو اختر مثالًا جاهزًا.</span>
+        </div>
+
+        <div class="sim-hint">
+          <strong>الأوامر المدعومة (Batch):</strong>
+          <code>echo</code> · <code>set</code> · <code>if</code> · <code>for</code> · <code>pause</code> · <code>rem</code>
+          <br>
+          <strong>الأوامر المدعومة (PowerShell):</strong>
+          <code>Get-Help</code> · <code>Get-Command</code> · <code>Get-Date</code> · <code>Get-Location</code> · <code>Get-ChildItem</code> · <code>Get-Process</code> · <code>Get-Service</code> · <code>Where-Object</code> · <code>Select-Object</code> · <code>Format-Table</code> · <code>Measure-Object</code>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         13. السيناريوهات والتمارين والتحديات
+         ============================================================ -->
+    <section>
+      <h2>السيناريوهات والتمارين والتحديات</h2>
+
+      <h3>السيناريوهات الثلاثة</h3>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">1</span><span>سكربت تقرير دوري</span></div>
+        <div class="ex-body">
+          <p>سكربت Batch افتراضي يجمع بيانات ويطبع تقريرًا يوميًا.</p>
+          <div class="data-line">@echo off</div>
+          <div class="data-line">echo === Daily Report ===</div>
+          <div class="data-line">echo Status: OK</div>
+          <div class="data-line">pause</div>
+          <p><strong>سؤال:</strong> ما فوائد هذا السكربت الأمنية؟</p>
+          <details><summary>اعرض التحليل</summary><div class="answer">
+            يوفّر وقتًا، ويضمن تكرار نفس الخطوات بدقة، ويُنتج تقريرًا موحدًا يسهل مراجعته. لكن يجب مراجعة محتوى السكربت مرة واحدة قبل الاعتماد عليه، والتأكد من مصدره.
+          </div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">2</span><span>سكربت مجهول المصدر</span></div>
+        <div class="ex-body">
+          <p>وجدت ملف <code>update.bat</code> في مجلد التنزيلات يطلب صلاحيات إدارية ويُشغّل أوامر غير مقروءة.</p>
+          <p><strong>سؤال:</strong> ما التصرف الصحيح؟</p>
+          <details><summary>اعرض التحليل</summary><div class="answer">
+            <strong>لا تشغّله.</strong> سكربت مجهول المصدر يطلب صلاحيات إدارية مؤشر خطر. راجع محتواه أولًا، تحقق من المصدر، واستخدم بيئة معزولة إن أردت الفحص. لا تشغّل أي سكربت دون فهم ما يفعله.
+          </div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">3</span><span>تقرير PowerShell</span></div>
+        <div class="ex-body">
+          <p>أمر PowerShell يجمع العمليات ويحسب عددها:</p>
+          <div class="data-line">Get-Process | Measure-Object</div>
+          <p><strong>سؤال:</strong> ما فائدة ذلك في التحليل الأمني؟</p>
+          <details><summary>اعرض التحليل</summary><div class="answer">
+            عدّ العمليات يساعد في اكتشاف أي زيادة غير طبيعية (مثل هجوم يفتح عمليات كثيرة). يمكن بعدها استخدام <code>Where-Object</code> لتصفية عمليات مشبوهة، و<code>Select-Object</code> لعرض أعمدة محددة فقط.
+          </div></details>
+        </div>
+      </div>
+
+      <h3>التمارين الثمانية</h3>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">1</span><span>وظيفة @echo off</span></div>
+        <div class="ex-body">
+          <p>ما وظيفة <code>@echo off</code> في بداية ملف Batch؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer">يمنع عرض الأوامر نفسها أثناء التنفيذ، ويُبقي المخرجات فقط.</div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">2</span><span>الفرق بين %A و%%A</span></div>
+        <div class="ex-body">
+          <p>ما الفرق بين <code>%A</code> و<code>%%A</code> في حلقات FOR؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer"><code>%A</code> يُستخدم في سطر الأوامر التفاعلي، و<code>%%A</code> داخل ملف Batch.</div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">3</span><span>ترتيب if errorlevel</span></div>
+        <div class="ex-body">
+          <p>لماذا يجب فحص <code>errorlevel</code> الأعلى أولًا؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer">لأن <code>if errorlevel N</code> يتحقق عندما تكون القيمة مساوية أو أكبر من N. فحص القيم الصغيرة أولًا سيجعل الشرط يلتقط كل الحالات.</div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">4</span><span>set والمسافات</span></div>
+        <div class="ex-body">
+          <p>لماذا يُعد وجود مسافة حول <code>=</code> في <code>set</code> خطأً شائعًا؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer">لأن المتغير سيُعرَّف باسم مختلف (يشمل المسافة)، وقد لا يعمل <code>%VAR%</code> كما تتوقع.</div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">5</span><span>Get-Command</span></div>
+        <div class="ex-body">
+          <p>ما وظيفة <code>Get-Command</code>؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer">يعرض قائمة بالأوامر المتاحة، ويساعد على اكتشاف Cmdlets بأسلوب Verb-Noun.</div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">6</span><span>Where-Object</span></div>
+        <div class="ex-body">
+          <p>ما الفرق بين <code>Select-Object</code> و<code>Where-Object</code>؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer"><code>Select-Object</code> يختار أعمدة محددة، و<code>Where-Object</code> يصفّي الكائنات بشرط.</div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">7</span><span>Pipeline</span></div>
+        <div class="ex-body">
+          <p>ماذا يمرر Pipeline في PowerShell؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer">كائنات (Objects) وليس مجرد نصوص. لذلك يمكن للأمر التالي التعامل مع خصائصها مباشرة.</div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">8</span><span>سلامة السكربتات</span></div>
+        <div class="ex-body">
+          <p>ما أهم إجراء قبل تشغيل سكربت Batch أو PowerShell جديد؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer">قراءة محتوى السكربت بالكامل، التحقق من مصدره، والتأكد من الصلاحيات التي يطلبها. لا تشغّل أي سكربت لا تفهم محتواه.</div></details>
+        </div>
+      </div>
+
+      <h3>التحديان التطبيقيان</h3>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">A</span><span>تحدي 1: قراءة سكربت</span></div>
+        <div class="ex-body">
+          <div class="data-line">@echo off</div>
+          <div class="data-line">set COUNT=3</div>
+          <div class="data-line">for /l %%i in (1,1,%COUNT%) do echo Item %%i</div>
+          <p><strong>سؤال:</strong> ماذا يطبع هذا السكربت؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer">يطبع: Item 1، Item 2، Item 3 — لأن الحلقة تبدأ من 1 وتزيد 1 حتى تصل 3.</div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">B</span><span>تحدي 2: خطأ في سكربت</span></div>
+        <div class="ex-body">
+          <div class="data-line">@echo off</div>
+          <div class="data-line">if errorlevel 1 echo failure</div>
+          <div class="data-line">if errorlevel 3 echo severe</div>
+          <p><strong>سؤال:</strong> ما الخطأ المنطقي؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer">ترتيب الشروط معكوس. يجب فحص <code>errorlevel 3</code> أولًا ثم <code>errorlevel 1</code>، وإلا فإن الشرط الأول (1) سيلتقط كل القيم ≥ 1، والثاني لن يُنفَّذ.</div></details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         14. الاختبار القصير
+         ============================================================ -->
+    <section id="unit10-quiz-section">
+      <h2>الاختبار القصير</h2>
+      <p>اختبار من 10 أسئلة يغطي مفاهيم وأوامر الوحدة.</p>
+
+      <div data-quiz="unit10"></div>
+    </section>
+
+    <!-- ============================================================
+         15. ملخص الوحدة
+         ============================================================ -->
+    <section>
+      <h2>ملخص الوحدة</h2>
+      <ul class="summary-list">
+        <li>أتمتة المهام تحوّل سلسلة أوامر متكررة إلى سكربت قابل للتشغيل.</li>
+        <li>ملف Batch بامتداد <code>.bat</code> أو <code>.cmd</code> يحتوي أوامر CMD تُنفذ بالتسلسل.</li>
+        <li><code>@echo off</code> يخفي عرض الأوامر، و<code>echo</code> يطبع، و<code>rem</code> يعلّق.</li>
+        <li><code>set</code> يعرّف متغيرًا يُستخدم بـ <code>%VAR%</code>.</li>
+        <li><code>if</code> و<code>if exist</code> و<code>if errorlevel</code> للتحكم في سير التنفيذ.</li>
+        <li>ترتيب <code>if errorlevel</code> يجب أن يبدأ بالأعلى.</li>
+        <li><code>for %%A in (...)</code> يكرر على عناصر، و<code>for /f</code> يقرأ أسطرًا.</li>
+        <li>PowerShell يعتمد على كائنات Cmdlets بأسلوب Verb-Noun.</li>
+        <li>Pipeline <code>|</code> يمرر كائنات، وليس مجرد نصوص.</li>
+        <li><code>Where-Object</code> للتصفية، <code>Select-Object</code> للاختيار، <code>Measure-Object</code> للحساب.</li>
+        <li>لا تشغّل سكربتات مجهولة المصدر — راجع محتواها ومصدرها وصلاحياتها.</li>
+      </ul>
+    </section>
+
+    <!-- ============================================================
+         16. المراجع
+         ============================================================ -->
+    <section>
+      <h2>المراجع</h2>
+      <ul class="refs-list">
+        <li>Microsoft Learn — <em>Windows Commands Reference</em>. <a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/windows-commands" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+        <li>Microsoft Learn — <em>Windows PowerShell Documentation</em>. <a href="https://learn.microsoft.com/en-us/powershell/" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+        <li>Microsoft Learn — <em>about_Batch</em>. <a href="https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_batch" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+        <li>Microsoft Learn — <em>about_Pipelines</em>. <a href="https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_pipelines" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+        <li>Microsoft Learn — <em>PowerShell Cmdlet Reference</em>. <a href="https://learn.microsoft.com/en-us/powershell/module/" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+      </ul>
+    </section>
+
+    <!-- ============================================================
+         17. التنقل بين الوحدات (أسفل الصفحة — الوحدة الأخيرة)
+         ============================================================ -->
+    <nav class="unit-nav" aria-label="التنقل بين الوحدات">
+      <a href="unit9.html" class="prev">← الوحدة التاسعة</a>
+      <a href="https://cyberpath.vercel.app/courses/coursesnms/DOS/final-exam.html" class="primary">الاختبار النهائي →</a>
+      <a href="https://cyberpath.vercel.app/courses/coursesnms/DOS/final-project.html" class="accent">المشروع النهائي →</a>
+    </nav>
+
+  </div>
+</main>
+
+<!-- ===== الملفات المشتركة ===== -->
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/quiz.js"></script>
+
+<!-- ===== سكربت الوحدة ===== -->
+<script>
+/* ============================================================
+   1) أداة النسخ
+   ============================================================ */
+function u10Copy(btn, text) {
+  const done = () => {
+    const original = btn.textContent;
+    btn.textContent = '✓ تم النسخ';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.classList.remove('copied');
+    }, 1500);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => {
+      u10FallbackCopy(text); done();
+    });
+  } else {
+    u10FallbackCopy(text); done();
+  }
+}
+function u10FallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
+}
+
+/* ============================================================
+   2) المحاكي التفاعلي الآمن
+   ============================================================ */
+(function () {
+  const OUTPUTS = {
+    /* ===== Batch ===== */
+    'echo Hello CyberPath': 'Hello CyberPath',
+
+    'set LAB=CyberPath': '',
+
+    'if "%STATUS%"=="READY" echo Analysis can proceed.': 'Analysis can proceed.',
+
+    'for %%I in (alpha beta gamma) do echo Item: %%I': `Item: alpha
+Item: beta
+Item: gamma`,
+
+    'pause': 'Press any key to continue . . .',
+
+    'rem هذا سطر تعليقي': '',
+
+    /* ===== PowerShell ===== */
+    'Get-Help Get-Process': `NAME
+    Get-Process
+
+SYNOPSIS
+    Gets the processes that are running on the local computer.
+
+SYNTAX
+    Get-Process [[-Name] <String[]>] ...
+
+DESCRIPTION
+    The Get-Process cmdlet gets the process that's running on a local or remote computer.`,
+
+    'Get-Command Get-*': `CommandType     Name                    Version    Source
+-----------     ----                    -------    ------
+Cmdlet          Get-Command             3.1.0.0    Microsoft.PowerShell.Core
+Cmdlet          Get-Date                3.1.0.0    Microsoft.PowerShell.Utility
+Cmdlet          Get-ChildItem           3.1.0.0    Microsoft.PowerShell.Management
+Cmdlet          Get-Process             3.1.0.0    Microsoft.PowerShell.Management
+Cmdlet          Get-Service             3.1.0.0    Microsoft.PowerShell.Management`,
+
+    'Get-Date': 'Monday, November 3, 2025 10:42:15 AM',
+
+    'Get-Location': `Path
+----
+C:\\Users\\Analyst`,
+
+    'Get-ChildItem': `    Directory: C:\\Demo
+
+Mode    LastWriteTime      Length  Name
+----    -------------      ------  ----
+-a---   11/1/2025 9:00 AM   1024   alpha.txt
+-a---   11/1/2025 9:05 AM   2048   beta.txt
+-a---   11/1/2025 9:10 AM   4096   gamma.txt`,
+
+    'Get-Process': `Handles  NPM(K)  PM(K)  WS(K)   Id  ProcessName
+-------  ------  -----  -----   --  -----------
+    512      25  18560  24210  872  explorer
+    220      14   5240   9180 1024  notepad
+    180      11   4120   6810 3412  svchost`,
+
+    'Get-Service': `Status   Name               DisplayName
+------   ----               -----------
+Running  AudioSrv           Windows Audio
+Running  BFE                Base Filtering Engine
+Running  Dhcp               DHCP Client
+Stopped  ExampleSvc         Example Service`,
+
+    'Get-Process | Where-Object { $_.ProcessName -eq "notepad" }': `Handles  NPM(K)  PM(K)  WS(K)   Id  ProcessName
+-------  ------  -----  -----   --  -----------
+    220      14   5240   9180 1024  notepad`,
+
+    'Get-Process | Select-Object ProcessName, Id': `ProcessName    Id
+-----------    --
+explorer      872
+notepad      1024
+svchost      3412`,
+
+    'Get-Process | Select-Object ProcessName, Id | Format-Table': `ProcessName    Id
+-----------    --
+explorer      872
+notepad      1024
+svchost      3412`,
+
+    'Get-Process | Measure-Object': `Count    : 3
+Average  :
+Sum      :
+Maximum  :
+Minimum  :
+Property :`,
+
+    'Get-Service | Measure-Object': `Count    : 4`,
+  };
+
+  const EXPLANATIONS = {
+    'echo Hello CyberPath': 'يطبع النص على الشاشة.',
+    'set LAB=CyberPath': 'يعرّف متغيرًا باسم LAB. لا يطبع شيئًا. يُستخدم لاحقًا بـ %LAB%.',
+    'if "%STATUS%"=="READY" echo Analysis can proceed.': 'شرط يتحقق من قيمة المتغير STATUS. عند تحققه يطبع الجملة.',
+    'for %%I in (alpha beta gamma) do echo Item: %%I': 'حلقة FOR على ثلاثة عناصر، تطبع كل عنصر في سطر.',
+    'pause': 'يوقف التنفيذ حتى يضغط المستخدم أي مفتاح.',
+    'rem هذا سطر تعليقي': 'سطر تعليقي — لا يُنفذ.',
+    'Get-Help Get-Process': 'عرض المساعدة الكاملة لأمر Get-Process.',
+    'Get-Command Get-*': 'عرض الأوامر التي تبدأ بـ Get- مع مصدرها وإصدارها.',
+    'Get-Date': 'عرض التاريخ والوقت.',
+    'Get-Location': 'عرض المجلد الحالي.',
+    'Get-ChildItem': 'عرض محتويات مجلد Demo.',
+    'Get-Process': 'عرض العمليات الجارية مع معرفاتها.',
+    'Get-Service': 'عرض الخدمات وحالتها.',
+    'Get-Process | Where-Object { $_.ProcessName -eq "notepad" }': 'تصفية العمليات لعرض notepad فقط.',
+    'Get-Process | Select-Object ProcessName, Id': 'اختيار أعمدة ProcessName وId فقط.',
+    'Get-Process | Select-Object ProcessName, Id | Format-Table': 'تنسيق النتائج في جدول.',
+    'Get-Process | Measure-Object': 'حساب عدد العمليات (Count = 3).',
+    'Get-Service | Measure-Object': 'حساب عدد الخدمات (Count = 4).',
+  };
+
+  const out = document.getElementById('u10SimOutput');
+  const select = document.getElementById('u10SimSelect');
+  const input = document.getElementById('u10SimInput');
+  const runBtn = document.getElementById('u10SimRunBtn');
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function writeLine(html) {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    out.appendChild(div);
+    out.scrollTop = out.scrollHeight;
+  }
+  function normalize(cmd) {
+    return cmd.replace(/\s+/g, ' ').trim();
+  }
+
+  /* مطابقة صارمة: توحيد المسافات فقط + تجاهل حالة الأحرف */
+  function findMatch(userInput) {
+    const norm = normalize(userInput);
+    const keys = Object.keys(OUTPUTS);
+    if (OUTPUTS[norm]) return norm;
+    for (const k of keys) {
+      if (normalize(k).toLowerCase() === norm.toLowerCase()) return k;
+    }
+    return null;
+  }
+
+  function runCommand(rawInput) {
+    const cmd = String(rawInput || '').trim();
+    if (!cmd) {
+      writeLine('<span class="sim-error">⚠️ اكتب أمرًا أولًا أو اختر مثالًا جاهزًا.</span>');
+      return;
+    }
+
+    writeLine('<span class="sim-prompt">C:\\&gt;</span> <span class="sim-echo">' + escapeHtml(cmd) + '</span>');
+
+    const key = findMatch(cmd);
+    if (key && OUTPUTS[key] !== undefined) {
+      const output = OUTPUTS[key];
+      if (output === '') {
+        writeLine('<span class="sim-note">(لا مخرجات — الأمر ينفذ بصمت)</span>');
+      } else {
+        writeLine('<pre style="margin:0;font-family:inherit;color:inherit;white-space:pre-wrap;">' + escapeHtml(output) + '</pre>');
+      }
+      writeLine('<span class="sim-note">💡 ' + (EXPLANATIONS[key] || '') + '</span>');
+      writeLine('<span class="sim-note" style="font-size:.75rem;opacity:.7">ملاحظة: النتائج افتراضية ولا تعكس جهازك.</span>');
+    } else {
+      writeLine('<span class="sim-error">❌ الأمر غير مدعوم في هذا المحاكي.</span>');
+      writeLine('<span class="sim-note">💡 المدعوم: أوامر Batch (echo, set, if, for, pause, rem) وأوامر PowerShell (Get-Help, Get-Command, Get-Date, Get-Location, Get-ChildItem, Get-Process, Get-Service, Where-Object, Select-Object, Format-Table, Measure-Object)</span>');
+    }
+    writeLine('');
+  }
+
+  window.u10SimRunSelected = function () {
+    const val = select.value;
+    if (!val) {
+      writeLine('<span class="sim-error">⚠️ اختر مثالًا من القائمة أولًا.</span>');
+      return;
+    }
+    input.value = val;
+    runCommand(val);
+    select.value = '';
+  };
+
+  window.u10SimReset = function () {
+    out.innerHTML = '<span class="sim-note">// المحاكي جاهز. اكتب أمرًا في الحقل أعلاه أو اختر مثالًا جاهزًا.</span>';
+    select.value = '';
+    input.value = '';
+    input.focus();
+  };
+
+  window.u10SimClear = function () { out.innerHTML = ''; };
+
+  runBtn.addEventListener('click', function () { runCommand(input.value); });
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); runCommand(input.value); }
+  });
+  select.addEventListener('change', function () {
+    if (select.value) { input.value = select.value; input.focus(); }
+  });
+})();
+
+/* ============================================================
+   3) قائمة الجوال + الوضع الليلي
+   ============================================================ */
+(function () {
+  const toggle = document.getElementById('navToggle');
+  const links = document.getElementById('navLinks');
+  if (toggle && links) {
+    toggle.addEventListener('click', function () {
+      const open = links.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+
+  const themeBtn = document.getElementById('themeToggle');
+  if (themeBtn) {
+    const saved = localStorage.getItem('u10-theme');
+    if (saved === 'dark') {
+      document.body.classList.add('dark-mode');
+      themeBtn.textContent = '☀️ الوضع النهاري';
+    }
+    themeBtn.addEventListener('click', function () {
+      const isDark = document.body.classList.toggle('dark-mode');
+      themeBtn.textContent = isDark ? '☀️ الوضع النهاري' : '🌙 الوضع الليلي';
+      localStorage.setItem('u10-theme', isDark ? 'dark' : 'light');
+    });
+  }
+})();
+
+/* ============================================================
+   4) اختبار الوحدة — window.QUIZZES["unit10"]
+   ============================================================ */
+window.QUIZZES = window.QUIZZES || {};
+
+window.QUIZZES["unit10"] = {
+  title: "اختبار الوحدة العاشرة — الأتمتة الأساسية والانتقال إلى PowerShell",
+  questions: [
+    {
+      q: "ما الفائدة الأساسية لأتمتة المهام عبر ملف Batch؟",
+      options: [
+        "زيادة استهلاك الذاكرة",
+        "تجميع أوامر متكررة لتُنفَّذ بضغطة واحدة بدقة وتوفير وقت",
+        "منع تشغيل الأوامر",
+        "تعطيل جدار الحماية"
+      ],
+      correct: 1,
+      explanation: "الأتمتة تجمع الأوامر المتكررة في ملف واحد، ما يوفر الوقت ويقلل الخطأ البشري."
+    },
+    {
+      q: "ما وظيفة @echo off في بداية ملف Batch؟",
+      options: [
+        "طباعة الأوامر على الشاشة",
+        "إخفاء عرض الأوامر نفسها أثناء التنفيذ",
+        "إيقاف تشغيل السكربت",
+        "حذف الملف"
+      ],
+      correct: 1,
+      explanation: "@echo off يمنع عرض الأوامر، ويبقي المخرجات فقط."
+    },
+    {
+      q: "ما الفرق بين %A و%%A في حلقات FOR؟",
+      options: [
+        "لا فرق بينهما",
+        "%A في سطر الأوامر التفاعلي، و%%A داخل ملف Batch",
+        "%%A في سطر الأوامر، و%A داخل الملف",
+        "%A تستخدم للطباعة فقط"
+      ],
+      correct: 1,
+      explanation: "في سطر الأوامر التفاعلي تُستخدم علامة واحدة %A، داخل ملف Batch تُستخدم علامتان %%A."
+    },
+    {
+      q: "لماذا يجب فحص if errorlevel 3 قبل if errorlevel 1؟",
+      options: [
+        "لأن الترتيب لا يؤثر",
+        "لأن if errorlevel N يتحقق عندما تكون القيمة مساوية أو أكبر من N، فالترتيب العكسي يلتقط كل الحالات",
+        "لأن errorlevel 1 لا يعمل بعد 3",
+        "لأن if errorlevel لا يقبل الأرقام الكبيرة"
+      ],
+      correct: 1,
+      explanation: "if errorlevel N يعني ≥ N. فحص 1 أولًا سيجعله صحيحًا في كل الحالات، والفحص اللاحق لـ 3 لن يُنفَّذ."
+    },
+    {
+      q: "ما وظيفة set في Batch؟",
+      options: [
+        "طباعة نص على الشاشة",
+        "تعريف متغير يُستخدم لاحقًا بـ %VAR%",
+        "إيقاف التنفيذ",
+        "حذف ملف"
+      ],
+      correct: 1,
+      explanation: "set يعرّف متغيرًا. قيمته تُستخدم لاحقًا بالصيغة %VAR%."
+    },
+    {
+      q: "ما الفرق الجوهري بين CMD وPowerShell؟",
+      options: [
+        "CMD أسرع دائمًا",
+        "PowerShell يتعامل مع كائنات (Objects)، أما CMD فيتعامل مع نصوص (Strings)",
+        "PowerShell لا يدعم الأوامر",
+        "CMD يحتاج تثبيتًا إضافيًا"
+      ],
+      correct: 1,
+      explanation: "PowerShell مبني على الكائنات، ما يتيح التصفية والاختيار والفرز بسهولة أكبر."
+    },
+    {
+      q: "ما وظيفة Where-Object في Pipeline؟",
+      options: [
+        "اختيار أعمدة محددة",
+        "تصفية الكائنات بشرط محدد",
+        "حساب عدد العناصر",
+        "تنسيق الجدول"
+      ],
+      correct: 1,
+      explanation: "Where-Object يصفّي الكائنات وفق شرط. Select-Object يختار أعمدة. Measure-Object يحسب."
+    },
+    {
+      q: "ماذا يفعل السكربت التالي؟\nfor %%I in (alpha beta gamma) do echo Item: %%I",
+      options: [
+        "يطبع سطرًا واحدًا فقط",
+        "يطبع ثلاثة أسطر، كل واحد باسم عنصر",
+        "يحذف العناصر الثلاثة",
+        "لا يطبع شيئًا"
+      ],
+      correct: 1,
+      explanation: "الحلقة تمر على العناصر الثلاثة وتطبع كل واحد في سطر مستقل: Item: alpha، Item: beta، Item: gamma."
+    },
+    {
+      q: "ما وظيفة Measure-Object في Pipeline؟",
+      options: [
+        "تصفية الكائنات",
+        "اختيار أعمدة",
+        "حساب إحصاءات مثل العدد والمجموع والمتوسط",
+        "تنسيق الجدول"
+      ],
+      correct: 2,
+      explanation: "Measure-Object يحسب Count، Sum، Average، Maximum، Minimum. مفيد في تلخيص النتائج."
+    },
+    {
+      q: "ما التصرف الصحيح عند العثور على سكربت .bat أو .ps1 مجهول المصدر؟",
+      options: [
+        "تشغيله فورًا",
+        "قراءة محتواه والتحقق من مصدره وصلاحياته قبل التشغيل",
+        "حذفه دون فحص",
+        "إرساله للجميع للتجربة"
+      ],
+      correct: 1,
+      explanation: "لا تشغّل أي سكربت لا تفهم محتواه. راجع المحتوى والمصدر والصلاحيات أولًا."
+    }
+  ]
+};
+</script>
+
+</body>
+</html>
