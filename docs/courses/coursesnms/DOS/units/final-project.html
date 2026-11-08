@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>المشروع النهائي: تقييم خط الأساس الأمني لنظام Windows | أساسيات أوامر Windows CMD للأمن السيبراني</title>
+
+<!-- ===== SEO ===== -->
+<meta name="description" content="المشروع النهائي لمقرر أساسيات أوامر Windows CMD للأمن السيبراني — تقييم خط الأساس الأمني لنظام Windows: بيئة مختبرية افتراضية WIN-LAB-01، تحليل 9 مراحل، سجل ملاحظات تفاعلي، ونموذج تقرير قابل للطباعة.">
+<meta name="keywords" content="Windows Security Baseline, تقييم أمني, CMD, PowerShell, Event Logs, Firewall, Scheduled Tasks, مشروع تخرج, الأمن السيبراني, CyberPath">
+<meta name="author" content="CyberPath">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#0b1220">
+
+<!-- ===== الملفات المشتركة ===== -->
+<link rel="stylesheet" href="assets/css/course.css">
+
+<!-- ===== أنماط القائمة الرئيسة + المشروع ===== -->
+<style>
+  :root {
+    --fp-font-sans: 'Tajawal', system-ui, 'Segoe UI', Tahoma, Arial, sans-serif;
+    --fp-font-mono: 'JetBrains Mono', 'Cascadia Mono', Consolas, 'Courier New', monospace;
+    --nav-bg: #0b1220;
+    --nav-bg-2: #0f1b30;
+    --nav-accent: #22d3ee;
+    --nav-text: #e6edf7;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--fp-font-sans);
+    background: #f7f9fc;
+    color: #2d3748;
+    line-height: 1.85;
+  }
+
+  /* ===== القائمة الرئيسة ===== */
+  .main-nav {
+    position: sticky; top: 0; z-index: 100;
+    background: linear-gradient(135deg, var(--nav-bg), var(--nav-bg-2));
+    border-bottom: 1px solid #1c2d4a;
+    box-shadow: 0 2px 10px rgba(0,0,0,.2);
+    padding: 10px 18px;
+  }
+  .main-nav .nav-inner {
+    max-width: 1100px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap;
+  }
+  .main-nav ul {
+    list-style: none; margin: 0; padding: 0;
+    display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+    width: 100%; justify-content: flex-start;
+  }
+  .main-nav ul li a {
+    display: inline-block;
+    color: var(--nav-text); text-decoration: none;
+    font-size: .9rem; font-weight: 600;
+    padding: 8px 14px; border-radius: 8px; transition: .2s;
+  }
+  .main-nav ul li a:hover { background: rgba(34,211,238,.12); color: #fff; }
+  .main-nav ul li a.active {
+    background: rgba(34,211,238,.18); color: var(--nav-accent);
+    border: 1px solid rgba(34,211,238,.35);
+  }
+  .main-nav .theme-btn {
+    background: transparent; border: 1px solid rgba(255,255,255,.3);
+    color: #fff; border-radius: 8px; font-size: .95rem;
+    padding: 6px 12px; cursor: pointer; transition: .2s;
+    font-family: inherit; white-space: nowrap;
+  }
+  .main-nav .theme-btn:hover { border-color: var(--nav-accent); color: var(--nav-accent); }
+  .main-nav .nav-toggle {
+    display: none; background: transparent;
+    border: 1px solid rgba(255,255,255,.3); color: #fff;
+    border-radius: 8px; font-size: 1.2rem; padding: 4px 10px; cursor: pointer;
+  }
+
+  /* ===== الوضع الليلي ===== */
+  body.dark-mode { background: #0b1220; color: #cbd5e1; }
+  body.dark-mode .unit-header { background: linear-gradient(135deg, #050a15, #0f1b30) !important; }
+  body.dark-mode section h2 { color: #22d3ee; }
+  body.dark-mode section h3 { color: #93c5fd; }
+  body.dark-mode .concept-card { background: #152540; border-color: #26405f; }
+  body.dark-mode .concept-card .term { color: #22d3ee; }
+  body.dark-mode .concept-card .def { color: #cbd5e1; }
+  body.dark-mode .exercise { background: #152540; border-color: #26405f; }
+  body.dark-mode .exercise .ex-head { color: #93c5fd; }
+  body.dark-mode .exercise .ex-body { color: #cbd5e1; }
+  body.dark-mode .ref-table th { background: #0f1b30; }
+  body.dark-mode .ref-table td { background: #152540; border-color: #26405f; color: #cbd5e1; }
+  body.dark-mode .ref-table tr:nth-child(even) td { background: #1c2d4a; }
+  body.dark-mode .ref-table code { background: #040814; color: #f87171; }
+  body.dark-mode .fp-alert.info { background: #0c2a4a; color: #93c5fd; }
+  body.dark-mode .fp-alert.warn { background: #3a2c00; color: #fbbf24; }
+  body.dark-mode .fp-alert.danger { background: #3a0a0a; color: #fca5a5; }
+  body.dark-mode .fp-alert.success { background: #052e16; color: #86efac; }
+  body.dark-mode .summary-list li { border-color: #26405f; }
+  body.dark-mode .unit-nav a { background: #152540; color: #cbd5e1; border-color: #26405f; }
+  body.dark-mode .unit-nav a.primary { background: linear-gradient(135deg, #1a237e, #3949ab); color: #fff; }
+  body.dark-mode .unit-nav a.accent { background: linear-gradient(135deg, #16a085, #27ae60); color: #fff; }
+  body.dark-mode .refs-list li { color: #94a3b8; }
+  body.dark-mode .refs-list a { color: #22d3ee; }
+  body.dark-mode .exercise details summary { background: #1c2d4a; color: #93c5fd; }
+  body.dark-mode .exercise details[open] summary { background: #26405f; }
+  body.dark-mode .exercise details .answer { background: #052e16; color: #86efac; }
+  body.dark-mode .data-line { background: rgba(148, 163, 184, .08); border-left-color: #475569; color: #cbd5e1; }
+  body.dark-mode .fp-tabs .tab-btn { background: #152540; color: #cbd5e1; border-color: #26405f; }
+  body.dark-mode .fp-tabs .tab-btn.active { background: #0891b2; color: #03212b; }
+  body.dark-mode .fp-panel { background: #152540; border-color: #26405f; }
+  body.dark-mode .note-row { background: #0f1b30; border-color: #26405f; }
+  body.dark-mode .note-row .note-field { color: #94a3b8; }
+  body.dark-mode .note-row .note-value { color: #cbd5e1; }
+  body.dark-mode .report-box { background: #0f1b30; border-color: #26405f; color: #cbd5e1; }
+
+  @media (max-width: 720px) {
+    .main-nav .nav-toggle { display: inline-block; }
+    .main-nav .nav-links {
+      display: none; width: 100%; flex-direction: column;
+      gap: 4px; padding-top: 10px;
+      border-top: 1px solid rgba(255,255,255,.15);
+    }
+    .main-nav .nav-links.open { display: flex; }
+    .main-nav ul li a { display: block; width: 100%; }
+  }
+
+  /* ===== محتوى المشروع ===== */
+  .fp-page { line-height: 1.85; font-family: var(--fp-font-sans); }
+  .fp-page h2 { font-weight: 800; }
+  .fp-page h3 { font-weight: 700; }
+  .fp-page code, .fp-page pre { font-family: var(--fp-font-mono); }
+  .fp-lead { font-size: 1.02rem; color: #4a5568; }
+
+  .fp-alert {
+    display: flex; gap: 12px; padding: 14px 16px; border-radius: 12px;
+    margin: 16px 0; font-size: .93rem; line-height: 1.8;
+    border-right: 4px solid; background: #f7fafc;
+  }
+  .fp-alert .icon { font-size: 1.3rem; flex-shrink: 0; line-height: 1.4; }
+  .fp-alert.info { border-right-color: #3498db; background: #ebf8ff; color: #1a4971; }
+  .fp-alert.warn { border-right-color: #f39c12; background: #fffbea; color: #7b4b00; }
+  .fp-alert.danger { border-right-color: #e74c3c; background: #fdedec; color: #78281f; }
+  .fp-alert.success { border-right-color: #27ae60; background: #e8f8ee; color: #186a3b; }
+
+  .cmd-block {
+    background: #0d1117; border: 1px solid #30363d; border-radius: 12px;
+    margin: 18px 0; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,.08);
+  }
+  .cmd-block .cmd-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 14px; background: #161b22; border-bottom: 1px solid #30363d;
+    font-size: .8rem; color: #8b949e; gap: 8px;
+    direction: ltr; flex-direction: row;
+  }
+  .cmd-block .cmd-title {
+    display: flex; align-items: center; gap: 8px; font-weight: 700;
+    color: #58a6ff; word-break: break-all;
+    direction: ltr; text-align: left; min-width: 0; flex: 1;
+  }
+  .cmd-block .cmd-title::before { content: '>_'; color: #3fb950; flex-shrink: 0; }
+  .cmd-block .cmd-copy {
+    background: #21262d; color: #c9d1d9; border: 1px solid #30363d;
+    border-radius: 6px; padding: 4px 10px; cursor: pointer; font-family: inherit;
+    font-size: .75rem; font-weight: 600; transition: .2s; white-space: nowrap;
+    direction: rtl; flex-shrink: 0;
+  }
+  .cmd-block .cmd-copy:hover { background: #30363d; color: #58a6ff; }
+  .cmd-block .cmd-copy.copied { background: #238636; color: #fff; border-color: #2ea043; }
+  .cmd-block pre {
+    margin: 0; padding: 14px 16px; overflow-x: auto;
+    color: #c9d1d9; font-size: .85rem; line-height: 1.7;
+    direction: ltr; text-align: left;
+  }
+  .cmd-block pre .prompt { color: #3fb950; user-select: none; }
+  .cmd-block pre .comment { color: #8b949e; font-style: italic; }
+
+  .concepts-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px; margin: 16px 0;
+  }
+  .concept-card {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+    padding: 14px 16px; transition: .2s;
+  }
+  .concept-card:hover { border-color: #3498db; box-shadow: 0 4px 12px rgba(52,152,219,.1); }
+  .concept-card .term {
+    font-weight: 700; color: #1a237e; font-size: .95rem; margin-bottom: 4px;
+    font-family: var(--fp-font-mono);
+  }
+  .concept-card .term-ar { color: #3498db; font-size: .82rem; margin-bottom: 6px; }
+  .concept-card .def { font-size: .88rem; color: #4a5568; line-height: 1.7; }
+
+  .ref-table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: .9rem; }
+  .ref-table th {
+    background: #1a237e; color: #fff; padding: 10px 12px; text-align: right;
+    font-weight: 700; border: none;
+  }
+  .ref-table td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; color: #2d3748; }
+  .ref-table tr:nth-child(even) td { background: #f8fafc; }
+  .ref-table code {
+    background: #edf2f7; color: #c53030; padding: 2px 6px;
+    border-radius: 4px; font-size: .82rem;
+  }
+
+  .data-line {
+    direction: ltr; text-align: left;
+    font-family: var(--fp-font-mono); font-size: .88rem;
+    line-height: 1.75; padding: 4px 10px; margin: 4px 0;
+    background: rgba(30, 41, 59, .04); border-radius: 6px;
+    border-left: 3px solid #94a3b8; word-break: break-all;
+  }
+
+  .exercise {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+    padding: 16px 18px; margin-bottom: 12px;
+  }
+  .exercise .ex-head {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+    font-weight: 700; color: #1a237e;
+  }
+  .exercise .ex-num {
+    background: #1a237e; color: #fff; width: 28px; height: 28px;
+    border-radius: 50%; display: grid; place-items: center; font-size: .82rem;
+    flex-shrink: 0;
+  }
+  .exercise .ex-body { font-size: .92rem; color: #2d3748; }
+  .exercise details { margin-top: 10px; }
+  .exercise details summary {
+    cursor: pointer; color: #0891b2; font-weight: 700; font-size: .88rem;
+    padding: 6px 10px; background: #e0f2fe; border-radius: 8px;
+    display: inline-block;
+  }
+  .exercise details[open] summary { background: #bae6fd; }
+  .exercise details .answer {
+    margin-top: 10px; padding: 12px 14px; background: #e8f8ee;
+    border-right: 3px solid #27ae60; border-radius: 8px;
+    font-size: .9rem; color: #186a3b; line-height: 1.8;
+  }
+
+  .summary-list { list-style: none; padding: 0; margin: 0; }
+  .summary-list li {
+    position: relative; padding: 8px 32px 8px 0; font-size: .93rem;
+    border-bottom: 1px dashed #e2e8f0;
+  }
+  .summary-list li:last-child { border-bottom: none; }
+  .summary-list li::before {
+    content: '✓'; position: absolute; right: 0; top: 8px;
+    color: #27ae60; font-weight: 800;
+  }
+
+  /* ===== التبويبات التفاعلية ===== */
+  .fp-tabs {
+    display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0 12px;
+    border-bottom: 2px solid #e2e8f0; padding-bottom: 0;
+  }
+  .fp-tabs .tab-btn {
+    padding: 8px 14px; border: 1px solid #e2e8f0; border-bottom: none;
+    background: #f8fafc; color: #4a5568; border-radius: 8px 8px 0 0;
+    cursor: pointer; font-family: inherit; font-size: .82rem;
+    font-weight: 700; transition: .2s; margin-bottom: -2px;
+  }
+  .fp-tabs .tab-btn:hover { background: #ebf8ff; color: #1a237e; }
+  .fp-tabs .tab-btn.active {
+    background: #1a237e; color: #fff; border-color: #1a237e;
+  }
+  .fp-panel {
+    display: none; background: #fff; border: 1px solid #e2e8f0;
+    border-radius: 0 12px 12px 12px; padding: 18px;
+    animation: fadeIn .25s ease;
+  }
+  .fp-panel.active { display: block; }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+  /* ===== سجل الملاحظات ===== */
+  .note-form {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px; margin-bottom: 14px; padding: 14px;
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+  }
+  .note-form label {
+    display: flex; flex-direction: column; gap: 4px;
+    font-size: .82rem; font-weight: 700; color: #1a237e;
+  }
+  .note-form input, .note-form select, .note-form textarea {
+    font-family: inherit; font-size: .88rem; padding: 8px 10px;
+    border: 1px solid #cbd5e1; border-radius: 8px; background: #fff;
+    color: #2d3748; width: 100%; box-sizing: border-box;
+  }
+  .note-form input:focus, .note-form select:focus, .note-form textarea:focus {
+    outline: none; border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52,152,219,.15);
+  }
+  .note-form textarea { min-height: 70px; resize: vertical; }
+  .note-form .full { grid-column: 1 / -1; }
+  .note-form .actions {
+    grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  .fp-btn {
+    padding: 9px 18px; border-radius: 8px; border: none;
+    font-family: inherit; font-size: .88rem; font-weight: 700;
+    cursor: pointer; transition: .2s;
+  }
+  .fp-btn.primary {
+    background: linear-gradient(135deg, #0891b2, #22d3ee);
+    color: #03212b;
+  }
+  .fp-btn.primary:hover { filter: brightness(1.1); }
+  .fp-btn.ghost {
+    background: transparent; color: #4a5568;
+    border: 1px solid #cbd5e1;
+  }
+  .fp-btn.ghost:hover { border-color: #3498db; color: #1a237e; }
+  .fp-btn.danger {
+    background: transparent; color: #e74c3c;
+    border: 1px solid rgba(231,76,60,.4);
+  }
+  .fp-btn.danger:hover { background: rgba(231,76,60,.08); }
+
+  .notes-list { display: flex; flex-direction: column; gap: 10px; }
+  .note-row {
+    background: #fff; border: 1px solid #e2e8f0;
+    border-radius: 10px; padding: 12px 14px;
+    display: grid; grid-template-columns: 1fr auto; gap: 10px;
+  }
+  .note-row .note-content { display: flex; flex-direction: column; gap: 4px; }
+  .note-row .note-field { font-size: .72rem; font-weight: 700; color: #718096; }
+  .note-row .note-value { font-size: .88rem; color: #2d3748; }
+  .note-row .severity {
+    display: inline-block; padding: 2px 10px; border-radius: 999px;
+    font-size: .75rem; font-weight: 700; color: #fff;
+  }
+  .sev-critical { background: #dc2626; }
+  .sev-high     { background: #ea580c; }
+  .sev-medium   { background: #d97706; }
+  .sev-low      { background: #0891b2; }
+  .sev-info     { background: #64748b; }
+  .note-row .note-actions {
+    display: flex; flex-direction: column; gap: 4px; justify-content: center;
+  }
+  .note-row .note-actions button {
+    background: transparent; border: 1px solid #cbd5e1;
+    border-radius: 6px; padding: 3px 8px; cursor: pointer;
+    font-family: inherit; font-size: .75rem;
+    color: #4a5568; transition: .2s;
+  }
+  .note-row .note-actions button:hover { border-color: #3498db; color: #1a237e; }
+  .note-row .note-actions button.del:hover { border-color: #e74c3c; color: #e74c3c; }
+
+  /* ===== التقرير ===== */
+  .report-box {
+    background: #fff; border: 1px solid #e2e8f0;
+    border-radius: 12px; padding: 22px; margin: 16px 0;
+    font-size: .92rem; line-height: 1.9;
+  }
+  .report-box h3 { color: #1a237e; margin-top: 18px; }
+  .report-box h3:first-child { margin-top: 0; }
+  .report-box ul { padding-right: 22px; }
+  .report-box .report-meta {
+    background: #f8fafc; padding: 10px 14px; border-radius: 8px;
+    margin-bottom: 14px; font-size: .85rem;
+  }
+  .report-box .report-meta strong { color: #1a237e; }
+  .report-controls {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;
+  }
+
+  /* ===== قسم التحقق النهائي ===== */
+  .unit-nav {
+    display: flex; justify-content: space-between; gap: 12px;
+    margin-top: 30px; flex-wrap: wrap;
+  }
+  .unit-nav a {
+    flex: 1; min-width: 200px; padding: 14px 20px; border-radius: 12px;
+    text-decoration: none; font-weight: 700; text-align: center;
+    transition: .2s; border: 1px solid #e2e8f0; background: #fff;
+    color: #1a237e;
+  }
+  .unit-nav a:hover { border-color: #3498db; box-shadow: 0 4px 12px rgba(52,152,219,.15); }
+  .unit-nav a.prev { color: #4a5568; }
+  .unit-nav a.primary {
+    background: linear-gradient(135deg, #1a237e, #3949ab);
+    color: #fff; border: none;
+  }
+  .unit-nav a.primary:hover { filter: brightness(1.1); }
+  .unit-nav a.accent {
+    background: linear-gradient(135deg, #16a085, #27ae60);
+    color: #fff; border: none;
+  }
+  .unit-nav a.accent:hover { filter: brightness(1.1); }
+
+  .refs-list { padding-right: 20px; }
+  .refs-list li { margin-bottom: 8px; font-size: .92rem; color: #4a5568; }
+  .refs-list a { color: #0891b2; text-decoration: none; }
+  .refs-list a:hover { text-decoration: underline; }
+
+  @media print {
+    .main-nav, .unit-nav, .fp-tabs, .fp-btn, .report-controls,
+    .note-form .actions, .note-row .note-actions { display: none !important; }
+    .fp-panel { display: block !important; border: none; padding: 0; }
+    .fp-panel.active { display: block !important; }
+    .report-box { border: none; padding: 0; }
+    body { background: #fff; color: #000; }
+  }
+
+  @media (max-width: 720px) {
+    .cmd-block pre { font-size: .78rem; padding: 12px; }
+    .ref-table { font-size: .8rem; }
+    .ref-table th, .ref-table td { padding: 6px 4px; }
+    .unit-nav a { min-width: 100%; }
+    .note-row { grid-template-columns: 1fr; }
+    .note-row .note-actions { flex-direction: row; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     القائمة الرئيسة الموحدة
+     ============================================================ -->
+<nav class="main-nav" aria-label="القائمة الرئيسة">
+  <div class="nav-inner">
+    <button class="nav-toggle" id="navToggle" aria-label="فتح القائمة" aria-expanded="false">☰</button>
+
+    <ul class="nav-links" id="navLinks">
+      <li><a href="https://cyberpath.vercel.app/courses/coursesnms/DOS/index.html">الرئيسية</a></li>
+      <li><a href="https://cyberpath.vercel.app/courses/coursesnms/DOS/units/unit1.html">الوحدات</a></li>
+      <li><a href="https://cyberpath.vercel.app/courses/coursesnms/DOS/final-exam.html">الاختبار النهائي</a></li>
+      <li><a href="https://cyberpath.vercel.app/courses/coursesnms/DOS/final-project.html" class="active">المشروع</a></li>
+      <li><a href="https://cyberpath.vercel.app/courses/coursesnms/DOS/references.html">المراجع</a></li>
+      <li><button class="theme-btn" id="themeToggle" aria-label="تبديل الوضع الليلي">🌙 الوضع الليلي</button></li>
+    </ul>
+  </div>
+</nav>
+
+<main class="fp-page" dir="rtl">
+
+  <!-- ============================================================
+       1. رأس المشروع
+       ============================================================ -->
+  <header class="unit-header" style="background:linear-gradient(135deg,#0b1220,#1a237e);color:#fff;padding:36px 24px;border-radius:0 0 24px 24px;margin-bottom:24px;">
+    <div style="max-width:1000px;margin:0 auto;">
+      <p style="font-size:.85rem;opacity:.8;margin:0 0 6px;">أساسيات أوامر Windows CMD للأمن السيبراني — المشروع الختامي</p>
+      <h1 style="font-size:1.9rem;font-weight:800;margin:0 0 8px;">تقييم خط الأساس الأمني لنظام Windows</h1>
+      <p style="font-size:.95rem;opacity:.85;margin:0;font-family:var(--fp-font-mono);">Windows Security Baseline Assessment — WIN-LAB-01</p>
+    </div>
+  </header>
+
+  <div style="max-width:1000px;margin:0 auto;padding:0 18px 60px;">
+
+    <!-- ============================================================
+         2. المقدمة
+         ============================================================ -->
+    <section>
+      <h2>المقدمة</h2>
+      <p class="fp-lead">
+        هذا المشروع هو التطبيق الختامي للمقرر. ستوظف فيه كل ما تعلمته في الوحدات العشر — بدءًا من أوامر CMD الأساسية، وصولًا إلى تحليل السجلات، جدار الحماية، المهام المجدولة، والأتمتة بـ Batch وPowerShell.
+      </p>
+      <p>
+        بيئة المشروع <strong>افتراضية بالكامل</strong>: جهاز مختبري باسم <code>WIN-LAB-01</code>، ببيانات ثابتة معدّة مسبقًا. لن تفحص جهازك، ولن تنفذ أوامر حقيقية، ولن تعدّل أي إعداد.
+      </p>
+      <div class="fp-alert danger">
+        <span class="icon">🛡️</span>
+        <div>
+          <strong>هذه بيئة مختبرية افتراضية. جميع البيانات والنتائج محاكاة تعليمية وليست مستخرجة من جهاز حقيقي.</strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         3. أهداف المشروع
+         ============================================================ -->
+    <section>
+      <h2>أهداف المشروع</h2>
+      <p>بنهاية المشروع ستكون قادرًا على:</p>
+      <ol>
+        <li>تحليل معلومات نظام Windows الافتراضية.</li>
+        <li>تفسير صلاحيات الملفات والمجلدات.</li>
+        <li>تقييم حسابات المستخدمين والمجموعات والامتيازات.</li>
+        <li>قراءة بيانات الشبكة والتمييز بين IP وMAC.</li>
+        <li>تحليل العمليات والخدمات وربطها بالسياق.</li>
+        <li>تفسير أحداث سجلات Windows وربطها زمنيًا.</li>
+        <li>تقييم إعدادات جدار الحماية وملفات التعريف.</li>
+        <li>تحليل المهام المجدولة ومؤشرات الاستمرارية.</li>
+        <li>فهم دور Batch وPowerShell في الأتمتة.</li>
+        <li>اكتشاف مؤشرات التهيئة غير المناسبة أو السلوك المشبوه.</li>
+        <li>إعداد تقرير أمني منظم يتضمن النتائج والتوصيات.</li>
+      </ol>
+    </section>
+
+    <!-- ============================================================
+         4. سيناريو المشروع
+         ============================================================ -->
+    <section>
+      <h2>سيناريو المشروع</h2>
+      <p>
+        أنت محلل أمني في فريق الدعم التقني. طُلب منك إعداد <strong>تقييم أمني أولي</strong> لمحطة عمل افتراضية تعمل بنظام Windows. تم تزويدك ببيانات ثابتة عن الجهاز المختبر <code>WIN-LAB-01</code>.
+      </p>
+      <p>
+        مهمتك:
+      </p>
+      <ol>
+        <li>مراجعة البيانات في المراحل التسع.</li>
+        <li>تدوين الملاحظات الأمنية في سجل الملاحظات.</li>
+        <li>تصنيف كل ملاحظة حسب الخطورة.</li>
+        <li>إعداد تقرير أمني نهائي قابل للطباعة.</li>
+      </ol>
+      <div class="fp-alert warn">
+        <span class="icon">⚠️</span>
+        <div>
+          جميع البيانات والأسماء والتواريخ في هذا المشروع <strong>خيالية وثابتة</strong>. لا توجد أي بيانات شخصية حقيقية.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         5. مراحل المشروع التسع
+         ============================================================ -->
+    <section>
+      <h2>مراحل المشروع التسع</h2>
+
+      <!-- ===== المرحلة 1 ===== -->
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">1</span><span>التعرف على النظام</span></div>
+        <div class="ex-body">
+          <p><strong>البيانات الافتراضية:</strong></p>
+          <div class="data-line">Host Name      : WIN-LAB-01</div>
+          <div class="data-line">OS Name        : Microsoft Windows 10 Pro</div>
+          <div class="data-line">OS Version     : 10.0.19045</div>
+          <div class="data-line">System Type    : x64-based PC</div>
+          <div class="data-line">Current User   : CYBERPATH\analyst1</div>
+          <div class="data-line">Uptime         : 0 days 04:12:33</div>
+          <p style="margin-top:10px"><strong>الأوامر المناسبة نظريًا:</strong> <code>systeminfo</code>, <code>whoami</code>, <code>hostname</code>.</p>
+          <p><strong>المطلوب:</strong> ما أهمية كل معلومة في التقييم الأمني؟</p>
+          <details><summary>اعرض التوجيه</summary><div class="answer">
+            <strong>Host Name</strong> يميّز الجهاز في الشبكة. <strong>OS Name/Version</strong> يحدد إن كان النظام مدعومًا ويحتاج تحديثات. <strong>System Type</strong> يؤثر على توافق الأدوات. <strong>Current User</strong> يحدد السياق الأمني. <strong>Uptime</strong> القصير قد يشير إلى إعادة تشغيل حديثة (تحديث أو حادث) ويستحق المراجعة.
+          </div></details>
+        </div>
+      </div>
+
+      <!-- ===== المرحلة 2 ===== -->
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">2</span><span>تحليل الملفات والمجلدات</span></div>
+        <div class="ex-body">
+          <p><strong>البيانات الافتراضية:</strong></p>
+          <div class="data-line">C:\Windows\System32           SYSTEM:Full   Administrators:Full   Users:Read</div>
+          <div class="data-line">C:\Users\analyst1\Documents   analyst1:Full   Administrators:Full</div>
+          <div class="data-line">C:\Users\Public               Everyone:Modify  (—)</div>
+          <div class="data-line">C:\LabData\report.txt         Everyone:Read    Administrators:Full</div>
+          <p style="margin-top:10px"><strong>الأوامر المناسبة:</strong> <code>dir</code>, <code>icacls</code>.</p>
+          <p><strong>المطلوب:</strong> ما الصلاحيات التي تستحق المراجعة؟</p>
+          <details><summary>اعرض التوجيه</summary><div class="answer">
+            <strong>صلاحية Everyone:Modify على C:\Users\Public</strong> تسمح لأي مستخدم بتعديل محتوى المجلد العام — وهذا مؤشر يستحق المراجعة، لأن المهاجم قد يستفيد منه لوضع ملفات مشبوهة. باقي الصلاحيات معتادة. توصية عامة: تقليل الصلاحيات إلى الحد الأدنى اللازم.
+          </div></details>
+        </div>
+      </div>
+
+      <!-- ===== المرحلة 3 ===== -->
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">3</span><span>تحليل المستخدمين والمجموعات</span></div>
+        <div class="ex-body">
+          <p><strong>البيانات الافتراضية:</strong></p>
+          <table class="ref-table">
+            <thead><tr><th>User</th><th>Status</th><th>Groups</th><th>SID</th></tr></thead>
+            <tbody>
+              <tr><td>Administrator</td><td>Enabled</td><td>Administrators</td><td>S-1-5-21-...-500</td></tr>
+              <tr><td>analyst1</td><td>Enabled</td><td>Users</td><td>S-1-5-21-...-1001</td></tr>
+              <tr><td>analyst2</td><td>Disabled</td><td>Users</td><td>S-1-5-21-...-1002</td></tr>
+              <tr><td>svc_backup</td><td>Enabled</td><td>Administrators</td><td>S-1-5-21-...-1003</td></tr>
+            </tbody>
+          </table>
+          <p><strong>الأوامر المناسبة:</strong> <code>net user</code>, <code>net localgroup</code>.</p>
+          <p><strong>المطلوب:</strong> ما الحسابات التي تستحق المراجعة؟</p>
+          <details><summary>اعرض التوجيه</summary><div class="answer">
+            <strong>svc_backup</strong> حساب خدمة لكنه عضو في Administrators — مخالف لمبدأ أقل صلاحية، ويستحق المراجعة. <strong>analyst2</strong> معطّل، لا مشكلة مباشرة، لكن يجب التحقق من سبب التعطيل. <strong>Administrator</strong> مفعّل باسمه الافتراضي — يُستحسن تعطيله أو إعادة تسميته كإجراء تحصين.
+          </div></details>
+        </div>
+      </div>
+
+      <!-- ===== المرحلة 4 ===== -->
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">4</span><span>تحليل الشبكة</span></div>
+        <div class="ex-body">
+          <p><strong>البيانات الافتراضية:</strong></p>
+          <div class="data-line">IPv4 Address   : 192.168.10.24</div>
+          <div class="data-line">Subnet Mask    : 255.255.255.0</div>
+          <div class="data-line">Default Gateway: 192.168.10.1</div>
+          <div class="data-line">DNS Servers    : 192.168.10.1, 8.8.8.8</div>
+          <div class="data-line">ARP:</div>
+          <div class="data-line">  192.168.10.1   aa-bb-cc-00-11-22   dynamic</div>
+          <div class="data-line">  192.168.10.50  aa-bb-cc-00-11-99   dynamic</div>
+          <p style="margin-top:10px"><strong>الأوامر المناسبة:</strong> <code>ipconfig /all</code>, <code>arp -a</code>.</p>
+          <p><strong>المطلوب:</strong> ما دلالة العناوين والبوابة وDNS؟</p>
+          <details><summary>اعرض التوجيه</summary><div class="answer">
+            <strong>IPv4</strong> عنوان منطقي داخل الشبكة المحلية، و<strong>MAC</strong> عنوان فيزيائي. <strong>Default Gateway</strong> يوجّه الحزم خارج الشبكة المحلية. <strong>DNS Servers</strong> يحوّل الأسماء إلى عناوين. <strong>ARP</strong> يربط IP بـ MAC. إدخال DNS عام (8.8.8.8) ضمن شبكة داخلية قد يستحق المراجعة (اعتماد خارجي)، لكنه ليس مؤشرًا قاطعًا.
+          </div></details>
+        </div>
+      </div>
+
+      <!-- ===== المرحلة 5 ===== -->
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">5</span><span>تحليل العمليات والخدمات</span></div>
+        <div class="ex-body">
+          <p><strong>العمليات الافتراضية:</strong></p>
+          <table class="ref-table">
+            <thead><tr><th>Process</th><th>PID</th><th>Mem (KB)</th><th>Service</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>svchost.exe</td><td>872</td><td>18,240</td><td>Dnscache</td><td>DNS Client</td></tr>
+              <tr><td>explorer.exe</td><td>3412</td><td>85,320</td><td>—</td><td>Windows Explorer</td></tr>
+              <tr><td>notepad.exe</td><td>5520</td><td>9,760</td><td>—</td><td>Notepad</td></tr>
+              <tr><td>customtool.exe</td><td>6172</td><td>42,110</td><td>—</td><td>Unknown (C:\Temp)</td></tr>
+            </tbody>
+          </table>
+          <p style="margin-top:10px"><strong>الخدمات الافتراضية:</strong></p>
+          <table class="ref-table">
+            <thead><tr><th>Service</th><th>State</th><th>Start Type</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>Dnscache</td><td>Running</td><td>Auto</td><td>DNS Client</td></tr>
+              <tr><td>MpsSvc</td><td>Running</td><td>Auto</td><td>Windows Defender Firewall</td></tr>
+              <tr><td>ExampleSvc</td><td>Stopped</td><td>Disabled</td><td>Example Service</td></tr>
+            </tbody>
+          </table>
+          <p><strong>المطلوب:</strong> ما العناصر التي تستحق المراجعة؟</p>
+          <details><summary>اعرض التوجيه</summary><div class="answer">
+            <strong>customtool.exe</strong> من <code>C:\Temp</code> بحجم غير معتاد (42MB) يستحق التحقق من: المسار، التوقيع الرقمي، وقت البدء، ومن أطلقه. <strong>اسمه وحده لا يكفي</strong> للحكم — قد يكون أداة إدارية مشروعة. <strong>ExampleSvc</strong> معطّلة، لا مشكلة. تحقق دائمًا من التوقيع والسياق قبل الحكم.
+          </div></details>
+        </div>
+      </div>
+
+      <!-- ===== المرحلة 6 ===== -->
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">6</span><span>تحليل سجلات Windows</span></div>
+        <div class="ex-body">
+          <p><strong>الأحداث الافتراضية:</strong></p>
+          <table class="ref-table">
+            <thead><tr><th>Time</th><th>Log</th><th>Event ID</th><th>User</th><th>Summary</th></tr></thead>
+            <tbody>
+              <tr><td>08:00:12</td><td>System</td><td>6005</td><td>—</td><td>Event log service started</td></tr>
+              <tr><td>08:30:44</td><td>Security</td><td>4625</td><td>analyst1</td><td>Failed logon</td></tr>
+              <tr><td>08:31:02</td><td>Security</td><td>4625</td><td>analyst1</td><td>Failed logon</td></tr>
+              <tr><td>08:31:20</td><td>Security</td><td>4625</td><td>analyst1</td><td>Failed logon</td></tr>
+              <tr><td>08:32:05</td><td>Security</td><td>4624</td><td>analyst1</td><td>Successful logon</td></tr>
+              <tr><td>09:15:00</td><td>System</td><td>7036</td><td>—</td><td>ExampleSvc entered stopped state</td></tr>
+            </tbody>
+          </table>
+          <p style="margin-top:10px"><strong>الأوامر المناسبة:</strong> <code>wevtutil qe Security /c:5 /rd:true /f:text</code>.</p>
+          <p><strong>المطلوب:</strong> ما الأنماط التي تستحق المراجعة؟</p>
+          <details><summary>اعرض التوجيه</summary><div class="answer">
+            نمط <strong>ثلاث محاولات فاشلة متتالية (4625) ثم تسجيل ناجح (4624)</strong> لنفس الحساب خلال دقيقتين — نمط يستحق التحقق (قد يكون خطأ كلمة مرور، أو تخمينًا ناجحًا). <strong>لا يمكن الجزم من الأحداث وحدها</strong> — يجب مراجعة المصدر والسياق. تنبيه: غياب الأحداث من السجل لا يعني أن النشاط لم يحدث؛ قد يكون التدقيق معطّلًا.
+          </div></details>
+        </div>
+      </div>
+
+      <!-- ===== المرحلة 7 ===== -->
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">7</span><span>تقييم جدار الحماية</span></div>
+        <div class="ex-body">
+          <p><strong>البيانات الافتراضية:</strong></p>
+          <table class="ref-table">
+            <thead><tr><th>Profile</th><th>Status</th><th>Inbound</th><th>Outbound</th><th>LogBlocked</th></tr></thead>
+            <tbody>
+              <tr><td>Domain</td><td>ON</td><td>Block</td><td>Allow</td><td>True</td></tr>
+              <tr><td>Private</td><td>ON</td><td>Block</td><td>Allow</td><td>True</td></tr>
+              <tr><td>Public</td><td>OFF</td><td>Allow</td><td>Allow</td><td>False</td></tr>
+            </tbody>
+          </table>
+          <p style="margin-top:10px"><strong>الأوامر المناسبة:</strong> <code>netsh advfirewall show allprofiles</code>.</p>
+          <p><strong>المطلوب:</strong> ما الإعدادات التي تستحق المراجعة؟</p>
+          <details><summary>اعرض التوجيه</summary><div class="answer">
+            <strong>Public OFF</strong> مؤشر خطر مرتفع — يجعل الجهاز مكشوفًا في الشبكات العامة. <strong>Public Inbound: Allow</strong> سياسة مفتوحة تزيد سطح الهجوم. <strong>LogBlocked: False</strong> يفقدك القدرة على التحليل الجنائي. الإجراء المقترح: تفعيل Public مع سياسة Block Inbound (في بيئة إنتاج، وليس هنا).
+          </div></details>
+        </div>
+      </div>
+
+      <!-- ===== المرحلة 8 ===== -->
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">8</span><span>تحليل المهام المجدولة</span></div>
+        <div class="ex-body">
+          <p><strong>المهام الافتراضية:</strong></p>
+          <table class="ref-table">
+            <thead><tr><th>Task Name</th><th>Path</th><th>Run As</th><th>Action</th><th>Schedule</th></tr></thead>
+            <tbody>
+              <tr><td>ScheduledDefrag</td><td>\Microsoft\Windows\Defrag</td><td>SYSTEM</td><td>%windir%\system32\defrag.exe</td><td>Weekly</td></tr>
+              <tr><td>WindowsUpdateHelper</td><td>\CustomTasks</td><td>SYSTEM</td><td>C:\Users\Public\wuhelper.exe</td><td>Daily</td></tr>
+              <tr><td>LogRotator</td><td>\Maintenance</td><td>SYSTEM</td><td>C:\Program Files\LogTools\rotate.exe</td><td>Every 5 min</td></tr>
+            </tbody>
+          </table>
+          <p style="margin-top:10px"><strong>الأوامر المناسبة:</strong> <code>schtasks /query /v /fo LIST</code>.</p>
+          <p><strong>المطلوب:</strong> ما المهام التي تستحق المراجعة؟</p>
+          <details><summary>اعرض التوجيه</summary><div class="answer">
+            <strong>ScheduledDefrag</strong> مهمة نظامية معروفة، لا مؤشر شذوذ (مع بقاء التحقق من التوقيع). <strong>WindowsUpdateHelper</strong> اسم يشبه مهمة نظامية لكنه في مجلد مخصص ويشغّل ملفًا من مجلد المستخدم العام — مؤشرات قوية. <strong>LogRotator</strong> مسار معتاد، لكن جدولة كل 5 دقائق أداة تدوير سجلات غير معتادة. لا يمكن الجزم بالخبث من البيانات وحدها.
+          </div></details>
+        </div>
+      </div>
+
+      <!-- ===== المرحلة 9 ===== -->
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">9</span><span>تحليل الأتمتة وPowerShell</span></div>
+        <div class="ex-body">
+          <p><strong>مقطع Batch افتراضي:</strong></p>
+          <div class="data-line">@echo off</div>
+          <div class="data-line">set STATUS=READY</div>
+          <div class="data-line">if "%STATUS%"=="READY" echo Proceed</div>
+          <div class="data-line">for %%I in (alpha beta gamma) do echo Item: %%I</div>
+          <p style="margin-top:10px"><strong>مقطع PowerShell افتراضي:</strong></p>
+          <div class="data-line">Get-Process | Where-Object { $_.ProcessName -eq "notepad" } | Select-Object ProcessName, Id</div>
+          <p><strong>المطلوب:</strong> ما وظيفة كل مقطع؟ وهل يوجد خطأ منطقي؟</p>
+          <details><summary>اعرض التوجيه</summary><div class="answer">
+            <strong>Batch:</strong> يعرّف متغيرًا، يفحص شرطًا، ثم يكرر على ثلاثة عناصر ويطبعها. لا يوجد خطأ منطقي في هذا المقطع — الشرط صحيح، والحلقة صحيحة. <strong>PowerShell:</strong> يجلب العمليات، يصفّيها لعرض notepad فقط، ثم يختار العمودين ProcessName وId. لا يوجد خطأ. <strong>ملاحظة سلامة:</strong> لا تشغّل أي سكربت مجهول المصدر، حتى لو بدا بسيطًا.
+          </div></details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         6. البيئة الافتراضية التفاعلية
+         ============================================================ -->
+    <section>
+      <h2>البيئة الافتراضية التفاعلية — WIN-LAB-01</h2>
+      <p>استعرض بيانات الجهاز المختبر عبر التبويبات التالية. جميع البيانات ثابتة تعليمية.</p>
+
+      <div class="fp-tabs" role="tablist">
+        <button class="tab-btn active" data-tab="sys">النظام</button>
+        <button class="tab-btn" data-tab="files">الملفات</button>
+        <button class="tab-btn" data-tab="users">المستخدمون</button>
+        <button class="tab-btn" data-tab="net">الشبكة</button>
+        <button class="tab-btn" data-tab="proc">العمليات والخدمات</button>
+        <button class="tab-btn" data-tab="logs">السجلات</button>
+        <button class="tab-btn" data-tab="fw">جدار الحماية</button>
+        <button class="tab-btn" data-tab="tasks">المهام</button>
+        <button class="tab-btn" data-tab="scripts">السكربتات</button>
+      </div>
+
+      <!-- لوحة النظام -->
+      <div class="fp-panel active" data-panel="sys">
+        <table class="ref-table">
+          <thead><tr><th>Property</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>Host Name</td><td>WIN-LAB-01</td></tr>
+            <tr><td>OS</td><td>Windows 10 Pro (10.0.19045)</td></tr>
+            <tr><td>System Type</td><td>x64-based PC</td></tr>
+            <tr><td>Current User</td><td>CYBERPATH\analyst1</td></tr>
+            <tr><td>Uptime</td><td>0d 04:12:33</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- لوحة الملفات -->
+      <div class="fp-panel" data-panel="files">
+        <table class="ref-table">
+          <thead><tr><th>Path</th><th>Permissions</th></tr></thead>
+          <tbody>
+            <tr><td>C:\Windows\System32</td><td>SYSTEM:Full · Administrators:Full · Users:Read</td></tr>
+            <tr><td>C:\Users\analyst1\Documents</td><td>analyst1:Full · Administrators:Full</td></tr>
+            <tr><td>C:\Users\Public</td><td>Everyone:Modify</td></tr>
+            <tr><td>C:\LabData\report.txt</td><td>Everyone:Read · Administrators:Full</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- لوحة المستخدمين -->
+      <div class="fp-panel" data-panel="users">
+        <table class="ref-table">
+          <thead><tr><th>User</th><th>Status</th><th>Groups</th><th>SID</th></tr></thead>
+          <tbody>
+            <tr><td>Administrator</td><td>Enabled</td><td>Administrators</td><td>S-1-5-21-...-500</td></tr>
+            <tr><td>analyst1</td><td>Enabled</td><td>Users</td><td>S-1-5-21-...-1001</td></tr>
+            <tr><td>analyst2</td><td>Disabled</td><td>Users</td><td>S-1-5-21-...-1002</td></tr>
+            <tr><td>svc_backup</td><td>Enabled</td><td>Administrators</td><td>S-1-5-21-...-1003</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- لوحة الشبكة -->
+      <div class="fp-panel" data-panel="net">
+        <div class="data-line">IPv4 Address   : 192.168.10.24</div>
+        <div class="data-line">Subnet Mask    : 255.255.255.0</div>
+        <div class="data-line">Default Gateway: 192.168.10.1</div>
+        <div class="data-line">DNS Servers    : 192.168.10.1, 8.8.8.8</div>
+        <div class="data-line">ARP:</div>
+        <div class="data-line">  192.168.10.1   aa-bb-cc-00-11-22   dynamic</div>
+        <div class="data-line">  192.168.10.50  aa-bb-cc-00-11-99   dynamic</div>
+      </div>
+
+      <!-- لوحة العمليات -->
+      <div class="fp-panel" data-panel="proc">
+        <h3 style="margin-top:0">العمليات</h3>
+        <table class="ref-table">
+          <thead><tr><th>Process</th><th>PID</th><th>Mem (KB)</th><th>Service</th></tr></thead>
+          <tbody>
+            <tr><td>svchost.exe</td><td>872</td><td>18,240</td><td>Dnscache</td></tr>
+            <tr><td>explorer.exe</td><td>3412</td><td>85,320</td><td>—</td></tr>
+            <tr><td>notepad.exe</td><td>5520</td><td>9,760</td><td>—</td></tr>
+            <tr><td>customtool.exe</td><td>6172</td><td>42,110</td><td>—</td></tr>
+          </tbody>
+        </table>
+        <h3>الخدمات</h3>
+        <table class="ref-table">
+          <thead><tr><th>Service</th><th>State</th><th>Start Type</th></tr></thead>
+          <tbody>
+            <tr><td>Dnscache</td><td>Running</td><td>Auto</td></tr>
+            <tr><td>MpsSvc</td><td>Running</td><td>Auto</td></tr>
+            <tr><td>ExampleSvc</td><td>Stopped</td><td>Disabled</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- لوحة السجلات -->
+      <div class="fp-panel" data-panel="logs">
+        <table class="ref-table">
+          <thead><tr><th>Time</th><th>Log</th><th>Event ID</th><th>User</th><th>Summary</th></tr></thead>
+          <tbody>
+            <tr><td>08:00:12</td><td>System</td><td>6005</td><td>—</td><td>Event log service started</td></tr>
+            <tr><td>08:30:44</td><td>Security</td><td>4625</td><td>analyst1</td><td>Failed logon</td></tr>
+            <tr><td>08:31:02</td><td>Security</td><td>4625</td><td>analyst1</td><td>Failed logon</td></tr>
+            <tr><td>08:31:20</td><td>Security</td><td>4625</td><td>analyst1</td><td>Failed logon</td></tr>
+            <tr><td>08:32:05</td><td>Security</td><td>4624</td><td>analyst1</td><td>Successful logon</td></tr>
+            <tr><td>09:15:00</td><td>System</td><td>7036</td><td>—</td><td>ExampleSvc stopped</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- لوحة جدار الحماية -->
+      <div class="fp-panel" data-panel="fw">
+        <table class="ref-table">
+          <thead><tr><th>Profile</th><th>Status</th><th>Inbound</th><th>Outbound</th><th>LogBlocked</th></tr></thead>
+          <tbody>
+            <tr><td>Domain</td><td>ON</td><td>Block</td><td>Allow</td><td>True</td></tr>
+            <tr><td>Private</td><td>ON</td><td>Block</td><td>Allow</td><td>True</td></tr>
+            <tr><td>Public</td><td>OFF</td><td>Allow</td><td>Allow</td><td>False</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- لوحة المهام -->
+      <div class="fp-panel" data-panel="tasks">
+        <table class="ref-table">
+          <thead><tr><th>Task</th><th>Path</th><th>Run As</th><th>Action</th><th>Schedule</th></tr></thead>
+          <tbody>
+            <tr><td>ScheduledDefrag</td><td>\Microsoft\Windows\Defrag</td><td>SYSTEM</td><td>%windir%\system32\defrag.exe</td><td>Weekly</td></tr>
+            <tr><td>WindowsUpdateHelper</td><td>\CustomTasks</td><td>SYSTEM</td><td>C:\Users\Public\wuhelper.exe</td><td>Daily</td></tr>
+            <tr><td>LogRotator</td><td>\Maintenance</td><td>SYSTEM</td><td>C:\Program Files\LogTools\rotate.exe</td><td>Every 5 min</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- لوحة السكربتات -->
+      <div class="fp-panel" data-panel="scripts">
+        <h3 style="margin-top:0">Batch</h3>
+        <div class="data-line">@echo off</div>
+        <div class="data-line">set STATUS=READY</div>
+        <div class="data-line">if "%STATUS%"=="READY" echo Proceed</div>
+        <div class="data-line">for %%I in (alpha beta gamma) do echo Item: %%I</div>
+        <h3>PowerShell</h3>
+        <div class="data-line">Get-Process | Where-Object { $_.ProcessName -eq "notepad" } | Select-Object ProcessName, Id</div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         7. سجل الملاحظات
+         ============================================================ -->
+    <section>
+      <h2>سجل الملاحظات والتقييم</h2>
+      <p>أضف ملاحظاتك الأمنية المستندة إلى البيانات الافتراضية. كل ملاحظة تحتاج: الوصف، الدليل، مستوى الخطورة، التفسير، والتوصية.</p>
+
+      <div class="note-form">
+        <label class="full">الملاحظة الأمنية
+          <input type="text" id="noteTitle" placeholder="مثال: تعطيل جدار الحماية لملف Public">
+        </label>
+        <label class="full">الدليل الافتراضي
+          <input type="text" id="noteEvidence" placeholder="مثال: Public Profile Status = OFF">
+        </label>
+        <label>مستوى الخطورة
+          <select id="noteSeverity">
+            <option value="critical">حرج</option>
+            <option value="high">مرتفع</option>
+            <option value="medium" selected>متوسط</option>
+            <option value="low">منخفض</option>
+            <option value="info">معلوماتي</option>
+          </select>
+        </label>
+        <label>التفسير
+          <textarea id="noteExplain" placeholder="لماذا هذه الملاحظة مهمة أمنيًا؟"></textarea>
+        </label>
+        <label>التوصية
+          <textarea id="noteRecommend" placeholder="ما الإجراء المقترح؟"></textarea>
+        </label>
+        <div class="actions">
+          <button class="fp-btn primary" id="addNoteBtn">➕ إضافة الملاحظة</button>
+          <button class="fp-btn ghost" id="clearNotesBtn">🗑️ مسح جميع الملاحظات</button>
+        </div>
+      </div>
+
+      <div class="notes-list" id="notesList">
+        <p style="text-align:center;color:#94a3b8;font-size:.9rem;padding:20px">لم تُضف أي ملاحظات بعد.</p>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         8. التقرير النهائي
+         ============================================================ -->
+    <section>
+      <h2>التقرير النهائي</h2>
+      <p>يُبنى التقرير تلقائيًا من الملاحظات المسجلة. راجع الملاحظات قبل الطباعة.</p>
+
+      <div class="report-controls">
+        <button class="fp-btn primary" id="generateReportBtn">📄 توليد التقرير</button>
+        <button class="fp-btn ghost" onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
+      </div>
+
+      <div class="report-box" id="reportBox">
+        <h3>تقرير تقييم خط الأساس الأمني — WIN-LAB-01</h3>
+        <div class="report-meta">
+          <p><strong>البيئة:</strong> WIN-LAB-01 · Windows 10 Pro (10.0.19045)</p>
+          <p><strong>المحلل:</strong> CYBERPATH\analyst1</p>
+          <p><strong>الغرض:</strong> تقييم أمني أولي تعليمي</p>
+        </div>
+        <p style="color:#94a3b8;font-size:.88rem;text-align:center;padding:20px">
+          اضغط "توليد التقرير" لإنشاء التقرير من الملاحظات المسجلة.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         9. معايير التقييم
+         ============================================================ -->
+    <section>
+      <h2>معايير التقييم</h2>
+      <table class="ref-table">
+        <thead><tr><th>المعيار</th><th>الدرجة</th><th>ما الذي يستحق الدرجة الكاملة؟</th></tr></thead>
+        <tbody>
+          <tr><td>تحليل معلومات النظام والملفات</td><td>10</td><td>تحديد المعلومات الأساسية، تفسير الصلاحيات، اكتشاف <code>Everyone:Modify</code>.</td></tr>
+          <tr><td>تحليل المستخدمين والصلاحيات</td><td>15</td><td>اكتشاف <code>svc_backup</code> كعضو Administrators، وتوصية بمبدأ أقل صلاحية.</td></tr>
+          <tr><td>تحليل الشبكة</td><td>10</td><td>التمييز بين IP وMAC، تفسير البوابة وDNS، ملاحظة DNS الخارجي.</td></tr>
+          <tr><td>تحليل العمليات والخدمات</td><td>15</td><td>ملاحظة <code>customtool.exe</code> من C:\Temp دون الجزم بالخبث، وضرورة فحص التوقيع.</td></tr>
+          <tr><td>تحليل سجلات Windows</td><td>15</td><td>نمط 4625×3 → 4624، الربط الزمني، عدم الجزم من حدث منفرد.</td></tr>
+          <tr><td>تقييم جدار الحماية</td><td>10</td><td>اكتشاف Public OFF وAllow Inbound، وتوصية دون تنفيذ تغيير.</td></tr>
+          <tr><td>تحليل المهام المجدولة</td><td>10</td><td>ملاحظة <code>WindowsUpdateHelper</code> في مسار المستخدم العام + جدولة LogRotator غير المعتادة.</td></tr>
+          <tr><td>تحليل Batch وPowerShell</td><td>5</td><td>تفسير صحيح للمقاطع، عدم تنفيذها فعليًا، إدراك حدود السكربتات.</td></tr>
+          <tr><td>جودة التقرير والتوصيات</td><td>10</td><td>تقرير منظم، 5 ملاحظات على الأقل، 5 توصيات على الأقل، خلاصة تحدد حدود التقييم.</td></tr>
+          <tr><td><strong>الإجمالي</strong></td><td><strong>100</strong></td><td>—</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============================================================
+         10. مخرجات الطالب المطلوبة
+         ============================================================ -->
+    <section>
+      <h2>مخرجات الطالب المطلوبة</h2>
+      <ul class="summary-list">
+        <li>ملخص تنفيذي واضح (150-250 كلمة).</li>
+        <li>تحليل مكتوب للأقسام التسعة مستندًا إلى البيانات الافتراضية.</li>
+        <li>خمس ملاحظات أمنية على الأقل مسجلة في سجل الملاحظات.</li>
+        <li>تصنيف كل ملاحظة حسب الخطورة مع تبرير.</li>
+        <li>خمس توصيات عملية على الأقل.</li>
+        <li>خلاصة توضح حدود التقييم (ما يمكن وما لا يمكن إثباته).</li>
+        <li>التمييز بين السلوك الطبيعي والمؤشر الذي يحتاج إلى تحقق.</li>
+      </ul>
+    </section>
+
+    <!-- ============================================================
+         11. المراجع
+         ============================================================ -->
+    <section>
+      <h2>المراجع</h2>
+      <ul class="refs-list">
+        <li>Microsoft Learn — <em>Windows Commands Reference</em>. <a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/windows-commands" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+        <li>Microsoft Learn — <em>Windows PowerShell Documentation</em>. <a href="https://learn.microsoft.com/en-us/powershell/" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+        <li>Microsoft Learn — <em>Windows Security</em>. <a href="https://learn.microsoft.com/en-us/windows/security/" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+        <li>Microsoft Learn — <em>Windows Event Logs</em>. <a href="https://learn.microsoft.com/en-us/windows/win32/eventlog/event-logging" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+        <li>Microsoft Learn — <em>Windows Defender Firewall</em>. <a href="https://learn.microsoft.com/en-us/windows/security/threat-protection/windows-firewall/windows-firewall-with-advanced-security" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+        <li>Microsoft Learn — <em>Task Scheduler</em>. <a href="https://learn.microsoft.com/en-us/windows/win32/taskschd/task-scheduler-start-page" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+      </ul>
+    </section>
+
+    <!-- ============================================================
+         12. روابط التنقل
+         ============================================================ -->
+    <nav class="unit-nav" aria-label="التنقل">
+      <a href="units/unit10.html" class="prev">← الوحدة العاشرة</a>
+      <a href="final-exam.html" class="primary">الاختبار النهائي →</a>
+      <a href="https://cyberpath.vercel.app/courses/coursesnms/DOS/references.html" class="accent">المراجع →</a>
+    </nav>
+
+  </div>
+</main>
+
+<!-- ===== الملفات المشتركة ===== -->
+<script src="assets/js/course.js"></script>
+
+<!-- ===== سكربت المشروع ===== -->
+<script>
+/* ============================================================
+   1) التبويبات
+   ============================================================ */
+(function () {
+  const tabs = document.querySelectorAll('.fp-tabs .tab-btn');
+  const panels = document.querySelectorAll('.fp-panel');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', function () {
+      tabs.forEach(t => t.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      const target = document.querySelector('.fp-panel[data-panel="' + tab.dataset.tab + '"]');
+      if (target) target.classList.add('active');
+    });
+  });
+})();
+
+/* ============================================================
+   2) سجل الملاحظات
+   ============================================================ */
+(function () {
+  const notes = [];
+  const SEV_LABEL = {
+    critical: 'حرج',
+    high: 'مرتفع',
+    medium: 'متوسط',
+    low: 'منخفض',
+    info: 'معلوماتي'
+  };
+
+  const notesList = document.getElementById('notesList');
+  const addBtn = document.getElementById('addNoteBtn');
+  const clearBtn = document.getElementById('clearNotesBtn');
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function render() {
+    if (!notes.length) {
+      notesList.innerHTML = '<p style="text-align:center;color:#94a3b8;font-size:.9rem;padding:20px">لم تُضف أي ملاحظات بعد.</p>';
+      return;
+    }
+    notesList.innerHTML = notes.map((n, i) => `
+      <div class="note-row">
+        <div class="note-content">
+          <div class="note-field">الملاحظة</div>
+          <div class="note-value">${escapeHtml(n.title)}</div>
+          <div class="note-field" style="margin-top:6px">الدليل</div>
+          <div class="note-value">${escapeHtml(n.evidence)}</div>
+          <div class="note-field" style="margin-top:6px">الخطورة</div>
+          <div class="note-value"><span class="severity sev-${n.severity}">${SEV_LABEL[n.severity]}</span></div>
+          <div class="note-field" style="margin-top:6px">التفسير</div>
+          <div class="note-value">${escapeHtml(n.explain)}</div>
+          <div class="note-field" style="margin-top:6px">التوصية</div>
+          <div class="note-value">${escapeHtml(n.recommend)}</div>
+        </div>
+        <div class="note-actions">
+          <button class="del" data-index="${i}">🗑️</button>
+        </div>
+      </div>
+    `).join('');
+
+    notesList.querySelectorAll('button.del').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const i = parseInt(btn.dataset.index, 10);
+        notes.splice(i, 1);
+        render();
+      });
+    });
+  }
+
+  addBtn.addEventListener('click', function () {
+    const title = document.getElementById('noteTitle').value.trim();
+    const evidence = document.getElementById('noteEvidence').value.trim();
+    const severity = document.getElementById('noteSeverity').value;
+    const explain = document.getElementById('noteExplain').value.trim();
+    const recommend = document.getElementById('noteRecommend').value.trim();
+
+    if (!title || !evidence || !explain || !recommend) {
+      alert('يرجى ملء جميع حقول الملاحظة: العنوان، الدليل، التفسير، التوصية.');
+      return;
+    }
+
+    notes.push({ title, evidence, severity, explain, recommend });
+    render();
+
+    document.getElementById('noteTitle').value = '';
+    document.getElementById('noteEvidence').value = '';
+    document.getElementById('noteExplain').value = '';
+    document.getElementById('noteRecommend').value = '';
+    document.getElementById('noteSeverity').value = 'medium';
+  });
+
+  clearBtn.addEventListener('click', function () {
+    if (!notes.length) return;
+    if (confirm('هل تريد مسح جميع الملاحظات؟')) {
+      notes.length = 0;
+      render();
+    }
+  });
+
+  /* ============================================================
+     3) توليد التقرير
+     ============================================================ */
+  const reportBox = document.getElementById('reportBox');
+  document.getElementById('generateReportBtn').addEventListener('click', function () {
+    if (!notes.length) {
+      alert('أضف ملاحظة واحدة على الأقل قبل توليد التقرير.');
+      return;
+    }
+
+    const bySeverity = { critical: [], high: [], medium: [], low: [], info: [] };
+    notes.forEach(n => bySeverity[n.severity].push(n));
+
+    const summaryCounts = Object.keys(bySeverity)
+      .map(k => `<li>${SEV_LABEL[k]}: ${bySeverity[k].length}</li>`)
+      .join('');
+
+    const notesHtml = notes.map((n, i) => `
+      <div style="background:#f8fafc;padding:10px 14px;border-radius:8px;margin-bottom:10px">
+        <p style="margin:0 0 6px"><strong>الملاحظة ${i + 1}:</strong> ${escapeHtml(n.title)}</p>
+        <p style="margin:0 0 4px;font-size:.85rem"><strong>الدليل:</strong> ${escapeHtml(n.evidence)}</p>
+        <p style="margin:0 0 4px;font-size:.85rem"><strong>الخطورة:</strong> <span class="severity sev-${n.severity}">${SEV_LABEL[n.severity]}</span></p>
+        <p style="margin:0 0 4px;font-size:.85rem"><strong>التفسير:</strong> ${escapeHtml(n.explain)}</p>
+        <p style="margin:0;font-size:.85rem"><strong>التوصية:</strong> ${escapeHtml(n.recommend)}</p>
+      </div>
+    `).join('');
+
+    reportBox.innerHTML = `
+      <h3>تقرير تقييم خط الأساس الأمني — WIN-LAB-01</h3>
+      <div class="report-meta">
+        <p><strong>البيئة:</strong> WIN-LAB-01 · Windows 10 Pro (10.0.19045)</p>
+        <p><strong>المحلل:</strong> CYBERPATH\\analyst1</p>
+        <p><strong>الغرض:</strong> تقييم أمني أولي تعليمي</p>
+        <p><strong>تاريخ التوليد:</strong> ${new Date().toLocaleString('ar-SA')}</p>
+      </div>
+
+      <h3>1. الملخص التنفيذي</h3>
+      <p>تم إجراء تقييم أمني أولي لبيئة افتراضية (WIN-LAB-01). أظهر التقييم عدة ملاحظات تستحق المراجعة، شملت صلاحيات غير ضرورية، إعدادات جدار حماية غير متسقة، ومهام مجدولة بمسارات غير معتادة. الإجراء الموصى به هو مراجعة هذه النقاط وتطبيق مبدأ أقل صلاحية، مع التحقق من التوقيع الرقمي لكل ملف تنفيذي غير مألوف.</p>
+
+      <h3>2. نطاق التقييم</h3>
+      <p>شمل التقييم تسع مراحل: معلومات النظام، الملفات، المستخدمون، الشبكة، العمليات والخدمات، سجلات Windows، جدار الحماية، المهام المجدولة، والسكربتات.</p>
+
+      <h3>3. منهجية التحليل</h3>
+      <p>تمت مراجعة كل مرحلة من البيانات الافتراضية الثابتة، ثم تسجيل الملاحظات الأمنية المستندة إلى الأدلة الظاهرة فقط. لم يُجرَ أي فحص حقيقي للجهاز.</p>
+
+      <h3>4. توزيع الملاحظات حسب الخطورة</h3>
+      <ul>${summaryCounts}</ul>
+
+      <h3>5. الملاحظات الأمنية والأدلة</h3>
+      ${notesHtml}
+
+      <h3>6. الخلاصة وحدود التقييم</h3>
+      <p>تعتمد نتائج هذا التقييم على البيانات الافتراضية المقدمة. لا يمكن الجزم بوجود اختراق أو خبث من مؤشر واحد؛ الحكم يتطلب التحقق من التوقيع الرقمي، سجلات النظام، والسياق. التوصيات الواردة هنا تعليمية، ويجب تقييم أثرها قبل تطبيقها في بيئة إنتاج.</p>
+    `;
+  });
+
+  render();
+})();
+
+/* ============================================================
+   4) قائمة الجوال + الوضع الليلي
+   ============================================================ */
+(function () {
+  const toggle = document.getElementById('navToggle');
+  const links = document.getElementById('navLinks');
+  if (toggle && links) {
+    toggle.addEventListener('click', function () {
+      const open = links.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+
+  const themeBtn = document.getElementById('themeToggle');
+  if (themeBtn) {
+    const saved = localStorage.getItem('fp-theme');
+    if (saved === 'dark') {
+      document.body.classList.add('dark-mode');
+      themeBtn.textContent = '☀️ الوضع النهاري';
+    }
+    themeBtn.addEventListener('click', function () {
+      const isDark = document.body.classList.toggle('dark-mode');
+      themeBtn.textContent = isDark ? '☀️ الوضع النهاري' : '🌙 الوضع الليلي';
+      localStorage.setItem('fp-theme', isDark ? 'dark' : 'light');
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
