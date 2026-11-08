@@ -15,7 +15,7 @@
 <!-- ===== الملفات المشتركة ===== -->
 <link rel="stylesheet" href="../assets/css/course.css">
 
-<!-- ===== أنماط مكملة (لا تتعارض مع course.css) ===== -->
+<!-- ===== أنماط مكملة ===== -->
 <style>
   :root {
     --u7-font-sans: 'Tajawal', system-ui, 'Segoe UI', Tahoma, Arial, sans-serif;
@@ -40,28 +40,46 @@
   .u7-alert.danger { border-right-color: #e74c3c; background: #fdedec; color: #78281f; }
   .u7-alert.success { border-right-color: #27ae60; background: #e8f8ee; color: #186a3b; }
 
-  /* === كتلة الأمر === */
+  /* ============================================================
+     كتلة الأمر — مع إصلاح اتجاه الشريط وزر النسخ
+     ============================================================ */
   .cmd-block {
     background: #0d1117; border: 1px solid #30363d; border-radius: 12px;
     margin: 18px 0; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,.08);
   }
+
+  /* شريط الرأس: LTR إجباري ليكون العنوان على اليسار وزر النسخ على اليمين */
   .cmd-block .cmd-header {
     display: flex; align-items: center; justify-content: space-between;
     padding: 8px 14px; background: #161b22; border-bottom: 1px solid #30363d;
     font-size: .8rem; color: #8b949e; gap: 8px;
+    direction: ltr;
+    flex-direction: row;
   }
+
+  /* عنوان الأمر: LTR + مرن + يسمح بالالتفاف */
   .cmd-block .cmd-title {
     display: flex; align-items: center; gap: 8px; font-weight: 700;
     color: #58a6ff; word-break: break-all;
+    direction: ltr;
+    text-align: left;
+    min-width: 0;
+    flex: 1;
   }
-  .cmd-block .cmd-title::before { content: '>_'; color: #3fb950; }
+  .cmd-block .cmd-title::before { content: '>_'; color: #3fb950; flex-shrink: 0; }
+
+  /* زر النسخ: ثابت الحجم + نص عربي RTL */
   .cmd-block .cmd-copy {
     background: #21262d; color: #c9d1d9; border: 1px solid #30363d;
     border-radius: 6px; padding: 4px 10px; cursor: pointer; font-family: inherit;
     font-size: .75rem; font-weight: 600; transition: .2s; white-space: nowrap;
+    direction: rtl;
+    flex-shrink: 0;
   }
   .cmd-block .cmd-copy:hover { background: #30363d; color: #58a6ff; }
   .cmd-block .cmd-copy.copied { background: #238636; color: #fff; border-color: #2ea043; }
+
+  /* كتلة المخرجات: LTR دائمًا */
   .cmd-block pre {
     margin: 0; padding: 14px 16px; overflow-x: auto;
     color: #c9d1d9; font-size: .85rem; line-height: 1.7;
@@ -114,7 +132,7 @@
   .sim-input-row {
     display: flex; gap: 8px; padding: 12px 14px;
     background: #152540; border-bottom: 1px solid #1c2d4a;
-    flex-wrap: wrap;
+    flex-wrap: wrap; direction: ltr;
   }
   .sim-input-row .prompt-label {
     display: flex; align-items: center; gap: 6px;
@@ -139,6 +157,7 @@
   .sim-toolbar {
     display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 14px;
     background: #152540; border-bottom: 1px solid #1c2d4a;
+    direction: ltr;
   }
   .sim-toolbar select, .sim-toolbar button,
   .sim-input-row button {
@@ -159,7 +178,7 @@
   }
   .sim-toolbar button.danger:hover,
   .sim-input-row button.danger:hover { background: rgba(248,113,113,.1); }
-  .sim-toolbar select { min-width: 260px; flex: 1; }
+  .sim-toolbar select { min-width: 260px; flex: 1; direction: ltr; }
 
   .sim-output {
     background: #040814; color: #c9d1d9;
@@ -182,6 +201,7 @@
   .sim-hint code {
     background: #152540; color: #22d3ee; padding: 1px 6px;
     border-radius: 4px; font-family: var(--u7-font-mono); font-size: .78rem;
+    direction: ltr; display: inline-block;
   }
 
   /* === التمارين === */
@@ -703,7 +723,7 @@ Event[0]:
           <input
             type="text"
             id="u7SimInput"
-            placeholder='اكتب أمرًا مدعومًا، مثل: wevtutil el'
+            placeholder="اكتب أمرًا مدعومًا، مثل: wevtutil el"
             aria-label="أدخل أمر wevtutil للمحاكاة"
             autocomplete="off"
             autocapitalize="off"
@@ -1198,15 +1218,12 @@ Event[1]:
     const norm = normalize(userInput);
     const keys = Object.keys(OUTPUTS);
 
-    // 1) مطابقة مباشرة
     if (OUTPUTS[norm]) return norm;
 
-    // 2) مطابقة بتجاهل حالة الأحرف
     for (const k of keys) {
       if (normalize(k).toLowerCase() === norm.toLowerCase()) return k;
     }
 
-    // 3) مطابقة مرنة: تطبيع المسافات حول = و ()
     const loose = norm.toLowerCase()
       .replace(/\s*=\s*/g, '=')
       .replace(/\s*\[\s*/g, '[')
@@ -1235,7 +1252,6 @@ Event[1]:
       return;
     }
 
-    // أوامر خطرة/غير مدعومة
     const forbidden = /^\s*wevtutil\s+(cl|sl|cs|im|um|ep|up)\b/i;
     if (forbidden.test(cmd)) {
       writeLine('<span class="sim-prompt">C:\\&gt;</span> <span class="sim-echo">' + escapeHtml(cmd) + '</span>');
