@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الوحدة الثامنة: إعدادات الحماية وجدار الحماية في Windows | أساسيات أوامر Windows CMD للأمن السيبراني</title>
+
+<!-- ===== SEO ===== -->
+<meta name="description" content="الوحدة الثامنة من مقرر أساسيات أوامر Windows CMD للأمن السيبراني — إعدادات الحماية وجدار الحماية في Windows: netsh advfirewall, sc query MpsSvc, Network Profiles, Inbound/Outbound Rules. مع محاكي تفاعلي آمن واختبار من 10 أسئلة.">
+<meta name="keywords" content="Windows Firewall, netsh advfirewall, Windows Defender Firewall, MpsSvc, Network Profiles, Inbound Rules, Outbound Rules, Firewall Logging, Least Privilege, الأمن السيبراني, CMD">
+<meta name="author" content="CyberPath">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#0b1220">
+
+<!-- ===== الملفات المشتركة ===== -->
+<link rel="stylesheet" href="../assets/css/course.css">
+
+<!-- ===== أنماط مكملة (لا تتعارض مع course.css) ===== -->
+<style>
+  :root {
+    --u8-font-sans: 'Tajawal', system-ui, 'Segoe UI', Tahoma, Arial, sans-serif;
+    --u8-font-mono: 'JetBrains Mono', 'Cascadia Mono', Consolas, 'Courier New', monospace;
+  }
+
+  .u8-page { line-height: 1.85; font-family: var(--u8-font-sans); }
+  .u8-page h2 { font-weight: 800; }
+  .u8-page h3 { font-weight: 700; }
+  .u8-page code, .u8-page pre { font-family: var(--u8-font-mono); }
+  .u8-lead { font-size: 1.02rem; color: #4a5568; }
+
+  /* === صناديق التنبيه === */
+  .u8-alert {
+    display: flex; gap: 12px; padding: 14px 16px; border-radius: 12px;
+    margin: 16px 0; font-size: .93rem; line-height: 1.8;
+    border-right: 4px solid; background: #f7fafc;
+  }
+  .u8-alert .icon { font-size: 1.3rem; flex-shrink: 0; line-height: 1.4; }
+  .u8-alert.info { border-right-color: #3498db; background: #ebf8ff; color: #1a4971; }
+  .u8-alert.warn { border-right-color: #f39c12; background: #fffbea; color: #7b4b00; }
+  .u8-alert.danger { border-right-color: #e74c3c; background: #fdedec; color: #78281f; }
+  .u8-alert.success { border-right-color: #27ae60; background: #e8f8ee; color: #186a3b; }
+
+  /* ============================================================
+     كتلة الأمر — LTR لضمان عرض صحيح للأوامر وزر النسخ
+     ============================================================ */
+  .cmd-block {
+    background: #0d1117; border: 1px solid #30363d; border-radius: 12px;
+    margin: 18px 0; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,.08);
+  }
+
+  .cmd-block .cmd-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 14px; background: #161b22; border-bottom: 1px solid #30363d;
+    font-size: .8rem; color: #8b949e; gap: 8px;
+    direction: ltr;
+    flex-direction: row;
+  }
+
+  .cmd-block .cmd-title {
+    display: flex; align-items: center; gap: 8px; font-weight: 700;
+    color: #58a6ff; word-break: break-all;
+    direction: ltr;
+    text-align: left;
+    min-width: 0;
+    flex: 1;
+  }
+  .cmd-block .cmd-title::before { content: '>_'; color: #3fb950; flex-shrink: 0; }
+
+  .cmd-block .cmd-copy {
+    background: #21262d; color: #c9d1d9; border: 1px solid #30363d;
+    border-radius: 6px; padding: 4px 10px; cursor: pointer; font-family: inherit;
+    font-size: .75rem; font-weight: 600; transition: .2s; white-space: nowrap;
+    direction: rtl;
+    flex-shrink: 0;
+  }
+  .cmd-block .cmd-copy:hover { background: #30363d; color: #58a6ff; }
+  .cmd-block .cmd-copy.copied { background: #238636; color: #fff; border-color: #2ea043; }
+
+  .cmd-block pre {
+    margin: 0; padding: 14px 16px; overflow-x: auto;
+    color: #c9d1d9; font-size: .85rem; line-height: 1.7;
+    direction: ltr; text-align: left;
+  }
+  .cmd-block pre .prompt { color: #3fb950; user-select: none; }
+  .cmd-block pre .comment { color: #8b949e; font-style: italic; }
+
+  /* === بطاقات المفاهيم === */
+  .concepts-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px; margin: 16px 0;
+  }
+  .concept-card {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+    padding: 14px 16px; transition: .2s;
+  }
+  .concept-card:hover { border-color: #3498db; box-shadow: 0 4px 12px rgba(52,152,219,.1); }
+  .concept-card .term {
+    font-weight: 700; color: #1a237e; font-size: .95rem; margin-bottom: 4px;
+    font-family: var(--u8-font-mono);
+  }
+  .concept-card .term-ar { color: #3498db; font-size: .82rem; margin-bottom: 6px; }
+  .concept-card .def { font-size: .88rem; color: #4a5568; line-height: 1.7; }
+
+  /* === جدول مرجعي === */
+  .ref-table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: .9rem; }
+  .ref-table th {
+    background: #1a237e; color: #fff; padding: 10px 12px; text-align: right;
+    font-weight: 700; border: none;
+  }
+  .ref-table td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; color: #2d3748; }
+  .ref-table tr:nth-child(even) td { background: #f8fafc; }
+  .ref-table code {
+    background: #edf2f7; color: #c53030; padding: 2px 6px;
+    border-radius: 4px; font-size: .82rem;
+  }
+
+  /* === المحاكي === */
+  .sim-wrap {
+    background: linear-gradient(180deg, #0b1220 0%, #0f1b30 100%);
+    border: 1px solid #1c2d4a; border-radius: 16px;
+    overflow: hidden; margin: 18px 0; box-shadow: 0 12px 32px rgba(0,0,0,.25);
+  }
+  .sim-banner {
+    background: linear-gradient(90deg, #7b4b00, #b8860b); color: #fff;
+    padding: 10px 16px; font-size: .82rem; font-weight: 700; text-align: center;
+    letter-spacing: .2px;
+  }
+  .sim-input-row {
+    display: flex; gap: 8px; padding: 12px 14px;
+    background: #152540; border-bottom: 1px solid #1c2d4a;
+    flex-wrap: wrap; direction: ltr;
+  }
+  .sim-input-row .prompt-label {
+    display: flex; align-items: center; gap: 6px;
+    background: #040814; color: #22d3ee;
+    padding: 8px 12px; border-radius: 8px; border: 1px solid #26405f;
+    font-family: var(--u8-font-mono); font-size: .85rem; font-weight: 700;
+    user-select: none;
+  }
+  .sim-input-row input[type="text"] {
+    flex: 1; min-width: 200px;
+    background: #040814; color: #e6edf7;
+    border: 1px solid #26405f; border-radius: 8px;
+    padding: 8px 12px; font-family: var(--u8-font-mono);
+    font-size: .85rem; direction: ltr; text-align: left;
+    outline: none; transition: .2s;
+  }
+  .sim-input-row input[type="text"]:focus {
+    border-color: #22d3ee; box-shadow: 0 0 0 2px rgba(34,211,238,.15);
+  }
+  .sim-input-row input[type="text"]::placeholder { color: #5f7395; }
+
+  .sim-toolbar {
+    display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 14px;
+    background: #152540; border-bottom: 1px solid #1c2d4a;
+    direction: ltr;
+  }
+  .sim-toolbar select, .sim-toolbar button,
+  .sim-input-row button {
+    font-family: inherit; font-size: .82rem; padding: 7px 12px;
+    border-radius: 8px; border: 1px solid #26405f;
+    background: #0f1b30; color: #e6edf7; cursor: pointer; transition: .2s;
+  }
+  .sim-toolbar button:hover,
+  .sim-input-row button:hover { border-color: #22d3ee; }
+  .sim-toolbar button.primary,
+  .sim-input-row button.primary {
+    background: linear-gradient(135deg, #0891b2, #22d3ee); color: #03212b;
+    border: none; font-weight: 700;
+  }
+  .sim-toolbar button.danger,
+  .sim-input-row button.danger {
+    background: transparent; color: #f87171; border-color: rgba(248,113,113,.4);
+  }
+  .sim-toolbar button.danger:hover,
+  .sim-input-row button.danger:hover { background: rgba(248,113,113,.1); }
+  .sim-toolbar select { min-width: 260px; flex: 1; direction: ltr; }
+
+  .sim-output {
+    background: #040814; color: #c9d1d9;
+    font-family: var(--u8-font-mono);
+    font-size: .82rem; line-height: 1.65; padding: 14px 16px;
+    min-height: 180px; max-height: 420px; overflow-y: auto;
+    direction: ltr; text-align: left; white-space: pre-wrap; word-break: break-word;
+  }
+  .sim-output .sim-prompt { color: #22d3ee; font-weight: 700; }
+  .sim-output .sim-echo { color: #e6edf7; }
+  .sim-output .sim-note { color: #fbbf24; }
+  .sim-output .sim-error { color: #f87171; }
+  .sim-output .sim-success { color: #34d399; }
+
+  .sim-hint {
+    padding: 10px 14px; background: #0f1b30; border-top: 1px solid #1c2d4a;
+    font-size: .82rem; color: #94a3b8; line-height: 1.7;
+  }
+  .sim-hint strong { color: #22d3ee; }
+  .sim-hint code {
+    background: #152540; color: #22d3ee; padding: 1px 6px;
+    border-radius: 4px; font-family: var(--u8-font-mono); font-size: .78rem;
+    direction: ltr; display: inline-block;
+  }
+
+  /* === التمارين === */
+  .exercise {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+    padding: 16px 18px; margin-bottom: 12px;
+  }
+  .exercise .ex-head {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+    font-weight: 700; color: #1a237e;
+  }
+  .exercise .ex-num {
+    background: #1a237e; color: #fff; width: 28px; height: 28px;
+    border-radius: 50%; display: grid; place-items: center; font-size: .82rem;
+    flex-shrink: 0;
+  }
+  .exercise .ex-body { font-size: .92rem; color: #2d3748; }
+  .exercise details { margin-top: 10px; }
+  .exercise details summary {
+    cursor: pointer; color: #0891b2; font-weight: 700; font-size: .88rem;
+    padding: 6px 10px; background: #e0f2fe; border-radius: 8px;
+    display: inline-block;
+  }
+  .exercise details[open] summary { background: #bae6fd; }
+  .exercise details .answer {
+    margin-top: 10px; padding: 12px 14px; background: #e8f8ee;
+    border-right: 3px solid #27ae60; border-radius: 8px;
+    font-size: .9rem; color: #186a3b; line-height: 1.8;
+  }
+
+  /* === الملخص === */
+  .summary-list { list-style: none; padding: 0; margin: 0; }
+  .summary-list li {
+    position: relative; padding: 8px 32px 8px 0; font-size: .93rem;
+    border-bottom: 1px dashed #e2e8f0;
+  }
+  .summary-list li:last-child { border-bottom: none; }
+  .summary-list li::before {
+    content: '✓'; position: absolute; right: 0; top: 8px;
+    color: #27ae60; font-weight: 800;
+  }
+
+  /* === التنقل === */
+  .unit-nav {
+    display: flex; justify-content: space-between; gap: 12px;
+    margin-top: 30px; flex-wrap: wrap;
+  }
+  .unit-nav a {
+    flex: 1; min-width: 200px; padding: 14px 20px; border-radius: 12px;
+    text-decoration: none; font-weight: 700; text-align: center;
+    transition: .2s; border: 1px solid #e2e8f0; background: #fff;
+    color: #1a237e;
+  }
+  .unit-nav a:hover { border-color: #3498db; box-shadow: 0 4px 12px rgba(52,152,219,.15); }
+  .unit-nav a.prev { color: #4a5568; }
+  .unit-nav a.next {
+    background: linear-gradient(135deg, #1a237e, #3949ab); color: #fff; border: none;
+  }
+  .unit-nav a.next:hover { filter: brightness(1.1); }
+
+  /* === المراجع === */
+  .refs-list { padding-right: 20px; }
+  .refs-list li { margin-bottom: 8px; font-size: .92rem; color: #4a5568; }
+  .refs-list a { color: #0891b2; text-decoration: none; }
+  .refs-list a:hover { text-decoration: underline; }
+
+  /* === استجابة === */
+  @media (max-width: 720px) {
+    .cmd-block pre { font-size: .78rem; padding: 12px; }
+    .ref-table { font-size: .82rem; }
+    .ref-table th, .ref-table td { padding: 8px 6px; }
+    .sim-toolbar select { min-width: 100%; }
+    .sim-input-row input[type="text"] { min-width: 100%; }
+    .sim-output { font-size: .76rem; max-height: 340px; }
+    .unit-nav a { min-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     القائمة الرئيسة أعلى الصفحة
+     ============================================================ -->
+<header class="site-header" dir="rtl">
+  <div class="nav-wrap">
+    <a class="site-brand" href="../../index.html" aria-label="CyberPath - الصفحة الرئيسية">
+      <span class="brand-mark" aria-hidden="true">🛡️</span>
+      <span class="brand-text">CyberPath</span>
+    </a>
+
+    <nav class="site-nav" aria-label="القائمة الرئيسة">
+      <ul>
+        <li><a href="../../index.html">الرئيسية</a></li>
+        <li><a href="../index.html">أساسيات CMD</a></li>
+        <li><a href="unit1.html">الوحدات</a></li>
+        <li><a href="../../quizzes.html">الاختبارات</a></li>
+        <li><a href="../../about.html">عن المنصة</a></li>
+      </ul>
+    </nav>
+
+    <button class="nav-toggle" aria-label="فتح القائمة" aria-expanded="false">☰</button>
+  </div>
+</header>
+
+<main class="u8-page" dir="rtl">
+
+  <!-- ============================================================
+       1. رأس الوحدة
+       ============================================================ -->
+  <header class="unit-header" style="background:linear-gradient(135deg,#0b1220,#1a237e);color:#fff;padding:36px 24px;border-radius:0 0 24px 24px;margin-bottom:24px;">
+    <div style="max-width:960px;margin:0 auto;">
+      <p style="font-size:.85rem;opacity:.8;margin:0 0 6px;">أساسيات أوامر Windows CMD للأمن السيبراني</p>
+      <h1 style="font-size:1.9rem;font-weight:800;margin:0 0 8px;">الوحدة الثامنة: إعدادات الحماية وجدار الحماية في Windows</h1>
+      <p style="font-size:.95rem;opacity:.85;margin:0;font-family:var(--u8-font-mono);">Windows Security Settings &amp; Firewall</p>
+    </div>
+  </header>
+
+  <div style="max-width:960px;margin:0 auto;padding:0 18px 60px;">
+
+    <!-- ============================================================
+         2. المقدمة وأهداف التعلم
+         ============================================================ -->
+    <section>
+      <h2>المقدمة</h2>
+      <p class="u8-lead">
+        جدار الحماية (Windows Defender Firewall) هو خط الدفاع الأول الذي يتحكم في حركة اتصالات الشبكة الداخلة والخارجة من النظام.
+      </p>
+      <p>
+        وظيفته الأساسية: السماح بالاتصالات الضرورية فقط، ومنع كل ما هو غير مصرح به. من خلال <strong>ملفات التعريف (Profiles)</strong> و<strong>القواعد (Rules)</strong>، يمكن للمحلل الأمني ضبط سطح الهجوم وتقليل المخاطر.
+      </p>
+      <p>
+        في هذه الوحدة ستتعلم قراءة إعدادات جدار الحماية باستخدام <code>netsh advfirewall</code>، وفهم الفرق بين <strong>حالة الملف</strong> و<strong>حالة الخدمة</strong>، وتحليل القواعد التي قد تفتح ثغرات غير ضرورية — كل ذلك عبر <strong>محاكي تعليمي آمن</strong> ببيانات افتراضية.
+      </p>
+      <div class="u8-alert info">
+        <span class="icon">💡</span>
+        <div>جميع المخرجات والأسماء والإعدادات في هذه الوحدة <strong>افتراضية بالكامل</strong> لأغراض التدريب. المحاكي لا يقرأ إعدادات جهازك.</div>
+      </div>
+
+      <h2>أهداف التعلم</h2>
+      <p>بنهاية هذه الوحدة ستكون قادرًا على:</p>
+      <ol>
+        <li>فهم دور Windows Defender Firewall في حماية النظام.</li>
+        <li>التمييز بين ملفات التعريف: Domain وPrivate وPublic.</li>
+        <li>فهم الفرق بين Inbound Rules وOutbound Rules.</li>
+        <li>قراءة إعدادات جدار الحماية باستخدام <code>netsh advfirewall</code>.</li>
+        <li>تفسير حالات Firewall: ON/OFF، وسلوك الاتصالات الداخلة والخارجة.</li>
+        <li>التحقق من حالة خدمة Windows Defender Firewall باستخدام <code>sc query MpsSvc</code>.</li>
+        <li>تحليل قواعد Firewall وتحديد غير الضروري منها.</li>
+        <li>ربط إعدادات Firewall بتقليل سطح الهجوم ومبدأ Least Privilege.</li>
+      </ol>
+    </section>
+
+    <!-- ============================================================
+         3. المفاهيم الأساسية
+         ============================================================ -->
+    <section>
+      <h2>المفاهيم الأساسية</h2>
+      <p>قبل الدخول إلى الأوامر، دعنا نثبّت المفاهيم التالية:</p>
+
+      <div class="concepts-grid">
+        <div class="concept-card">
+          <div class="term">Windows Defender Firewall</div>
+          <div class="term-ar">جدار حماية Windows</div>
+          <div class="def">مكون أمني مدمج في Windows يراقب ويصفّي حركة الشبكة وفق قواعد محددة، ويُدار عبر <code>MpsSvc</code>.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Network Profiles</div>
+          <div class="term-ar">ملفات تعريف الشبكة</div>
+          <div class="def">ثلاثة ملفات: Domain (للشبكات المنضمة لنطاق)، Private (للشبكات الموثوقة)، Public (للشبكات غير الموثوقة كالمقاهي).</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Inbound Rules</div>
+          <div class="term-ar">قواعد الاتصالات الداخلة</div>
+          <div class="def">تتحكم في الاتصالات القادمة إلى الجهاز من الشبكة. الافتراضي: المنع.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Outbound Rules</div>
+          <div class="term-ar">قواعد الاتصالات الخارجة</div>
+          <div class="def">تتحكم في الاتصالات الصادرة من الجهاز إلى الشبكة. الافتراضي: السماح.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Allow / Block</div>
+          <div class="term-ar">سماح / منع</div>
+          <div class="def">إجراء القاعدة: Allow للسماح، Block للمنع. تُطبَّق وفق الأولوية.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Firewall Profiles</div>
+          <div class="term-ar">ملفات تعريف الجدار</div>
+          <div class="def">إعدادات مستقلة لكل ملف تعريف (Domain/Private/Public)، تشمل الحالة وسلوك الاتصالات.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Firewall Logging</div>
+          <div class="term-ar">تسجيل الجدار</div>
+          <div class="def">تسجيل الاتصالات الممنوعة والمسموحة لملف نصي، مفيد للتحليل الجنائي.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Attack Surface Reduction</div>
+          <div class="term-ar">تقليل سطح الهجوم</div>
+          <div class="def">تقليل نقاط الدخول المحتملة بإغلاق المنافذ والقواعد غير الضرورية.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Least Privilege</div>
+          <div class="term-ar">مبدأ أقل صلاحية</div>
+          <div class="def">منح كل مكون الحد الأدنى فقط من الصلاحيات والاتصالات اللازمة.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Service State vs Profile State</div>
+          <div class="term-ar">حالة الخدمة مقابل حالة الملف</div>
+          <div class="def">الخدمة <code>MpsSvc</code> قد تكون RUNNING بينما ملف Public معطّل — الفرق مهم في التحليل.</div>
+        </div>
+      </div>
+
+      <div class="u8-alert warn">
+        <span class="icon">⚠️</span>
+        <div>
+          <strong>العلاقة بين جدار الحماية وسطح الهجوم:</strong> كل قاعدة أو منفذ مفتوح يزيد سطح الهجوم. القاعدة الذهبية: <strong>أغلق ما لا تحتاجه، واسمح فقط بما تحتاجه صراحة</strong>.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         4. شرح الأوامر
+         ============================================================ -->
+    <section>
+      <h2>شرح الأوامر</h2>
+      <p>أوامر هذه الوحدة للاستعلام فقط، دون أي تعديل على إعدادات النظام.</p>
+
+      <!-- 4.1 show allprofiles -->
+      <h3>أولًا: <code>netsh advfirewall show allprofiles</code></h3>
+      <p>يعرض إعدادات جدار الحماية لجميع ملفات التعريف الثلاثة في وقت واحد.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">netsh advfirewall show allprofiles</span>
+          <button class="cmd-copy" onclick="u8Copy(this, 'netsh advfirewall show allprofiles')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> netsh advfirewall show allprofiles
+
+Domain Profile Settings:
+----------------------------------------------------------------------
+Status                                 ON
+Firewall Policy                        BlockInbound,AllowOutbound
+LocalFirewallRules                     N/A (GPO-store only)
+LocalConSecRules                       N/A (GPO-store only)
+InboundUserNotification                Enable
+RemoteManagement                       Disable
+UnicastResponseToMulticast             Enable
+
+Logging:
+LogAllowed                             False
+LogBlocked                            True
+LogFileName                            %systemroot%\system32\LogFiles\Firewall\pfirewall.log
+LogMaxSize                             4096
+
+Private Profile Settings:
+----------------------------------------------------------------------
+Status                                 ON
+Firewall Policy                        BlockInbound,AllowOutbound
+...
+
+Public Profile Settings:
+----------------------------------------------------------------------
+Status                                 ON
+Firewall Policy                        BlockInbound,AllowOutbound
+...</pre>
+      </div>
+      <p><strong>التفسير الأمني:</strong> <code>Status ON</code> في كل الملفات = الجدار مفعّل. <code>BlockInbound,AllowOutbound</code> = السياسة الافتراضية (منع الداخل، السماح بالخارج). <code>LogBlocked True</code> = تسجيل المحاولات الممنوعة مفيد للتحليل.</p>
+
+      <!-- 4.2 show domainprofile -->
+      <h3>ثانيًا: <code>netsh advfirewall show domainprofile</code></h3>
+      <p>يعرض إعدادات ملف التعريف Domain فقط.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">netsh advfirewall show domainprofile</span>
+          <button class="cmd-copy" onclick="u8Copy(this, 'netsh advfirewall show domainprofile')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> netsh advfirewall show domainprofile
+
+Domain Profile Settings:
+----------------------------------------------------------------------
+Status                                 ON
+Firewall Policy                        BlockInbound,AllowOutbound
+InboundUserNotification                Enable
+RemoteManagement                       Disable
+
+Logging:
+LogAllowed                             False
+LogBlocked                            True</pre>
+      </div>
+
+      <!-- 4.3 show privateprofile -->
+      <h3>ثالثًا: <code>netsh advfirewall show privateprofile</code></h3>
+      <p>يعرض إعدادات ملف التعريف Private فقط.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">netsh advfirewall show privateprofile</span>
+          <button class="cmd-copy" onclick="u8Copy(this, 'netsh advfirewall show privateprofile')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> netsh advfirewall show privateprofile
+
+Private Profile Settings:
+----------------------------------------------------------------------
+Status                                 ON
+Firewall Policy                        BlockInbound,AllowOutbound
+InboundUserNotification                Enable
+RemoteManagement                       Disable
+
+Logging:
+LogAllowed                             False
+LogBlocked                            True</pre>
+      </div>
+
+      <!-- 4.4 show publicprofile -->
+      <h3>رابعًا: <code>netsh advfirewall show publicprofile</code></h3>
+      <p>يعرض إعدادات ملف التعريف Public فقط. <strong>مهم:</strong> هذا الملف هو الأكثر تعرضًا للخطر في الشبكات العامة، لذا يُنصح دائمًا ببقاء حالته <code>ON</code>.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">netsh advfirewall show publicprofile</span>
+          <button class="cmd-copy" onclick="u8Copy(this, 'netsh advfirewall show publicprofile')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> netsh advfirewall show publicprofile
+
+Public Profile Settings:
+----------------------------------------------------------------------
+Status                                 ON
+Firewall Policy                        BlockInbound,AllowOutbound
+InboundUserNotification                Enable
+RemoteManagement                       Disable
+
+Logging:
+LogAllowed                             False
+LogBlocked                            True</pre>
+      </div>
+
+      <!-- 4.5 show rule -->
+      <h3>خامسًا: <code>netsh advfirewall firewall show rule name=all</code></h3>
+      <p>يعرض جميع قواعد Firewall (Inbound وOutbound). مفيد لتحليل القواعد غير الضرورية.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">netsh advfirewall firewall show rule name=all</span>
+          <button class="cmd-copy" onclick="u8Copy(this, 'netsh advfirewall firewall show rule name=all')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> netsh advfirewall firewall show rule name=all
+
+Rule Name:                            Core Networking - DNS (UDP-Out)
+----------------------------------------------------------------------
+Enabled:                              Yes
+Direction:                            Out
+Profiles:                             Domain,Private,Public
+Grouping:                             Core Networking
+LocalIP:                              Any
+RemoteIP:                             Any
+Protocol:                             UDP
+LocalPort:                            Any
+RemotePort:                           53
+Edge traversal:                       No
+Action:                               Allow
+
+Rule Name:                            Example - Custom Web App (TCP-In)
+----------------------------------------------------------------------
+Enabled:                              Yes
+Direction:                            In
+Profiles:                             Public
+Grouping:
+LocalIP:                              Any
+RemoteIP:                             Any
+Protocol:                             TCP
+LocalPort:                            8080
+RemotePort:                           Any
+Edge traversal:                       No
+Action:                               Allow
+...</pre>
+      </div>
+      <div class="u8-alert warn">
+        <span class="icon">⚠️</span>
+        <div>
+          لاحظ القاعدة <strong>Example - Custom Web App (TCP-In)</strong>: تسمح باتصالات TCP داخلية على المنفذ 8080 في ملف Public. هذا مثال تعليمي على قاعدة قد تفتح سطح هجوم غير ضروري في شبكة عامة.
+        </div>
+      </div>
+
+      <!-- 4.6 show currentprofile -->
+      <h3>سادسًا: <code>netsh advfirewall show currentprofile</code></h3>
+      <p>يعرض إعدادات ملف التعريف النشط حاليًا حسب نوع الشبكة المتصلة.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">netsh advfirewall show currentprofile</span>
+          <button class="cmd-copy" onclick="u8Copy(this, 'netsh advfirewall show currentprofile')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> netsh advfirewall show currentprofile
+
+Domain Profile Settings:
+----------------------------------------------------------------------
+Status                                 ON
+Firewall Policy                        BlockInbound,AllowOutbound
+
+Logging:
+LogAllowed                             False
+LogBlocked                            True</pre>
+      </div>
+
+      <!-- 4.7 sc query MpsSvc -->
+      <h3>سابعًا: <code>sc query MpsSvc</code></h3>
+      <p>يعرض حالة خدمة Windows Defender Firewall. <strong>مهم:</strong> حالة الخدمة قد تكون RUNNING بينما ملف تعريف معين معطّل — الاثنان مستقلان.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">sc query MpsSvc</span>
+          <button class="cmd-copy" onclick="u8Copy(this, 'sc query MpsSvc')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> sc query MpsSvc
+
+SERVICE_NAME: MpsSvc
+        TYPE               : 20  WIN32_SHARE_PROCESS
+        STATE              : 4  RUNNING
+                                (STOPPABLE, NOT_PAUSABLE, ACCEPTS_SHUTDOWN)
+        WIN32_EXIT_CODE    : 0  (0x0)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0</pre>
+      </div>
+      <p><strong>التفسير الأمني:</strong> <code>STATE 4 RUNNING</code> = الخدمة تعمل. لكن هذا <strong>لا يعني</strong> أن كل ملفات التعريف مفعّلة. تحقق دائمًا من <code>netsh advfirewall show allprofiles</code>.</p>
+
+      <table class="ref-table">
+        <thead><tr><th>الحقل</th><th>المعنى</th></tr></thead>
+        <tbody>
+          <tr><td><code>Status</code></td><td>ON = الجدار مفعّل، OFF = معطّل</td></tr>
+          <tr><td><code>Firewall Policy</code></td><td>BlockInbound = منع الداخل، AllowOutbound = السماح بالخارج</td></tr>
+          <tr><td><code>LogBlocked</code></td><td>True = تسجيل المحاولات الممنوعة</td></tr>
+          <tr><td><code>Direction</code></td><td>In = داخل، Out = خارج</td></tr>
+          <tr><td><code>Action</code></td><td>Allow = سماح، Block = منع</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============================================================
+         5. PowerShell (نظري)
+         ============================================================ -->
+    <section>
+      <h2>PowerShell — تعريف نظري</h2>
+      <p>
+        <code>Get-NetFirewallProfile</code> هو أمر <strong>PowerShell</strong> (وليس CMD) يعرض إعدادات ملفات تعريف جدار الحماية. يستخدم عادةً عند الحاجة إلى مخرجات منظمة أو تصديرها بصيغة معينة.
+      </p>
+      <div class="u8-alert info">
+        <span class="icon">ℹ️</span>
+        <div>
+          <strong>الفرق بين CMD وPowerShell:</strong> CMD يستخدم <code>netsh</code>، بينما PowerShell يستخدم <code>Get-NetFirewallProfile</code>. النتائج متقاربة، لكن PowerShell أكثر مرونة في التصفية والتصدير. <strong>لا نطلب منك تشغيل PowerShell فعليًا في هذا التدريب.</strong>
+        </div>
+      </div>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">Get-NetFirewallProfile</span>
+          <button class="cmd-copy" onclick="u8Copy(this, 'Get-NetFirewallProfile')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">PS C:\&gt;</span> Get-NetFirewallProfile
+
+Name       : Domain
+Enabled    : True
+DefaultInboundAction    : Block
+DefaultOutboundAction   : Allow
+LogAllowed : False
+LogBlocked : True
+
+Name       : Private
+Enabled    : True
+...
+
+Name       : Public
+Enabled    : True
+...</pre>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         6. المحاكي التفاعلي الآمن
+         ============================================================ -->
+    <section id="simulator">
+      <h2>المحاكي التفاعلي الآمن</h2>
+      <p>
+        اكتب الأمر بنفسك أو اختر مثالًا جاهزًا. المحاكي يطابق النص مع قائمة محددة مسبقًا من المخرجات الافتراضية.
+        <strong>لا ينفذ أوامر حقيقية، ولا يقرأ جدار حماية جهازك، ولا يتصل بأي شبكة.</strong>
+      </p>
+
+      <div class="u8-alert danger">
+        <span class="icon">🛡️</span>
+        <div>
+          <strong>تنبيه:</strong> هذا محاكي تعليمي يعرض نتائج افتراضية ثابتة، ولا ينفذ أوامر حقيقية ولا يغيّر إعدادات جهازك.
+        </div>
+      </div>
+
+      <div class="sim-wrap">
+        <div class="sim-banner">
+          <i class="fas fa-shield-halved"></i> محاكي إعدادات جدار الحماية — نتائج افتراضية ثابتة
+        </div>
+
+        <div class="sim-input-row">
+          <span class="prompt-label" aria-hidden="true">C:\&gt;</span>
+          <input
+            type="text"
+            id="u8SimInput"
+            placeholder="اكتب أمرًا مدعومًا، مثل: netsh advfirewall show allprofiles"
+            aria-label="أدخل أمر netsh advfirewall للمحاكاة"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+          >
+          <button class="primary" id="u8SimRunBtn" type="button">▶ تنفيذ</button>
+        </div>
+
+        <div class="sim-toolbar">
+          <select id="u8SimSelect" aria-label="أمثلة جاهزة">
+            <option value="">— اختر مثالًا جاهزًا —</option>
+            <option value="netsh advfirewall show allprofiles">netsh advfirewall show allprofiles</option>
+            <option value="netsh advfirewall show domainprofile">netsh advfirewall show domainprofile</option>
+            <option value="netsh advfirewall show privateprofile">netsh advfirewall show privateprofile</option>
+            <option value="netsh advfirewall show publicprofile">netsh advfirewall show publicprofile</option>
+            <option value="netsh advfirewall firewall show rule name=all">netsh advfirewall firewall show rule name=all</option>
+            <option value="netsh advfirewall show currentprofile">netsh advfirewall show currentprofile</option>
+            <option value="sc query MpsSvc">sc query MpsSvc</option>
+          </select>
+          <button type="button" onclick="u8SimRunSelected()">▶ تنفيذ المثال</button>
+          <button type="button" onclick="u8SimReset()">↺ إعادة ضبط</button>
+          <button type="button" class="danger" onclick="u8SimClear()">✕ مسح</button>
+        </div>
+
+        <div class="sim-output" id="u8SimOutput" aria-live="polite">
+<span class="sim-note">// المحاكي جاهز. اكتب أمرًا في الحقل أعلاه أو اختر مثالًا جاهزًا.</span>
+        </div>
+
+        <div class="sim-hint">
+          <strong>الأوامر المدعومة:</strong>
+          <code>netsh advfirewall show allprofiles</code> · <code>netsh advfirewall show domainprofile</code> · <code>netsh advfirewall show privateprofile</code> · <code>netsh advfirewall show publicprofile</code> · <code>netsh advfirewall firewall show rule name=all</code> · <code>netsh advfirewall show currentprofile</code> · <code>sc query MpsSvc</code>
+          <br>
+          <strong>ملاحظة:</strong> أوامر التغيير مثل <code>netsh advfirewall set</code> و<code>netsh advfirewall firewall add/delete</code> غير مدعومة (نظرية فقط).
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         7. التحليل الأمني
+         ============================================================ -->
+    <section>
+      <h2>التحليل الأمني لإعدادات جدار الحماية</h2>
+      <p>عند قراءة الإعدادات، ركّز على المؤشرات التالية:</p>
+      <ul>
+        <li><strong>State: OFF</strong> في أي ملف تعريف — مؤشر خطر يستحق التحقيق.</li>
+        <li><strong>Firewall Policy</strong> غير متوازنة (مثل AllowInbound دائمًا) — قد تكون خطيرة.</li>
+        <li><strong>قواعد Inbound</strong> تسمح بمنافذ غير ضرورية — توسّع سطح الهجوم.</li>
+        <li><strong>Logging</strong> معطّل — يفقدك القدرة على التحليل الجنائي.</li>
+        <li><strong>قواعد مفعّلة</strong> في ملف Public لخدمات لا تحتاج — خطر أعلى.</li>
+      </ul>
+
+      <div class="u8-alert danger">
+        <span class="icon">🚫</span>
+        <div>
+          <strong>مؤشر واحد لا يثبت اختراقًا.</strong> يجب جمع السياق: من عدّل الإعدادات؟ متى؟ هل كان هناك نشاط مشبوه قبله؟ لا تعتمد على حقل واحد.
+        </div>
+      </div>
+
+      <h3>سيناريوهات افتراضية</h3>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">1</span><span>ملف Public معطّل</span></div>
+        <div class="ex-body">
+          <p>عند تنفيذ <code>netsh advfirewall show publicprofile</code>، تجد <code>Status OFF</code>.</p>
+          <p><strong>سؤال:</strong> ما التحليل؟</p>
+          <details><summary>اعرض التحليل المتوقع</summary><div class="answer">
+            <strong>مؤشر خطر مرتفع.</strong> ملف Public يُستخدم في الشبكات غير الموثوقة (مقاهي، مطارات). تعطيله يعني أن الجهاز مكشوف للاتصالات الخارجية. هذا يستحق التحقيق: من عطّله؟ هل كان إجراءً مقصودًا أم خطأً؟ ما الأحداث الأخرى في نفس النافذة الزمنية؟
+          </div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">2</span><span>قاعدة Inbound غير ضرورية</span></div>
+        <div class="ex-body">
+          <p>قاعدة Firewall تسمح بـ TCP على المنفذ 8080 في ملف Public، بينما لا يوجد تطبيق يحتاجها.</p>
+          <p><strong>سؤال:</strong> ما المخاطر؟</p>
+          <details><summary>اعرض التحليل المتوقع</summary><div class="answer">
+            فتح منفذ غير مستخدم في ملف Public يزيد سطح الهجوم. قد يستغله برنامج خبيث لاحقًا، أو يكون منفذًا لخدمة نُسيت. الإجراء الصحيح: تعطيل القاعدة بعد التأكد من عدم الحاجة (في بيئة إنتاج، وليس هنا).
+          </div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">3</span><span>مقارنة الملفات الثلاثة</span></div>
+        <div class="ex-body">
+          <p>Domain وPrivate حالتهم ON، لكن Public OFF.</p>
+          <p><strong>سؤال:</strong> ما تفسير ذلك؟</p>
+          <details><summary>اعرض التحليل المتوقع</summary><div class="answer">
+            قد يكون تعطيلًا مقصودًا من مسؤول للسماح باتصالات أثناء اختبار داخلي، أو خطأً نتج عن تطبيق سياسة خاطئة، أو تعديلًا من مهاجم. <strong>لا يمكن الحكم من البيانات وحدها</strong>؛ يجب مراجعة سجلات التغيير والأحداث المرتبطة.
+          </div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">4</span><span>حالة خدمة MpsSvc</span></div>
+        <div class="ex-body">
+          <p><code>sc query MpsSvc</code> يعرض <code>STATE 4 RUNNING</code>، لكن Public Profile OFF.</p>
+          <p><strong>سؤال:</strong> هل هذا تناقض؟</p>
+          <details><summary>اعرض التحليل المتوقع</summary><div class="answer">
+            لا. حالة الخدمة وحالة ملف التعريف <strong>مستقلتان</strong>. الخدمة قد تعمل (RUNNING) بينما أحد الملفات معطّل. تحقق دائمًا من كليهما: <code>sc query MpsSvc</code> و<code>netsh advfirewall show allprofiles</code>.
+          </div></details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         8. التمارين والتحديات
+         ============================================================ -->
+    <section>
+      <h2>التمارين والتحديات</h2>
+      <p>استخدم المحاكي أعلاه. جميع النتائج افتراضية.</p>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">1</span><span>عرض جميع ملفات التعريف</span></div>
+        <div class="ex-body">
+          <p>ما الأمر الذي يعرض إعدادات ملفات التعريف الثلاثة معًا؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer"><code>netsh advfirewall show allprofiles</code></div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">2</span><span>حالة ملف Public</span></div>
+        <div class="ex-body">
+          <p>كيف تعرض حالة ملف Public فقط؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer"><code>netsh advfirewall show publicprofile</code></div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">3</span><span>حالة خدمة الجدار</span></div>
+        <div class="ex-body">
+          <p>ما الأمر للتحقق من حالة خدمة Windows Defender Firewall؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer"><code>sc query MpsSvc</code></div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">4</span><span>قواعد Firewall</span></div>
+        <div class="ex-body">
+          <p>كيف تعرض جميع قواعد Firewall (Inbound/Outbound)؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer"><code>netsh advfirewall firewall show rule name=all</code></div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">5</span><span>التمييز بين Inbound وOutbound</span></div>
+        <div class="ex-body">
+          <p>من مخرجات <code>show rule name=all</code>، كيف تعرف أن قاعدة ما هي Inbound؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer">من حقل <code>Direction</code>: <code>In</code> = داخلة، <code>Out</code> = خارجة.</div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">6</span><span>تحليل سياسة غير آمنة</span></div>
+        <div class="ex-body">
+          <p>إذا وجدت <code>Firewall Policy AllowInbound,AllowOutbound</code>، ما المخاطر؟</p>
+          <details><summary>اعرض التحليل</summary><div class="answer">السماح بكل الاتصالات الداخلة يفتح سطح الهجوم بالكامل. السياسة الطبيعية <code>BlockInbound,AllowOutbound</code>.</div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">7</span><span>قاعدة Allow على منفذ غير مستخدم</span></div>
+        <div class="ex-body">
+          <p>قاعدة <code>Allow TCP 8080 In Public</code> لبرنامج غير موجود. ما التقييم؟</p>
+          <details><summary>اعرض التحليل</summary><div class="answer">قاعدة غير ضرورية توسّع سطح الهجوم. يُنصح بتعطيلها في بيئة إنتاج. لا تعطّلها هنا.</div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">8</span><span>الفرق بين CMD وPowerShell</span></div>
+        <div class="ex-body">
+          <p>ما الفرق بين <code>netsh advfirewall show allprofiles</code> و<code>Get-NetFirewallProfile</code>؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer">الأول في CMD، والثاني في PowerShell. كلاهما يعرض إعدادات ملفات التعريف، لكن PowerShell يوفر مخرجات منظمة أكثر ومرونة في التصفية.</div></details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         9. الاختبار
+         ============================================================ -->
+    <section id="unit8-quiz-section">
+      <h2>الاختبار</h2>
+      <p>اختبار من 10 أسئلة يغطي مفاهيم وأوامر الوحدة.</p>
+
+      <div data-quiz="unit8"></div>
+    </section>
+
+    <!-- ============================================================
+         10. ملخص الوحدة
+         ============================================================ -->
+    <section>
+      <h2>ملخص الوحدة</h2>
+      <ul class="summary-list">
+        <li>Windows Defender Firewall يتحكم في حركة الشبكة الداخلة والخارجة.</li>
+        <li>ثلاثة ملفات تعريف: Domain, Private, Public — كل منها بإعدادات مستقلة.</li>
+        <li>Inbound Rules الافتراضي منع، Outbound Rules الافتراضي سماح.</li>
+        <li><code>netsh advfirewall show allprofiles</code> يعرض إعدادات الملفات الثلاثة.</li>
+        <li><code>netsh advfirewall show publicprofile</code> يعرض ملف Public فقط.</li>
+        <li><code>netsh advfirewall firewall show rule name=all</code> يعرض كل القواعد.</li>
+        <li><code>sc query MpsSvc</code> يعرض حالة خدمة الجدار — مستقلة عن حالة الملفات.</li>
+        <li><code>Get-NetFirewallProfile</code> أمر PowerShell مكافئ، وليس CMD.</li>
+        <li>تعطيل Public Profile أو قاعدة غير ضرورية = توسيع سطح الهجوم.</li>
+        <li>مبدأ Least Privilege: اسمح فقط بما تحتاجه صراحة، وأغلق الباقي.</li>
+      </ul>
+    </section>
+
+    <!-- ============================================================
+         11. المراجع
+         ============================================================ -->
+    <section>
+      <h2>المراجع</h2>
+      <ul class="refs-list">
+        <li>Microsoft Learn — <em>netsh advfirewall</em>. <a href="https://learn.microsoft.com/en-us/windows-server/networking/technologies/netsh/netsh-advfirewall" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+        <li>Microsoft Learn — <em>Windows Defender Firewall</em>. <a href="https://learn.microsoft.com/en-us/windows/security/threat-protection/windows-firewall/windows-firewall-with-advanced-security" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+        <li>Microsoft Learn — <em>Get-NetFirewallProfile</em>. <a href="https://learn.microsoft.com/en-us/powershell/module/netsecurity/get-netfirewallprofile" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+        <li>Microsoft Learn — <em>sc query</em>. <a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/sc-query" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+        <li>NIST SP 800-41 Rev.1 — <em>Guidelines on Firewalls and Firewall Policy</em>.</li>
+      </ul>
+    </section>
+
+    <!-- ============================================================
+         12. التنقل بين الوحدات
+         ============================================================ -->
+    <nav class="unit-nav" aria-label="التنقل بين الوحدات">
+      <a href="unit7.html" class="prev">← الوحدة السابعة</a>
+      <a href="unit9.html" class="next">الوحدة التاسعة →</a>
+    </nav>
+
+  </div>
+</main>
+
+<!-- ===== الملفات المشتركة ===== -->
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/quiz.js"></script>
+
+<!-- ===== سكربت الوحدة ===== -->
+<script>
+/* ============================================================
+   1) أداة النسخ
+   ============================================================ */
+function u8Copy(btn, text) {
+  const done = () => {
+    const original = btn.textContent;
+    btn.textContent = '✓ تم النسخ';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.classList.remove('copied');
+    }, 1500);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => {
+      u8FallbackCopy(text); done();
+    });
+  } else {
+    u8FallbackCopy(text); done();
+  }
+}
+function u8FallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
+}
+
+/* ============================================================
+   2) المحاكي التفاعلي الآمن
+   - مطابقة نصية فقط مع مخرجات ثابتة مسبقًا
+   - لا تنفيذ، لا eval، لا fetch، لا اتصال
+   ============================================================ */
+(function () {
+  const OUTPUTS = {
+    'netsh advfirewall show allprofiles': `Domain Profile Settings:
+----------------------------------------------------------------------
+Status                                 ON
+Firewall Policy                        BlockInbound,AllowOutbound
+LocalFirewallRules                     N/A (GPO-store only)
+LocalConSecRules                       N/A (GPO-store only)
+InboundUserNotification                Enable
+RemoteManagement                       Disable
+UnicastResponseToMulticast             Enable
+
+Logging:
+LogAllowed                             False
+LogBlocked                            True
+LogFileName                            %systemroot%\\system32\\LogFiles\\Firewall\\pfirewall.log
+LogMaxSize                             4096
+
+Private Profile Settings:
+----------------------------------------------------------------------
+Status                                 ON
+Firewall Policy                        BlockInbound,AllowOutbound
+InboundUserNotification                Enable
+RemoteManagement                       Disable
+
+Logging:
+LogAllowed                             False
+LogBlocked                            True
+
+Public Profile Settings:
+----------------------------------------------------------------------
+Status                                 ON
+Firewall Policy                        BlockInbound,AllowOutbound
+InboundUserNotification                Enable
+RemoteManagement                       Disable
+
+Logging:
+LogAllowed                             False
+LogBlocked                            True`,
+
+    'netsh advfirewall show domainprofile': `Domain Profile Settings:
+----------------------------------------------------------------------
+Status                                 ON
+Firewall Policy                        BlockInbound,AllowOutbound
+InboundUserNotification                Enable
+RemoteManagement                       Disable
+
+Logging:
+LogAllowed                             False
+LogBlocked                            True`,
+
+    'netsh advfirewall show privateprofile': `Private Profile Settings:
+----------------------------------------------------------------------
+Status                                 ON
+Firewall Policy                        BlockInbound,AllowOutbound
+InboundUserNotification                Enable
+RemoteManagement                       Disable
+
+Logging:
+LogAllowed                             False
+LogBlocked                            True`,
+
+    'netsh advfirewall show publicprofile': `Public Profile Settings:
+----------------------------------------------------------------------
+Status                                 ON
+Firewall Policy                        BlockInbound,AllowOutbound
+InboundUserNotification                Enable
+RemoteManagement                       Disable
+
+Logging:
+LogAllowed                             False
+LogBlocked                            True`,
+
+    'netsh advfirewall firewall show rule name=all': `Rule Name:                            Core Networking - DNS (UDP-Out)
+----------------------------------------------------------------------
+Enabled:                              Yes
+Direction:                            Out
+Profiles:                             Domain,Private,Public
+Grouping:                             Core Networking
+LocalIP:                              Any
+RemoteIP:                             Any
+Protocol:                             UDP
+LocalPort:                            Any
+RemotePort:                           53
+Edge traversal:                       No
+Action:                               Allow
+
+Rule Name:                            Example - Custom Web App (TCP-In)
+----------------------------------------------------------------------
+Enabled:                              Yes
+Direction:                            In
+Profiles:                             Public
+Grouping:
+LocalIP:                              Any
+RemoteIP:                             Any
+Protocol:                             TCP
+LocalPort:                            8080
+RemotePort:                           Any
+Edge traversal:                       No
+Action:                               Allow
+
+Rule Name:                            File and Printer Sharing (SMB-In)
+----------------------------------------------------------------------
+Enabled:                              No
+Direction:                            In
+Profiles:                             Private
+Grouping:                             File and Printer Sharing
+LocalIP:                              Any
+RemoteIP:                             Any
+Protocol:                             TCP
+LocalPort:                            445
+RemotePort:                           Any
+Edge traversal:                       No
+Action:                               Allow`,
+
+    'netsh advfirewall show currentprofile': `Domain Profile Settings:
+----------------------------------------------------------------------
+Status                                 ON
+Firewall Policy                        BlockInbound,AllowOutbound
+
+Logging:
+LogAllowed                             False
+LogBlocked                            True`,
+
+    'sc query MpsSvc': `SERVICE_NAME: MpsSvc
+        TYPE               : 20  WIN32_SHARE_PROCESS
+        STATE              : 4  RUNNING
+                                (STOPPABLE, NOT_PAUSABLE, ACCEPTS_SHUTDOWN)
+        WIN32_EXIT_CODE    : 0  (0x0)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0`
+  };
+
+  const EXPLANATIONS = {
+    'netsh advfirewall show allprofiles': 'يعرض إعدادات ملفات التعريف الثلاثة. Status ON = الجدار مفعّل. BlockInbound = منع الداخل افتراضيًا.',
+    'netsh advfirewall show domainprofile': 'يعرض إعدادات ملف Domain فقط (للشبكات المنضمة لنطاق).',
+    'netsh advfirewall show privateprofile': 'يعرض إعدادات ملف Private فقط (للشبكات الموثوقة).',
+    'netsh advfirewall show publicprofile': 'يعرض إعدادات ملف Public فقط (للشبكات غير الموثوقة). Status ON ضروري هنا.',
+    'netsh advfirewall firewall show rule name=all': 'يعرض كل القواعد. لاحظ القاعدة "Example - Custom Web App (TCP-In)" على المنفذ 8080 في Public — قد تفتح سطح هجوم غير ضروري.',
+    'netsh advfirewall show currentprofile': 'يعرض إعدادات الملف النشط حاليًا حسب نوع الشبكة.',
+    'sc query MpsSvc': 'يعرض حالة خدمة الجدار. RUNNING = الخدمة تعمل. لكن هذا مستقل عن حالة الملفات.'
+  };
+
+  const out = document.getElementById('u8SimOutput');
+  const select = document.getElementById('u8SimSelect');
+  const input = document.getElementById('u8SimInput');
+  const runBtn = document.getElementById('u8SimRunBtn');
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function writeLine(html) {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    out.appendChild(div);
+    out.scrollTop = out.scrollHeight;
+  }
+  function normalize(cmd) {
+    return cmd.replace(/\s+/g, ' ').trim();
+  }
+
+  function findMatch(userInput) {
+    const norm = normalize(userInput);
+    const keys = Object.keys(OUTPUTS);
+
+    if (OUTPUTS[norm]) return norm;
+
+    for (const k of keys) {
+      if (normalize(k).toLowerCase() === norm.toLowerCase()) return k;
+    }
+
+    const loose = norm.toLowerCase()
+      .replace(/\s*=\s*/g, '=')
+      .replace(/\s+/g, ' ');
+
+    for (const k of keys) {
+      const kLoose = normalize(k).toLowerCase()
+        .replace(/\s*=\s*/g, '=')
+        .replace(/\s+/g, ' ');
+      if (kLoose === loose) return k;
+    }
+    return null;
+  }
+
+  function runCommand(rawInput) {
+    const cmd = String(rawInput || '').trim();
+    if (!cmd) {
+      writeLine('<span class="sim-error">⚠️ اكتب أمرًا أولًا أو اختر مثالًا جاهزًا.</span>');
+      return;
+    }
+
+    // حظر أوامر التغيير
+    const forbidden = /^\s*netsh\s+advfirewall\s+(set|firewall\s+(add|delete|set)|reset)\b/i;
+    if (forbidden.test(cmd)) {
+      writeLine('<span class="sim-prompt">C:\\&gt;</span> <span class="sim-echo">' + escapeHtml(cmd) + '</span>');
+      writeLine('<span class="sim-error">🚫 هذا الأمر يغيّر إعدادات جدار الحماية وغير مدعوم في المحاكي (نظري فقط).</span>');
+      writeLine('<span class="sim-note">💡 المحاكي للاستعلام والتحليل فقط.</span>');
+      writeLine('');
+      return;
+    }
+
+    writeLine('<span class="sim-prompt">C:\\&gt;</span> <span class="sim-echo">' + escapeHtml(cmd) + '</span>');
+
+    const key = findMatch(cmd);
+    if (key && OUTPUTS[key]) {
+      writeLine('<pre style="margin:0;font-family:inherit;color:inherit;white-space:pre-wrap;">' + escapeHtml(OUTPUTS[key]) + '</pre>');
+      writeLine('<span class="sim-note">💡 ' + EXPLANATIONS[key] + '</span>');
+      writeLine('<span class="sim-note" style="font-size:.75rem;opacity:.7">ملاحظة: النتائج افتراضية ولا تعكس جهازك.</span>');
+    } else {
+      writeLine('<span class="sim-error">❌ الأمر غير مدعوم في هذا المحاكي.</span>');
+      writeLine('<span class="sim-note">💡 المدعوم: netsh advfirewall show allprofiles · show domainprofile · show privateprofile · show publicprofile · show currentprofile · firewall show rule name=all · sc query MpsSvc</span>');
+    }
+    writeLine('');
+  }
+
+  window.u8SimRunSelected = function () {
+    const val = select.value;
+    if (!val) {
+      writeLine('<span class="sim-error">⚠️ اختر مثالًا من القائمة أولًا.</span>');
+      return;
+    }
+    input.value = val;
+    runCommand(val);
+    select.value = '';
+  };
+
+  window.u8SimReset = function () {
+    out.innerHTML = '<span class="sim-note">// المحاكي جاهز. اكتب أمرًا في الحقل أعلاه أو اختر مثالًا جاهزًا.</span>';
+    select.value = '';
+    input.value = '';
+    input.focus();
+  };
+
+  window.u8SimClear = function () {
+    out.innerHTML = '';
+  };
+
+  runBtn.addEventListener('click', function () { runCommand(input.value); });
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      runCommand(input.value);
+    }
+  });
+  select.addEventListener('change', function () {
+    if (select.value) {
+      input.value = select.value;
+      input.focus();
+    }
+  });
+})();
+
+/* ============================================================
+   3) قائمة الجوال
+   ============================================================ */
+(function () {
+  const toggle = document.querySelector('.nav-toggle');
+  const nav = document.querySelector('.site-nav');
+  if (!toggle || !nav) return;
+  toggle.addEventListener('click', function () {
+    const open = nav.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+})();
+
+/* ============================================================
+   4) اختبار الوحدة — window.QUIZZES["unit8"]
+   quiz.js يكتشف [data-quiz="unit8"] ويهيئ الاختبار تلقائيًا.
+   ============================================================ */
+window.QUIZZES = window.QUIZZES || {};
+
+window.QUIZZES["unit8"] = {
+  title: "اختبار الوحدة الثامنة — إعدادات الحماية وجدار الحماية",
+  questions: [
+    {
+      q: "ما الوظيفة الأساسية لـ Windows Defender Firewall؟",
+      options: [
+        "تسريع اتصال الإنترنت",
+        "التحكم في حركة اتصالات الشبكة الداخلة والخارجة وفق قواعد",
+        "إدارة كلمات المرور",
+        "تشفير الملفات على القرص"
+      ],
+      correct: 1,
+      explanation: "جدار الحماية يراقب ويصفّي حركة الشبكة وفق قواعد محددة، ويحمي النظام من الاتصالات غير المصرح بها."
+    },
+    {
+      q: "أي من ملفات التعريف التالية يُستخدم عادةً في الشبكات العامة غير الموثوقة؟",
+      options: ["Domain", "Private", "Public", "Loopback"],
+      correct: 2,
+      explanation: "Public مخصص للشبكات العامة غير الموثوقة (مقاهي، مطارات). تعطيله خطر أمني كبير."
+    },
+    {
+      q: "ما السياسة الافتراضية الآمنة لجدار الحماية؟",
+      options: [
+        "AllowInbound,AllowOutbound",
+        "BlockInbound,BlockOutbound",
+        "BlockInbound,AllowOutbound",
+        "AllowInbound,BlockOutbound"
+      ],
+      correct: 2,
+      explanation: "الافتراضي الآمن: منع الاتصالات الداخلة غير المصرح بها، والسماح بالاتصالات الخارجة."
+    },
+    {
+      q: "ما الأمر الذي يعرض إعدادات ملفات التعريف الثلاثة معًا؟",
+      options: [
+        "netsh advfirewall show domainprofile",
+        "netsh advfirewall show allprofiles",
+        "netsh advfirewall show currentprofile",
+        "sc query MpsSvc"
+      ],
+      correct: 1,
+      explanation: "netsh advfirewall show allprofiles يعرض Domain وPrivate وPublic معًا."
+    },
+    {
+      q: "ما دلالة STATE 4 RUNNING في مخرجات sc query MpsSvc؟",
+      options: [
+        "جدار الحماية معطّل في كل الملفات",
+        "خدمة جدار الحماية تعمل",
+        "قاعدة Firewall مفعّلة",
+        "اتصال شبكي مفتوح"
+      ],
+      correct: 1,
+      explanation: "STATE 4 RUNNING تعني أن الخدمة تعمل. لكن هذا مستقل عن حالة كل ملف تعريف — قد تكون الخدمة تعمل وملف معطّل."
+    },
+    {
+      q: "ما الفرق بين Inbound Rules وOutbound Rules؟",
+      options: [
+        "لا فرق بينهما",
+        "Inbound تتحكم في الاتصالات القادمة، Outbound في الصادرة",
+        "Inbound للشبكات الداخلية، Outbound للخارجية",
+        "Inbound تعمل تلقائيًا، Outbound يدويًا"
+      ],
+      correct: 1,
+      explanation: "Inbound للاتصالات القادمة إلى الجهاز، Outbound للاتصالات الصادرة منه."
+    },
+    {
+      q: "قاعدة Firewall تسمح بـ TCP على المنفذ 8080 في ملف Public لبرنامج غير موجود. ما التقييم؟",
+      options: [
+        "لا مشكلة، القاعدة غير مفعّلة",
+        "قاعدة غير ضرورية توسّع سطح الهجوم وتستحق المراجعة",
+        "تزيد سرعة الإنترنت",
+        "تحمي الجهاز من الفيروسات"
+      ],
+      correct: 1,
+      explanation: "فتح منفذ غير مستخدم في ملف Public يزيد سطح الهجوم، ويُستحسن تعطيل القاعدة في بيئة إنتاج (وليس هنا)."
+    },
+    {
+      q: "ما الأمر المكافئ في PowerShell لـ netsh advfirewall show allprofiles؟",
+      options: [
+        "Get-Firewall",
+        "Get-NetFirewallProfile",
+        "Show-FirewallRules",
+        "Get-WindowsFirewall"
+      ],
+      correct: 1,
+      explanation: "Get-NetFirewallProfile أمر PowerShell يعرض إعدادات ملفات التعريف. netsh أداة CMD."
+    },
+    {
+      q: "ما المخاطر الرئيسية لتعطيل Public Profile؟",
+      options: [
+        "لا مخاطر",
+        "زيادة استهلاك الذاكرة",
+        "كشف الجهاز للاتصالات الخارجية في الشبكات غير الموثوقة",
+        "إبطاء النظام"
+      ],
+      correct: 2,
+      explanation: "Public Profile يحمي الجهاز في الشبكات العامة. تعطيله يعرضه لهجمات خارجية."
+    },
+    {
+      q: "أي مما يلي يتوافق مع مبدأ Least Privilege في جدار الحماية؟",
+      options: [
+        "فتح جميع المنافذ لضمان عمل كل شيء",
+        "تعطيل الجدار لتحسين الأداء",
+        "السماح فقط بالاتصالات التي تحتاجها صراحة وإغلاق الباقي",
+        "إضافة قواعد Allow لكل برنامج"
+      ],
+      correct: 2,
+      explanation: "مبدأ Least Privilege: اسمح فقط بما تحتاجه صراحة، وأغلق الباقي لتقليل سطح الهجوم."
+    }
+  ]
+};
+</script>
+
+<!-- ===== أنماط القائمة الرئيسة (مكمّلة) ===== -->
+<style>
+  /* قائمة الموقع الرئيسة — متسقة مع التصميم العام */
+  .site-header {
+    background: linear-gradient(135deg, #0b1220, #1a237e);
+    color: #fff;
+    padding: 12px 18px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: 0 2px 10px rgba(0,0,0,.15);
+  }
+  .nav-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .site-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 800;
+    font-size: 1.05rem;
+  }
+  .brand-mark { font-size: 1.3rem; }
+  .site-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+  .site-nav a {
+    color: #e6edf7;
+    text-decoration: none;
+    font-size: .9rem;
+    font-weight: 600;
+    padding: 6px 4px;
+    border-bottom: 2px solid transparent;
+    transition: .2s;
+  }
+  .site-nav a:hover { border-bottom-color: #22d3ee; color: #fff; }
+  .nav-toggle {
+    display: none;
+    background: transparent;
+    color: #fff;
+    border: 1px solid rgba(255,255,255,.3);
+    border-radius: 8px;
+    font-size: 1.2rem;
+    padding: 4px 10px;
+    cursor: pointer;
+  }
+  @media (max-width: 720px) {
+    .site-nav {
+      display: none;
+      width: 100%;
+    }
+    .site-nav.open { display: block; }
+    .site-nav ul {
+      flex-direction: column;
+      gap: 6px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255,255,255,.15);
+    }
+    .site-nav a { display: block; padding: 8px 6px; }
+    .nav-toggle { display: inline-block; }
+  }
+</style>
+
+</body>
+</html>
