@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الوحدة السادسة: العمليات والخدمات في Windows | أساسيات أوامر Windows CMD للأمن السيبراني</title>
+
+<!-- ===== SEO ===== -->
+<meta name="description" content="الوحدة السادسة من مقرر أساسيات أوامر Windows CMD للأمن السيبراني — العمليات والخدمات في Windows: tasklist, tasklist /svc, tasklist /fi, taskkill, sc query, sc qc, net start. مع محاكي تفاعلي آمن واختبار من 10 أسئلة.">
+<meta name="keywords" content="Windows CMD, tasklist, tasklist /svc, tasklist /fi, taskkill, sc query, sc qc, net start, العمليات والخدمات, الأمن السيبراني, SVCHOST, PID, Service Account">
+<meta name="author" content="CyberPath">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#0b1220">
+
+<!-- ===== الملفات المشتركة ===== -->
+<link rel="stylesheet" href="../assets/css/course.css">
+
+<!-- ===== خطوط ===== -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<!-- ===== أنماط مكملة (لا تتعارض مع course.css) ===== -->
+<style>
+  /* === قواعد عامة === */
+  .u6-page { line-height: 1.85; }
+  .u6-page h2 { font-weight: 800; }
+  .u6-page h3 { font-weight: 700; }
+  .u6-lead { font-size: 1.02rem; color: #4a5568; }
+
+  /* === صناديق التنبيه === */
+  .u6-alert {
+    display: flex; gap: 12px; padding: 14px 16px; border-radius: 12px;
+    margin: 16px 0; font-size: .93rem; line-height: 1.8;
+    border-right: 4px solid; background: #f7fafc;
+  }
+  .u6-alert .icon { font-size: 1.3rem; flex-shrink: 0; line-height: 1.4; }
+  .u6-alert.info { border-right-color: #3498db; background: #ebf8ff; color: #1a4971; }
+  .u6-alert.warn { border-right-color: #f39c12; background: #fffbea; color: #7b4b00; }
+  .u6-alert.danger { border-right-color: #e74c3c; background: #fdedec; color: #78281f; }
+  .u6-alert.success { border-right-color: #27ae60; background: #e8f8ee; color: #186a3b; }
+
+  /* === كتلة الأمر === */
+  .cmd-block {
+    background: #0d1117; border: 1px solid #30363d; border-radius: 12px;
+    margin: 18px 0; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,.08);
+  }
+  .cmd-block .cmd-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 14px; background: #161b22; border-bottom: 1px solid #30363d;
+    font-size: .8rem; color: #8b949e;
+  }
+  .cmd-block .cmd-title {
+    display: flex; align-items: center; gap: 8px; font-weight: 700;
+    color: #58a6ff; font-family: 'JetBrains Mono', monospace;
+  }
+  .cmd-block .cmd-title::before {
+    content: '>_'; color: #3fb950; font-family: 'JetBrains Mono', monospace;
+  }
+  .cmd-block .cmd-copy {
+    background: #21262d; color: #c9d1d9; border: 1px solid #30363d;
+    border-radius: 6px; padding: 4px 10px; cursor: pointer; font-family: inherit;
+    font-size: .75rem; font-weight: 600; transition: .2s;
+  }
+  .cmd-block .cmd-copy:hover { background: #30363d; color: #58a6ff; }
+  .cmd-block .cmd-copy.copied { background: #238636; color: #fff; border-color: #2ea043; }
+  .cmd-block pre {
+    margin: 0; padding: 14px 16px; overflow-x: auto;
+    color: #c9d1d9; font-family: 'JetBrains Mono', monospace;
+    font-size: .85rem; line-height: 1.7; direction: ltr; text-align: left;
+  }
+  .cmd-block pre .prompt { color: #3fb950; user-select: none; }
+  .cmd-block pre .comment { color: #8b949e; font-style: italic; }
+
+  /* === بطاقات المفاهيم === */
+  .concepts-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px; margin: 16px 0;
+  }
+  .concept-card {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+    padding: 14px 16px; transition: .2s;
+  }
+  .concept-card:hover { border-color: #3498db; box-shadow: 0 4px 12px rgba(52,152,219,.1); }
+  .concept-card .term {
+    font-family: 'JetBrains Mono', monospace; font-weight: 700;
+    color: #1a237e; font-size: .95rem; margin-bottom: 4px;
+  }
+  .concept-card .term-ar { color: #3498db; font-size: .82rem; margin-bottom: 6px; }
+  .concept-card .def { font-size: .88rem; color: #4a5568; line-height: 1.7; }
+
+  /* === جدول مرجعي === */
+  .ref-table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: .9rem; }
+  .ref-table th {
+    background: #1a237e; color: #fff; padding: 10px 12px; text-align: right;
+    font-weight: 700; border: none;
+  }
+  .ref-table td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; color: #2d3748; }
+  .ref-table tr:nth-child(even) td { background: #f8fafc; }
+  .ref-table code {
+    background: #edf2f7; color: #c53030; padding: 2px 6px;
+    border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: .82rem;
+  }
+
+  /* === المحاكي === */
+  .sim-wrap {
+    background: linear-gradient(180deg, #0b1220 0%, #0f1b30 100%);
+    border: 1px solid #1c2d4a; border-radius: 16px;
+    overflow: hidden; margin: 18px 0; box-shadow: 0 12px 32px rgba(0,0,0,.25);
+  }
+  .sim-banner {
+    background: linear-gradient(90deg, #7b4b00, #b8860b); color: #fff;
+    padding: 10px 16px; font-size: .82rem; font-weight: 700; text-align: center;
+    letter-spacing: .2px;
+  }
+  .sim-banner i { margin-left: 6px; }
+  .sim-toolbar {
+    display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 14px;
+    background: #152540; border-bottom: 1px solid #1c2d4a;
+  }
+  .sim-toolbar select, .sim-toolbar button {
+    font-family: inherit; font-size: .82rem; padding: 7px 12px;
+    border-radius: 8px; border: 1px solid #26405f;
+    background: #0f1b30; color: #e6edf7; cursor: pointer; transition: .2s;
+  }
+  .sim-toolbar button:hover { border-color: #22d3ee; }
+  .sim-toolbar button.primary {
+    background: linear-gradient(135deg, #0891b2, #22d3ee); color: #03212b;
+    border: none; font-weight: 700;
+  }
+  .sim-toolbar button.danger {
+    background: transparent; color: #f87171; border-color: rgba(248,113,113,.4);
+  }
+  .sim-toolbar button.danger:hover { background: rgba(248,113,113,.1); }
+  .sim-toolbar select { min-width: 240px; flex: 1; }
+  .sim-output {
+    background: #040814; color: #c9d1d9; font-family: 'JetBrains Mono', monospace;
+    font-size: .82rem; line-height: 1.65; padding: 14px 16px;
+    min-height: 180px; max-height: 380px; overflow-y: auto;
+    direction: ltr; text-align: left; white-space: pre-wrap; word-break: break-word;
+  }
+  .sim-output .sim-prompt { color: #22d3ee; font-weight: 700; }
+  .sim-output .sim-echo { color: #e6edf7; }
+  .sim-output .sim-note { color: #fbbf24; }
+  .sim-output .sim-error { color: #f87171; }
+  .sim-output .sim-success { color: #34d399; }
+  .sim-hint {
+    padding: 10px 14px; background: #0f1b30; border-top: 1px solid #1c2d4a;
+    font-size: .82rem; color: #94a3b8; line-height: 1.7;
+  }
+  .sim-hint strong { color: #22d3ee; }
+
+  /* === التمارين === */
+  .exercise {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+    padding: 16px 18px; margin-bottom: 12px;
+  }
+  .exercise .ex-head {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+    font-weight: 700; color: #1a237e;
+  }
+  .exercise .ex-num {
+    background: #1a237e; color: #fff; width: 28px; height: 28px;
+    border-radius: 50%; display: grid; place-items: center; font-size: .82rem;
+    flex-shrink: 0;
+  }
+  .exercise .ex-body { font-size: .92rem; color: #2d3748; }
+  .exercise details { margin-top: 10px; }
+  .exercise details summary {
+    cursor: pointer; color: #0891b2; font-weight: 700; font-size: .88rem;
+    padding: 6px 10px; background: #e0f2fe; border-radius: 8px;
+    display: inline-block;
+  }
+  .exercise details[open] summary { background: #bae6fd; }
+  .exercise details .answer {
+    margin-top: 10px; padding: 12px 14px; background: #e8f8ee;
+    border-right: 3px solid #27ae60; border-radius: 8px;
+    font-size: .9rem; color: #186a3b; line-height: 1.8;
+  }
+
+  /* === الملخص === */
+  .summary-list { list-style: none; padding: 0; margin: 0; }
+  .summary-list li {
+    position: relative; padding: 8px 32px 8px 0; font-size: .93rem;
+    border-bottom: 1px dashed #e2e8f0;
+  }
+  .summary-list li:last-child { border-bottom: none; }
+  .summary-list li::before {
+    content: '✓'; position: absolute; right: 0; top: 8px;
+    color: #27ae60; font-weight: 800;
+  }
+
+  /* === التنقل === */
+  .unit-nav {
+    display: flex; justify-content: space-between; gap: 12px;
+    margin-top: 30px; flex-wrap: wrap;
+  }
+  .unit-nav a {
+    flex: 1; min-width: 200px; padding: 14px 20px; border-radius: 12px;
+    text-decoration: none; font-weight: 700; text-align: center;
+    transition: .2s; border: 1px solid #e2e8f0; background: #fff;
+    color: #1a237e;
+  }
+  .unit-nav a:hover { border-color: #3498db; box-shadow: 0 4px 12px rgba(52,152,219,.15); }
+  .unit-nav a.prev { color: #4a5568; }
+  .unit-nav a.next {
+    background: linear-gradient(135deg, #1a237e, #3949ab); color: #fff; border: none;
+  }
+  .unit-nav a.next:hover { filter: brightness(1.1); }
+
+  /* === المراجع === */
+  .refs-list { padding-right: 20px; }
+  .refs-list li { margin-bottom: 8px; font-size: .92rem; color: #4a5568; }
+  .refs-list a { color: #0891b2; text-decoration: none; }
+  .refs-list a:hover { text-decoration: underline; }
+
+  /* === استجابة === */
+  @media (max-width: 720px) {
+    .cmd-block pre { font-size: .78rem; padding: 12px; }
+    .ref-table { font-size: .82rem; }
+    .ref-table th, .ref-table td { padding: 8px 6px; }
+    .sim-toolbar select { min-width: 100%; }
+    .sim-output { font-size: .76rem; max-height: 300px; }
+    .unit-nav a { min-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<main class="u6-page" dir="rtl">
+
+  <!-- ============================================================
+       1. رأس الوحدة
+       ============================================================ -->
+  <header class="unit-header" style="background:linear-gradient(135deg,#0b1220,#1a237e);color:#fff;padding:36px 24px;border-radius:0 0 24px 24px;margin-bottom:24px;">
+    <div style="max-width:960px;margin:0 auto;">
+      <p style="font-size:.85rem;opacity:.8;margin:0 0 6px;">أساسيات أوامر Windows CMD للأمن السيبراني</p>
+      <h1 style="font-size:1.9rem;font-weight:800;margin:0 0 8px;">الوحدة السادسة: العمليات والخدمات في Windows</h1>
+      <p style="font-size:.95rem;opacity:.85;margin:0;font-family:'JetBrains Mono',monospace;">Windows Processes &amp; Services</p>
+    </div>
+  </header>
+
+  <div style="max-width:960px;margin:0 auto;padding:0 18px 60px;">
+
+    <!-- ============================================================
+         2. مقدمة
+         ============================================================ -->
+    <section>
+      <h2>مقدمة</h2>
+      <p class="u6-lead">
+        في الوحدات السابقة تعرّفت على أوامر التنقل والملفات والشبكة. في هذه الوحدة ننتقل إلى مستوى أعمق: <strong>ما الذي يعمل الآن على النظام؟</strong>
+      </p>
+      <p>
+        كل برنامج أو خدمة تعمل على Windows تظهر على شكل <strong>عملية (Process)</strong> لها معرّف فريد (PID). بعض هذه العمليات تكون <strong>خدمات (Services)</strong> تعمل في الخلفية دون واجهة مستخدم، مثل خدمة الشبكة أو التحديثات.
+      </p>
+      <p>
+        المحلل الأمني يحتاج إلى فهم هذه العمليات والخدمات ليتمكن من اكتشاف أي شيء غير طبيعي — لكن <strong>اسم العملية وحده لا يكفي</strong> للحكم عليها. هذه الوحدة تعلّمك القراءة والتحليل، لا الحكم المتسرع.
+      </p>
+      <div class="u6-alert info">
+        <span class="icon">💡</span>
+        <div>جميع الأمثلة والبيانات في هذه الوحدة <strong>افتراضية</strong> لأغراض التدريب، ولا تعكس جهازك الحقيقي. المحاكي لا ينفذ أي أمر فعلي.</div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         3. الأهداف التعليمية
+         ============================================================ -->
+    <section>
+      <h2>الأهداف التعليمية</h2>
+      <p>بنهاية هذه الوحدة ستكون قادرًا على:</p>
+      <ol>
+        <li>فهم الفرق بين العملية (Process) والخدمة (Service).</li>
+        <li>فهم معنى PID واسم ملف العملية واستهلاك الذاكرة.</li>
+        <li>قراءة قائمة العمليات وتحليل بياناتها.</li>
+        <li>فهم العلاقة بين العمليات والخدمات في Windows.</li>
+        <li>استخدام مرشحات عرض العمليات وفهم نتائجها.</li>
+        <li>فهم طريقة عرض الخدمات وحالات تشغيلها.</li>
+        <li>قراءة إعدادات الخدمة وتحليل حساب تشغيلها.</li>
+        <li>التعرف على مؤشرات سلوك غير معتاد في العمليات والخدمات.</li>
+        <li>فهم مخاطر إنهاء العمليات أو إيقاف الخدمات دون تحليل كافٍ.</li>
+        <li>تطبيق مبدأ أقل صلاحية عند تحليل حسابات تشغيل الخدمات.</li>
+      </ol>
+    </section>
+
+    <!-- ============================================================
+         4. المفاهيم الأساسية
+         ============================================================ -->
+    <section>
+      <h2>المفاهيم الأساسية</h2>
+      <p>قبل الدخول إلى الأوامر، دعنا نثبّت المفاهيم التالية:</p>
+
+      <div class="concepts-grid">
+        <div class="concept-card">
+          <div class="term">Process</div>
+          <div class="term-ar">العملية</div>
+          <div class="def">برنامج قيد التشغيل، له معرّف فريد (PID) وذاكرة خاصة. مثل: <code>notepad.exe</code> أو <code>explorer.exe</code>.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Service</div>
+          <div class="term-ar">الخدمة</div>
+          <div class="def">برنامج يعمل في الخلفية دون واجهة مستخدم، يُدار بواسطة <em>Service Control Manager</em>. مثل: خدمة الشبكة أو التحديثات.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">PID</div>
+          <div class="term-ar">معرّف العملية</div>
+          <div class="def">رقم فريد يُمنح لكل عملية أثناء تشغيلها، ويُستخدم لتمييزها عن غيرها.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Image Name</div>
+          <div class="term-ar">اسم ملف العملية</div>
+          <div class="def">اسم الملف التنفيذي للعملية، مثل <code>svchost.exe</code> أو <code>lsass.exe</code>.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Memory Usage</div>
+          <div class="term-ar">استهلاك الذاكرة</div>
+          <div class="def">كمية الذاكرة التي تستخدمها العملية، وتُعرض عادةً بوحدة كيلوبايت.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Service State</div>
+          <div class="term-ar">حالة الخدمة</div>
+          <div class="def">حالة تشغيل الخدمة، مثل <code>RUNNING</code> (تعمل) أو <code>STOPPED</code> (متوقفة).</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Service Account</div>
+          <div class="term-ar">حساب تشغيل الخدمة</div>
+          <div class="def">حساب Windows الذي تعمل الخدمة باسمه، مثل <code>LocalSystem</code> أو <code>NT AUTHORITY\NetworkService</code>.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Service Dependencies</div>
+          <div class="term-ar">اعتماديات الخدمة</div>
+          <div class="def">الخدمات أو المكونات الأخرى التي تعتمد عليها الخدمة لكي تعمل بشكل صحيح.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">svchost.exe</div>
+          <div class="term-ar">مضيف الخدمات</div>
+          <div class="def">عملية نظام تستضيف خدمات Windows. العملية الواحدة قد تستضيف خدمة واحدة أو عدة خدمات في آن واحد.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Least Privilege</div>
+          <div class="term-ar">مبدأ أقل صلاحية</div>
+          <div class="def">منح المستخدم أو الخدمة الحد الأدنى فقط من الصلاحيات اللازمة لأداء مهمتها.</div>
+        </div>
+      </div>
+
+      <div class="u6-alert warn">
+        <span class="icon">⚠️</span>
+        <div>
+          <strong>العملية والخدمة ليستا الشيء نفسه.</strong> الخدمة قد تعمل داخل عملية تستضيف خدمة واحدة أو عدة خدمات. لذلك قد ترى اسم العملية الواحدة مرتبطًا بعدة خدمات — وهذا <strong>ليس بالضرورة مؤشرًا خطيرًا</strong>.
+        </div>
+      </div>
+
+      <div class="u6-alert danger">
+        <span class="icon">🚫</span>
+        <div>
+          <strong>اسم العملية وحده لا يكفي للحكم عليها.</strong> قد يحمل برنامج خبيث اسم <code>svchost.exe</code> ليبدو شرعيًا. الحكم يحتاج إلى: المسار، الحساب، الاستهلاك، التوقيع الرقمي، والسياق.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         5. شرح الأوامر
+         ============================================================ -->
+    <section>
+      <h2>شرح الأوامر</h2>
+      <p>أوامر هذه الوحدة تدور حول فحص العمليات والخدمات دون تعديلها. سنتعلم كل أمر مع مثال افتراضي.</p>
+
+      <!-- 5.1 tasklist -->
+      <h3>أولًا: <code>tasklist</code></h3>
+      <p>يعرض هذا الأمر قائمة العمليات الجارية على النظام، مع اسم الملف ومعرّف العملية واستهلاك الذاكرة.</p>
+
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">tasklist</span>
+          <button class="cmd-copy" onclick="u6Copy(this, 'tasklist')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> tasklist
+
+<span class="comment">Image Name                     PID Session Name        Session#    Mem Usage</span>
+<span class="comment">========================= ======== ================ =========== ============</span>
+System Idle Process              0 Services                   0          8 K
+System                            4 Services                   0        132 K
+smss.exe                        412 Services                   0      1,240 K
+csrss.exe                       548 Services                   0      4,820 K
+wininit.exe                     604 Services                   0      5,120 K
+services.exe                    656 Services                   0      8,960 K
+lsass.exe                       684 Services                   0     12,480 K
+svchost.exe                     872 Services                   0     18,240 K
+svchost.exe                    1024 Services                   0     22,840 K
+explorer.exe                   3412 Console                    1     85,320 K
+notepad.exe                    5520 Console                    1      9,760 K</pre>
+      </div>
+
+      <table class="ref-table">
+        <thead><tr><th>الحقل</th><th>المعنى</th></tr></thead>
+        <tbody>
+          <tr><td><code>Image Name</code></td><td>اسم ملف العملية التنفيذي</td></tr>
+          <tr><td><code>PID</code></td><td>معرّف العملية الفريد</td></tr>
+          <tr><td><code>Session Name</code></td><td>اسم جلسة المستخدم (Console للجلسة التفاعلية، Services للخدمات)</td></tr>
+          <tr><td><code>Session#</code></td><td>رقم الجلسة</td></tr>
+          <tr><td><code>Mem Usage</code></td><td>استهلاك الذاكرة بالكيلوبايت</td></tr>
+        </tbody>
+      </table>
+
+      <div class="u6-alert info">
+        <span class="icon">ℹ️</span>
+        <div>الأسماء والأرقام أعلاه <strong>افتراضية</strong> لأغراض التدريب، ولا تعكس جهازك.</div>
+      </div>
+
+      <!-- 5.2 tasklist /svc -->
+      <h3>ثانيًا: <code>tasklist /svc</code></h3>
+      <p>يعرض هذا الخيار الخدمات المرتبطة بكل عملية. مفيد لمعرفة العملية التي تستضيف خدمة معينة.</p>
+
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">tasklist /svc</span>
+          <button class="cmd-copy" onclick="u6Copy(this, 'tasklist /svc')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> tasklist /svc
+
+<span class="comment">Image Name                     PID Services</span>
+<span class="comment">========================= ======== ============================================</span>
+services.exe                    656 N/A
+lsass.exe                       684 N/A
+svchost.exe                     872 AudioSrv, Browser, CryptSvc, Dhcp
+svchost.exe                    1024 Dnscache, Eventlog, LmHosts
+explorer.exe                   3412 N/A
+notepad.exe                    5520 N/A</pre>
+      </div>
+
+      <div class="u6-alert warn">
+        <span class="icon">⚠️</span>
+        <div>
+          لاحظ أن <code>svchost.exe</code> بالمعرّف <code>872</code> مرتبط بأربع خدمات في آنٍ واحد. هذا <strong>سلوك طبيعي</strong> لـ <code>svchost.exe</code> ولا يعني شيئًا خبيثًا بحد ذاته.
+        </div>
+      </div>
+
+      <!-- 5.3 tasklist /fi -->
+      <h3>ثالثًا: <code>tasklist /fi</code> — مرشحات العرض</h3>
+      <p>يسمح هذا الخيار بتصفية القائمة حسب معيار محدد، بدلًا من عرض كل العمليات.</p>
+
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">tasklist /fi "PID eq 1234"</span>
+          <button class="cmd-copy" onclick="u6Copy(this, 'tasklist /fi &quot;PID eq 1234&quot;')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> tasklist /fi "PID eq 1234"
+
+<span class="comment">Image Name                     PID Session Name        Session#    Mem Usage</span>
+<span class="comment">========================= ======== ================ =========== ============</span>
+svchost.exe                    1234 Services                   0     14,560 K</pre>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">tasklist /fi "IMAGENAME eq notepad.exe"</span>
+          <button class="cmd-copy" onclick="u6Copy(this, 'tasklist /fi &quot;IMAGENAME eq notepad.exe&quot;')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> tasklist /fi "IMAGENAME eq notepad.exe"
+
+<span class="comment">Image Name                     PID Session Name        Session#    Mem Usage</span>
+<span class="comment">========================= ======== ================ =========== ============</span>
+notepad.exe                    5520 Console                    1      9,760 K</pre>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">tasklist /fi "MEMUSAGE gt 10000"</span>
+          <button class="cmd-copy" onclick="u6Copy(this, 'tasklist /fi &quot;MEMUSAGE gt 10000&quot;')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> tasklist /fi "MEMUSAGE gt 10000"
+
+<span class="comment">Image Name                     PID Session Name        Session#    Mem Usage</span>
+<span class="comment">========================= ======== ================ =========== ============</span>
+lsass.exe                       684 Services                   0     12,480 K
+svchost.exe                     872 Services                   0     18,240 K
+svchost.exe                    1024 Services                   0     22,840 K
+explorer.exe                   3412 Console                    1     85,320 K</pre>
+      </div>
+
+      <p>المعاملات المدعومة في المرشح:</p>
+      <table class="ref-table">
+        <thead><tr><th>المعامل</th><th>المعنى</th></tr></thead>
+        <tbody>
+          <tr><td><code>PID</code></td><td>معرّف العملية</td></tr>
+          <tr><td><code>IMAGENAME</code></td><td>اسم ملف العملية</td></tr>
+          <tr><td><code>MEMUSAGE</code></td><td>استهلاك الذاكرة بالكيلوبايت</td></tr>
+        </tbody>
+      </table>
+      <table class="ref-table">
+        <thead><tr><th>المعامل</th><th>المعنى</th></tr></thead>
+        <tbody>
+          <tr><td><code>eq</code></td><td>يساوي</td></tr>
+          <tr><td><code>gt</code></td><td>أكبر من</td></tr>
+          <tr><td><code>ge</code></td><td>أكبر من أو يساوي</td></tr>
+          <tr><td><code>lt</code></td><td>أصغر من</td></tr>
+          <tr><td><code>le</code></td><td>أصغر من أو يساوي</td></tr>
+          <tr><td><code>ne</code></td><td>لا يساوي</td></tr>
+        </tbody>
+      </table>
+
+      <!-- 5.4 taskkill -->
+      <h3>رابعًا: <code>taskkill</code> — للمراجعة النظرية فقط</h3>
+      <div class="u6-alert danger">
+        <span class="icon">🚫</span>
+        <div>
+          <strong>تحذير:</strong> هذا الأمر يُنهي عملية. <strong>لا تنفذه</strong> أثناء هذا التدريب. لا يُنفذ داخل المحاكي ولا يُطلب منك تطبيقه على جهازك. الصيغة أدناه للقراءة النظرية فقط.
+        </div>
+      </div>
+      <p>صيغة الأمر (نظريًا):</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">taskkill /PID &lt;PID&gt; /F</span>
+          <button class="cmd-copy" onclick="u6Copy(this, 'taskkill /PID &lt;PID&gt; /F')">📋 نسخ</button>
+        </div>
+<pre><span class="comment">; صيغة نظرية فقط — لا تنفذ</span>
+<span class="prompt">C:\&gt;</span> taskkill /PID &lt;PID&gt; /F</pre>
+      </div>
+      <p>مخاطر إنهاء عملية:</p>
+      <ul>
+        <li>إنهاء عملية نظام قد يؤدي إلى تعطل النظام أو ظهور شاشة زرقاء.</li>
+        <li>إنهاء عملية يعتمد عليها برنامج آخر قد يؤدي إلى تعطل البرنامج.</li>
+        <li>قد تفقد بيانات غير محفوظة في التطبيق الذي أغلقته.</li>
+      </ul>
+      <div class="u6-alert warn">
+        <span class="icon">⚠️</span>
+        <div>
+          وجود عملية غير مألوفة <strong>لا يعني</strong> ضرورة إنهائها. يجب تحليلها أولًا (المسار، الحساب، التوقيع، السياق) قبل أي إجراء.
+        </div>
+      </div>
+
+      <!-- 5.5 sc query -->
+      <h3>خامسًا: <code>sc query</code> — استعلام عن الخدمات</h3>
+      <p>يعرض حالة خدمة معينة أو جميع الخدمات. من أهم الحقول: <code>STATE</code> التي توضح إن كانت الخدمة تعمل (<code>RUNNING</code>) أو متوقفة (<code>STOPPED</code>).</p>
+
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">sc query</span>
+          <button class="cmd-copy" onclick="u6Copy(this, 'sc query')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> sc query
+
+SERVICE_NAME: ExampleService
+        TYPE               : 20  WIN32_SHARE_PROCESS
+        STATE              : 4  RUNNING
+                                (STOPPABLE, NOT_PAUSABLE, IGNORES_SHUTDOWN)
+        WIN32_EXIT_CODE    : 0  (0x0)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0</pre>
+      </div>
+
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">sc query type= service state= all</span>
+          <button class="cmd-copy" onclick="u6Copy(this, 'sc query type= service state= all')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> sc query type= service state= all
+
+SERVICE_NAME: AudioSrv
+        STATE              : 4  RUNNING
+
+SERVICE_NAME: Browser
+        STATE              : 4  RUNNING
+
+SERVICE_NAME: ExampleStopped
+        STATE              : 1  STOPPED</pre>
+      </div>
+
+      <div class="u6-alert info">
+        <span class="icon">ℹ️</span>
+        <div>لاحظ <strong>المسافة بعد <code>type=</code></strong> في الصيغة الثانية — بدونها قد لا يعمل الأمر كما هو متوقع.</div>
+      </div>
+
+      <table class="ref-table">
+        <thead><tr><th>الحقل</th><th>المعنى</th></tr></thead>
+        <tbody>
+          <tr><td><code>SERVICE_NAME</code></td><td>الاسم الداخلي للخدمة</td></tr>
+          <tr><td><code>DISPLAY_NAME</code></td><td>الاسم المعروض للمستخدم</td></tr>
+          <tr><td><code>TYPE</code></td><td>نوع الخدمة (مثل WIN32_SHARE_PROCESS)</td></tr>
+          <tr><td><code>STATE</code></td><td>حالة الخدمة (RUNNING / STOPPED)</td></tr>
+          <tr><td><code>WIN32_EXIT_CODE</code></td><td>رمز خروج النظام</td></tr>
+          <tr><td><code>SERVICE_EXIT_CODE</code></td><td>رمز خروج الخدمة نفسها</td></tr>
+        </tbody>
+      </table>
+
+      <!-- 5.6 sc qc -->
+      <h3>سادسًا: <code>sc qc</code> — استعلام عن إعدادات خدمة</h3>
+      <p>يعرض الإعدادات التفصيلية لخدمة معينة، بما فيها مسار الملف وحساب التشغيل والاعتماديات.</p>
+
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">sc qc ExampleService</span>
+          <button class="cmd-copy" onclick="u6Copy(this, 'sc qc ExampleService')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> sc qc ExampleService
+
+[SC] QueryServiceConfig SUCCESS
+
+SERVICE_NAME: ExampleService
+        TYPE               : 20  WIN32_SHARE_PROCESS
+        START_TYPE         : 2   AUTO_START
+        ERROR_CONTROL      : 1   NORMAL
+        BINARY_PATH_NAME   : C:\Program Files\Example\service.exe
+        LOAD_ORDER_GROUP   :
+        TAG                : 0
+        DISPLAY_NAME       : Example Service
+        DEPENDENCIES       : Tcpip
+        SERVICE_START_NAME : LocalSystem</pre>
+      </div>
+
+      <table class="ref-table">
+        <thead><tr><th>الحقل</th><th>المعنى</th></tr></thead>
+        <tbody>
+          <tr><td><code>SERVICE_NAME</code></td><td>الاسم الداخلي للخدمة</td></tr>
+          <tr><td><code>TYPE</code></td><td>نوع الخدمة</td></tr>
+          <tr><td><code>START_TYPE</code></td><td>نوع البدء: AUTO_START / DEMAND_START / DISABLED</td></tr>
+          <tr><td><code>ERROR_CONTROL</code></td><td>سلوك الخدمة عند حدوث خطأ</td></tr>
+          <tr><td><code>BINARY_PATH_NAME</code></td><td>مسار الملف التنفيذي للخدمة</td></tr>
+          <tr><td><code>LOAD_ORDER_GROUP</code></td><td>مجموعة ترتيب التحميل</td></tr>
+          <tr><td><code>DEPENDENCIES</code></td><td>الخدمات التي تعتمد عليها</td></tr>
+          <tr><td><code>SERVICE_START_NAME</code></td><td>حساب تشغيل الخدمة</td></tr>
+        </tbody>
+      </table>
+
+      <div class="u6-alert warn">
+        <span class="icon">⚠️</span>
+        <div>
+          <strong>مهم:</strong> لا تحكم على الخدمة من حقل واحد. مسار غير مألوف <em>قد</em> يكون مؤشرًا، لكنه قد يكون أيضًا تثبيتًا مشروعًا في مسار غير قياسي. تحقق من التوقيع الرقمي وحساب التشغيل والسياق.
+        </div>
+      </div>
+
+      <!-- 5.7 net start -->
+      <h3>سابعًا: <code>net start</code> — عرض الخدمات التي بدأت</h3>
+      <p>يعرض الخدمات التي بدأت حاليًا. <strong>لا نستخدمه لتشغيل خدمة فعلية</strong> في هذا التدريب.</p>
+
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">net start</span>
+          <button class="cmd-copy" onclick="u6Copy(this, 'net start')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> net start
+
+These Windows services are started:
+
+   AudioSrv
+   Browser
+   CryptSvc
+   Dhcp
+   Dnscache
+   Eventlog
+
+The command completed successfully.</pre>
+      </div>
+
+      <div class="u6-alert info">
+        <span class="icon">ℹ️</span>
+        <div>المخرجات أعلاه <strong>افتراضية</strong>. لا تستخدم الأمر لتشغيل أو إيقاف خدمة حقيقية أثناء التدريب.</div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         6. المحاكي التفاعلي الآمن
+         ============================================================ -->
+    <section id="simulator">
+      <h2>المحاكي التفاعلي الآمن</h2>
+      <p>
+        يستقبل هذا المحاكي أوامر الوحدة فقط، ويطابق النص المدخل مع قائمة محددة مسبقًا من المخرجات الافتراضية.
+        <strong>لا ينفذ أوامر حقيقية، ولا يصل إلى جهازك، ولا يتصل بالشبكة.</strong>
+      </p>
+
+      <div class="u6-alert danger">
+        <span class="icon">🛡️</span>
+        <div>
+          <strong>تنبيه:</strong> هذا محاكي تعليمي يعرض نتائج افتراضية ثابتة، ولا ينفذ أوامر حقيقية ولا يصل إلى جهازك.
+        </div>
+      </div>
+
+      <div class="sim-wrap">
+        <div class="sim-banner">
+          <i class="fas fa-terminal"></i> محاكي CMD التعليمي — نتائج افتراضية ثابتة
+        </div>
+        <div class="sim-toolbar">
+          <select id="u6SimSelect" aria-label="أمثلة جاهزة">
+            <option value="">— اختر مثالًا جاهزًا —</option>
+            <option value="tasklist">tasklist</option>
+            <option value="tasklist /svc">tasklist /svc</option>
+            <option value="tasklist /fi &quot;PID eq 872&quot;">tasklist /fi "PID eq 872"</option>
+            <option value="tasklist /fi &quot;IMAGENAME eq notepad.exe&quot;">tasklist /fi "IMAGENAME eq notepad.exe"</option>
+            <option value="tasklist /fi &quot;MEMUSAGE gt 10000&quot;">tasklist /fi "MEMUSAGE gt 10000"</option>
+            <option value="sc query">sc query</option>
+            <option value="sc query type= service state= all">sc query type= service state= all</option>
+            <option value="sc qc ExampleService">sc qc ExampleService</option>
+            <option value="net start">net start</option>
+          </select>
+          <button class="primary" onclick="u6SimRunSelected()">▶ تنفيذ المثال</button>
+          <button onclick="u6SimReset()">↺ إعادة ضبط</button>
+          <button class="danger" onclick="u6SimClear()">✕ مسح</button>
+        </div>
+        <div class="sim-output" id="u6SimOutput" aria-live="polite">
+<span class="sim-note">// المحاكي جاهز. اكتب أمرًا مدعومًا أو اختر مثالًا جاهزًا من القائمة أعلاه.</span>
+        </div>
+        <div class="sim-hint">
+          <strong>الأوامر المدعومة:</strong>
+          <code>tasklist</code> · <code>tasklist /svc</code> · <code>tasklist /fi "..."</code> · <code>sc query</code> · <code>sc qc &lt;name&gt;</code> · <code>net start</code>
+          <br>
+          <strong>ملاحظة:</strong> <code>taskkill</code> و<code>sc stop/start/config/delete</code> غير مدعومة في المحاكي (نظرية فقط).
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         7. التحليل الأمني
+         ============================================================ -->
+    <section>
+      <h2>كيف تحلل العمليات والخدمات من منظور الأمن السيبراني؟</h2>
+      <p>المحلل الأمني لا ينظر إلى بند واحد، بل يجمع السياق. فيما يلي مؤشرات تستحق التحقق:</p>
+
+      <ul>
+        <li>عملية غير متوقعة ضمن سياق الجهاز.</li>
+        <li>اسم يشبه اسم عملية نظام مع وجود مسار ملف غير معتاد.</li>
+        <li>استهلاك موارد مرتفع دون تفسير واضح.</li>
+        <li>خدمة غير معروفة أو غير متوقعة.</li>
+        <li>حساب تشغيل خدمة يملك صلاحيات أوسع مما تحتاجه.</li>
+        <li>خدمة لها مسار تشغيل غير مألوف.</li>
+        <li>عملية لا يوجد تفسير واضح لوجودها.</li>
+      </ul>
+
+      <div class="u6-alert danger">
+        <span class="icon">🚫</span>
+        <div>
+          <strong>المؤشر الواحد لا يثبت وجود اختراق.</strong> اسم العملية وحده لا يكفي. يجب جمع السياق ومقارنة النتائج بالمعلومات الموثوقة، وعدم إنهاء عملية أو إيقاف خدمة لمجرد أنها غير مألوفة.
+        </div>
+      </div>
+
+      <h3>أمثلة تحليلية افتراضية</h3>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">1</span><span>عملية باسم <code>svchost.exe</code> تعمل من مسار غير معتاد</span></div>
+        <div class="ex-body">
+          <p>لنفترض أنك لاحظت عملية <code>svchost.exe</code> تعمل من المسار <code>C:\Users\Public\svchost.exe</code>، بينما المسار الطبيعي هو <code>C:\Windows\System32\svchost.exe</code>.</p>
+          <p><strong>سؤال:</strong> هل هذه العملية خبيثة؟</p>
+          <details>
+            <summary>اعرض التحليل المتوقع</summary>
+            <div class="answer">
+              <strong>لا يمكن الجزم.</strong> المسار غير المعتاد مؤشر يستحق التحقق، لكنه لا يثبت الخبث. يجب التحقق من: التوقيع الرقمي للملف، حساب التشغيل، الاعتماديات، تاريخ الإنشاء، وسجلات النظام. قد يكون الملف خبيثًا ينتحل الاسم، وقد يكون ملفًا مشروعًا في مسار غير قياسي — لكن الأخير نادر لـ <code>svchost.exe</code>. المؤشر يستحق التحقيق، وليس الإنهاء الفوري.
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">2</span><span>خدمة تعمل بحساب <code>LocalSystem</code> دون حاجة</span></div>
+        <div class="ex-body">
+          <p>لنفترض أن خدمة طباعة تعمل بحساب <code>LocalSystem</code> بدلًا من حساب خدمة محدود الصلاحيات.</p>
+          <p><strong>سؤال:</strong> ما المشكلة؟</p>
+          <details>
+            <summary>اعرض التحليل المتوقع</summary>
+            <div class="answer">
+              هذا يخالف <strong>مبدأ أقل صلاحية (Least Privilege)</strong>. إذا تعرضت الخدمة لثغرة، فالمهاجم سيحصل على صلاحيات النظام الكاملة بدلًا من صلاحيات محدودة. الإجراء الصحيح هو تعديل حساب التشغيل إلى الحد الأدنى اللازم — لكن <strong>ليس أثناء التدريب</strong>.
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">3</span><span>عملية <code>notepad.exe</code> تستهلك 2 جيجابايت</span></div>
+        <div class="ex-body">
+          <p><code>notepad.exe</code> عادةً تستهلك أقل من 20 ميجابايت. رؤيتها تستهلك 2 جيجابايت مؤشر غير طبيعي.</p>
+          <p><strong>سؤال:</strong> ماذا تفعل؟</p>
+          <details>
+            <summary>اعرض التحليل المتوقع</summary>
+            <div class="answer">
+              الاستهلاك المرتفع قد يكون بسبب ملف ضخم مفتوح، أو تسرب ذاكرة، أو برنامج خبيث ينتحل الاسم. <strong>لا تُنهِ العملية فورًا</strong> — قد تفقد بيانات غير محفوظة. تحقق من: المسار، التوقيع الرقمي، وقت البدء، ومن فتح الملف. اجمع السياق أولًا.
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         8. التمارين والتحديات
+         ============================================================ -->
+    <section>
+      <h2>التمارين والتحديات</h2>
+      <p>استخدم المحاكي أعلاه لحل التمارين التالية. جميع النتائج افتراضية.</p>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">1</span><span>تحديد PID لعملية معينة</span></div>
+        <div class="ex-body">
+          <p>من مخرجات <code>tasklist</code>، ما هو PID الخاص بعملية <code>notepad.exe</code>؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer"><code>5520</code> — يظهر في عمود PID بجانب <code>notepad.exe</code>.</div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">2</span><span>الخدمات المرتبطة بـ svchost.exe</span></div>
+        <div class="ex-body">
+          <p>من مخرجات <code>tasklist /svc</code>، ما الخدمات المرتبطة بالعملية <code>svchost.exe</code> بالمعرّف <code>872</code>؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer"><code>AudioSrv, Browser, CryptSvc, Dhcp</code> — لاحظ أن عملية واحدة تستضيف عدة خدمات، وهذا طبيعي.</div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">3</span><span>تفسير مرشح IMAGENAME</span></div>
+        <div class="ex-body">
+          <p>ماذا يعرض الأمر <code>tasklist /fi "IMAGENAME eq notepad.exe"</code>؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer">يعرض فقط العمليات التي اسمها <code>notepad.exe</code>. في المثال: عملية واحدة بـ PID <code>5520</code> واستهلاك <code>9,760 K</code>.</div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">4</span><span>تفسير مرشح MEMUSAGE</span></div>
+        <div class="ex-body">
+          <p>ماذا يعرض <code>tasklist /fi "MEMUSAGE gt 10000"</code>؟ ولماذا لا تظهر <code>notepad.exe</code>؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer">يعرض العمليات التي تستهلك أكثر من <code>10000 K</code>. لا تظهر <code>notepad.exe</code> لأنها تستهلك <code>9,760 K</code> فقط، أي أقل من الحد المحدد.</div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">5</span><span>تحديد حالة خدمة</span></div>
+        <div class="ex-body">
+          <p>من مخرجات <code>sc query</code>، ما حالة <code>ExampleService</code>؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer"><code>RUNNING</code> — يظهر في حقل <code>STATE</code>: <code>4 RUNNING</code>.</div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">6</span><span>استخراج حساب تشغيل خدمة</span></div>
+        <div class="ex-body">
+          <p>من مخرجات <code>sc qc ExampleService</code>، ما حساب التشغيل المستخدم؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer"><code>LocalSystem</code> — يظهر في حقل <code>SERVICE_START_NAME</code>.</div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">7</span><span>تحليل خدمة بصلاحيات أوسع من الحاجة</span></div>
+        <div class="ex-body">
+          <p>خدمة تعمل بحساب <code>LocalSystem</code> لكنها تحتاج فقط إلى قراءة ملفات التكوين. ما تقييمك؟</p>
+          <details><summary>اعرض التحليل</summary><div class="answer">هذا يخالف <strong>مبدأ أقل صلاحية</strong>. الأفضل تشغيلها بحساب خدمة محدود (مثل <code>NT AUTHORITY\LocalService</code>) لتقليل الأثر عند استغلالها. لكن <strong>لا تُعدّل الإعدادات أثناء التدريب</strong> — التعديل يحتاج صلاحيات إدارية وتقييمًا للتأثير.</div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">8</span><span>عملية بمسار غير مألوف</span></div>
+        <div class="ex-body">
+          <p>لاحظت عملية <code>lsass.exe</code> تعمل من مسار <code>C:\Temp\lsass.exe</code>. هل تحكم مباشرة بأنها خبيثة؟</p>
+          <details><summary>اعرض التحليل</summary><div class="answer"><strong>لا.</strong> المسار مؤشر يستحق التحقق، لكن الحكم يحتاج: التوقيع الرقمي، حساب التشغيل، تاريخ البدء، سجلات النظام. قد تكون عملية منتحلة، وقد تكون استثناءً نادرًا. اجمع السياق أولًا، ولا تُنهِ العملية فورًا.</div></details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         9. اختبار الوحدة
+         ============================================================ -->
+    <section id="unit6-quiz-section">
+      <h2>اختبار الوحدة</h2>
+      <p>اختبار من 10 أسئلة يغطي مفاهيم وأوامر الوحدة.</p>
+
+      <div data-quiz="unit6"></div>
+    </section>
+
+    <!-- ============================================================
+         10. ملخص الوحدة
+         ============================================================ -->
+    <section>
+      <h2>ملخص الوحدة</h2>
+      <ul class="summary-list">
+        <li>العملية برنامج قيد التشغيل، والخدمة برنامج يعمل في الخلفية.</li>
+        <li><code>PID</code> معرّف فريد لكل عملية، يُستخدم لتمييزها.</li>
+        <li><code>tasklist</code> يعرض العمليات، و<code>tasklist /svc</code> يعرض الخدمات المرتبطة بكل عملية.</li>
+        <li><code>tasklist /fi</code> يرشح النتائج بمعاملات مثل <code>PID</code> و<code>IMAGENAME</code> و<code>MEMUSAGE</code>، ومعاملات المقارنة: <code>eq, gt, ge, lt, le, ne</code>.</li>
+        <li><code>sc query</code> يعرض حالة الخدمة (<code>RUNNING</code> / <code>STOPPED</code>).</li>
+        <li><code>sc qc</code> يعرض إعدادات الخدمة، بما فيها المسار وحساب التشغيل.</li>
+        <li><code>net start</code> يعرض الخدمات التي بدأت حاليًا.</li>
+        <li><code>taskkill</code> أمر نظري فقط في هذه الوحدة — لا يُنفذ ولا يُحاكى.</li>
+        <li>مؤشر واحد لا يثبت وجود اختراق؛ يجب جمع السياق قبل الحكم.</li>
+        <li>تطبيق <strong>مبدأ أقل صلاحية</strong> على حسابات تشغيل الخدمات.</li>
+      </ul>
+    </section>
+
+    <!-- ============================================================
+         11. المراجع
+         ============================================================ -->
+    <section>
+      <h2>المراجع</h2>
+      <ul class="refs-list">
+        <li>Microsoft Learn — <em>tasklist command</em>. <a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/tasklist" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+        <li>Microsoft Learn — <em>sc query</em>. <a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/sc-query" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+        <li>Microsoft Learn — <em>sc qc</em>. <a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/sc-qc" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+        <li>Microsoft Learn — <em>net start</em>. <a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/net-start" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+        <li>Microsoft Learn — <em>taskkill</em>. <a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/taskkill" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+        <li>NIST SP 800-53 — <em>Least Privilege (AC-6)</em>.</li>
+      </ul>
+    </section>
+
+    <!-- ============================================================
+         12. روابط التنقل
+         ============================================================ -->
+    <nav class="unit-nav" aria-label="التنقل بين الوحدات">
+      <a href="unit5.html" class="prev">← الوحدة الخامسة</a>
+      <a href="unit7.html" class="next">الوحدة السابعة →</a>
+    </nav>
+
+  </div>
+</main>
+
+<!-- ===== الملفات المشتركة ===== -->
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/quiz.js"></script>
+
+<!-- ===== سكربت الوحدة ===== -->
+<script>
+/* ============================================================
+   1) أداة النسخ
+   ============================================================ */
+function u6Copy(btn, text) {
+  const done = () => {
+    const original = btn.textContent;
+    btn.textContent = '✓ تم النسخ';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.classList.remove('copied');
+    }, 1500);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => {
+      u6FallbackCopy(text); done();
+    });
+  } else {
+    u6FallbackCopy(text); done();
+  }
+}
+function u6FallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
+}
+
+/* ============================================================
+   2) المحاكي التفاعلي الآمن
+   - مطابقة نصية فقط مع مخرجات ثابتة مسبقًا
+   - لا تنفيذ، لا eval، لا fetch، لا اتصال
+   ============================================================ */
+(function () {
+  const OUTPUTS = {
+    'tasklist': `Image Name                     PID Session Name        Session#    Mem Usage
+========================= ======== ================ =========== ============
+System Idle Process              0 Services                   0          8 K
+System                            4 Services                   0        132 K
+smss.exe                        412 Services                   0      1,240 K
+csrss.exe                       548 Services                   0      4,820 K
+wininit.exe                     604 Services                   0      5,120 K
+services.exe                    656 Services                   0      8,960 K
+lsass.exe                       684 Services                   0     12,480 K
+svchost.exe                     872 Services                   0     18,240 K
+svchost.exe                    1024 Services                   0     22,840 K
+explorer.exe                   3412 Console                    1     85,320 K
+notepad.exe                    5520 Console                    1      9,760 K`,
+
+    'tasklist /svc': `Image Name                     PID Services
+========================= ======== ============================================
+services.exe                    656 N/A
+lsass.exe                       684 N/A
+svchost.exe                     872 AudioSrv, Browser, CryptSvc, Dhcp
+svchost.exe                    1024 Dnscache, Eventlog, LmHosts
+explorer.exe                   3412 N/A
+notepad.exe                    5520 N/A`,
+
+    'tasklist /fi "PID eq 872"': `Image Name                     PID Session Name        Session#    Mem Usage
+========================= ======== ================ =========== ============
+svchost.exe                     872 Services                   0     18,240 K`,
+
+    'tasklist /fi "IMAGENAME eq notepad.exe"': `Image Name                     PID Session Name        Session#    Mem Usage
+========================= ======== ================ =========== ============
+notepad.exe                    5520 Console                    1      9,760 K`,
+
+    'tasklist /fi "MEMUSAGE gt 10000"': `Image Name                     PID Session Name        Session#    Mem Usage
+========================= ======== ================ =========== ============
+lsass.exe                       684 Services                   0     12,480 K
+svchost.exe                     872 Services                   0     18,240 K
+svchost.exe                    1024 Services                   0     22,840 K
+explorer.exe                   3412 Console                    1     85,320 K`,
+
+    'sc query': `SERVICE_NAME: ExampleService
+        TYPE               : 20  WIN32_SHARE_PROCESS
+        STATE              : 4  RUNNING
+                                (STOPPABLE, NOT_PAUSABLE, IGNORES_SHUTDOWN)
+        WIN32_EXIT_CODE    : 0  (0x0)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0`,
+
+    'sc query type= service state= all': `SERVICE_NAME: AudioSrv
+        STATE              : 4  RUNNING
+
+SERVICE_NAME: Browser
+        STATE              : 4  RUNNING
+
+SERVICE_NAME: ExampleStopped
+        STATE              : 1  STOPPED`,
+
+    'sc qc ExampleService': `[SC] QueryServiceConfig SUCCESS
+
+SERVICE_NAME: ExampleService
+        TYPE               : 20  WIN32_SHARE_PROCESS
+        START_TYPE         : 2   AUTO_START
+        ERROR_CONTROL      : 1   NORMAL
+        BINARY_PATH_NAME   : C:\\Program Files\\Example\\service.exe
+        LOAD_ORDER_GROUP   :
+        TAG                : 0
+        DISPLAY_NAME       : Example Service
+        DEPENDENCIES       : Tcpip
+        SERVICE_START_NAME : LocalSystem`,
+
+    'net start': `These Windows services are started:
+
+   AudioSrv
+   Browser
+   CryptSvc
+   Dhcp
+   Dnscache
+   Eventlog
+
+The command completed successfully.`
+  };
+
+  const EXPLANATIONS = {
+    'tasklist': 'عرض قائمة العمليات الجارية مع PID واستهلاك الذاكرة.',
+    'tasklist /svc': 'عرض الخدمات المرتبطة بكل عملية — لاحظ أن svchost.exe قد يستضيف عدة خدمات.',
+    'tasklist /fi "PID eq 872"': 'تصفية النتائج حسب معرّف العملية 872.',
+    'tasklist /fi "IMAGENAME eq notepad.exe"': 'تصفية النتائج حسب اسم الملف notepad.exe.',
+    'tasklist /fi "MEMUSAGE gt 10000"': 'عرض العمليات التي تستهلك أكثر من 10000 كيلوبايت.',
+    'sc query': 'عرض حالة خدمة معينة وحقولها الأساسية.',
+    'sc query type= service state= all': 'عرض جميع الخدمات وحالاتها — لاحظ المسافة بعد type=.',
+    'sc qc ExampleService': 'عرض إعدادات الخدمة: المسار، حساب التشغيل، الاعتماديات.',
+    'net start': 'عرض الخدمات التي بدأت حاليًا.'
+  };
+
+  const out = document.getElementById('u6SimOutput');
+  const select = document.getElementById('u6SimSelect');
+
+  function writeLine(html) {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    out.appendChild(div);
+    out.scrollTop = out.scrollHeight;
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function normalize(cmd) {
+    return cmd.replace(/\s+/g, ' ').trim();
+  }
+
+  function findMatch(input) {
+    // مطابقة مباشرة بعد التطبيع
+    if (OUTPUTS[input]) return input;
+
+    // محاولة مطابقة مرنة: نبحث عن أقرب مفتاح يطابق بداية الأمر
+    const keys = Object.keys(OUTPUTS);
+    for (const k of keys) {
+      if (normalize(k) === input) return k;
+    }
+    // محاولة مطابقة حالة الأحرف
+    for (const k of keys) {
+      if (normalize(k).toLowerCase() === input.toLowerCase()) return k;
+    }
+    return null;
+  }
+
+  window.u6SimRunSelected = function () {
+    const val = select.value;
+    if (!val) {
+      writeLine('<span class="sim-error">⚠️ اختر مثالًا من القائمة أولًا.</span>');
+      return;
+    }
+    select.value = val;
+    // محاكاة كتابة الأمر
+    writeLine('<span class="sim-prompt">C:\\&gt;</span> <span class="sim-echo">' + escapeHtml(val) + '</span>');
+    const key = findMatch(normalize(val));
+    if (key && OUTPUTS[key]) {
+      writeLine('<pre style="margin:0;font-family:inherit;color:inherit;white-space:pre-wrap;">' + escapeHtml(OUTPUTS[key]) + '</pre>');
+      writeLine('<span class="sim-note">💡 ' + EXPLANATIONS[key] + '</span>');
+      writeLine('<span class="sim-note" style="font-size:.75rem;opacity:.7">ملاحظة: النتائج افتراضية ولا تعكس جهازك.</span>');
+    } else {
+      writeLine('<span class="sim-error">الأمر غير مدعوم في هذا المحاكي.</span>');
+    }
+    writeLine('');
+  };
+
+  window.u6SimReset = function () {
+    out.innerHTML = '<span class="sim-note">// المحاكي جاهز. اكتب أمرًا مدعومًا أو اختر مثالًا جاهزًا من القائمة أعلاه.</span>';
+    select.value = '';
+  };
+
+  window.u6SimClear = function () {
+    out.innerHTML = '';
+  };
+})();
+
+/* ============================================================
+   3) اختبار الوحدة — window.QUIZZES["unit6"]
+   ============================================================ */
+window.QUIZZES = window.QUIZZES || {};
+
+window.QUIZZES["unit6"] = {
+  title: "اختبار الوحدة السادسة — العمليات والخدمات",
+  questions: [
+    {
+      q: "ما الفرق الأساسي بين العملية (Process) والخدمة (Service)؟",
+      options: [
+        "العملية تعمل في الخلفية، والخدمة لها واجهة مستخدم",
+        "الخدمة برنامج يعمل في الخلفية دون واجهة، والعملية برنامج قيد التشغيل",
+        "لا يوجد فرق، المصطلحان مترادفان",
+        "الخدمة أسرع من العملية دائمًا"
+      ],
+      correct: 1,
+      explanation: "الخدمة برنامج يعمل في الخلفية دون واجهة مستخدم، بينما العملية هي برنامج قيد التشغيل قد يكون له واجهة أو لا."
+    },
+    {
+      q: "ماذا يعني PID في مخرجات tasklist؟",
+      options: [
+        "رقم المنفذ (Port ID)",
+        "معرّف العملية الفريد (Process Identifier)",
+        "رقم الجلسة (Session ID)",
+        "حجم الذاكرة المستهلكة"
+      ],
+      correct: 1,
+      explanation: "PID هو معرّف العملية الفريد الذي يُستخدم لتمييزها عن غيرها."
+    },
+    {
+      q: "ماذا يعرض الأمر tasklist /svc؟",
+      options: [
+        "قائمة العمليات فقط دون خدمات",
+        "الخدمات المرتبطة بكل عملية",
+        "حالة الخدمات فقط",
+        "إعدادات الخدمات"
+      ],
+      correct: 1,
+      explanation: "tasklist /svc يعرض الخدمات المرتبطة بكل عملية، مفيد لمعرفة أي عملية تستضيف خدمة معينة."
+    },
+    {
+      q: "إذا ظهر svchost.exe مرتبطًا بأربع خدمات، فهذا يعني:",
+      options: [
+        "بالضرورة وجود برنامج خبيث",
+        "سلوك طبيعي، فـ svchost.exe قد يستضيف عدة خدمات في آن واحد",
+        "خطأ في النظام يجب إصلاحه",
+        "أن الخدمات الأربع متوقفة"
+      ],
+      correct: 1,
+      explanation: "svchost.exe عملية نظام تستضيف خدمات Windows، ومن الطبيعي أن تستضيف العملية الواحدة عدة خدمات."
+    },
+    {
+      q: "ما وظيفة المرشح في الأمر tasklist /fi \"IMAGENAME eq notepad.exe\"؟",
+      options: [
+        "تشغيل notepad.exe",
+        "عرض العمليات التي اسمها notepad.exe فقط",
+        "إيقاف notepad.exe",
+        "عرض العمليات التي لا تساوي notepad.exe"
+      ],
+      correct: 1,
+      explanation: "المرشح IMAGENAME eq notepad.exe يعرض فقط العمليات التي اسمها notepad.exe."
+    },
+    {
+      q: "ماذا يعني المعامل gt في مرشح tasklist /fi؟",
+      options: [
+        "يساوي (Equal)",
+        "أكبر من (Greater Than)",
+        "أصغر من (Less Than)",
+        "لا يساوي (Not Equal)"
+      ],
+      correct: 1,
+      explanation: "gt = Greater Than (أكبر من)، gt = gt، وeq = يساوي، وlt = أصغر من، وne = لا يساوي."
+    },
+    {
+      q: "ماذا يعرض الحقل STATE في مخرجات sc query؟",
+      options: [
+        "مسار ملف الخدمة",
+        "حالة الخدمة مثل RUNNING أو STOPPED",
+        "حساب تشغيل الخدمة",
+        "اعتماديات الخدمة"
+      ],
+      correct: 1,
+      explanation: "STATE يوضح حالة الخدمة: RUNNING (تعمل) أو STOPPED (متوقفة)."
+    },
+    {
+      q: "أي حقل في مخرجات sc qc يوضح حساب تشغيل الخدمة؟",
+      options: [
+        "BINARY_PATH_NAME",
+        "START_TYPE",
+        "SERVICE_START_NAME",
+        "DEPENDENCIES"
+      ],
+      correct: 2,
+      explanation: "SERVICE_START_NAME يوضح حساب Windows الذي تعمل الخدمة باستخدامه."
+    },
+    {
+      q: "ما التصرف الصحيح عند رؤية عملية غير مألوفة في tasklist؟",
+      options: [
+        "إنهاؤها فورًا بـ taskkill",
+        "تحليلها أولًا: المسار، الحساب، التوقيع، السياق",
+        "إعادة تشغيل الجهاز مباشرة",
+        "تجاهلها لأنها ليست مهمة"
+      ],
+      correct: 1,
+      explanation: "وجود عملية غير مألوفة لا يعني ضرورة إنهائها. يجب تحليلها أولًا (المسار، الحساب، التوقيع، السياق) قبل أي إجراء."
+    },
+    {
+      q: "خدمة تعمل بحساب LocalSystem بينما تحتاج فقط إلى قراءة ملفات التكوين. ما التقييم الصحيح؟",
+      options: [
+        "هذا مثالي لأن LocalSystem أكثر أمانًا",
+        "يخالف مبدأ أقل صلاحية (Least Privilege)",
+        "لا مشكلة لأن الخدمة تعمل في الخلفية",
+        "يجب إيقاف الخدمة فورًا"
+      ],
+      correct: 1,
+      explanation: "تشغيل خدمة بصلاحيات أوسع مما تحتاجه يخالف مبدأ أقل صلاحية. الأفضل استخدام حساب خدمة محدود الصلاحيات."
+    }
+  ]
+};
+
+/* ============================================================
+   4) تصحيح أي تعارض محتمل مع quiz.js
+   (quiz.js يقرأ window.QUIZZES["unit6"] ويعرض داخل [data-quiz="unit6"])
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof window.initQuiz === 'function') {
+    try { window.initQuiz('unit6'); } catch (e) { /* quiz.js قد يهيئ تلقائيًا */ }
+  }
+});
+</script>
+
+</body>
+</html>
