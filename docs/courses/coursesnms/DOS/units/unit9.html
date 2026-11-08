@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الوحدة التاسعة: المهام المجدولة وتحليل الاستمرارية في Windows | أساسيات أوامر Windows CMD للأمن السيبراني</title>
+
+<!-- ===== SEO ===== -->
+<meta name="description" content="الوحدة التاسعة من مقرر أساسيات أوامر Windows CMD للأمن السيبراني — المهام المجدولة وتحليل الاستمرارية: schtasks /query, Task Scheduler, Persistence Analysis. مع محاكي تفاعلي آمن واختبار من 10 أسئلة.">
+<meta name="keywords" content="Windows Task Scheduler, schtasks, Scheduled Tasks, Persistence, الأمن السيبراني, CMD, تحليل الاستمرارية, Task Trigger, Task Action">
+<meta name="author" content="CyberPath">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#0b1220">
+
+<!-- ===== الملفات المشتركة ===== -->
+<link rel="stylesheet" href="../assets/css/course.css">
+
+<!-- ===== أنماط القائمة الرئيسة + الوحدة ===== -->
+<style>
+  /* ============================================================
+     القائمة الرئيسة المعتمدة (مطابقة للوحدات الأولى)
+     ============================================================ */
+  :root {
+    --u9-font-sans: 'Tajawal', system-ui, 'Segoe UI', Tahoma, Arial, sans-serif;
+    --u9-font-mono: 'JetBrains Mono', 'Cascadia Mono', Consolas, 'Courier New', monospace;
+    --nav-bg: #0b1220;
+    --nav-bg-2: #0f1b30;
+    --nav-accent: #22d3ee;
+    --nav-text: #e6edf7;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--u9-font-sans);
+    background: #f7f9fc;
+    color: #2d3748;
+    line-height: 1.85;
+  }
+
+  /* ===== شريط التنقل العلوي ===== */
+  .main-nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: linear-gradient(135deg, var(--nav-bg), var(--nav-bg-2));
+    border-bottom: 1px solid #1c2d4a;
+    box-shadow: 0 2px 10px rgba(0,0,0,.2);
+    padding: 10px 18px;
+  }
+  .main-nav .nav-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .main-nav .nav-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 800;
+    font-size: 1.05rem;
+  }
+  .main-nav .nav-brand .mark { font-size: 1.3rem; }
+  .main-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .main-nav ul li a {
+    display: inline-block;
+    color: var(--nav-text);
+    text-decoration: none;
+    font-size: .9rem;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 8px;
+    transition: .2s;
+  }
+  .main-nav ul li a:hover {
+    background: rgba(34,211,238,.12);
+    color: #fff;
+  }
+  .main-nav ul li a.active {
+    background: rgba(34,211,238,.18);
+    color: var(--nav-accent);
+    border: 1px solid rgba(34,211,238,.35);
+  }
+  .main-nav .theme-btn {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,.3);
+    color: #fff;
+    border-radius: 8px;
+    font-size: .95rem;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: .2s;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+  .main-nav .theme-btn:hover {
+    border-color: var(--nav-accent);
+    color: var(--nav-accent);
+  }
+  .main-nav .nav-toggle {
+    display: none;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,.3);
+    color: #fff;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    padding: 4px 10px;
+    cursor: pointer;
+  }
+
+  /* ===== الوضع الليلي ===== */
+  body.dark-mode {
+    background: #0b1220;
+    color: #cbd5e1;
+  }
+  body.dark-mode .unit-header {
+    background: linear-gradient(135deg, #050a15, #0f1b30) !important;
+  }
+  body.dark-mode section h2 { color: #22d3ee; }
+  body.dark-mode section h3 { color: #93c5fd; }
+  body.dark-mode .concept-card {
+    background: #152540;
+    border-color: #26405f;
+  }
+  body.dark-mode .concept-card .term { color: #22d3ee; }
+  body.dark-mode .concept-card .def { color: #cbd5e1; }
+  body.dark-mode .exercise {
+    background: #152540;
+    border-color: #26405f;
+  }
+  body.dark-mode .exercise .ex-head { color: #93c5fd; }
+  body.dark-mode .exercise .ex-body { color: #cbd5e1; }
+  body.dark-mode .ref-table th { background: #0f1b30; }
+  body.dark-mode .ref-table td {
+    background: #152540;
+    border-color: #26405f;
+    color: #cbd5e1;
+  }
+  body.dark-mode .ref-table tr:nth-child(even) td { background: #1c2d4a; }
+  body.dark-mode .ref-table code {
+    background: #040814;
+    color: #f87171;
+  }
+  body.dark-mode .u9-alert.info { background: #0c2a4a; color: #93c5fd; }
+  body.dark-mode .u9-alert.warn { background: #3a2c00; color: #fbbf24; }
+  body.dark-mode .u9-alert.danger { background: #3a0a0a; color: #fca5a5; }
+  body.dark-mode .u9-alert.success { background: #052e16; color: #86efac; }
+  body.dark-mode .summary-list li { border-color: #26405f; }
+  body.dark-mode .unit-nav a {
+    background: #152540;
+    color: #cbd5e1;
+    border-color: #26405f;
+  }
+  body.dark-mode .unit-nav a.next {
+    background: linear-gradient(135deg, #1a237e, #3949ab);
+    color: #fff;
+  }
+  body.dark-mode .refs-list li { color: #94a3b8; }
+  body.dark-mode .refs-list a { color: #22d3ee; }
+  body.dark-mode .exercise details summary {
+    background: #1c2d4a;
+    color: #93c5fd;
+  }
+  body.dark-mode .exercise details[open] summary { background: #26405f; }
+  body.dark-mode .exercise details .answer {
+    background: #052e16;
+    color: #86efac;
+  }
+  body.dark-mode .checklist-box {
+    background: #152540;
+    border-color: #26405f;
+  }
+
+  /* ===== استجابة القائمة ===== */
+  @media (max-width: 720px) {
+    .main-nav .nav-toggle { display: inline-block; }
+    .main-nav .nav-links {
+      display: none;
+      width: 100%;
+      flex-direction: column;
+      gap: 4px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255,255,255,.15);
+    }
+    .main-nav .nav-links.open { display: flex; }
+    .main-nav ul li a { display: block; width: 100%; }
+  }
+
+  /* ============================================================
+     أنماط محتوى الوحدة
+     ============================================================ */
+  .u9-page { line-height: 1.85; font-family: var(--u9-font-sans); }
+  .u9-page h2 { font-weight: 800; }
+  .u9-page h3 { font-weight: 700; }
+  .u9-page code, .u9-page pre { font-family: var(--u9-font-mono); }
+  .u9-lead { font-size: 1.02rem; color: #4a5568; }
+
+  .u9-alert {
+    display: flex; gap: 12px; padding: 14px 16px; border-radius: 12px;
+    margin: 16px 0; font-size: .93rem; line-height: 1.8;
+    border-right: 4px solid; background: #f7fafc;
+  }
+  .u9-alert .icon { font-size: 1.3rem; flex-shrink: 0; line-height: 1.4; }
+  .u9-alert.info { border-right-color: #3498db; background: #ebf8ff; color: #1a4971; }
+  .u9-alert.warn { border-right-color: #f39c12; background: #fffbea; color: #7b4b00; }
+  .u9-alert.danger { border-right-color: #e74c3c; background: #fdedec; color: #78281f; }
+  .u9-alert.success { border-right-color: #27ae60; background: #e8f8ee; color: #186a3b; }
+
+  .cmd-block {
+    background: #0d1117; border: 1px solid #30363d; border-radius: 12px;
+    margin: 18px 0; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,.08);
+  }
+  .cmd-block .cmd-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 14px; background: #161b22; border-bottom: 1px solid #30363d;
+    font-size: .8rem; color: #8b949e; gap: 8px;
+    direction: ltr; flex-direction: row;
+  }
+  .cmd-block .cmd-title {
+    display: flex; align-items: center; gap: 8px; font-weight: 700;
+    color: #58a6ff; word-break: break-all;
+    direction: ltr; text-align: left; min-width: 0; flex: 1;
+  }
+  .cmd-block .cmd-title::before { content: '>_'; color: #3fb950; flex-shrink: 0; }
+  .cmd-block .cmd-copy {
+    background: #21262d; color: #c9d1d9; border: 1px solid #30363d;
+    border-radius: 6px; padding: 4px 10px; cursor: pointer; font-family: inherit;
+    font-size: .75rem; font-weight: 600; transition: .2s; white-space: nowrap;
+    direction: rtl; flex-shrink: 0;
+  }
+  .cmd-block .cmd-copy:hover { background: #30363d; color: #58a6ff; }
+  .cmd-block .cmd-copy.copied { background: #238636; color: #fff; border-color: #2ea043; }
+  .cmd-block pre {
+    margin: 0; padding: 14px 16px; overflow-x: auto;
+    color: #c9d1d9; font-size: .85rem; line-height: 1.7;
+    direction: ltr; text-align: left;
+  }
+  .cmd-block pre .prompt { color: #3fb950; user-select: none; }
+  .cmd-block pre .comment { color: #8b949e; font-style: italic; }
+
+  .concepts-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px; margin: 16px 0;
+  }
+  .concept-card {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+    padding: 14px 16px; transition: .2s;
+  }
+  .concept-card:hover { border-color: #3498db; box-shadow: 0 4px 12px rgba(52,152,219,.1); }
+  .concept-card .term {
+    font-weight: 700; color: #1a237e; font-size: .95rem; margin-bottom: 4px;
+    font-family: var(--u9-font-mono);
+  }
+  .concept-card .term-ar { color: #3498db; font-size: .82rem; margin-bottom: 6px; }
+  .concept-card .def { font-size: .88rem; color: #4a5568; line-height: 1.7; }
+
+  .ref-table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: .9rem; }
+  .ref-table th {
+    background: #1a237e; color: #fff; padding: 10px 12px; text-align: right;
+    font-weight: 700; border: none;
+  }
+  .ref-table td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; color: #2d3748; }
+  .ref-table tr:nth-child(even) td { background: #f8fafc; }
+  .ref-table code {
+    background: #edf2f7; color: #c53030; padding: 2px 6px;
+    border-radius: 4px; font-size: .82rem;
+  }
+
+  .sim-wrap {
+    background: linear-gradient(180deg, #0b1220 0%, #0f1b30 100%);
+    border: 1px solid #1c2d4a; border-radius: 16px;
+    overflow: hidden; margin: 18px 0; box-shadow: 0 12px 32px rgba(0,0,0,.25);
+  }
+  .sim-banner {
+    background: linear-gradient(90deg, #7b4b00, #b8860b); color: #fff;
+    padding: 10px 16px; font-size: .82rem; font-weight: 700; text-align: center;
+    letter-spacing: .2px;
+  }
+  .sim-input-row {
+    display: flex; gap: 8px; padding: 12px 14px;
+    background: #152540; border-bottom: 1px solid #1c2d4a;
+    flex-wrap: wrap; direction: ltr;
+  }
+  .sim-input-row .prompt-label {
+    display: flex; align-items: center; gap: 6px;
+    background: #040814; color: #22d3ee;
+    padding: 8px 12px; border-radius: 8px; border: 1px solid #26405f;
+    font-family: var(--u9-font-mono); font-size: .85rem; font-weight: 700;
+    user-select: none;
+  }
+  .sim-input-row input[type="text"] {
+    flex: 1; min-width: 200px;
+    background: #040814; color: #e6edf7;
+    border: 1px solid #26405f; border-radius: 8px;
+    padding: 8px 12px; font-family: var(--u9-font-mono);
+    font-size: .85rem; direction: ltr; text-align: left;
+    outline: none; transition: .2s;
+  }
+  .sim-input-row input[type="text"]:focus {
+    border-color: #22d3ee; box-shadow: 0 0 0 2px rgba(34,211,238,.15);
+  }
+  .sim-input-row input[type="text"]::placeholder { color: #5f7395; }
+
+  .sim-toolbar {
+    display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 14px;
+    background: #152540; border-bottom: 1px solid #1c2d4a;
+    direction: ltr;
+  }
+  .sim-toolbar select, .sim-toolbar button,
+  .sim-input-row button {
+    font-family: inherit; font-size: .82rem; padding: 7px 12px;
+    border-radius: 8px; border: 1px solid #26405f;
+    background: #0f1b30; color: #e6edf7; cursor: pointer; transition: .2s;
+  }
+  .sim-toolbar button:hover,
+  .sim-input-row button:hover { border-color: #22d3ee; }
+  .sim-toolbar button.primary,
+  .sim-input-row button.primary {
+    background: linear-gradient(135deg, #0891b2, #22d3ee); color: #03212b;
+    border: none; font-weight: 700;
+  }
+  .sim-toolbar button.danger,
+  .sim-input-row button.danger {
+    background: transparent; color: #f87171; border-color: rgba(248,113,113,.4);
+  }
+  .sim-toolbar button.danger:hover,
+  .sim-input-row button.danger:hover { background: rgba(248,113,113,.1); }
+  .sim-toolbar select { min-width: 260px; flex: 1; direction: ltr; }
+
+  .sim-output {
+    background: #040814; color: #c9d1d9;
+    font-family: var(--u9-font-mono);
+    font-size: .82rem; line-height: 1.65; padding: 14px 16px;
+    min-height: 180px; max-height: 420px; overflow-y: auto;
+    direction: ltr; text-align: left; white-space: pre-wrap; word-break: break-word;
+  }
+  .sim-output .sim-prompt { color: #22d3ee; font-weight: 700; }
+  .sim-output .sim-echo { color: #e6edf7; }
+  .sim-output .sim-note { color: #fbbf24; }
+  .sim-output .sim-error { color: #f87171; }
+  .sim-output .sim-success { color: #34d399; }
+
+  .sim-hint {
+    padding: 10px 14px; background: #0f1b30; border-top: 1px solid #1c2d4a;
+    font-size: .82rem; color: #94a3b8; line-height: 1.7;
+  }
+  .sim-hint strong { color: #22d3ee; }
+  .sim-hint code {
+    background: #152540; color: #22d3ee; padding: 1px 6px;
+    border-radius: 4px; font-family: var(--u9-font-mono); font-size: .78rem;
+    direction: ltr; display: inline-block;
+  }
+
+  .exercise {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+    padding: 16px 18px; margin-bottom: 12px;
+  }
+  .exercise .ex-head {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+    font-weight: 700; color: #1a237e;
+  }
+  .exercise .ex-num {
+    background: #1a237e; color: #fff; width: 28px; height: 28px;
+    border-radius: 50%; display: grid; place-items: center; font-size: .82rem;
+    flex-shrink: 0;
+  }
+  .exercise .ex-body { font-size: .92rem; color: #2d3748; }
+  .exercise details { margin-top: 10px; }
+  .exercise details summary {
+    cursor: pointer; color: #0891b2; font-weight: 700; font-size: .88rem;
+    padding: 6px 10px; background: #e0f2fe; border-radius: 8px;
+    display: inline-block;
+  }
+  .exercise details[open] summary { background: #bae6fd; }
+  .exercise details .answer {
+    margin-top: 10px; padding: 12px 14px; background: #e8f8ee;
+    border-right: 3px solid #27ae60; border-radius: 8px;
+    font-size: .9rem; color: #186a3b; line-height: 1.8;
+  }
+
+  .summary-list { list-style: none; padding: 0; margin: 0; }
+  .summary-list li {
+    position: relative; padding: 8px 32px 8px 0; font-size: .93rem;
+    border-bottom: 1px dashed #e2e8f0;
+  }
+  .summary-list li:last-child { border-bottom: none; }
+  .summary-list li::before {
+    content: '✓'; position: absolute; right: 0; top: 8px;
+    color: #27ae60; font-weight: 800;
+  }
+
+  .checklist-box {
+    background: #e8f5e9;
+    border-right: 4px solid #27ae60;
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin: 14px 0;
+  }
+  .checklist-box h4 {
+    margin: 0 0 10px;
+    color: #186a3b;
+    font-size: 1rem;
+    font-weight: 800;
+  }
+  .checklist-box ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .checklist-box li {
+    position: relative;
+    padding: 6px 30px 6px 0;
+    font-size: .92rem;
+    line-height: 1.7;
+  }
+  .checklist-box li::before {
+    content: '☐';
+    position: absolute;
+    right: 0;
+    top: 4px;
+    color: #27ae60;
+    font-size: 1.1rem;
+  }
+
+  .unit-nav {
+    display: flex; justify-content: space-between; gap: 12px;
+    margin-top: 30px; flex-wrap: wrap;
+  }
+  .unit-nav a {
+    flex: 1; min-width: 200px; padding: 14px 20px; border-radius: 12px;
+    text-decoration: none; font-weight: 700; text-align: center;
+    transition: .2s; border: 1px solid #e2e8f0; background: #fff;
+    color: #1a237e;
+  }
+  .unit-nav a:hover { border-color: #3498db; box-shadow: 0 4px 12px rgba(52,152,219,.15); }
+  .unit-nav a.prev { color: #4a5568; }
+  .unit-nav a.next {
+    background: linear-gradient(135deg, #1a237e, #3949ab); color: #fff; border: none;
+  }
+  .unit-nav a.next:hover { filter: brightness(1.1); }
+
+  .refs-list { padding-right: 20px; }
+  .refs-list li { margin-bottom: 8px; font-size: .92rem; color: #4a5568; }
+  .refs-list a { color: #0891b2; text-decoration: none; }
+  .refs-list a:hover { text-decoration: underline; }
+
+  @media (max-width: 720px) {
+    .cmd-block pre { font-size: .78rem; padding: 12px; }
+    .ref-table { font-size: .82rem; }
+    .ref-table th, .ref-table td { padding: 8px 6px; }
+    .sim-toolbar select { min-width: 100%; }
+    .sim-input-row input[type="text"] { min-width: 100%; }
+    .sim-output { font-size: .76rem; max-height: 340px; }
+    .unit-nav a { min-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     القائمة الرئيسة المعتمدة
+     ============================================================ -->
+<nav class="main-nav" aria-label="القائمة الرئيسة">
+  <div class="nav-inner">
+    <a class="nav-brand" href="https://cyberpath.vercel.app/courses/coursesnms/DOS/index.html">
+      <span class="mark">🛡️</span>
+      <span>CyberPath</span>
+    </a>
+
+    <button class="nav-toggle" id="navToggle" aria-label="فتح القائمة" aria-expanded="false">☰</button>
+
+    <ul class="nav-links" id="navLinks">
+      <li><a href="https://cyberpath.vercel.app/courses/coursesnms/DOS/index.html">الرئيسية</a></li>
+      <li><a href="https://cyberpath.vercel.app/courses/coursesnms/DOS/units/unit1.html" class="active">الوحدات</a></li>
+      <li><a href="https://cyberpath.vercel.app/courses/coursesnms/DOS/final-exam.html">الاختبار النهائي</a></li>
+      <li><a href="https://cyberpath.vercel.app/courses/coursesnms/DOS/final-project.html">المشروع</a></li>
+      <li><a href="https://cyberpath.vercel.app/courses/coursesnms/DOS/references.html">المراجع</a></li>
+      <li><button class="theme-btn" id="themeToggle" aria-label="تبديل الوضع الليلي">🌙 الوضع الليلي</button></li>
+    </ul>
+  </div>
+</nav>
+
+<main class="u9-page" dir="rtl">
+
+  <!-- ============================================================
+       1. رأس الوحدة
+       ============================================================ -->
+  <header class="unit-header" style="background:linear-gradient(135deg,#0b1220,#1a237e);color:#fff;padding:36px 24px;border-radius:0 0 24px 24px;margin-bottom:24px;">
+    <div style="max-width:960px;margin:0 auto;">
+      <p style="font-size:.85rem;opacity:.8;margin:0 0 6px;">أساسيات أوامر Windows CMD للأمن السيبراني</p>
+      <h1 style="font-size:1.9rem;font-weight:800;margin:0 0 8px;">الوحدة التاسعة: المهام المجدولة وتحليل الاستمرارية في Windows</h1>
+      <p style="font-size:.95rem;opacity:.85;margin:0;font-family:var(--u9-font-mono);">Windows Scheduled Tasks &amp; Persistence Analysis</p>
+    </div>
+  </header>
+
+  <div style="max-width:960px;margin:0 auto;padding:0 18px 60px;">
+
+    <!-- ============================================================
+         2. المقدمة وأهداف التعلم
+         ============================================================ -->
+    <section>
+      <h2>المقدمة</h2>
+      <p class="u9-lead">
+        المهام المجدولة (Scheduled Tasks) إحدى الركائز التي تعتمد عليها أنظمة Windows لتشغيل مهام دورية في أوقات محددة أو عند أحداث معينة. لكنها أيضًا إحدى <strong>آليات الاستمرارية (Persistence)</strong> التي يستغلها المهاجمون لضمان بقاء نشاطهم على النظام بعد إعادة التشغيل.
+      </p>
+      <p>
+        في هذه الوحدة ستتعلم قراءة المهام المجدولة باستخدام <code>schtasks</code>، وتحليل بياناتها الدفاعية: الاسم، المسار، المشغّل، الإجراء، والحساب المستخدم. كل ذلك داخل <strong>محاكي تعليمي آمن</strong> ببيانات افتراضية.
+      </p>
+      <div class="u9-alert info">
+        <span class="icon">💡</span>
+        <div>جميع المخرجات والأسماء والمسارات في هذه الوحدة <strong>افتراضية بالكامل</strong> لأغراض التدريب. المحاكي لا يقرأ مهام جهازك.</div>
+      </div>
+
+      <h2>أهداف التعلم</h2>
+      <p>بنهاية هذه الوحدة ستكون قادرًا على:</p>
+      <ol>
+        <li>فهم دور Windows Task Scheduler في إدارة المهام المجدولة.</li>
+        <li>التمييز بين المهمة المجدولة و<strong>آلية الاستمرارية</strong>.</li>
+        <li>قراءة معلومات المهام المجدولة باستخدام <code>schtasks /query</code>.</li>
+        <li>تفسير الحقول: Task Name، Task Path، Trigger، Action، Run As.</li>
+        <li>التمييز بين مهام نظامية مشروعة ومهام تستحق التحقيق.</li>
+        <li>تحليل بيانات افتراضية واستخلاص مؤشرات للمراجعة الأمنية دون جزم مسبق.</li>
+      </ol>
+    </section>
+
+    <!-- ============================================================
+         3. المفاهيم الأساسية
+         ============================================================ -->
+    <section>
+      <h2>المفاهيم الأساسية</h2>
+      <p>قبل الدخول إلى الأوامر، دعنا نثبّت المفاهيم التالية:</p>
+
+      <div class="concepts-grid">
+        <div class="concept-card">
+          <div class="term">Task Scheduler</div>
+          <div class="term-ar">مجدول المهام</div>
+          <div class="def">خدمة نظام في Windows مسؤولة عن تشغيل المهام وفق شروط محددة (وقت، حدث، تسجيل دخول).</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Scheduled Task</div>
+          <div class="term-ar">مهمة مجدولة</div>
+          <div class="def">مهمة لها اسم ومسار ومشغّل وإجراء وحساب تشغيل. تُخزَّن في مجلدات ضمن <code>\Microsoft\Windows\</code> أو مجلدات مخصصة.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Task Trigger</div>
+          <div class="term-ar">مشغّل المهمة</div>
+          <div class="def">الشرط الذي يؤدي إلى تشغيل المهمة: وقت مجدول، تسجيل دخول، بدء تشغيل النظام، حدث، خمول.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Task Action</div>
+          <div class="term-ar">إجراء المهمة</div>
+          <div class="def">ما تفعله المهمة عند تشغيلها: تشغيل برنامج، إرسال بريد، عرض رسالة. أهم حقل للمحلل الأمني هو <strong>مسار الملف التنفيذي</strong>.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Run As / Security Context</div>
+          <div class="term-ar">حساب التشغيل</div>
+          <div class="def">الحساب الذي تعمل به المهمة: SYSTEM أو حساب مستخدم أو حساب خدمة. الحساب المرتفع الصلاحيات يستحق التحقق.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Task History</div>
+          <div class="term-ar">سجل المهمة</div>
+          <div class="def">سجل تنفيذ المهمة ونتائجها. مفيد لمعرفة إن كانت تعمل فعليًا، ومتى آخر مرة.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Persistence Mechanism</div>
+          <div class="term-ar">آلية استمرارية</div>
+          <div class="def">أي وسيلة تضمن بقاء نشاط (شرعي أو خبيث) على النظام بعد إعادة التشغيل. المهام المجدولة إحداها.</div>
+        </div>
+        <div class="concept-card">
+          <div class="term">Least Privilege</div>
+          <div class="term-ar">مبدأ أقل صلاحية</div>
+          <div class="def">يجب أن تعمل المهمة بأقل صلاحيات كافية لأداء غرضها. حساب SYSTEM لمهمة لا تحتاجه مؤشر يستحق التحقق.</div>
+        </div>
+      </div>
+
+      <div class="u9-alert warn">
+        <span class="icon">⚠️</span>
+        <div>
+          <strong>مهم:</strong> اسم المهمة وحده لا يكفي للحكم عليها. قد يحمل برنامج خبيث اسم مهمة نظامية ليبدو شرعيًا. الحكم يحتاج: المسار، الإجراء، الحساب، التوقيت، والتوقيع الرقمي.
+        </div>
+      </div>
+
+      <div class="u9-alert info">
+        <span class="icon">ℹ️</span>
+        <div>
+          <strong>الفرق بين مهمة مشروعة ومشبوهة:</strong> المهمة المشروعة عادةً في مسار نظامي معروف، باسم واضح، تعمل بحساب مناسب، وتنفذ ملفًا موقّعًا من ناشر معروف. المهمة المشبوهة تُظهر شذوذًا في أحد هذه الجوانب أو أكثر — لكن الشذوذ وحده ليس دليلًا قاطعًا.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         4. شرح الأوامر
+         ============================================================ -->
+    <section>
+      <h2>شرح الأوامر</h2>
+      <p>جميع الأوامر التالية للاستعلام فقط، دون تعديل أو إنشاء أو حذف أي مهمة.</p>
+
+      <h3>أولًا: <code>schtasks /query</code></h3>
+      <p>يعرض قائمة المهام المجدولة في النظام. يُستخدم كبداية للاستكشاف.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">schtasks /query</span>
+          <button class="cmd-copy" onclick="u9Copy(this, 'schtasks /query')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> schtasks /query
+
+Folder: \Microsoft\Windows\Defrag
+TaskName                                 Next Run Time          Status
+======================================== ====================== ===============
+ScheduledDefrag                          N/A                    Ready
+
+Folder: \Microsoft\Windows\UpdateOrchestrator
+TaskName                                 Next Run Time          Status
+======================================== ====================== ===============
+Schedule Scan                            2025-11-02 03:00:00    Ready
+
+Folder: \CustomTasks
+TaskName                                 Next Run Time          Status
+======================================== ====================== ===============
+WindowsUpdateHelper                      2025-11-01 20:15:00    Ready</pre>
+      </div>
+      <p><strong>التفسير الأمني:</strong> لاحظ المهمة <code>WindowsUpdateHelper</code> في مجلد <code>\CustomTasks</code> — اسم يشبه اسم مهمة نظامية لكنه في مجلد مخصص. هذا مؤشر يستحق التحقق، وليس دليلًا قاطعًا.</p>
+
+      <h3>ثانيًا: <code>schtasks /query /fo LIST</code></h3>
+      <p>يعرض المهام بصيغة قائمة مفصّلة، مفيد للقراءة والتحليل.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">schtasks /query /fo LIST</span>
+          <button class="cmd-copy" onclick="u9Copy(this, 'schtasks /query /fo LIST')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> schtasks /query /fo LIST
+
+Folder: \Microsoft\Windows\Defrag
+HostName:                             CYBERPATH-PC
+TaskName:                             \Microsoft\Windows\Defrag\ScheduledDefrag
+Next Run Time:                        N/A
+Status:                               Ready
+Logon Mode:                           Interactive/Background
+
+Folder: \Microsoft\Windows\UpdateOrchestrator
+HostName:                             CYBERPATH-PC
+TaskName:                             \Microsoft\Windows\UpdateOrchestrator\Schedule Scan
+Next Run Time:                        2025-11-02 03:00:00
+Status:                               Ready
+Logon Mode:                           Interactive/Background
+
+Folder: \CustomTasks
+HostName:                             CYBERPATH-PC
+TaskName:                             \CustomTasks\WindowsUpdateHelper
+Next Run Time:                        2025-11-01 20:15:00
+Status:                               Ready
+Logon Mode:                           Interactive/Background</pre>
+      </div>
+
+      <h3>ثالثًا: <code>schtasks /query /fo TABLE</code></h3>
+      <p>يعرض المهام بصيغة جدول موجز (وهو الوضع الافتراضي).</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">schtasks /query /fo TABLE</span>
+          <button class="cmd-copy" onclick="u9Copy(this, 'schtasks /query /fo TABLE')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> schtasks /query /fo TABLE
+
+Folder: \Microsoft\Windows\Defrag
+TaskName                                 Next Run Time          Status
+======================================== ====================== ===============
+ScheduledDefrag                          N/A                    Ready
+
+Folder: \Microsoft\Windows\UpdateOrchestrator
+TaskName                                 Next Run Time          Status
+======================================== ====================== ===============
+Schedule Scan                            2025-11-02 03:00:00    Ready
+
+Folder: \CustomTasks
+TaskName                                 Next Run Time          Status
+======================================== ====================== ===============
+WindowsUpdateHelper                      2025-11-01 20:15:00    Ready</pre>
+      </div>
+
+      <h3>رابعًا: <code>schtasks /query /v /fo LIST</code></h3>
+      <p>يعرض تفاصيل موسّعة لكل مهمة. الحقول الأهم للمحلل الأمني: <code>Task To Run</code>، <code>Run As User</code>، <code>Schedule Type</code>، <code>Start Time</code>.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">schtasks /query /v /fo LIST</span>
+          <button class="cmd-copy" onclick="u9Copy(this, 'schtasks /query /v /fo LIST')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> schtasks /query /v /fo LIST
+
+Folder: \CustomTasks
+HostName:                             CYBERPATH-PC
+TaskName:                             \CustomTasks\WindowsUpdateHelper
+Next Run Time:                        2025-11-01 20:15:00
+Status:                               Ready
+Logon Mode:                           Interactive/Background
+Last Run Time:                        2025-10-31 20:15:00
+Last Result:                          0
+Author:                               CYBERPATH\admin1
+Task To Run:                          C:\Users\Public\wuhelper.exe /silent
+Start In:                             N/A
+Comment:                              N/A
+Scheduled Task State:                 Enabled
+Idle Time:                            Disabled
+Power Management:                     Stop On Battery Mode
+Run As User:                          SYSTEM
+Schedule Type:                        Daily
+Start Time:                           20:15:00
+Repeat: Every:                        0 Hour(s), 0 Minute(s)</pre>
+      </div>
+      <div class="u9-alert warn">
+        <span class="icon">⚠️</span>
+        <div>
+          لاحظ الحقول المثيرة للاهتمام: <code>Task To Run: C:\Users\Public\wuhelper.exe</code> (مسار مستخدم غير معتاد)، <code>Run As User: SYSTEM</code> (حساب مرتفع الصلاحيات). هذه مؤشرات تستحق التحقق — وليست دليلًا قاطعًا.
+        </div>
+      </div>
+
+      <h3>خامسًا: <code>schtasks /query /tn "\Microsoft\Windows\Defrag\ScheduledDefrag"</code></h3>
+      <p>يعرض تفاصيل مهمة محددة بمسارها الكامل. مفيد للتحقق من مهمة واحدة.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">schtasks /query /tn "\Microsoft\Windows\Defrag\ScheduledDefrag"</span>
+          <button class="cmd-copy" onclick="u9Copy(this, 'schtasks /query /tn &quot;\\Microsoft\\Windows\\Defrag\\ScheduledDefrag&quot;')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> schtasks /query /tn "\Microsoft\Windows\Defrag\ScheduledDefrag"
+
+Folder: \Microsoft\Windows\Defrag
+HostName:                             CYBERPATH-PC
+TaskName:                             \Microsoft\Windows\Defrag\ScheduledDefrag
+Next Run Time:                        N/A
+Status:                               Ready
+Logon Mode:                           Interactive/Background</pre>
+      </div>
+
+      <h3>سادسًا: <code>schtasks /?</code></h3>
+      <p>يعرض المساعدة الكاملة للأمر، بما فيها جميع المعاملات المدعومة.</p>
+      <div class="cmd-block">
+        <div class="cmd-header">
+          <span class="cmd-title">schtasks /?</span>
+          <button class="cmd-copy" onclick="u9Copy(this, 'schtasks /?')">📋 نسخ</button>
+        </div>
+<pre><span class="prompt">C:\&gt;</span> schtasks /?
+
+SCHTASKS /parameter [arguments]
+
+Description:
+    Enables an administrator to create, delete, query, change, run and
+    end scheduled tasks on a local or remote system.
+
+Parameter List:
+    /Create          Creates a new scheduled task.
+    /Delete          Deletes the scheduled task(s).
+    /Query           Displays all scheduled tasks.
+    /Change          Changes the properties of scheduled task.
+    /Run             Runs the scheduled task immediately.
+    /End             Stops the currently running scheduled task.
+    /?               Displays this help message.
+
+Examples:
+    SCHTASKS
+    SCHTASKS /?
+    SCHTASKS /Query</pre>
+      </div>
+      <div class="u9-alert info">
+        <span class="icon">ℹ️</span>
+        <div>
+          <strong>ملاحظة:</strong> هذه الوحدة تستخدم <code>/Query</code> فقط. لا نستخدم <code>/Create</code> أو <code>/Delete</code> أو <code>/Change</code> أو <code>/Run</code> أو <code>/End</code> — التحليل الدفاعي فقط.
+        </div>
+      </div>
+
+      <table class="ref-table">
+        <thead><tr><th>الحقل</th><th>المعنى</th></tr></thead>
+        <tbody>
+          <tr><td><code>TaskName</code></td><td>المسار الكامل للمهمة مع مجلدها</td></tr>
+          <tr><td><code>Task To Run</code></td><td>الملف التنفيذي أو الأمر الذي تشغله المهمة</td></tr>
+          <tr><td><code>Run As User</code></td><td>الحساب الذي تعمل به المهمة</td></tr>
+          <tr><td><code>Schedule Type</code></td><td>نوع الجدولة: Daily، Weekly، On Logon، On Start، إلخ</td></tr>
+          <tr><td><code>Start Time</code></td><td>وقت البدء</td></tr>
+          <tr><td><code>Status</code></td><td>Ready، Running، Disabled</td></tr>
+          <tr><td><code>Author</code></td><td>من أنشأ المهمة</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Task Scheduler GUI — تعريف نظري</h3>
+      <p>
+        واجهة Task Scheduler الرسومية تتيح تصفح المهام في شجرة على اليمين، وعرض تفاصيلها في الأسفل (General، Triggers، Actions، Conditions، History). تعرض نفس المعلومات التي يوفرها <code>schtasks</code> لكن بصيغة رسومية أوضح.
+      </p>
+      <p>
+        في التحليل الأمني، ركّز على: <strong>اسم المهمة</strong>، <strong>مسار المهمة</strong>، <strong>المشغّل (Trigger)</strong>، <strong>الإجراء (Action)</strong>، و<strong>الحساب المستخدم</strong>.
+      </p>
+      <div class="u9-alert warn">
+        <span class="icon">⚠️</span>
+        <div>
+          قبل اعتبار مهمة مشبوهة، تحقق من: مسار الملف التنفيذي، توقيعه الرقمي، مالكه، وتاريخ إنشائه. <strong>الاسم وحده لا يكفي</strong>.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         5. المحاكي التفاعلي الآمن
+         ============================================================ -->
+    <section id="simulator">
+      <h2>المحاكي التفاعلي الآمن</h2>
+      <p>
+        اكتب الأمر بنفسك أو اختر مثالًا جاهزًا. المحاكي يطابق النص مع قائمة محددة مسبقًا من المخرجات الافتراضية.
+        <strong>لا ينفذ أوامر حقيقية، ولا يقرأ مهام جهازك، ولا يتصل بأي شبكة.</strong>
+      </p>
+
+      <div class="u9-alert danger">
+        <span class="icon">🛡️</span>
+        <div>
+          <strong>تنبيه:</strong> هذا محاكي تعليمي يعرض نتائج افتراضية ثابتة، ولا ينفذ أوامر حقيقية ولا يقرأ مهام جهازك.
+        </div>
+      </div>
+
+      <div class="sim-wrap">
+        <div class="sim-banner">
+          <i class="fas fa-clock"></i> محاكي schtasks التعليمي — نتائج افتراضية ثابتة
+        </div>
+
+        <div class="sim-input-row">
+          <span class="prompt-label" aria-hidden="true">C:\&gt;</span>
+          <input
+            type="text"
+            id="u9SimInput"
+            placeholder="اكتب أمرًا مدعومًا، مثل: schtasks /query"
+            aria-label="أدخل أمر schtasks للمحاكاة"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+          >
+          <button class="primary" id="u9SimRunBtn" type="button">▶ تنفيذ</button>
+        </div>
+
+        <div class="sim-toolbar">
+          <select id="u9SimSelect" aria-label="أمثلة جاهزة">
+            <option value="">— اختر مثالًا جاهزًا —</option>
+            <option value="schtasks /query">schtasks /query</option>
+            <option value="schtasks /query /fo LIST">schtasks /query /fo LIST</option>
+            <option value="schtasks /query /fo TABLE">schtasks /query /fo TABLE</option>
+            <option value="schtasks /query /v /fo LIST">schtasks /query /v /fo LIST</option>
+            <option value='schtasks /query /tn "\Microsoft\Windows\Defrag\ScheduledDefrag"'>schtasks /query /tn "\Microsoft\Windows\Defrag\ScheduledDefrag"</option>
+            <option value="schtasks /?">schtasks /?</option>
+          </select>
+          <button type="button" onclick="u9SimRunSelected()">▶ تنفيذ المثال</button>
+          <button type="button" onclick="u9SimReset()">↺ إعادة ضبط</button>
+          <button type="button" class="danger" onclick="u9SimClear()">✕ مسح</button>
+        </div>
+
+        <div class="sim-output" id="u9SimOutput" aria-live="polite">
+<span class="sim-note">// المحاكي جاهز. اكتب أمرًا في الحقل أعلاه أو اختر مثالًا جاهزًا.</span>
+        </div>
+
+        <div class="sim-hint">
+          <strong>الأوامر المدعومة:</strong>
+          <code>schtasks /query</code> · <code>schtasks /query /fo LIST</code> · <code>schtasks /query /fo TABLE</code> · <code>schtasks /query /v /fo LIST</code> · <code>schtasks /query /tn "..."</code> · <code>schtasks /?</code>
+          <br>
+          <strong>ملاحظة:</strong> أوامر التغيير مثل <code>/Create</code>، <code>/Delete</code>، <code>/Change</code>، <code>/Run</code>، <code>/End</code> غير مدعومة (نظرية فقط).
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         6. التحليل الأمني
+         ============================================================ -->
+    <section>
+      <h2>التحليل الأمني للمهام المجدولة</h2>
+      <p>المؤشرات التالية تستحق التحقق، وليست دليلًا قاطعًا على وجود اختراق:</p>
+      <ul>
+        <li>اسم مهمة غير مألوف أو يحاول تقليد اسم مهمة نظامية.</li>
+        <li>تشغيل ملف تنفيذي من مجلد مؤقت أو مسار مستخدم غير معتاد.</li>
+        <li>استخدام حساب مرتفع الصلاحيات (SYSTEM) دون مبرر واضح.</li>
+        <li>مشغّل (Trigger) متكرر أو غير متوقع مثل كل دقيقة.</li>
+        <li>اختلاف مسار الملف أو خصائص المهمة عن خط الأساس المعتمد.</li>
+        <li>مهمة في مجلد مخصص تحت اسم يشبه اسمًا نظاميًا.</li>
+      </ul>
+
+      <div class="u9-alert danger">
+        <span class="icon">🚫</span>
+        <div>
+          <strong>مؤشر واحد لا يثبت اختراقًا.</strong> الحكم يتطلب: التحقق من التوقيع الرقمي للملف، مالكه، تاريخ إنشائه، سجلات النظام، والأحداث المحيطة.
+        </div>
+      </div>
+
+      <h3>السيناريوهات الثلاثة</h3>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">1</span><span>مهمة نظامية معروفة</span></div>
+        <div class="ex-body">
+          <p>
+            <strong>بيانات المهمة:</strong><br>
+            <code>TaskName: \Microsoft\Windows\Defrag\ScheduledDefrag</code><br>
+            <code>Task To Run: %windir%\system32\defrag.exe</code><br>
+            <code>Run As User: SYSTEM</code><br>
+            <code>Schedule Type: Weekly</code>
+          </p>
+          <p><strong>سؤال:</strong> هل هذه المهمة مشبوهة؟</p>
+          <details><summary>اعرض التحليل المتوقع</summary><div class="answer">
+            لا. هذه مهمة نظامية معروفة، تعمل من مسار النظام <code>system32</code>، باسم برنامج <code>defrag.exe</code> الموثّق، وبجدول أسبوعي معتاد. لكن — من منظور دفاعي — تبقى المؤشرات في مكانها: لو تغيّر المسار أو الإجراء، لكان ذلك مؤشرًا.
+          </div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">2</span><span>مهمة باسم غير مألوف ومسار مؤقت</span></div>
+        <div class="ex-body">
+          <p>
+            <strong>بيانات المهمة:</strong><br>
+            <code>TaskName: \CustomTasks\WindowsUpdateHelper</code><br>
+            <code>Task To Run: C:\Users\Public\wuhelper.exe /silent</code><br>
+            <code>Run As User: SYSTEM</code><br>
+            <code>Schedule Type: Daily</code>
+          </p>
+          <p><strong>سؤال:</strong> ما المؤشرات التي تستحق التحقيق؟</p>
+          <details><summary>اعرض التحليل المتوقع</summary><div class="answer">
+            المؤشرات: <strong>اسم يشبه مهمة نظامية</strong> (<code>WindowsUpdateHelper</code>) في مجلد مخصص، <strong>مسار في مجلد المستخدم العام</strong> (<code>C:\Users\Public</code>) وهو غير معتاد لملفات النظام، <strong>حساب SYSTEM</strong> رغم أن الملف في مسار مستخدم. هذه مؤشرات قوية تستحق التحقق: التوقيع الرقمي، المالك، تاريخ الإنشاء. لكنها <strong>لا تُثبت</strong> أن المهمة خبيثة — قد تكون نصبتها أداة إدارية بشكل غير قياسي.
+          </div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">3</span><span>مهمة بحساب SYSTEM وغرض غير واضح</span></div>
+        <div class="ex-body">
+          <p>
+            <strong>بيانات المهمة:</strong><br>
+            <code>TaskName: \Maintenance\LogRotator</code><br>
+            <code>Task To Run: C:\Program Files\LogTools\rotate.exe</code><br>
+            <code>Run As User: SYSTEM</code><br>
+            <code>Schedule Type: Every 5 minutes</code>
+          </p>
+          <p><strong>سؤال:</strong> ما تقييمك؟</p>
+          <details><summary>اعرض التحليل المتوقع</summary><div class="answer">
+            الملف في مسار <code>Program Files</code> وهو معتاد للبرامج المشروعة. لكن <strong>الجدولة كل 5 دقائق</strong> غير معتادة لأداة تدوير سجلات، و<strong>حساب SYSTEM</strong> أوسع مما تحتاجه عادةً. المؤشرات تستحق التحقق: هل التكرار مبرَّر؟ هل الحساب ضروري؟ من أنشأ المهمة؟ يجب مراجعة التوقيع الرقمي وسجلات الإنشاء قبل أي حكم.
+          </div></details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         7. التمارين والتحديات
+         ============================================================ -->
+    <section>
+      <h2>التمارين والتحديات</h2>
+      <p>استخدم المحاكي أعلاه. جميع النتائج افتراضية.</p>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">1</span><span>عرض كل المهام</span></div>
+        <div class="ex-body">
+          <p>ما الأمر الذي يعرض قائمة بجميع المهام المجدولة؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer"><code>schtasks /query</code></div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">2</span><span>صيغة LIST</span></div>
+        <div class="ex-body">
+          <p>ما الأمر الذي يعرض المهام بصيغة قائمة مفصّلة؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer"><code>schtasks /query /fo LIST</code></div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">3</span><span>تفاصيل موسّعة</span></div>
+        <div class="ex-body">
+          <p>ما الأمر الذي يعرض تفاصيل موسّعة لكل مهمة؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer"><code>schtasks /query /v /fo LIST</code></div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">4</span><span>الاستعلام عن مهمة محددة</span></div>
+        <div class="ex-body">
+          <p>كيف تعرض تفاصيل مهمة <code>ScheduledDefrag</code> بمسارها الكامل؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer"><code>schtasks /query /tn "\Microsoft\Windows\Defrag\ScheduledDefrag"</code></div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">5</span><span>الحقل الأهم للتحليل</span></div>
+        <div class="ex-body">
+          <p>من مخرجات <code>/v /fo LIST</code>، أي حقل يوضح الملف التنفيذي الذي تشغله المهمة؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer"><code>Task To Run</code></div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">6</span><span>تقييم حساب التشغيل</span></div>
+        <div class="ex-body">
+          <p>مهمة تعمل بحساب <code>SYSTEM</code> لكن الإجراء يقرأ فقط ملفًا في مجلد المستخدم. ما التقييم؟</p>
+          <details><summary>اعرض التحليل</summary><div class="answer">قد يكون الحساب أوسع من الحاجة، ما يخالف مبدأ أقل صلاحية. لكنه لا يُثبت الخبث — قد يكون الحساب مطلوبًا لسبب تقني (مثل الوصول لمورد نظامي). تحقق من الغرض الموثق للمهمة.</div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">7</span><span>مؤشر vs دليل</span></div>
+        <div class="ex-body">
+          <p>مهمة بمسار غير معتاد: هل هي دليل على اختراق؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer">لا. مسار غير معتاد <strong>مؤشر</strong> يستحق التحقق، وليس دليلًا. يجب فحص التوقيع الرقمي، المالك، تاريخ الإنشاء، وسجلات النظام.</div></details>
+        </div>
+      </div>
+
+      <div class="exercise">
+        <div class="ex-head"><span class="ex-num">8</span><span>خطوات التحقق الدفاعية</span></div>
+        <div class="ex-body">
+          <p>ما الخطوات الصحيحة للتحقق من مهمة مشبوهة؟</p>
+          <details><summary>اعرض الإجابة</summary><div class="answer">1) مراجعة المسار الكامل للملف التنفيذي، 2) التحقق من التوقيع الرقمي، 3) معرفة المالك ومن أنشأ المهمة، 4) مراجعة سجلات المهمة وتاريخ الإنشاء، 5) مقارنة بخط الأساس المعروف. لا تُحذف المهمة قبل جمع السياق.</div></details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         8. الاختبار
+         ============================================================ -->
+    <section id="unit9-quiz-section">
+      <h2>الاختبار</h2>
+      <p>اختبار من 10 أسئلة يغطي مفاهيم وأوامر الوحدة.</p>
+
+      <div data-quiz="unit9"></div>
+    </section>
+
+    <!-- ============================================================
+         9. ملخص الوحدة
+         ============================================================ -->
+    <section>
+      <h2>ملخص الوحدة</h2>
+      <ul class="summary-list">
+        <li>Task Scheduler خدمة Windows مسؤولة عن تشغيل المهام المجدولة.</li>
+        <li>المهمة المجدولة لها اسم ومسار ومشغّل وإجراء وحساب تشغيل.</li>
+        <li>المهام المجدولة إحدى آليات الاستمرارية التي يستغلها المهاجمون.</li>
+        <li><code>schtasks /query</code> يعرض المهام، و<code>/fo LIST</code> يعرضها مفصّلة.</li>
+        <li><code>/v /fo LIST</code> يعرض تفاصيل موسّعة تشمل <code>Task To Run</code> و<code>Run As User</code>.</li>
+        <li><code>/tn</code> يستعلم عن مهمة محددة بمسارها الكامل.</li>
+        <li>اسم المهمة وحده لا يكفي للحكم عليها؛ تحقق من المسار والتوقيع والحساب.</li>
+        <li>الجدولة المتكررة جدًا أو حساب SYSTEM غير المبرَّر مؤشرات تستحق التحقيق.</li>
+        <li>مؤشر واحد لا يثبت اختراقًا؛ يجب جمع السياق قبل الحكم.</li>
+        <li>مبدأ أقل صلاحية: اسمح للمهمة بأقل صلاحيات كافية لغرضها.</li>
+      </ul>
+
+      <div class="checklist-box">
+        <h4>☑️ قائمة تحقق سريعة عند مراجعة المهام المجدولة</h4>
+        <ul>
+          <li>هل اسم المهمة ومسارها معتادان في بيئتك؟</li>
+          <li>هل <code>Task To Run</code> يشير إلى مسار نظامي أو مسار مستخدم غير معتاد؟</li>
+          <li>هل الملف التنفيذي موقّع رقميًا من ناشر معروف؟</li>
+          <li>هل <code>Run As User</code> مناسب لغرض المهمة (وليس أوسع من الحاجة)؟</li>
+          <li>هل <code>Schedule Type</code> معقول (ليس كل دقيقة مثلًا)؟</li>
+          <li>من هو <code>Author</code> ومتى أُنشئت المهمة؟</li>
+          <li>هل توجد مهام أخرى مشابهة في نفس المجلد المخصص؟</li>
+          <li>هل سجلات النظام تُظهر أحداثًا مشبوهة قريبة من وقت الإنشاء؟</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         10. المراجع
+         ============================================================ -->
+    <section>
+      <h2>المراجع</h2>
+      <ul class="refs-list">
+        <li>Microsoft Learn — <em>schtasks commands</em>. <a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/schtasks" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+        <li>Microsoft Learn — <em>Task Scheduler</em>. <a href="https://learn.microsoft.com/en-us/windows/win32/taskschd/task-scheduler-start-page" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+        <li>MITRE ATT&CK — <em>Scheduled Task/Job (T1053)</em>. <a href="https://attack.mitre.org/techniques/T1053/" target="_blank" rel="noopener">attack.mitre.org</a></li>
+        <li>Microsoft Learn — <em>Windows Security Events</em>. <a href="https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-other-object-access-events" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+      </ul>
+    </section>
+
+    <!-- ============================================================
+         11. التنقل بين الوحدات (أسفل الصفحة)
+         ============================================================ -->
+    <nav class="unit-nav" aria-label="التنقل بين الوحدات">
+      <a href="unit8.html" class="prev">← الوحدة الثامنة</a>
+      <a href="unit10.html" class="next">الوحدة العاشرة →</a>
+    </nav>
+
+  </div>
+</main>
+
+<!-- ===== الملفات المشتركة ===== -->
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/quiz.js"></script>
+
+<!-- ===== سكربت الوحدة ===== -->
+<script>
+/* ============================================================
+   1) أداة النسخ
+   ============================================================ */
+function u9Copy(btn, text) {
+  const done = () => {
+    const original = btn.textContent;
+    btn.textContent = '✓ تم النسخ';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.classList.remove('copied');
+    }, 1500);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => {
+      u9FallbackCopy(text); done();
+    });
+  } else {
+    u9FallbackCopy(text); done();
+  }
+}
+function u9FallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
+}
+
+/* ============================================================
+   2) المحاكي التفاعلي الآمن
+   ============================================================ */
+(function () {
+  const OUTPUTS = {
+    'schtasks /query': `Folder: \\Microsoft\\Windows\\Defrag
+TaskName                                 Next Run Time          Status
+======================================== ====================== ===============
+ScheduledDefrag                          N/A                    Ready
+
+Folder: \\Microsoft\\Windows\\UpdateOrchestrator
+TaskName                                 Next Run Time          Status
+======================================== ====================== ===============
+Schedule Scan                            2025-11-02 03:00:00    Ready
+
+Folder: \\CustomTasks
+TaskName                                 Next Run Time          Status
+======================================== ====================== ===============
+WindowsUpdateHelper                      2025-11-01 20:15:00    Ready`,
+
+    'schtasks /query /fo LIST': `Folder: \\Microsoft\\Windows\\Defrag
+HostName:                             CYBERPATH-PC
+TaskName:                             \\Microsoft\\Windows\\Defrag\\ScheduledDefrag
+Next Run Time:                        N/A
+Status:                               Ready
+Logon Mode:                           Interactive/Background
+
+Folder: \\Microsoft\\Windows\\UpdateOrchestrator
+HostName:                             CYBERPATH-PC
+TaskName:                             \\Microsoft\\Windows\\UpdateOrchestrator\\Schedule Scan
+Next Run Time:                        2025-11-02 03:00:00
+Status:                               Ready
+Logon Mode:                           Interactive/Background
+
+Folder: \\CustomTasks
+HostName:                             CYBERPATH-PC
+TaskName:                             \\CustomTasks\\WindowsUpdateHelper
+Next Run Time:                        2025-11-01 20:15:00
+Status:                               Ready
+Logon Mode:                           Interactive/Background`,
+
+    'schtasks /query /fo TABLE': `Folder: \\Microsoft\\Windows\\Defrag
+TaskName                                 Next Run Time          Status
+======================================== ====================== ===============
+ScheduledDefrag                          N/A                    Ready
+
+Folder: \\Microsoft\\Windows\\UpdateOrchestrator
+TaskName                                 Next Run Time          Status
+======================================== ====================== ===============
+Schedule Scan                            2025-11-02 03:00:00    Ready
+
+Folder: \\CustomTasks
+TaskName                                 Next Run Time          Status
+======================================== ====================== ===============
+WindowsUpdateHelper                      2025-11-01 20:15:00    Ready`,
+
+    'schtasks /query /v /fo LIST': `Folder: \\CustomTasks
+HostName:                             CYBERPATH-PC
+TaskName:                             \\CustomTasks\\WindowsUpdateHelper
+Next Run Time:                        2025-11-01 20:15:00
+Status:                               Ready
+Logon Mode:                           Interactive/Background
+Last Run Time:                        2025-10-31 20:15:00
+Last Result:                          0
+Author:                               CYBERPATH\\admin1
+Task To Run:                          C:\\Users\\Public\\wuhelper.exe /silent
+Start In:                             N/A
+Comment:                              N/A
+Scheduled Task State:                 Enabled
+Idle Time:                            Disabled
+Power Management:                     Stop On Battery Mode
+Run As User:                          SYSTEM
+Schedule Type:                        Daily
+Start Time:                           20:15:00
+Repeat: Every:                        0 Hour(s), 0 Minute(s)`,
+
+    'schtasks /query /tn "\\Microsoft\\Windows\\Defrag\\ScheduledDefrag"': `Folder: \\Microsoft\\Windows\\Defrag
+HostName:                             CYBERPATH-PC
+TaskName:                             \\Microsoft\\Windows\\Defrag\\ScheduledDefrag
+Next Run Time:                        N/A
+Status:                               Ready
+Logon Mode:                           Interactive/Background`,
+
+    'schtasks /?': `SCHTASKS /parameter [arguments]
+
+Description:
+    Enables an administrator to create, delete, query, change, run and
+    end scheduled tasks on a local or remote system.
+
+Parameter List:
+    /Create          Creates a new scheduled task.
+    /Delete          Deletes the scheduled task(s).
+    /Query           Displays all scheduled tasks.
+    /Change          Changes the properties of scheduled task.
+    /Run             Runs the scheduled task immediately.
+    /End             Stops the currently running scheduled task.
+    /?               Displays this help message.
+
+Examples:
+    SCHTASKS
+    SCHTASKS /?
+    SCHTASKS /Query`
+  };
+
+  const EXPLANATIONS = {
+    'schtasks /query': 'يعرض المهام المجدولة. لاحظ المهمة WindowsUpdateHelper في مجلد \\CustomTasks — اسم يشبه مهمة نظامية في مجلد مخصص. مؤشر يستحق التحقق.',
+    'schtasks /query /fo LIST': 'صيغة قائمة مفصّلة. كل مهمة تظهر بمعلوماتها الأساسية.',
+    'schtasks /query /fo TABLE': 'صيغة جدول موجزة (الافتراضية).',
+    'schtasks /query /v /fo LIST': 'تفاصيل موسّعة. الحقول المهمة: Task To Run، Run As User، Schedule Type. لاحظ C:\\Users\\Public\\wuhelper.exe و SYSTEM — مؤشرات تستحق التحقق.',
+    'schtasks /query /tn "\\Microsoft\\Windows\\Defrag\\ScheduledDefrag"': 'استعلام عن مهمة محددة بمسارها الكامل.',
+    'schtasks /?': 'المساعدة الكاملة للأمر. نستخدم /Query فقط في هذه الوحدة.'
+  };
+
+  const out = document.getElementById('u9SimOutput');
+  const select = document.getElementById('u9SimSelect');
+  const input = document.getElementById('u9SimInput');
+  const runBtn = document.getElementById('u9SimRunBtn');
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function writeLine(html) {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    out.appendChild(div);
+    out.scrollTop = out.scrollHeight;
+  }
+  function normalize(cmd) {
+    return cmd.replace(/\s+/g, ' ').trim();
+  }
+
+  function findMatch(userInput) {
+    const norm = normalize(userInput);
+    const keys = Object.keys(OUTPUTS);
+    if (OUTPUTS[norm]) return norm;
+    for (const k of keys) {
+      if (normalize(k).toLowerCase() === norm.toLowerCase()) return k;
+    }
+    // مطابقة مرنة: تطبيع المسافات حول = و /
+    const loose = norm.toLowerCase()
+      .replace(/\s*=\s*/g, '=')
+      .replace(/\s*\/\s*/g, '/')
+      .replace(/\s+/g, ' ');
+    for (const k of keys) {
+      const kLoose = normalize(k).toLowerCase()
+        .replace(/\s*=\s*/g, '=')
+        .replace(/\s*\/\s*/g, '/')
+        .replace(/\s+/g, ' ');
+      if (kLoose === loose) return k;
+    }
+    return null;
+  }
+
+  function runCommand(rawInput) {
+    const cmd = String(rawInput || '').trim();
+    if (!cmd) {
+      writeLine('<span class="sim-error">⚠️ اكتب أمرًا أولًا أو اختر مثالًا جاهزًا.</span>');
+      return;
+    }
+    // حظر أوامر التغيير
+    const forbidden = /^\s*schtasks\s+\/(create|delete|change|run|end)\b/i;
+    if (forbidden.test(cmd)) {
+      writeLine('<span class="sim-prompt">C:\\&gt;</span> <span class="sim-echo">' + escapeHtml(cmd) + '</span>');
+      writeLine('<span class="sim-error">🚫 هذا الأمر يغيّر المهام المجدولة وغير مدعوم في المحاكي (نظري فقط).</span>');
+      writeLine('<span class="sim-note">💡 المحاكي للاستعلام والتحليل فقط.</span>');
+      writeLine('');
+      return;
+    }
+    writeLine('<span class="sim-prompt">C:\\&gt;</span> <span class="sim-echo">' + escapeHtml(cmd) + '</span>');
+    const key = findMatch(cmd);
+    if (key && OUTPUTS[key]) {
+      writeLine('<pre style="margin:0;font-family:inherit;color:inherit;white-space:pre-wrap;">' + escapeHtml(OUTPUTS[key]) + '</pre>');
+      writeLine('<span class="sim-note">💡 ' + EXPLANATIONS[key] + '</span>');
+      writeLine('<span class="sim-note" style="font-size:.75rem;opacity:.7">ملاحظة: النتائج افتراضية ولا تعكس جهازك.</span>');
+    } else {
+      writeLine('<span class="sim-error">❌ الأمر غير مدعوم في هذا المحاكي.</span>');
+      writeLine('<span class="sim-note">💡 المدعوم: schtasks /query · /query /fo LIST · /query /fo TABLE · /query /v /fo LIST · /query /tn "..." · /?</span>');
+    }
+    writeLine('');
+  }
+
+  window.u9SimRunSelected = function () {
+    const val = select.value;
+    if (!val) {
+      writeLine('<span class="sim-error">⚠️ اختر مثالًا من القائمة أولًا.</span>');
+      return;
+    }
+    input.value = val;
+    runCommand(val);
+    select.value = '';
+  };
+
+  window.u9SimReset = function () {
+    out.innerHTML = '<span class="sim-note">// المحاكي جاهز. اكتب أمرًا في الحقل أعلاه أو اختر مثالًا جاهزًا.</span>';
+    select.value = '';
+    input.value = '';
+    input.focus();
+  };
+
+  window.u9SimClear = function () { out.innerHTML = ''; };
+
+  runBtn.addEventListener('click', function () { runCommand(input.value); });
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); runCommand(input.value); }
+  });
+  select.addEventListener('change', function () {
+    if (select.value) { input.value = select.value; input.focus(); }
+  });
+})();
+
+/* ============================================================
+   3) قائمة الجوال + الوضع الليلي
+   ============================================================ */
+(function () {
+  const toggle = document.getElementById('navToggle');
+  const links = document.getElementById('navLinks');
+  if (toggle && links) {
+    toggle.addEventListener('click', function () {
+      const open = links.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+
+  const themeBtn = document.getElementById('themeToggle');
+  if (themeBtn) {
+    const saved = localStorage.getItem('u9-theme');
+    if (saved === 'dark') {
+      document.body.classList.add('dark-mode');
+      themeBtn.textContent = '☀️ الوضع النهاري';
+    }
+    themeBtn.addEventListener('click', function () {
+      const isDark = document.body.classList.toggle('dark-mode');
+      themeBtn.textContent = isDark ? '☀️ الوضع النهاري' : '🌙 الوضع الليلي';
+      localStorage.setItem('u9-theme', isDark ? 'dark' : 'light');
+    });
+  }
+})();
+
+/* ============================================================
+   4) اختبار الوحدة — window.QUIZZES["unit9"]
+   ============================================================ */
+window.QUIZZES = window.QUIZZES || {};
+
+window.QUIZZES["unit9"] = {
+  title: "اختبار الوحدة التاسعة — المهام المجدولة وتحليل الاستمرارية",
+  questions: [
+    {
+      q: "ما الوظيفة الأساسية لـ Windows Task Scheduler؟",
+      options: [
+        "إدارة الاتصال بالشبكة",
+        "تشغيل مهام وفق شروط زمنية أو أحداث محددة",
+        "تحويل الملفات إلى صيغ مختلفة",
+        "إدارة كلمات المرور"
+      ],
+      correct: 1,
+      explanation: "Task Scheduler خدمة نظام تشغّل المهام وفق شروط مثل وقت مجدول أو حدث أو تسجيل دخول."
+    },
+    {
+      q: "لماذا تُعتبر المهام المجدولة إحدى آليات الاستمرارية (Persistence)؟",
+      options: [
+        "لأنها تستهلك ذاكرة كبيرة",
+        "لأنها تتيح تشغيل نشاط تلقائيًا بعد إعادة التشغيل أو عند أحداث محددة",
+        "لأنها تسرّع الاتصال بالإنترنت",
+        "لأنها تخفي الملفات"
+      ],
+      correct: 1,
+      explanation: "آليات الاستمرارية تضمن بقاء نشاط على النظام. المهمة المجدولة قد تعيد تشغيل برنامج بعد كل إعادة تشغيل — سلوك يخدم الشرعية والخبث معًا."
+    },
+    {
+      q: "ما الأمر الذي يعرض قائمة بجميع المهام المجدولة؟",
+      options: [
+        "schtasks /create",
+        "schtasks /query",
+        "schtasks /delete",
+        "schtasks /run"
+      ],
+      correct: 1,
+      explanation: "schtasks /query يعرض المهام. /create و/delete و/run أوامر تغيير لا تُستخدم في التحليل الدفاعي."
+    },
+    {
+      q: "ما وظيفة المعامل /v في الأمر schtasks /query /v /fo LIST؟",
+      options: [
+        "تصفية المهام النشطة فقط",
+        "عرض تفاصيل موسّعة لكل مهمة",
+        "حذف المهام المنتهية",
+        "تغيير صيغة المخرجات"
+      ],
+      correct: 1,
+      explanation: "/v يعني Verbose — يعرض تفاصيل موسّعة تشمل Task To Run وRun As User وSchedule Type."
+    },
+    {
+      q: "أي حقل في مخرجات schtasks /v /fo LIST يوضح الملف التنفيذي الذي تشغله المهمة؟",
+      options: [
+        "Author",
+        "Task To Run",
+        "Status",
+        "Next Run Time"
+      ],
+      correct: 1,
+      explanation: "Task To Run يوضح الملف التنفيذي أو الأمر الذي تشغله المهمة — أهم حقل للتحليل الأمني."
+    },
+    {
+      q: "مهمة باسم WindowsUpdateHelper في مجلد \\CustomTasks تشغّل C:\\Users\\Public\\wuhelper.exe بحساب SYSTEM. ما التقييم الصحيح؟",
+      options: [
+        "مهمة نظامية معروفة ولا تستحق التحقق",
+        "مؤشرات تستحق التحقق: اسم يشبه مهمة نظامية، مسار مستخدم غير معتاد، حساب مرتفع الصلاحيات",
+        "دليل قاطع على وجود اختراق",
+        "لا يمكن تحليلها إطلاقًا"
+      ],
+      correct: 1,
+      explanation: "هذه مؤشرات تستحق التحقق، لكنها ليست دليلًا قاطعًا. يجب فحص التوقيع الرقمي والمالك وتاريخ الإنشاء وسجلات النظام."
+    },
+    {
+      q: "ما الفرق بين مؤشر أمني ودليل مؤكد؟",
+      options: [
+        "لا فرق، المصطلحان مترادفان",
+        "المؤشر يستدعي التحقق، والدليل يثبت الحقيقة بعد جمع السياق",
+        "المؤشر أقوى من الدليل",
+        "الدليل هو مجرد اسم آخر للمؤشر"
+      ],
+      correct: 1,
+      explanation: "المؤشر إشارة تستحق التحقق. الدليل نتيجة مؤكدة بعد جمع الأدلة والسياق (توقيع، سجلات، تاريخ)."
+    },
+    {
+      q: "مهمة تعمل بحساب SYSTEM لكنها تقرأ فقط ملفًا في مجلد المستخدم. ما التقييم؟",
+      options: [
+        "أمر طبيعي دائمًا",
+        "قد يخالف مبدأ أقل صلاحية ويستحق التحقق، دون جزم بأنه خبث",
+        "دليل قاطع على وجود برنامج خبيث",
+        "لا يمكن تقييمه"
+      ],
+      correct: 1,
+      explanation: "تشغيل مهمة بحساب أوسع من الحاجة قد يخالف Least Privilege، لكنه قد يكون مبررًا تقنيًا. تحقق من الغرض الموثق."
+    },
+    {
+      q: "مهمة نظامية مثل ScheduledDefrag تعمل من C:\\Windows\\system32\\defrag.exe. هل هي مشبوهة؟",
+      options: [
+        "نعم دائمًا لأنها تعمل بحساب SYSTEM",
+        "لا، فهي مهمة نظامية معروفة بمسار نظامي وإجراء موثّق — مع بقاء المراجعة الدورية",
+        "نعم لأن الجدولة أسبوعية",
+        "لا يمكن تقييمها"
+      ],
+      correct: 1,
+      explanation: "هذه مهمة نظامية معروفة بمسار نظامي وإجراء موثّق. المراجعة الدورية تبقى ضرورية، لكن لا يوجد مؤشر شذوذ."
+    },
+    {
+      q: "ما الخطوة الأولى الصحيحة عند رؤية مهمة مجدولة غير مألوفة؟",
+      options: [
+        "حذفها فورًا بـ schtasks /delete",
+        "جمع السياق: المسار، التوقيع، الحساب، تاريخ الإنشاء، سجلات النظام",
+        "إعادة تشغيل الجهاز",
+        "تجاهلها"
+      ],
+      correct: 1,
+      explanation: "لا تُحذف المهمة قبل التحليل. جمع السياق ضروري لتجنب فقدان أدلة أو تعطيل نظام مشروع."
+    }
+  ]
+};
+</script>
+
+</body>
+</html>
