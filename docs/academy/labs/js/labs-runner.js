@@ -11,7 +11,8 @@
     "network-assessment": "network-assessment",
     "web-vulnerability-assessment": "web-vulnerability-assessment",
     "cloud-security-assessment": "cloud-security-assessment",
-    "digital-forensics": "digital-forensics"
+    "digital-forensics": "digital-forensics",
+    "packet-analysis": "packet-analysis"
   };
 
   function resolveRunnerKey(searchParams, labMeta) {

@@ -1,179 +1,48 @@
 {
   "id": "lab-network-wireshark-01",
-  "version": 1,
-  "questions": [
-    {
-      "id": "q1",
-      "type": "multi",
-      "prompt": "حدد الحزم التي تمثل مؤشرات تستحق المتابعة في هذا المقتطف (يمكن أكثر من اختيار). لا تُوسَم الحزم الروتينية كمشبوهة دون سبب.",
-      "options": [
-        {
-          "id": "p01",
-          "label": "p01 — DNS portal.horizon-labs.example"
-        },
-        {
-          "id": "p03",
-          "label": "p03 — TCP 443 SYN إلى CDN"
-        },
-        {
-          "id": "p05",
-          "label": "p05 — TLS Client Hello"
-        },
-        {
-          "id": "p06",
-          "label": "p06 — DNS update-secure-login.example.test"
-        },
-        {
-          "id": "p07",
-          "label": "p07 — DNS Response → 198.51.100.66"
-        },
-        {
-          "id": "p08",
-          "label": "p08 — TCP SYN إلى 198.51.100.66:8080"
-        },
-        {
-          "id": "p10",
-          "label": "p10 — HTTP GET /agent/install بدون تشفير"
-        },
-        {
-          "id": "p11",
-          "label": "p11 — HTTP 200 application/octet-stream"
-        },
-        {
-          "id": "p12",
-          "label": "p12 — DNS www.microsoft.com"
-        },
-        {
-          "id": "p13",
-          "label": "p13 — استمرار الاتصال على 8080"
-        },
-        {
-          "id": "p14",
-          "label": "p14 — ARP Who has gateway"
-        }
-      ]
-    },
-    {
-      "id": "q2",
-      "type": "single",
-      "prompt": "أي Display Filter الأنسب لعزل استعلامات وإجابات DNS فقط في هذا السياق؟",
-      "options": [
-        {
-          "id": "a",
-          "label": "tcp.port == 80"
-        },
-        {
-          "id": "b",
-          "label": "dns"
-        },
-        {
-          "id": "c",
-          "label": "http.request.method == GET"
-        },
-        {
-          "id": "d",
-          "label": "arp"
-        }
-      ]
-    },
-    {
-      "id": "q3",
-      "type": "single",
-      "prompt": "الحزمة p10 تظهر طلبًا على المنفذ 8080. ما الاستنتاج الأدق؟",
-      "options": [
-        {
-          "id": "a",
-          "label": "الاتصال مشفّر بالكامل بـ TLS لأن المنفذ ليس 80."
-        },
-        {
-          "id": "b",
-          "label": "يظهر بروتوكول HTTP بنص واضح نحو مضيف خارجي غير مألوف مع مسار تثبيت — مؤشر قوي يستحق المتابعة."
-        },
-        {
-          "id": "c",
-          "label": "هذا بالضرورة تحديث ويندوز رسمي من Microsoft."
-        },
-        {
-          "id": "d",
-          "label": "الحزمة ARP فقط ولا علاقة لها بالتطبيق."
-        }
-      ]
-    },
-    {
-      "id": "q4",
-      "type": "text",
-      "prompt": "اكتب استنتاجًا قصيرًا (جملتين أو ثلاثًا): اربط نطاق DNS غير المألوف، وعنوان 198.51.100.66، وHTTP على 8080، واذكر مرشحًا أو خطوة تالية للتحليل. لا تجزم بحدوث اختراق كامل."
-    }
+  "version": 2,
+  "minPacketsOpened": 5,
+  "minFilterApplies": 2,
+  "suspiciousIndicatorIds": [
+    "ind-dns-suspicious",
+    "ind-http-install",
+    "ind-octet-stream",
+    "ind-syn-scan"
   ],
-  "key": {
-    "q1": {
-      "correctIds": [
-        "p06",
-        "p07",
-        "p08",
-        "p10",
-        "p11",
-        "p13"
-      ],
-      "distractorIds": [
-        "p01",
-        "p03",
-        "p05",
-        "p12",
-        "p14"
-      ],
-      "minCorrect": 4,
-      "maxFalsePositives": 1
-    },
-    "q2": {
-      "correctId": "b"
-    },
-    "q3": {
-      "correctId": "b"
-    },
-    "q4": {
-      "minLength": 40,
-      "hintKeywords": [
-        "dns",
-        "198.51",
-        "8080",
-        "http",
-        "install",
-        "نطاق",
-        "مشبوه",
-        "متابعة",
-        "مرشح",
-        "filter",
-        "غير مألوف",
-        "تنزيل",
-        "p06",
-        "p10",
-        "p11",
-        "تحقيق",
-        "تحليل"
-      ],
-      "minKeywordHits": 3,
-      "decisionKeywords": [
-        "متابعة",
-        "تحقيق",
-        "تحليل",
-        "مرشح",
-        "عزل",
-        "مراجعة"
-      ],
-      "minDecisionHits": 1,
-      "requireDecisionTheme": true
-    }
-  },
-  "completion": {
-    "requireAllParts": true
+  "benignIndicatorIds": [
+    "ind-tls-cdn",
+    "ind-internal-dns",
+    "ind-arp",
+    "ind-msft"
+  ],
+  "minSuspiciousHits": 3,
+  "maxFalsePositives": 1,
+  "correctResponseId": "r-block-isolate",
+  "report": {
+    "minLength": 50,
+    "minKeywordHits": 3,
+    "keywords": [
+      "8080",
+      "DNS",
+      "198.51.100.66",
+      "agent",
+      "install",
+      "example.test",
+      "SYN",
+      "10.20.5.42",
+      "HTTP"
+    ]
   },
   "feedback": {
-    "success": "أحسنت. ميّزت سلسلة DNS غير المألوف → اتصال 8080 → HTTP واضح وتنزيل محتمل، واخترت مرشح DNS المناسب، وبرّرت المتابعة دون مبالغة.",
-    "partialIndicators": "راجع الحزم المرتبطة بالنطاق update-secure-login وبالعنوان 198.51.100.66 وHTTP على 8080، وتجنب وسم DNS/HTTPS الروتيني كمشبوه.",
-    "q1_time": "ركّز على السلسلة الزمنية من p06 إلى p13.",
-    "q2_wrong": "لعزل DNS يُستخدم المرشح dns. مرشحات http أو tcp.port==80 تستهدف طبقة أعلى أو منفذًا مختلفًا.",
-    "q3_wrong": "p10 تعرض HTTP نصًا واضحًا على 8080 نحو مضيف خارجي مع مسار /agent/install — ليست TLS وليست تحديث Microsoft بمجرد المنفذ.",
-    "q4_weak": "اربط الأدلة (النطاق، 198.51.100.66، HTTP/8080) واقترح خطوة مثل مرشح ip.addr أو http، دون الجزم بالاختراق."
+    "explore_bad": "استكشف المزيد من الحزم وطبّق مرشحات قبل الإرسال.",
+    "explore_ok": "تم استكشاف الحزم وتطبيق مرشحات كافية.",
+    "indicators_bad": "راجع المؤشرات: لا تهمل DNS/HTTP المشبوه ولا تصنّف النشاط المعتاد كله كتهديد.",
+    "indicators_ok": "تحديد المؤشرات المشبوهة مناسب.",
+    "response_bad": "الإجراء الدفاعي المختار غير مناسب لسياق الأدلة.",
+    "response_ok": "إجراء الاستجابة متوافق مع الأدلة.",
+    "report_bad": "وسّع التقرير واذكر عناصر من الحزم (منافذ، نطاقات، عناوين).",
+    "report_ok": "التقرير يربط الاستنتاج بالأدلة.",
+    "complete": "أحسنت — أكملت تحليل حركة مرور مبنيًا على استكشاف الحزم والمرشحات.",
+    "incomplete": "المحاولة غير مكتملة؛ راجع المحاور ذات «لا» في النتيجة."
   }
 }

@@ -57,7 +57,7 @@ function clone(o) {
 record("B4", "REG-01", index.labs.some((l) => l.id === "lab-soc-phishing-email-01" && l.type === "simulation"));
 record("B4", "REG-02", index.labs.some((l) => l.id === "lab-soc-log-triage-01" && l.type === "fixed_data"));
 record("B4", "REG-03", index.labs.some((l) => l.id === "lab-soc-incident-response-01" && l.type === "simulation"));
-record("B4", "REG-04", index.labs.some((l) => l.id === "lab-network-wireshark-01" && l.type === "simulation"));
+record("B4", "REG-04", index.labs.some((l) => l.id === "lab-network-wireshark-01" && l.type === "packet_analysis"));
 
 // ---------- B1 ----------
 (function () {
@@ -928,47 +928,114 @@ record("B4", "REG-04", index.labs.some((l) => l.id === "lab-network-wireshark-01
 })();
 
 
-// ---------- L3 Network Wireshark (simulation) ----------
+// ---------- L3 Packet analysis (interactive) ----------
 (function () {
+  const fs = require("fs");
+  const path = require("path");
+  const vm = require("vm");
+  const code = fs.readFileSync(path.join(DOCS, "runners/packet-analysis.js"), "utf8");
+  const sandbox = { console, window: {}, global: {} };
+  sandbox.window = sandbox;
+  sandbox.global = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(code, sandbox);
+  const API = sandbox.LabsPacketAnalysis;
+  const content3 = loadJSON("data/content/lab-network-wireshark-01.json");
+  const lab3a = loadJSON("data/assessment/lab-network-wireshark-01.json");
+  const packets = content3.packets || [];
+
+  record("L3", "L3-00", packets.length >= 14 && packets.every((p) => p.id && p.src != null && p.proto), `packets=${packets.length}`);
+
+  // filter engine
+  let r = API.applyFilter(packets, "dns");
+  record("L3", "L3-01", r.packets.length > 0 && r.packets.every((p) => p.proto === "DNS"), `dns count=${r.packets.length}`);
+
+  r = API.applyFilter(packets, "tcp.port == 8080");
+  record("L3", "L3-02", r.packets.length >= 3 && r.packets.every((p) => p.sport === 8080 || p.dport === 8080), `8080 count=${r.packets.length}`);
+
+  r = API.applyFilter(packets, "http");
+  record("L3", "L3-03", r.packets.some((p) => p.id === "p10"), `http has p10`);
+
+  r = API.applyFilter(packets, "ip.dst == 198.51.100.66");
+  record("L3", "L3-04", r.packets.length >= 4 && r.packets.every((p) => p.dst === "198.51.100.66"), `dst filter`);
+
+  r = API.applyFilter(packets, "tcp.flags.syn");
+  record("L3", "L3-05", r.packets.length >= 3, `syn count=${r.packets.length}`);
+
+  r = API.applyFilter(packets, "frame.number == 1");
+  record("L3", "L3-06", r.unsupported === true || (r.error && r.packets.length === 0), `unsupported filter`);
+
+  r = API.applyFilter(packets, "");
+  record("L3", "L3-07", r.packets.length === packets.length && !r.unsupported, `empty filter shows all`);
+
   const good = {
-    q1: ["p06", "p07", "p08", "p10", "p11", "p13"],
-    q2: "b",
-    q3: "b",
-    q4:
-      "يظهر DNS لنطاق غير مألوف ثم اتصال HTTP على 8080 نحو 198.51.100.66 مع مسار install. أنصح بمرشح ip.addr ومتابعة التحليل دون الجزم بالاختراق."
+    packetsOpened: packets.slice(0, 6).map((p) => p.id),
+    filterApplies: 3,
+    selectedIndicators: lab3a.suspiciousIndicatorIds.slice(),
+    responseId: lab3a.correctResponseId,
+    reportText: "من 10.20.5.42 يظهر DNS إلى update-secure-login.example.test ثم HTTP GET /agent/install على 198.51.100.66:8080 مع SYN إضافي. يوصى بالعزل والحظر."
   };
+  let o = API.scorePacketAnalysis(lab3a, good);
+  record("L3", "L3-08", o.complete === true && o.parts.explore && o.parts.indicators && o.parts.response && o.parts.report, `complete=${o.complete}`);
 
-  let o = scoreAll(lab3, good);
-  record("L3", "L3-01", o.complete === true && o.parts.q1 && o.parts.q2 && o.parts.q3 && o.parts.q4, `complete=${o.complete}`);
+  o = API.scorePacketAnalysis(lab3a, { ...good, packetsOpened: ["p01"], filterApplies: 0 });
+  record("L3", "L3-09", !o.complete && !o.parts.explore, `explore fail`);
 
-  o = scoreAll(lab3, Object.assign({}, good, { q1: ["p01", "p03", "p05"] }));
-  record("L3", "L3-02", o.complete === false && o.parts.q1 === false, `q1=${o.parts.q1}`);
+  o = API.scorePacketAnalysis(lab3a, {
+    ...good,
+    selectedIndicators: ["ind-tls-cdn", "ind-arp", "ind-msft"]
+  });
+  record("L3", "L3-10", !o.complete && !o.parts.indicators, `benign-only indicators`);
 
-  o = scoreAll(lab3, Object.assign({}, good, { q1: ["p06", "p07", "p08", "p10", "p11", "p13", "p01", "p14"] }));
-  record("L3", "L3-03", o.complete === false && o.parts.q1 === false, `maxFP two distractors`);
+  o = API.scorePacketAnalysis(lab3a, { ...good, responseId: "r-ignore" });
+  record("L3", "L3-11", !o.complete && !o.parts.response, `bad response`);
 
-  o = scoreAll(lab3, Object.assign({}, good, { q2: "a" }));
-  record("L3", "L3-04", o.parts.q2 === false && !o.complete, `q2 wrong`);
+  o = API.scorePacketAnalysis(lab3a, { ...good, reportText: "قصير" });
+  record("L3", "L3-12", !o.complete && !o.parts.report, `short report`);
 
-  o = scoreAll(lab3, Object.assign({}, good, { q3: "c" }));
-  record("L3", "L3-05", o.parts.q3 === false && !o.complete, `q3 wrong`);
+  // filterApplies progress counting (supported only, de-duped)
+  (function () {
+    const st = { filterApplies: 0, countedFilters: {} };
+    let res = API.applyFilter(packets, "frame.number == 1");
+    API.noteFilterApply("frame.number == 1", res, st);
+    res = API.applyFilter(packets, "not.a.filter");
+    API.noteFilterApply("not.a.filter", res, st);
+    record("L3", "L3-15", st.filterApplies === 0, `two unsupported count=${st.filterApplies}`);
 
-  o = scoreAll(lab3, Object.assign({}, good, { q4: "قصير جدا" }));
-  record("L3", "L3-06", o.parts.q4 === false && !o.complete, `q4 short`);
+    res = API.applyFilter(packets, "dns");
+    API.noteFilterApply("dns", res, st);
+    res = API.applyFilter(packets, "http");
+    API.noteFilterApply("http", res, st);
+    record("L3", "L3-16", st.filterApplies === 2, `two supported count=${st.filterApplies}`);
 
-  o = scoreAll(lab3, Object.assign({}, good, {
-    q4: "هناك DNS وHTTP على 8080 و198.51 لكن بدون اقتراح إجراء"
-  }));
-  record("L3", "L3-07", o.parts.q4 === false, `q4 weak decision q4=${o.parts.q4}`);
+    // supported with zero results still counts once
+    const st2 = { filterApplies: 0, countedFilters: {} };
+    res = API.applyFilter(packets, "ip.dst == 203.0.113.99");
+    const countedZero = API.noteFilterApply("ip.dst == 203.0.113.99", res, st2);
+    record("L3", "L3-17", countedZero && st2.filterApplies === 1 && res.unsupported === false && res.packets.length === 0, `zero-result supported count=${st2.filterApplies}`);
 
-  o = scoreAll(lab3, { q1: [], q2: null, q3: null, q4: "" });
-  record("L3", "L3-08", !o.complete && !o.parts.q1 && !o.parts.q2 && !o.parts.q3 && !o.parts.q4, `empty`);
+    // clear / empty must not count; duplicate supported must not double-count
+    const st3 = { filterApplies: 0, countedFilters: {} };
+    res = API.applyFilter(packets, "");
+    API.noteFilterApply("", res, st3);
+    API.noteFilterApply("   ", res, st3);
+    res = API.applyFilter(packets, "tcp.port == 8080");
+    API.noteFilterApply("tcp.port == 8080", res, st3);
+    API.noteFilterApply("tcp.port == 8080", res, st3); // duplicate
+    API.noteFilterApply("TCP.PORT == 8080", res, st3); // same after norm
+    record("L3", "L3-18", st3.filterApplies === 1, `clear+dup count=${st3.filterApplies}`);
 
+    // Missing unsupported flag must not count as a successful filter.
+    const st4 = { filterApplies: 0, countedFilters: {} };
+    API.noteFilterApply("dns", { packets: [] }, st4);
+    record("L3", "L3-19", st4.filterApplies === 0, `missing unsupported flag count=${st4.filterApplies}`);
+  })();
+
+  // regression simulation labs
   o = scoreAll(lab1, baselines.B1);
-  record("L3", "L3-09", o.complete === true, `lab1 regression`);
-
+  record("L3", "L3-13", o.complete === true, `lab1 regression`);
   o = scoreAll(lab6, baselines.B6);
-  record("L3", "L3-10", o.complete === true, `lab6 regression complete=${o.complete}`);
+  record("L3", "L3-14", o.complete === true, `lab6 regression`);
 })();
 
 

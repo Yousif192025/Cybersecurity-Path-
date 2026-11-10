@@ -1,112 +1,768 @@
 {
   "id": "lab-network-wireshark-01",
-  "version": 1,
-  "intro": "أنت تحلل مقتطف حركة مرور شبكة (PCAP تدريبي) مأخوذ من محطة عمل في بيئة خيالية. الهدف ممارسة قراءة الحزم، وتمييز البروتوكولات، وتطبيق منطق مرشحات العرض، واكتشاف مؤشرات اتصال غير معتاد — دون تشغيل Wireshark حقيقي ودون التقاط حي.",
+  "version": 2,
+  "title": "تحليل حركة مرور الشبكة — مستكشف الحزم التدريبي",
+  "intro": "تحاكي هذه التجربة واجهة تحليل حزم داخل المتصفح ببيانات اصطناعية. الهدف تدريب القراءة والتصفية والاكتشاف دون تثبيت Wireshark أو التقاط حي.",
   "context": {
-    "role": "متدرب في تحليل حركة الشبكة ضمن فريق أمن الشبكات.",
-    "environment": "مؤسسة Horizon Labs الخيالية — مقطع مصطنع لأغراض التدريب فقط.",
-    "host": "محطة FIN-WK-07 (Windows) بعنوان 10.20.5.42 داخل الشبكة 10.20.5.0/24.",
-    "baseline": "الاتصالات المعتادة: DNS الداخلي 10.20.5.10، وتصفح HTTPS لمواقع معروفة، وتحديثات نظام عبر منافذ قياسية.",
-    "task": "راجع جدول الحزم أدناه كما لو كنت تطبق Display Filters في Wireshark، ثم أجب عن المهام."
+    "org": "Horizon Labs (خيالية)",
+    "host": "FIN-WK-07",
+    "hostIp": "10.20.5.42",
+    "network": "10.20.5.0/24",
+    "dns": "10.20.5.10",
+    "role": "متدرب تحليل حركة الشبكة",
+    "scope": "مقتطف حزم مصطنع من محطة عمل بعد بلاغ عن نشاط غير معتاد",
+    "task": "استكشف الحزم، طبّق مرشحات تعليمية، حدّد المؤشرات المشبوهة، وقدّم استنتاجًا وإجراءً دفاعيًا."
   },
-  "eventsTitle": "مقتطف الحزم (محاكاة عرض Wireshark)",
-  "events": [
+  "safety": [
+    "البيانات والعناوين والنطاقات اصطناعية (مثال: example.test و TEST-NET).",
+    "لا يوجد ملف PCAP حقيقي ولا اتصال شبكي حي في هذه التجربة.",
+    "المرشحات محاكاة تعليمية لصيغ محددة وليست محرك Wireshark الكامل."
+  ],
+  "stages": [
+    {
+      "id": "intake",
+      "title": "استلام القضية"
+    },
+    {
+      "id": "explore",
+      "title": "مستكشف الحزم"
+    },
+    {
+      "id": "filters",
+      "title": "مرشحات التحليل"
+    },
+    {
+      "id": "investigate",
+      "title": "التحقيق"
+    },
+    {
+      "id": "report",
+      "title": "التقرير والتقييم"
+    }
+  ],
+  "filterHelp": [
+    "ip.addr == 10.20.5.42",
+    "ip.src == 10.20.5.42",
+    "ip.dst == 198.51.100.66",
+    "tcp.port == 8080",
+    "udp.port == 53",
+    "dns",
+    "http",
+    "tcp.flags.syn"
+  ],
+  "packets": [
     {
       "id": "p01",
-      "time": "0.000",
-      "event": "DNS  Query A  portal.horizon-labs.example",
-      "note": "10.20.5.42:53111 → 10.20.5.10:53  |  استعلام داخلي"
+      "no": 1,
+      "time": "0.000000",
+      "src": "10.20.5.42",
+      "dst": "10.20.5.10",
+      "proto": "DNS",
+      "sport": 53111,
+      "dport": 53,
+      "length": 78,
+      "info": "Standard query A portal.horizon-labs.example",
+      "layers": {
+        "eth": {
+          "src": "00:0c:29:aa:01:42",
+          "dst": "00:0c:29:aa:00:01"
+        },
+        "ip": {
+          "src": "10.20.5.42",
+          "dst": "10.20.5.10",
+          "ttl": 64
+        },
+        "udp": {
+          "sport": 53111,
+          "dport": 53
+        },
+        "dns": {
+          "qr": "query",
+          "name": "portal.horizon-labs.example",
+          "type": "A"
+        }
+      },
+      "tags": [
+        "dns",
+        "benign"
+      ]
     },
     {
       "id": "p02",
-      "time": "0.004",
-      "event": "DNS  Response A  10.20.5.20",
-      "note": "10.20.5.10:53 → 10.20.5.42:53111  |  رد طبيعي"
+      "no": 2,
+      "time": "0.004120",
+      "src": "10.20.5.10",
+      "dst": "10.20.5.42",
+      "proto": "DNS",
+      "sport": 53,
+      "dport": 53111,
+      "length": 94,
+      "info": "Standard response A 10.20.5.20",
+      "layers": {
+        "eth": {
+          "src": "00:0c:29:aa:00:01",
+          "dst": "00:0c:29:aa:01:42"
+        },
+        "ip": {
+          "src": "10.20.5.10",
+          "dst": "10.20.5.42",
+          "ttl": 64
+        },
+        "udp": {
+          "sport": 53,
+          "dport": 53111
+        },
+        "dns": {
+          "qr": "response",
+          "name": "portal.horizon-labs.example",
+          "type": "A",
+          "addr": "10.20.5.20"
+        }
+      },
+      "tags": [
+        "dns",
+        "benign"
+      ]
     },
     {
       "id": "p03",
-      "time": "0.120",
-      "event": "TCP  443  SYN",
-      "note": "10.20.5.42:49201 → 104.16.0.10:443  |  بدء جلسة HTTPS لشبكة CDN معروفة"
+      "no": 3,
+      "time": "0.120500",
+      "src": "10.20.5.42",
+      "dst": "104.16.0.10",
+      "proto": "TCP",
+      "sport": 49201,
+      "dport": 443,
+      "length": 66,
+      "info": "443 → SYN",
+      "layers": {
+        "eth": {
+          "src": "00:0c:29:aa:01:42",
+          "dst": "00:0c:29:aa:00:01"
+        },
+        "ip": {
+          "src": "10.20.5.42",
+          "dst": "104.16.0.10",
+          "ttl": 64
+        },
+        "tcp": {
+          "sport": 49201,
+          "dport": 443,
+          "flags": [
+            "SYN"
+          ],
+          "seq": 1000
+        }
+      },
+      "tags": [
+        "tcp",
+        "https",
+        "benign"
+      ]
     },
     {
       "id": "p04",
-      "time": "0.145",
-      "event": "TCP  443  SYN-ACK",
-      "note": "104.16.0.10:443 → 10.20.5.42:49201"
+      "no": 4,
+      "time": "0.145200",
+      "src": "104.16.0.10",
+      "dst": "10.20.5.42",
+      "proto": "TCP",
+      "sport": 443,
+      "dport": 49201,
+      "length": 66,
+      "info": "443 → SYN, ACK",
+      "layers": {
+        "eth": {
+          "src": "00:0c:29:aa:00:01",
+          "dst": "00:0c:29:aa:01:42"
+        },
+        "ip": {
+          "src": "104.16.0.10",
+          "dst": "10.20.5.42",
+          "ttl": 54
+        },
+        "tcp": {
+          "sport": 443,
+          "dport": 49201,
+          "flags": [
+            "SYN",
+            "ACK"
+          ],
+          "seq": 5000,
+          "ack": 1001
+        }
+      },
+      "tags": [
+        "tcp",
+        "https",
+        "benign"
+      ]
     },
     {
       "id": "p05",
-      "time": "0.160",
-      "event": "TLS  Client Hello",
-      "note": "10.20.5.42:49201 → 104.16.0.10:443  |  تشفير متوقع"
+      "no": 5,
+      "time": "0.160800",
+      "src": "10.20.5.42",
+      "dst": "104.16.0.10",
+      "proto": "TLS",
+      "sport": 49201,
+      "dport": 443,
+      "length": 512,
+      "info": "Client Hello (TLS)",
+      "layers": {
+        "eth": {
+          "src": "00:0c:29:aa:01:42",
+          "dst": "00:0c:29:aa:00:01"
+        },
+        "ip": {
+          "src": "10.20.5.42",
+          "dst": "104.16.0.10",
+          "ttl": 64
+        },
+        "tcp": {
+          "sport": 49201,
+          "dport": 443,
+          "flags": [
+            "PSH",
+            "ACK"
+          ]
+        },
+        "tls": {
+          "record": "Handshake",
+          "msg": "Client Hello"
+        }
+      },
+      "tags": [
+        "tls",
+        "https",
+        "benign"
+      ]
     },
     {
       "id": "p06",
-      "time": "1.002",
-      "event": "DNS  Query A  update-secure-login.example.test",
-      "note": "10.20.5.42:53120 → 10.20.5.10:53  |  نطاق غير مألوف"
+      "no": 6,
+      "time": "1.002300",
+      "src": "10.20.5.42",
+      "dst": "10.20.5.10",
+      "proto": "DNS",
+      "sport": 53120,
+      "dport": 53,
+      "length": 92,
+      "info": "Standard query A update-secure-login.example.test",
+      "layers": {
+        "eth": {
+          "src": "00:0c:29:aa:01:42",
+          "dst": "00:0c:29:aa:00:01"
+        },
+        "ip": {
+          "src": "10.20.5.42",
+          "dst": "10.20.5.10",
+          "ttl": 64
+        },
+        "udp": {
+          "sport": 53120,
+          "dport": 53
+        },
+        "dns": {
+          "qr": "query",
+          "name": "update-secure-login.example.test",
+          "type": "A"
+        }
+      },
+      "tags": [
+        "dns",
+        "suspicious"
+      ]
     },
     {
       "id": "p07",
-      "time": "1.010",
-      "event": "DNS  Response A  198.51.100.66",
-      "note": "10.20.5.10:53 → 10.20.5.42:53120  |  عنوان في نطاق توثيق (TEST-NET-2)"
+      "no": 7,
+      "time": "1.010100",
+      "src": "10.20.5.10",
+      "dst": "10.20.5.42",
+      "proto": "DNS",
+      "sport": 53,
+      "dport": 53120,
+      "length": 108,
+      "info": "Standard response A 198.51.100.66",
+      "layers": {
+        "eth": {
+          "src": "00:0c:29:aa:00:01",
+          "dst": "00:0c:29:aa:01:42"
+        },
+        "ip": {
+          "src": "10.20.5.10",
+          "dst": "10.20.5.42",
+          "ttl": 64
+        },
+        "udp": {
+          "sport": 53,
+          "dport": 53120
+        },
+        "dns": {
+          "qr": "response",
+          "name": "update-secure-login.example.test",
+          "type": "A",
+          "addr": "198.51.100.66"
+        }
+      },
+      "tags": [
+        "dns",
+        "suspicious"
+      ]
     },
     {
       "id": "p08",
-      "time": "1.080",
-      "event": "TCP  8080  SYN",
-      "note": "10.20.5.42:49310 → 198.51.100.66:8080  |  منفذ غير قياسي للويب"
+      "no": 8,
+      "time": "1.080400",
+      "src": "10.20.5.42",
+      "dst": "198.51.100.66",
+      "proto": "TCP",
+      "sport": 49310,
+      "dport": 8080,
+      "length": 66,
+      "info": "8080 → SYN",
+      "layers": {
+        "eth": {
+          "src": "00:0c:29:aa:01:42",
+          "dst": "00:0c:29:aa:00:01"
+        },
+        "ip": {
+          "src": "10.20.5.42",
+          "dst": "198.51.100.66",
+          "ttl": 64
+        },
+        "tcp": {
+          "sport": 49310,
+          "dport": 8080,
+          "flags": [
+            "SYN"
+          ],
+          "seq": 2000
+        }
+      },
+      "tags": [
+        "tcp",
+        "suspicious"
+      ]
     },
     {
       "id": "p09",
-      "time": "1.095",
-      "event": "TCP  8080  SYN-ACK",
-      "note": "198.51.100.66:8080 → 10.20.5.42:49310"
+      "no": 9,
+      "time": "1.095600",
+      "src": "198.51.100.66",
+      "dst": "10.20.5.42",
+      "proto": "TCP",
+      "sport": 8080,
+      "dport": 49310,
+      "length": 66,
+      "info": "8080 → SYN, ACK",
+      "layers": {
+        "eth": {
+          "src": "00:0c:29:aa:00:01",
+          "dst": "00:0c:29:aa:01:42"
+        },
+        "ip": {
+          "src": "198.51.100.66",
+          "dst": "10.20.5.42",
+          "ttl": 48
+        },
+        "tcp": {
+          "sport": 8080,
+          "dport": 49310,
+          "flags": [
+            "SYN",
+            "ACK"
+          ],
+          "seq": 9000,
+          "ack": 2001
+        }
+      },
+      "tags": [
+        "tcp",
+        "suspicious"
+      ]
     },
     {
       "id": "p10",
-      "time": "1.130",
-      "event": "HTTP  GET /agent/install HTTP/1.1",
-      "note": "10.20.5.42 → 198.51.100.66:8080  |  نص واضح بدون TLS — مسار تثبيت"
+      "no": 10,
+      "time": "1.130200",
+      "src": "10.20.5.42",
+      "dst": "198.51.100.66",
+      "proto": "HTTP",
+      "sport": 49310,
+      "dport": 8080,
+      "length": 280,
+      "info": "GET /agent/install HTTP/1.1",
+      "layers": {
+        "eth": {
+          "src": "00:0c:29:aa:01:42",
+          "dst": "00:0c:29:aa:00:01"
+        },
+        "ip": {
+          "src": "10.20.5.42",
+          "dst": "198.51.100.66",
+          "ttl": 64
+        },
+        "tcp": {
+          "sport": 49310,
+          "dport": 8080,
+          "flags": [
+            "PSH",
+            "ACK"
+          ]
+        },
+        "http": {
+          "method": "GET",
+          "path": "/agent/install",
+          "host": "update-secure-login.example.test",
+          "userAgent": "AgentSetup/0.3"
+        }
+      },
+      "tags": [
+        "http",
+        "suspicious"
+      ]
     },
     {
       "id": "p11",
-      "time": "1.400",
-      "event": "HTTP  200 OK  (application/octet-stream)",
-      "note": "198.51.100.66:8080 → 10.20.5.42  |  تنزيل ثنائي محتمل"
+      "no": 11,
+      "time": "1.210000",
+      "src": "198.51.100.66",
+      "dst": "10.20.5.42",
+      "proto": "HTTP",
+      "sport": 8080,
+      "dport": 49310,
+      "length": 420,
+      "info": "HTTP/1.1 200 OK  (application/octet-stream)",
+      "layers": {
+        "eth": {
+          "src": "00:0c:29:aa:00:01",
+          "dst": "00:0c:29:aa:01:42"
+        },
+        "ip": {
+          "src": "198.51.100.66",
+          "dst": "10.20.5.42",
+          "ttl": 48
+        },
+        "tcp": {
+          "sport": 8080,
+          "dport": 49310,
+          "flags": [
+            "PSH",
+            "ACK"
+          ]
+        },
+        "http": {
+          "status": 200,
+          "contentType": "application/octet-stream",
+          "size": "18432"
+        }
+      },
+      "tags": [
+        "http",
+        "suspicious"
+      ]
     },
     {
       "id": "p12",
-      "time": "2.500",
-      "event": "DNS  Query A  www.microsoft.com",
-      "note": "10.20.5.42:53130 → 10.20.5.10:53  |  نشاط شائع"
+      "no": 12,
+      "time": "2.050000",
+      "src": "10.20.5.42",
+      "dst": "10.20.5.10",
+      "proto": "DNS",
+      "sport": 53140,
+      "dport": 53,
+      "length": 70,
+      "info": "Standard query A www.microsoft.com",
+      "layers": {
+        "eth": {
+          "src": "00:0c:29:aa:01:42",
+          "dst": "00:0c:29:aa:00:01"
+        },
+        "ip": {
+          "src": "10.20.5.42",
+          "dst": "10.20.5.10",
+          "ttl": 64
+        },
+        "udp": {
+          "sport": 53140,
+          "dport": 53
+        },
+        "dns": {
+          "qr": "query",
+          "name": "www.microsoft.com",
+          "type": "A"
+        }
+      },
+      "tags": [
+        "dns",
+        "benign"
+      ]
     },
     {
       "id": "p13",
-      "time": "3.010",
-      "event": "TCP  8080  PSH/ACK  (keep-alive)",
-      "note": "10.20.5.42:49310 → 198.51.100.66:8080  |  استمرار الجلسة المشبوهة"
+      "no": 13,
+      "time": "2.400000",
+      "src": "10.20.5.42",
+      "dst": "198.51.100.66",
+      "proto": "TCP",
+      "sport": 49310,
+      "dport": 8080,
+      "length": 60,
+      "info": "8080 → ACK [continuation]",
+      "layers": {
+        "eth": {
+          "src": "00:0c:29:aa:01:42",
+          "dst": "00:0c:29:aa:00:01"
+        },
+        "ip": {
+          "src": "10.20.5.42",
+          "dst": "198.51.100.66",
+          "ttl": 64
+        },
+        "tcp": {
+          "sport": 49310,
+          "dport": 8080,
+          "flags": [
+            "ACK"
+          ]
+        }
+      },
+      "tags": [
+        "tcp",
+        "suspicious"
+      ]
     },
     {
       "id": "p14",
-      "time": "5.200",
-      "event": "ARP  Who has 10.20.5.1?",
-      "note": "10.20.5.42  |  اكتشاف بوابة — روتيني غالبًا"
+      "no": 14,
+      "time": "3.000000",
+      "src": "10.20.5.42",
+      "dst": "10.20.5.1",
+      "proto": "ARP",
+      "sport": null,
+      "dport": null,
+      "length": 42,
+      "info": "Who has 10.20.5.1? Tell 10.20.5.42",
+      "layers": {
+        "eth": {
+          "src": "00:0c:29:aa:01:42",
+          "dst": "ff:ff:ff:ff:ff:ff"
+        },
+        "arp": {
+          "op": "request",
+          "sender": "10.20.5.42",
+          "target": "10.20.5.1"
+        }
+      },
+      "tags": [
+        "arp",
+        "benign"
+      ]
+    },
+    {
+      "id": "p15",
+      "no": 15,
+      "time": "3.500000",
+      "src": "10.20.5.42",
+      "dst": "198.51.100.66",
+      "proto": "TCP",
+      "sport": 49400,
+      "dport": 22,
+      "length": 66,
+      "info": "22 → SYN",
+      "layers": {
+        "eth": {
+          "src": "00:0c:29:aa:01:42",
+          "dst": "00:0c:29:aa:00:01"
+        },
+        "ip": {
+          "src": "10.20.5.42",
+          "dst": "198.51.100.66",
+          "ttl": 64
+        },
+        "tcp": {
+          "sport": 49400,
+          "dport": 22,
+          "flags": [
+            "SYN"
+          ],
+          "seq": 3000
+        }
+      },
+      "tags": [
+        "tcp",
+        "suspicious",
+        "scan"
+      ]
+    },
+    {
+      "id": "p16",
+      "no": 16,
+      "time": "3.501000",
+      "src": "10.20.5.42",
+      "dst": "198.51.100.66",
+      "proto": "TCP",
+      "sport": 49401,
+      "dport": 445,
+      "length": 66,
+      "info": "445 → SYN",
+      "layers": {
+        "eth": {
+          "src": "00:0c:29:aa:01:42",
+          "dst": "00:0c:29:aa:00:01"
+        },
+        "ip": {
+          "src": "10.20.5.42",
+          "dst": "198.51.100.66",
+          "ttl": 64
+        },
+        "tcp": {
+          "sport": 49401,
+          "dport": 445,
+          "flags": [
+            "SYN"
+          ],
+          "seq": 3001
+        }
+      },
+      "tags": [
+        "tcp",
+        "suspicious",
+        "scan"
+      ]
+    },
+    {
+      "id": "p17",
+      "no": 17,
+      "time": "4.000000",
+      "src": "10.20.5.42",
+      "dst": "10.20.5.10",
+      "proto": "DNS",
+      "sport": 53150,
+      "dport": 53,
+      "length": 68,
+      "info": "Standard query A time.horizon-labs.example",
+      "layers": {
+        "eth": {
+          "src": "00:0c:29:aa:01:42",
+          "dst": "00:0c:29:aa:00:01"
+        },
+        "ip": {
+          "src": "10.20.5.42",
+          "dst": "10.20.5.10",
+          "ttl": 64
+        },
+        "udp": {
+          "sport": 53150,
+          "dport": 53
+        },
+        "dns": {
+          "qr": "query",
+          "name": "time.horizon-labs.example",
+          "type": "A"
+        }
+      },
+      "tags": [
+        "dns",
+        "benign"
+      ]
+    },
+    {
+      "id": "p18",
+      "no": 18,
+      "time": "4.200000",
+      "src": "10.20.5.42",
+      "dst": "13.107.42.14",
+      "proto": "TCP",
+      "sport": 49500,
+      "dport": 443,
+      "length": 66,
+      "info": "443 → SYN",
+      "layers": {
+        "eth": {
+          "src": "00:0c:29:aa:01:42",
+          "dst": "00:0c:29:aa:00:01"
+        },
+        "ip": {
+          "src": "10.20.5.42",
+          "dst": "13.107.42.14",
+          "ttl": 64
+        },
+        "tcp": {
+          "sport": 49500,
+          "dport": 443,
+          "flags": [
+            "SYN"
+          ],
+          "seq": 4000
+        }
+      },
+      "tags": [
+        "tcp",
+        "https",
+        "benign"
+      ]
+    }
+  ],
+  "indicatorOptions": [
+    {
+      "id": "ind-dns-suspicious",
+      "label": "استعلام DNS عن update-secure-login.example.test"
+    },
+    {
+      "id": "ind-http-install",
+      "label": "طلب HTTP GET /agent/install على المنفذ 8080"
+    },
+    {
+      "id": "ind-octet-stream",
+      "label": "استجابة application/octet-stream من مضيف غير مألوف"
+    },
+    {
+      "id": "ind-syn-scan",
+      "label": "محاولات SYN متتالية نحو منافذ 22 و445 على نفس المضيف الخارجي"
+    },
+    {
+      "id": "ind-tls-cdn",
+      "label": "جلسة TLS إلى 104.16.0.10:443 (CDN معتاد)"
+    },
+    {
+      "id": "ind-internal-dns",
+      "label": "استعلامات DNS داخلية لـ portal.horizon-labs.example"
+    },
+    {
+      "id": "ind-arp",
+      "label": "طلب ARP للبوابة 10.20.5.1"
+    },
+    {
+      "id": "ind-msft",
+      "label": "استعلام DNS عن www.microsoft.com"
+    }
+  ],
+  "responseOptions": [
+    {
+      "id": "r-block-isolate",
+      "label": "عزل المحطة منطقيًا قدر الصلاحيات، وحظر الوجهة 198.51.100.66 ومسار التحميل، وجمع الأدلة لمزيد من التحليل"
+    },
+    {
+      "id": "r-ignore",
+      "label": "تجاهل النشاط لأنه حدث عبر HTTP وليس HTTPS فقط"
+    },
+    {
+      "id": "r-reimage-all",
+      "label": "مسح كل أجهزة الشركة فورًا دون مراجعة الحزم"
+    },
+    {
+      "id": "r-allowlist",
+      "label": "إضافة update-secure-login.example.test إلى قائمة التحديثات الرسمية فورًا دون تحقق"
     }
   ],
   "instructions": [
-    "اقرأ السياق ثم صفوف الحزم بالكامل قبل الإجابة.",
-    "ميّز بين DNS/TCP/TLS/HTTP وARP من عمود الحدث والملاحظة.",
-    "عند التفكير في Display Filter، اختر المرشح الأنسب للهدف لا أطول صيغة.",
-    "اربط الاستنتاج بأرقام الحزم (مثل p06 وp10) ولا تجزم باختراق مؤكد دون دليل."
+    "افتح عدة حزم واقرأ تفاصيل الطبقات قبل الاستنتاج.",
+    "جرّب مرشحات ip/tcp/dns/http وامسحها لإعادة العرض الكامل.",
+    "ميّز النشاط المعتاد (DNS داخلي، HTTPS معروف) عن المسارات المشبوهة.",
+    "اربط الاستنتاج بأرقام الحزم لا بالتخمين."
   ],
-  "safety": [
-    "جميع العناوين والنطاقات والحزم مصطنعة للتدريب.",
-    "لا يوجد ملف PCAP حقيقي ولا التقاط من شبكة حية.",
-    "لا يُطلب تثبيت Wireshark أو فتح منافذ أو الاتصال بعناوين خارجية.",
-    "لا تنفّذ الأوامر الظاهرة في الحزم على أنظمة حقيقية."
-  ],
-  "durationNote": "المدة التقديرية 30–40 دقيقة."
+  "durationNote": "المدة المتوقعة: 30–40 دقيقة."
 }

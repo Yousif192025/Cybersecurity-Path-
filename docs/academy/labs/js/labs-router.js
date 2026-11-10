@@ -48,7 +48,8 @@
       network_assessment: "network-assessment",
       web_vulnerability_assessment: "web-vulnerability-assessment",
       cloud_security_assessment: "cloud-security-assessment",
-      digital_forensics: "digital-forensics"
+      digital_forensics: "digital-forensics",
+      packet_analysis: "packet-analysis"
     };
     return map[labType] || null;
   }
