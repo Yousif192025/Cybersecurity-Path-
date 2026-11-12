@@ -423,7 +423,25 @@
         var btn = el("button", "pt-btn pt-btn-small", "حفظ المعالجة");
         btn.type = "button";
         btn.addEventListener("click", function () {
-          Findings.setRemediation(state, f.findingId, sel.value, rat.value);
+          var res = Findings.setRemediation(
+            state,
+            f.findingId,
+            sel.value,
+            rat.value,
+            assessment
+          );
+          if (!res || !res.ok) {
+            feedback.className = "pt-feedback pt-bad";
+            var msg = "رُفضت المعالجة";
+            if (res && res.reason === "INVALID_REMEDIATION")
+              msg = "معالجة غير مناسبة / غير مقبولة لهذا السياق";
+            else if (res && res.reason === "REMEDIATION_MISMATCH")
+              msg = "المعالجة لا تطابق الثغرة المحددة";
+            else if (res && res.reason === "MISSING_REMEDIATION")
+              msg = "اختر معالجة قبل الحفظ";
+            feedback.textContent = msg + " — لم يُحفظ شيء لـ " + f.findingId;
+            return;
+          }
           Session.saveSession(state);
           renderSummary();
           renderStatus(statusEl, state, world);
@@ -513,6 +531,171 @@
     };
   }
 
+
+  function buildCompletionWorkspace(ctx) {
+    var content = ctx.content || {};
+    var assessment = ctx.assessment || {};
+    var state = ctx.state;
+    var labId = ctx.labId;
+    var statusEl = ctx.statusEl;
+    var world = ctx.world;
+
+    var wrap = el("section", "pt-completion");
+    wrap.appendChild(el("h3", null, "التقرير النهائي والمعرفة"));
+
+    var feedback = el("div", "pt-feedback");
+    wrap.appendChild(feedback);
+
+    var reportPanel = el("div", "pt-report-panel");
+    reportPanel.appendChild(el("h4", null, "التقرير النهائي"));
+    reportPanel.appendChild(
+      el(
+        "p",
+        "pt-muted",
+        "اكتب تقريرًا مبنيًا على الأدلة المثبتة. الكلمات المفتاحية وحدها لا تكفي."
+      )
+    );
+    var fieldInputs = {};
+    var templateFields =
+      (content.reportTemplate && content.reportTemplate.fields) || [];
+    if (!templateFields.length && assessment.report && assessment.report.requiredFields) {
+      templateFields = assessment.report.requiredFields.map(function (id) {
+        return { id: id, label: id, required: true };
+      });
+    }
+    templateFields.forEach(function (f) {
+      var block = el("div", "pt-report-field");
+      block.appendChild(el("label", null, f.label || f.id));
+      var ta = document.createElement("textarea");
+      ta.className = "pt-input";
+      ta.rows = 3;
+      ta.setAttribute("data-field-id", f.id);
+      if (f.placeholder) ta.placeholder = f.placeholder;
+      if (state.reportFields && state.reportFields[f.id]) ta.value = state.reportFields[f.id];
+      fieldInputs[f.id] = ta;
+      block.appendChild(ta);
+      reportPanel.appendChild(block);
+    });
+    var btnReport = el("button", "pt-btn pt-btn-small", "حفظ التقرير");
+    btnReport.type = "button";
+    function persistReport() {
+      state.reportFields = state.reportFields || {};
+      Object.keys(fieldInputs).forEach(function (fid) {
+        state.reportFields[fid] = fieldInputs[fid].value || "";
+      });
+    }
+    btnReport.addEventListener("click", function () {
+      persistReport();
+      Session.saveSession(state);
+      var scored = Findings.scoreReport(state, assessment);
+      feedback.className = "pt-feedback " + (scored.complete ? "pt-ok" : "pt-bad");
+      feedback.textContent = scored.complete
+        ? "التقرير مستوفٍ للمتطلبات."
+        : "التقرير غير مكتمل (حقول ناقصة أو لا تستوفي المتطلبات الدلالية).";
+      refreshScorePreview();
+    });
+    reportPanel.appendChild(btnReport);
+    wrap.appendChild(reportPanel);
+
+    var knowPanel = el("div", "pt-knowledge-panel");
+    knowPanel.appendChild(el("h4", null, "أسئلة المعرفة"));
+    var qList = content.knowledgeQuestions || [];
+    var answerInputs = {};
+    qList.forEach(function (q, qi) {
+      var block = el("div", "pt-know-q");
+      block.appendChild(el("div", "pt-know-prompt", qi + 1 + ". " + (q.prompt || q.id)));
+      var sel = document.createElement("select");
+      sel.className = "pt-input";
+      var empty = document.createElement("option");
+      empty.value = "";
+      empty.textContent = "— اختر —";
+      sel.appendChild(empty);
+      (q.options || []).forEach(function (opt) {
+        var o = document.createElement("option");
+        o.value = opt.id;
+        o.textContent = opt.label || opt.id;
+        sel.appendChild(o);
+      });
+      if (state.knowledgeAnswers && state.knowledgeAnswers[q.id]) {
+        sel.value = state.knowledgeAnswers[q.id];
+      }
+      answerInputs[q.id] = sel;
+      block.appendChild(sel);
+      knowPanel.appendChild(block);
+    });
+    function persistKnowledge() {
+      state.knowledgeAnswers = state.knowledgeAnswers || {};
+      Object.keys(answerInputs).forEach(function (qid) {
+        state.knowledgeAnswers[qid] = answerInputs[qid].value || "";
+      });
+    }
+    var btnKnow = el("button", "pt-btn pt-btn-small", "حفظ إجابات المعرفة");
+    btnKnow.type = "button";
+    btnKnow.addEventListener("click", function () {
+      persistKnowledge();
+      Session.saveSession(state);
+      var ks = Findings.scoreKnowledge(state, assessment);
+      feedback.className = "pt-feedback " + (ks.complete ? "pt-ok" : "pt-bad");
+      feedback.textContent =
+        "إجابات صحيحة: " + ks.correct + " / الحد الأدنى " + ks.minCorrect;
+      refreshScorePreview();
+    });
+    knowPanel.appendChild(btnKnow);
+    wrap.appendChild(knowPanel);
+
+    var finalPanel = el("div", "pt-final-panel");
+    finalPanel.appendChild(el("h4", null, "إرسال النتيجة النهائية"));
+    var scoreBox = el("div", "pt-final-score");
+    finalPanel.appendChild(scoreBox);
+    var btnFinal = el("button", "pt-btn", "احسب وأرسل النتيجة إلى صفحة النتائج");
+    btnFinal.type = "button";
+    btnFinal.addEventListener("click", function () {
+      persistReport();
+      persistKnowledge();
+      Session.saveSession(state);
+      var final = Findings.computeFinalResult(state, assessment);
+      var payload = {
+        complete: !!final.complete,
+        score: final.score,
+        passThreshold: final.passThreshold,
+        critical: !!final.critical,
+        parts: final.parts,
+        feedback: final.feedback,
+        report: final.report
+      };
+      try {
+        sessionStorage.setItem("labs:result:" + labId, JSON.stringify(payload));
+      } catch (e) {
+        feedback.className = "pt-feedback pt-bad";
+        feedback.textContent = "تعذر حفظ النتيجة في المتصفح.";
+        return;
+      }
+      scoreBox.textContent =
+        "الدرجة: " + final.score + " / 100 — " + (final.complete ? "مكتمل" : "غير مكتمل");
+      feedback.className = "pt-feedback " + (final.complete ? "pt-ok" : "pt-bad");
+      feedback.textContent = final.feedback;
+      var base = labsPageBase();
+      window.location.href = base + "results.html?id=" + encodeURIComponent(labId);
+    });
+    finalPanel.appendChild(btnFinal);
+    wrap.appendChild(finalPanel);
+
+    function refreshScorePreview() {
+      if (!Findings.computeFinalResult) return;
+      var final = Findings.computeFinalResult(state, assessment);
+      var okAxes = Object.keys(final.parts)
+        .filter(function (k) {
+          return final.parts[k];
+        })
+        .join(", ");
+      scoreBox.textContent =
+        "معاينة الدرجة: " + final.score + " / 100 — المحاور: " + (okAxes || "لا يوجد");
+    }
+    refreshScorePreview();
+
+    return { wrap: wrap, refreshScorePreview: refreshScorePreview };
+  }
+
   function buildUi(ctx) {
     var mount = ctx.mount;
     var world = ctx.world;
@@ -525,12 +708,12 @@
     var root = el("div", "lab-pt");
     mount.appendChild(root);
 
-    root.appendChild(el("h2", "pt-title", "محاكاة دورة اختبار اختراق — D2-C"));
+    root.appendChild(el("h2", "pt-title", "محاكاة دورة اختبار اختراق — D2-D"));
     root.appendChild(
       el(
         "p",
         "pt-lead",
-        "طرفية استطلاع + مساحة Findings مرتبطة بالأدلة المفتوحة. لا اتصال شبكي حقيقي."
+        "طرفية استطلاع، إثبات Findings، تقرير نهائي، معرفة، وحفظ النتيجة. لا اتصال شبكي حقيقي."
       )
     );
 
@@ -547,23 +730,78 @@
         el(
           "p",
           null,
-          "اقبل قواعد الاشتباك قبل تنفيذ أوامر الاستطلاع داخل النطاق التدريبي فقط."
+          "أكد إقرارات قواعد الاشتباك الثلاثة قبل تنفيذ أوامر الاستطلاع داخل النطاق التدريبي فقط."
         )
       );
     }
     roePanel.appendChild(roeBody);
+
+    var confList = el("div", "pt-roe-confirmations");
+    var confDefs =
+      (content.roe && content.roe.requiredConfirmations) ||
+      [
+        { id: "roe-ack-scope", text: "أؤكد أنني سأعمل فقط ضمن النطاق المدرج في التكليف." },
+        {
+          id: "roe-ack-synthetic",
+          text: "أفهم أن جميع الأهداف اصطناعية وأن المختبر لا يشغّل هجمات حقيقية."
+        },
+        {
+          id: "roe-ack-report",
+          text: "أتعهد بتمييز الحقائق المثبتة عن الافتراضات في التقرير."
+        }
+      ];
+    state.roeConfirmations = state.roeConfirmations || {};
+    var confChecks = {};
+    confDefs.forEach(function (def) {
+      var row = el("label", "pt-roe-check-row");
+      var cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.className = "pt-roe-check";
+      cb.setAttribute("data-roe-id", def.id);
+      cb.checked = !!state.roeConfirmations[def.id];
+      confChecks[def.id] = cb;
+      var span = el("span", null, def.text || def.id);
+      row.appendChild(cb);
+      row.appendChild(span);
+      confList.appendChild(row);
+      cb.addEventListener("change", function () {
+        Session.setRoeConfirmation(state, def.id, cb.checked);
+        Session.syncRoeAcceptedFlag(state, assessment);
+        Session.saveSession(state);
+        syncRoeButton();
+        if (typeof statusEl !== "undefined" && statusEl) {
+          renderStatus(statusEl, state, world);
+        }
+      });
+    });
+    roePanel.appendChild(confList);
+
     var roeBtn = el("button", "pt-btn pt-roe-accept", "قبول قواعد الاشتباك");
     roeBtn.type = "button";
     roeBtn.setAttribute("data-pt-roe-accept", "1");
+    function allConfChecked() {
+      return confDefs.every(function (d) {
+        return confChecks[d.id] && confChecks[d.id].checked;
+      });
+    }
     function syncRoeButton() {
-      if (state.roeAccepted) {
+      var full = Session.isRoeFullyAccepted
+        ? Session.isRoeFullyAccepted(state, assessment)
+        : allConfChecked();
+      if (full) {
         roeBtn.disabled = true;
         roeBtn.textContent = "تم قبول القواعد";
         roeBtn.setAttribute("aria-disabled", "true");
+        confDefs.forEach(function (d) {
+          if (confChecks[d.id]) confChecks[d.id].disabled = true;
+        });
       } else {
-        roeBtn.disabled = false;
+        roeBtn.disabled = !allConfChecked();
         roeBtn.textContent = "قبول قواعد الاشتباك";
         roeBtn.removeAttribute("aria-disabled");
+        confDefs.forEach(function (d) {
+          if (confChecks[d.id]) confChecks[d.id].disabled = false;
+        });
       }
     }
     syncRoeButton();
@@ -599,13 +837,21 @@
     side.appendChild(statusEl);
 
     roeBtn.addEventListener("click", function () {
-      if (state.roeAccepted) return;
-      state.roeAccepted = true;
+      if (Session.isRoeFullyAccepted && Session.isRoeFullyAccepted(state, assessment)) return;
+      if (!allConfChecked()) {
+        appendLine(logEl, "ROE: أكّد الإقرارات الثلاثة أولًا.", "err");
+        return;
+      }
+      confDefs.forEach(function (d) {
+        Session.setRoeConfirmation(state, d.id, true);
+        if (confChecks[d.id]) confChecks[d.id].checked = true;
+      });
+      Session.syncRoeAcceptedFlag(state, assessment);
       Session.saveSession(state);
       syncRoeButton();
       appendLine(
         logEl,
-        "RoE accepted via UI. Recon commands are now allowed within scope.",
+        "RoE confirmations accepted (3/3). Recon commands are now allowed within scope.",
         "meta"
       );
       renderStatus(statusEl, state, world);
@@ -687,7 +933,27 @@
       statusEl: statusEl
     });
 
-    appendLine(logEl, "CyberPath Pentest Terminal ready (D2-C).", "meta");
+    var completionMount = el("div", "pt-workspace pt-completion-mount");
+    root.appendChild(completionMount);
+    var completionApi = buildCompletionWorkspace({
+      state: state,
+      world: world,
+      content: content,
+      assessment: assessment,
+      statusEl: statusEl,
+      labId: labId
+    });
+    completionMount.appendChild(completionApi.wrap);
+
+    var prevOnState = onStateChange;
+    onStateChange = function () {
+      prevOnState();
+      if (completionApi && completionApi.refreshScorePreview) {
+        completionApi.refreshScorePreview();
+      }
+    };
+
+    appendLine(logEl, "CyberPath Pentest Terminal ready (D2-D).", "meta");
     appendLine(
       logEl,
       "Type 'help'. Accept RoE before recon. Open proof evidence before confirming findings.",
