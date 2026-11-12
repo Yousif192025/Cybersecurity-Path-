@@ -49,7 +49,8 @@
       web_vulnerability_assessment: "web-vulnerability-assessment",
       cloud_security_assessment: "cloud-security-assessment",
       digital_forensics: "digital-forensics",
-      packet_analysis: "packet-analysis"
+      packet_analysis: "packet-analysis",
+      penetration_testing: "penetration-testing"
     };
     return map[labType] || null;
   }

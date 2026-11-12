@@ -12,7 +12,8 @@
     "web-vulnerability-assessment": "web-vulnerability-assessment",
     "cloud-security-assessment": "cloud-security-assessment",
     "digital-forensics": "digital-forensics",
-    "packet-analysis": "packet-analysis"
+    "packet-analysis": "packet-analysis",
+    "penetration-testing": "penetration-testing"
   };
 
   function resolveRunnerKey(searchParams, labMeta) {
