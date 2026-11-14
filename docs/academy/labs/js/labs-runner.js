@@ -18,11 +18,23 @@
 
   function resolveRunnerKey(searchParams, labMeta) {
     const fromQuery = searchParams.get("runner");
-    if (fromQuery && RUNNERS[fromQuery]) return fromQuery;
-    if (labMeta && global.LabsRouter) {
-      const key = global.LabsRouter.runnerForType(labMeta.type);
-      if (key) return key;
+    const fromType =
+      labMeta && global.LabsRouter
+        ? global.LabsRouter.runnerForType(labMeta.type)
+        : null;
+
+    // إذا وُجد نوع المختبر في السجل، لا تسمح لـ runner=simulation الافتراضي
+    // أن يتجاوز مشغّلًا مختلفًا (مثل external-guided).
+    if (
+      fromType &&
+      fromQuery === "simulation" &&
+      fromType !== "simulation"
+    ) {
+      return fromType;
     }
+
+    if (fromQuery && RUNNERS[fromQuery]) return fromQuery;
+    if (fromType) return fromType;
     return null;
   }
 
@@ -30,10 +42,9 @@
     if (!container) return;
     container.innerHTML = "";
     const title = document.createElement("h2");
-    title.textContent = "Lab Runner (Phase 1)";
+    title.textContent = "تهيئة تشغيل المختبر";
     const p = document.createElement("p");
-    p.textContent =
-      "Structural placeholder only. No scenario is loaded in Phase 1.";
+    p.textContent = "جاري تحديد المشغّل وتحميل المحتوى…";
     const ul = document.createElement("ul");
     [["Lab id", labId || "(none)"], ["Runner", runnerKey || "(not selected)"]].forEach(
       function (pair) {
@@ -45,6 +56,15 @@
     container.appendChild(title);
     container.appendChild(p);
     container.appendChild(ul);
+  }
+
+  function mountRunnerError(container, message) {
+    if (!container) return;
+    container.innerHTML = "";
+    const p = document.createElement("p");
+    p.className = "phase-note";
+    p.textContent = message;
+    container.appendChild(p);
   }
 
   async function initRunnerPage() {
@@ -63,17 +83,37 @@
     const runnerKey = resolveRunnerKey(params, meta);
     mountPlaceholder(mount, runnerKey, labId);
 
-    if (runnerKey && global.LabsRunners && global.LabsRunners[runnerKey]) {
-      try {
-        global.LabsRunners[runnerKey].init({
-          mount: mount,
-          labId: labId,
-          meta: meta,
-          phase: 1
-        });
-      } catch (e) {
-        console.warn("Runner init skipped:", e);
-      }
+    if (!runnerKey) {
+      mountRunnerError(
+        mount,
+        "تعذر تحديد مشغّل المختبر. تحقق من المعرّف أو من حقل type في السجل."
+      );
+      return;
+    }
+
+    if (!global.LabsRunners || !global.LabsRunners[runnerKey]) {
+      mountRunnerError(
+        mount,
+        'المشغّل "' +
+          runnerKey +
+          '" غير محمّل. تأكد من تضمين سكربت المشغّل في run.html.'
+      );
+      return;
+    }
+
+    try {
+      global.LabsRunners[runnerKey].init({
+        mount: mount,
+        labId: labId,
+        meta: meta,
+        phase: 1
+      });
+    } catch (e) {
+      console.warn("Runner init failed:", e);
+      mountRunnerError(
+        mount,
+        "فشل تهيئة المشغّل: " + (e && e.message ? e.message : String(e))
+      );
     }
   }
 

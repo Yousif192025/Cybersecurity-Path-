@@ -41,8 +41,8 @@
     (function () {
       var id = new URLSearchParams(location.search).get("id") || "lab-soc-phishing-email-01";
       document.getElementById("lab-id-display").textContent = id;
-      document.getElementById("link-run").href =
-        LabsRouter.labRun(id, "simulation");
+      // لا نفرض runner=simulation افتراضيًا؛ يُحدَّد من نوع المختبر بعد تحميل السجل
+      document.getElementById("link-run").href = LabsRouter.labRun(id);
       LabsData.loadLabsIndex().then(function (index) {
         var lab = LabsData.getLabById(index, id);
         var mount = document.getElementById("lab-meta-mount");
@@ -65,12 +65,11 @@
           w.hidden = false;
           w.href = lab.relatedWorkshop;
         }
-        if (lab.type) {
-          document.getElementById("link-run").href = LabsRouter.labRun(
-            id,
-            LabsRouter.runnerForType(lab.type)
-          );
-        }
+        var runnerKey = lab.type ? LabsRouter.runnerForType(lab.type) : null;
+        document.getElementById("link-run").href = LabsRouter.labRun(
+          id,
+          runnerKey || undefined
+        );
       }).catch(function () {
         document.getElementById("lab-meta-mount").innerHTML =
           "<p>تعذر تحميل البيانات.</p>";
