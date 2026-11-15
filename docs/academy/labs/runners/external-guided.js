@@ -58,10 +58,14 @@
     try {
       var url = new URL(value, global.location.href);
       var host = url.hostname.toLowerCase();
-      // Exact hosts only (no subdomains). Reject embedded credentials.
+      // Exact hosts only (no random subdomains). Reject embedded credentials.
       if (url.username || url.password) return null;
       if (url.protocol !== "https:") return null;
-      if (host !== "portswigger.net" && host !== "overthewire.org") return null;
+      if (
+        host !== "portswigger.net" &&
+        host !== "overthewire.org" &&
+        host !== "app.letsdefend.io"
+      ) return null;
       return url.href;
     } catch (e) {
       return null;
@@ -184,7 +188,7 @@
         el(
           "p",
           "eg-feedback eg-bad",
-          "رابط المختبر غير صالح أو ليس على نطاق مسموح (portswigger.net / overthewire.org)."
+          "رابط المختبر غير صالح أو ليس على نطاق مسموح (portswigger.net / overthewire.org / app.letsdefend.io)."
         )
       );
     }
