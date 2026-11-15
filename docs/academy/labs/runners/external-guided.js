@@ -58,10 +58,10 @@
     try {
       var url = new URL(value, global.location.href);
       var host = url.hostname.toLowerCase();
-      if (
-        url.protocol !== "https:" ||
-        !(host === "portswigger.net" || host.endsWith(".portswigger.net"))
-      ) return null;
+      // Exact hosts only (no subdomains). Reject embedded credentials.
+      if (url.username || url.password) return null;
+      if (url.protocol !== "https:") return null;
+      if (host !== "portswigger.net" && host !== "overthewire.org") return null;
       return url.href;
     } catch (e) {
       return null;
@@ -170,14 +170,22 @@
     );
     var actions = el("div", "eg-actions");
     if (externalUrl) {
-      var a = el("a", "btn-labs btn-labs-primary eg-external-btn", "افتح المختبر على PortSwigger");
+      var a = el(
+        "a",
+        "btn-labs btn-labs-primary eg-external-btn",
+        content.externalCta || "افتح المختبر على PortSwigger"
+      );
       a.href = externalUrl;
       a.target = "_blank";
       a.rel = "noopener noreferrer";
       actions.appendChild(a);
     } else {
       actions.appendChild(
-        el("p", "eg-feedback eg-bad", "رابط المختبر غير صالح أو ليس على نطاق PortSwigger الرسمي.")
+        el(
+          "p",
+          "eg-feedback eg-bad",
+          "رابط المختبر غير صالح أو ليس على نطاق مسموح (portswigger.net / overthewire.org)."
+        )
       );
     }
     if (content.relatedInternalLabId && global.LabsRouter) {
