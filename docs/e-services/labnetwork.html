@@ -1,0 +1,531 @@
+
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>اختبار تحليل الحزم</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: ملف قضية. عمود قراءة واحد، شريط تقدم لاصق، خمس مراحل مرقمة بترتيب المختبر الفعلي، وقيم الشبكة بخط أحادي من اليسار لليمين. */
+:root{
+  --bg:#F2F4F8; --surface:#FFFFFF; --surface-2:#E9EDF4; --fg:#141A26; --muted:#566074; --line:#D3D9E4;
+  --accent:#2456D1; --accent-fg:#FFFFFF; --accent-soft:#E2EAFA;
+  --good:#17714A; --good-soft:#DCF1E7; --bad:#B3261E; --bad-soft:#FBE3E0; --warn:#85500A; --warn-soft:#FAEED2;
+  --font-ui:"IBM Plex Sans Arabic","Segoe UI",Tahoma,"Noto Naskh Arabic",system-ui,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  /* ورقة التقرير: فاتحة دائماً في الوضعين لأنها تُحوَّل إلى PDF مطبوع */
+  --paper:#FFFFFF; --ink:#111827; --ink-2:#4B5563; --rule:#D1D5DB; --ink-good:#166534; --ink-bad:#B42318; --ink-soft:#F3F4F6;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E131B; --surface:#161C27; --surface-2:#1F2735; --fg:#E7ECF4; --muted:#9AA6BB; --line:#2B3547;
+    --accent:#7EA3FF; --accent-fg:#0B1220; --accent-soft:#1B2848;
+    --good:#5FD39A; --good-soft:#12301F; --bad:#FF8A80; --bad-soft:#3A1816; --warn:#F2B35A; --warn-soft:#352610;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E131B; --surface:#161C27; --surface-2:#1F2735; --fg:#E7ECF4; --muted:#9AA6BB; --line:#2B3547;
+  --accent:#7EA3FF; --accent-fg:#0B1220; --accent-soft:#1B2848;
+  --good:#5FD39A; --good-soft:#12301F; --bad:#FF8A80; --bad-soft:#3A1816; --warn:#F2B35A; --warn-soft:#352610;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--fg); font-family:var(--font-ui); font-size:16px; line-height:1.75; direction:rtl;
+  padding-block:1rem 3.5rem;
+  padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:860px;margin:0 auto;display:grid;gap:1.4rem}
+.wrap>*{min-width:0}
+h1,h2,h3,p{margin:0}
+h1{font-size:clamp(1.6rem,4.5vw,2.2rem);line-height:1.3;font-weight:700;text-wrap:balance}
+h2{font-size:1.2rem;line-height:1.4;font-weight:700;text-wrap:balance}
+h3{font-size:1.02rem;line-height:1.7;font-weight:600}
+code,.mono{font-family:var(--font-mono);font-size:.88em;direction:ltr;unicode-bidi:isolate;display:inline-block;background:var(--surface-2);padding:0 .35em;border-radius:4px;line-height:1.5}
+.muted{color:var(--muted)}
+.top{display:grid;gap:.5rem;padding-top:.5rem}
+.eyebrow{font-family:var(--font-mono);font-size:.8rem;color:var(--accent);direction:ltr;text-align:right}
+.lead{color:var(--muted);max-width:62ch}
+
+.prog{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:.55rem 0 .6rem;border-bottom:1px solid var(--line);display:grid;gap:.4rem}
+.prog-row{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;font-size:.9rem}
+.prog-row b{font-variant-numeric:tabular-nums}
+.meter{height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden}
+.meter>i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:1rem 1.1rem}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:.9rem;margin-top:.8rem}
+.field{display:grid;gap:.3rem;min-width:0}
+.field label{font-weight:600;font-size:.92rem}
+input[type=text],input[type=search],textarea{
+  width:100%;font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:.6rem .75rem;
+}
+textarea{min-height:11rem;resize:vertical;line-height:1.8}
+input.ltr{direction:ltr;text-align:right;font-family:var(--font-mono)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.note{font-size:.85rem;color:var(--muted);margin-top:.7rem}
+
+.stage{display:grid;gap:.9rem}
+.stage-h{display:flex;gap:.8rem;align-items:flex-start;padding-top:.6rem}
+.stage-n{flex:none;display:grid;place-items:center;width:2rem;height:2rem;border-radius:50%;background:var(--accent);color:var(--accent-fg);font-weight:700;font-variant-numeric:tabular-nums;margin-top:.1rem}
+.stage-h p{color:var(--muted);font-size:.92rem;line-height:1.7}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table.pk{border-collapse:collapse;width:100%;min-width:640px;font-family:var(--font-mono);font-size:.8rem;direction:ltr;text-align:left;line-height:1.5}
+table.pk th,table.pk td{padding:.4rem .6rem;border-bottom:1px solid var(--line);white-space:nowrap}
+table.pk th{background:var(--surface-2);font-weight:500;color:var(--muted)}
+table.pk tr:last-child td{border-bottom:0}
+pre.layers{margin:0;direction:ltr;text-align:left;font-family:var(--font-mono);font-size:.8rem;line-height:1.6;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:.7rem .9rem;overflow-x:auto}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem}
+.chip{font-family:var(--font-mono);font-size:.78rem;direction:ltr;background:var(--surface-2);border-radius:999px;padding:.1rem .65rem}
+
+.q{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:1rem 1.1rem;display:grid;gap:.7rem}
+.q-h{display:flex;gap:.7rem;align-items:flex-start}
+.q-n{flex:none;font-family:var(--font-mono);font-size:.85rem;color:var(--muted);border:1px solid var(--line);border-radius:6px;min-width:2rem;text-align:center;padding:.1rem .3rem;margin-top:.15rem;font-variant-numeric:tabular-nums}
+.q-hint{font-size:.82rem;color:var(--muted)}
+.opts{display:grid;gap:.5rem}
+.opt{display:grid;grid-template-columns:auto 1fr auto;gap:.65rem;align-items:start;border:1px solid var(--line);border-radius:8px;padding:.55rem .75rem;cursor:pointer;background:var(--bg)}
+.opt:hover{border-color:var(--accent)}
+.opt input{margin-top:.45rem;accent-color:var(--accent)}
+.opt-t{min-width:0;overflow-wrap:anywhere}
+.opt-s{font-size:.8rem;font-weight:600;white-space:nowrap;padding-top:.15rem}
+.opt.ok{background:var(--good-soft);border-color:var(--good)} .opt.ok .opt-s{color:var(--good)}
+.opt.no{background:var(--bad-soft);border-color:var(--bad)} .opt.no .opt-s{color:var(--bad)}
+.opt.miss{border-color:var(--good);border-style:dashed} .opt.miss .opt-s{color:var(--good)}
+.q.done .opt{cursor:default}
+.btn{font:inherit;font-weight:600;border-radius:8px;padding:.55rem 1.1rem;border:1px solid var(--accent);background:var(--accent);color:var(--accent-fg);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.q-act{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+.verdict{font-weight:700;font-size:.92rem}
+.verdict.ok{color:var(--good)} .verdict.no{color:var(--bad)}
+.expl{background:var(--accent-soft);border-radius:8px;padding:.7rem .9rem;font-size:.93rem;line-height:1.8}
+.expl b{display:block;margin-bottom:.15rem}
+
+.ev{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.6rem}
+.ev span{font-size:.8rem;border:1px solid var(--line);border-radius:999px;padding:.1rem .7rem;color:var(--muted)}
+.ev span.on{background:var(--good-soft);border-color:var(--good);color:var(--good);font-weight:600}
+.result{display:flex;gap:1.2rem;align-items:center;flex-wrap:wrap}
+.score{display:flex;align-items:baseline;gap:.35rem;font-variant-numeric:tabular-nums}
+.score b{font-size:2.6rem;line-height:1;font-weight:700}
+.score span{color:var(--muted);font-size:1.1rem}
+.acts{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.9rem}
+.msg{margin-top:.8rem;font-size:.92rem;border-radius:8px;padding:.6rem .85rem;background:var(--surface-2)}
+.msg:empty{display:none}
+.msg.err{background:var(--bad-soft);color:var(--bad)}
+.msg.ok{background:var(--good-soft);color:var(--good)}
+.msg ul{margin:.3rem 0 0;padding-inline-start:1.2rem}
+.tbl2{width:100%;border-collapse:collapse;font-size:.9rem}
+.tbl2 th,.tbl2 td{padding:.45rem .6rem;border-bottom:1px solid var(--line);text-align:right;vertical-align:middle}
+.tbl2 th{color:var(--muted);font-weight:500;font-size:.82rem}
+.tbl2 td.n{font-variant-numeric:tabular-nums}
+.btn.sm{padding:.25rem .7rem;font-size:.82rem}
+textarea.copybox{min-height:6rem;margin-top:.7rem;font-size:.88rem}
+
+#pdfHost{position:fixed;left:-10000px;top:0;width:718px;pointer-events:none}
+.rp{width:718px;background:var(--paper);color:var(--ink);font-family:var(--font-ui);font-size:12px;line-height:1.75;direction:rtl;padding:0}
+.rp *{box-sizing:border-box}
+.rp h1{font-size:20px;line-height:1.4;margin:0 0 2px;font-weight:700}
+.rp h2{font-size:14px;margin:16px 0 8px;padding-bottom:4px;border-bottom:2px solid var(--ink);font-weight:700}
+.rp .rp-lab{font-family:var(--font-mono);font-size:10px;color:var(--ink-2);direction:ltr;text-align:right}
+.rp .rp-sub{color:var(--ink-2)}
+.rp table{width:100%;border-collapse:collapse;margin-top:10px}
+.rp th,.rp td{border:1px solid var(--rule);padding:5px 8px;text-align:right}
+.rp th{background:var(--ink-soft);width:22%;font-weight:600}
+.rp code{background:var(--ink-soft);font-size:10.5px}
+.rp .rp-q{border:1px solid var(--rule);border-radius:6px;padding:8px 10px;margin:0 0 8px;break-inside:avoid;page-break-inside:avoid}
+.rp .rp-qh{font-weight:600;margin-bottom:4px}
+.rp .rp-st{font-weight:700}
+.rp .rp-ok{color:var(--ink-good)} .rp .rp-no{color:var(--ink-bad)} .rp .rp-na{color:var(--ink-2)}
+.rp .rp-l{margin:2px 0 4px;padding-inline-start:18px}
+.rp .rp-k{color:var(--ink-2);font-size:11px}
+.rp .rp-ex{background:var(--ink-soft);border-radius:4px;padding:5px 8px;margin-top:5px;font-size:11px}
+.rp .rp-box{border:1px solid var(--rule);border-radius:6px;padding:8px 10px;white-space:pre-wrap;overflow-wrap:anywhere}
+.rp .rp-ev span{display:inline-block;border:1px solid var(--rule);border-radius:10px;padding:0 8px;margin:0 4px 4px 0;font-size:11px}
+.rp .rp-ev span.on{border-color:var(--ink-good);color:var(--ink-good);font-weight:600}
+.rp .rp-foot{margin-top:14px;color:var(--ink-2);font-size:10px}
+
+@media (prefers-reduced-motion:reduce){.meter>i{transition:none}}
+@media (max-width:520px){.opt{grid-template-columns:auto 1fr}.opt-s{grid-column:2}}
+</style>
+
+<div class="wrap" dir="rtl">
+  <header class="top">
+    <div class="eyebrow">lab-network-wireshark-01</div>
+    <h1>اختبار تحليل الحزم</h1>
+    <p class="lead">أسئلة تطبيقية على مختبر «تحليل حركة مرور الشبكة — مستكشف الحزم التدريبي». أجب عن كل سؤال ثم تحقق منه لترى الشرح العلمي، اكتب تقريرك، ثم نزّل الحل بصيغة PDF أو أرسله إلى المعلم.</p>
+  </header>
+
+  <section class="card" aria-labelledby="th">
+    <h2 id="th">بيانات المتدرب</h2>
+    <div class="fields">
+      <div class="field"><label for="fName">الاسم الكامل</label><input type="text" id="fName" autocomplete="name" placeholder="مثال: أحمد محمد العتيبي"></div>
+      <div class="field"><label for="fId">رقم الهوية</label><input type="text" id="fId" class="ltr" inputmode="numeric" autocomplete="off" placeholder="1234567890"></div>
+    </div>
+    <p class="note">يظهر اسمك ورقم هويتك في ملف PDF، وعند الإرسال يراهما مالك الصفحة والمحررون فقط، ولا يراهما بقية المتدربين.</p>
+  </section>
+
+  <div class="prog" aria-label="التقدم">
+    <div class="prog-row"><span id="progText">تم التحقق من 0 من 16</span><b id="progScore">الدرجة 0 / 16</b></div>
+    <div class="meter" aria-hidden="true"><i id="progBar"></i></div>
+  </div>
+
+  <div id="quiz" class="wrap" style="gap:1.6rem"></div>
+
+  <section class="card" id="finish" aria-labelledby="fh">
+    <h2 id="fh">التقرير الموجز</h2>
+    <p class="muted" style="font-size:.92rem">اربط أرقام الحزم والمنافذ والنطاقات باستنتاجك، واذكر ما هو معتاد وما يستحق المتابعة، ثم الإجراء الدفاعي الذي اخترته.</p>
+    <div class="field" style="margin-top:.8rem">
+      <label for="report">نص التقرير</label>
+      <textarea id="report" placeholder="مثال: رُصد من المضيف 10.20.5.42 استعلام DNS عن ... حُلّ إلى ... في الحزمة ..."></textarea>
+    </div>
+    <div class="ev" id="evChips" aria-label="تغطية الأدلة في التقرير"></div>
+    <p class="note">الشارات الخضراء تنبّهك إلى أدلة وردت في تقريرك. هي للمساعدة فقط، والمعلم هو من يقيّم التقرير.</p>
+  </section>
+
+  <section class="card" aria-labelledby="rh">
+    <h2 id="rh">النتيجة والتسليم</h2>
+    <div class="result" style="margin-top:.7rem">
+      <div class="score"><b id="resNum">0</b><span id="resTot">/ 16</span></div>
+      <p id="resLevel" class="muted" style="flex:1;min-width:14rem">أكمل الأسئلة لتظهر الخلاصة.</p>
+    </div>
+    <div class="acts">
+      <button class="btn" id="btnPdf" type="button">تحميل الحل PDF</button>
+      <button class="btn" id="btnSend" type="button">إرسال إلى المعلم</button>
+      <button class="btn ghost" id="btnCopy" type="button">نسخ ملخص النتيجة</button>
+      <button class="btn ghost" id="btnReset" type="button">إعادة الاختبار</button>
+    </div>
+    <div id="actMsg" class="msg" role="status" aria-live="polite"></div>
+    <textarea id="copyBox" class="copybox" readonly hidden aria-label="ملخص النتيجة"></textarea>
+  </section>
+
+  <section class="card" id="teacher" hidden aria-labelledby="tHead">
+    <h2 id="tHead">لوحة المعلم</h2>
+    <p class="muted" style="font-size:.9rem">إرسالات المتدربين لهذا الاختبار. تظهر هذه اللوحة لمالك الصفحة والمحررين فقط.</p>
+    <div id="tNote" class="note">جارٍ تحميل الإرسالات…</div>
+    <div class="tbl-wrap" style="margin-top:.7rem">
+      <table class="tbl2"><thead><tr><th>الاسم</th><th>رقم الهوية</th><th>الدرجة</th><th>الأدلة</th><th>وقت الإرسال</th><th></th></tr></thead><tbody id="tBody"></tbody></table>
+    </div>
+  </section>
+</div>
+<div id="pdfHost" aria-hidden="true"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+(function(){
+'use strict';
+try{document.documentElement.setAttribute('dir','rtl');document.documentElement.setAttribute('lang','ar');}catch(e){}
+var LAB='lab-network-wireshark-01', LS='cp-wlab01-v1';
+var $=function(s,r){return (r||document).querySelector(s);};
+var esc=function(s){return String(s).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});};
+var same=function(a,b){return a.length===b.length&&a.every(function(x){return b.indexOf(x)>-1;});};
+
+var STAGES=[
+ {n:1,t:'استلام القضية',d:'Horizon Labs (مؤسسة خيالية) · المضيف FIN-WK-07 · الشبكة 10.20.5.0/24 · خادم DNS المحلي 10.20.5.10. المهمة: استكشاف الحزم وتحديد المؤشرات واقتراح إجراء دفاعي.'},
+ {n:2,t:'مستكشف الحزم',d:'هذا مقتطف من الحزم التي تظهر عند تطبيق المرشح dns، مع تفاصيل طبقات الحزمة رقم 1. اقرأه ثم أجب.',
+  x:'<div class="tbl-wrap"><table class="pk" dir="ltr"><thead><tr><th>No</th><th>Time</th><th>Source</th><th>Destination</th><th>Proto</th><th>Sport</th><th>Dport</th><th>Len</th><th>Info</th></tr></thead><tbody>'+
+  [[1,'0.000000','10.20.5.42','10.20.5.10','DNS',53111,53,78,'Standard query A portal.horizon-labs.example'],
+   [2,'0.004120','10.20.5.10','10.20.5.42','DNS',53,53111,94,'Standard response A 10.20.5.20'],
+   [6,'1.002300','10.20.5.42','10.20.5.10','DNS',53120,53,92,'Standard query A update-secure-login.example.test'],
+   [7,'1.010100','10.20.5.10','10.20.5.42','DNS',53,53120,108,'Standard response A 198.51.100.66'],
+   [12,'2.050000','10.20.5.42','10.20.5.10','DNS',53140,53,70,'Standard query A www.microsoft.com'],
+   [17,'4.000000','10.20.5.42','10.20.5.10','DNS',53150,53,68,'Standard query A time.horizon-labs.example']
+  ].map(function(r){return '<tr>'+r.map(function(c){return '<td>'+esc(c)+'</td>';}).join('')+'</tr>';}).join('')+
+  '</tbody></table></div>'+
+  '<pre class="layers">Ethernet\n  Src: 00:0c:29:aa:01:42\n  Dst: 00:0c:29:aa:00:01\nInternet Protocol\n  Src: 10.20.5.42\n  Dst: 10.20.5.10\n  TTL: 64\nUser Datagram Protocol\n  Src Port: 53111\n  Dst Port: 53\nDomain Name System\n  QR: query\n  Name: portal.horizon-labs.example\n  Type: A</pre>'},
+ {n:3,t:'مرشحات التحليل',d:'المرشحات التعليمية المدعومة في المختبر هي هذه الثمانية فقط. وهي محاكاة وليست محرك Wireshark الكامل.',
+  x:'<div class="chips">'+['ip.addr == 10.20.5.42','ip.src == 10.20.5.42','ip.dst == 198.51.100.66','tcp.port == 8080','udp.port == 53','dns','http','tcp.flags.syn'].map(function(f){return '<span class="chip">'+esc(f)+'</span>';}).join('')+'</div>'},
+ {n:4,t:'التحقيق',d:'صنّف الأدلة بين مؤشرات تستحق المتابعة ونشاط معتاد، ثم اربطها ببعضها.'},
+ {n:5,t:'الاستجابة والتقييم',d:'اختر الإجراء الدفاعي المتناسب مع الأدلة، ثم اكتب تقريرك في الأسفل.'}
+];
+
+var Q=[
+ {id:1,st:1,t:'single',q:'في ملخص القضية، أي عنوانين يخصان المضيف المبلَّغ عنه <code>FIN-WK-07</code> وخادم DNS على الترتيب؟',
+  o:['المضيف <code>10.20.5.10</code> وخادم DNS <code>10.20.5.42</code>','المضيف <code>10.20.5.42</code> وخادم DNS <code>10.20.5.10</code>','المضيف <code>198.51.100.66</code> وخادم DNS <code>10.20.5.10</code>','المضيف <code>10.20.5.1</code> وخادم DNS <code>10.20.5.42</code>'],c:[1],
+  e:'المضيف المبلَّغ عنه هو <code>FIN-WK-07</code> بالعنوان <code>10.20.5.42</code> داخل الشبكة <code>10.20.5.0/24</code>، وخادم DNS المحلي هو <code>10.20.5.10</code>. تحديد أطراف القضية أولاً يمنحك العناوين التي تبني عليها كل المرشحات لاحقاً.'},
+ {id:2,st:2,t:'single',q:'في الحزمة 1 كان منفذ المصدر <code>53111</code> ومنفذ الوجهة <code>53</code>. ماذا يمثل المنفذ <code>53111</code>؟',
+  o:['منفذ خدمة DNS الرسمي','منفذ مؤقت (Ephemeral) يختاره نظام المضيف لهذا الاستعلام','منفذ HTTP بديل يدل على تنزيل ملف','منفذ SSH للإدارة عن بُعد'],c:[1],
+  e:'المنفذ <code>53</code> هو منفذ الخدمة عند الخادم. أما <code>53111</code> فرقم مؤقت يختاره نظام المضيف لكل استعلام ليعرف الرد أين يعود. لاحظ أن كل استعلام في المقتطف يستخدم منفذاً مؤقتاً مختلفاً: <code>53111</code> و<code>53120</code> و<code>53140</code> و<code>53150</code>.'},
+ {id:3,st:2,t:'single',q:'كيف نربط الاستعلام في الحزمة 6 باستجابته في الحزمة 7؟',
+  o:['بأن رقمي الحزمتين متتاليان في الترتيب','بأن طول الحزمتين (Len) متساوٍ','بأن المنفذ المؤقت <code>53120</code> هو منفذ المصدر في الاستعلام ومنفذ الوجهة في الاستجابة','بأن قيمة TTL واحدة في الحزمتين'],c:[2],
+  e:'الاستعلام في الحزمة 6 خرج من المنفذ <code>53120</code>، والاستجابة في الحزمة 7 عادت إلى المنفذ نفسه، مع تطابق الاسم المطلوب. هذا الزوج هو ما يربط الطلب بردّه. أرقام الحزم تتبع ترتيب الالتقاط فقط ولا تثبت الارتباط، وطولا الحزمتين هنا مختلفان (92 و108).'},
+ {id:4,st:2,t:'single',q:'الحزمة 7 هي استجابة DNS للنطاق <code>update-secure-login.example.test</code>. إلى أي عنوان حُلّ هذا النطاق؟',
+  o:['<code>10.20.5.20</code>','<code>10.20.5.10</code>','<code>104.16.0.10</code>','<code>198.51.100.66</code>'],c:[3],
+  e:'الاستجابة في الحزمة 7 تحلّ النطاق إلى <code>198.51.100.66</code>، وهو العنوان الذي سيُطلب حظره لاحقاً. أما <code>portal.horizon-labs.example</code> فحُلّ في الحزمة 2 إلى <code>10.20.5.20</code> داخل الشبكة. الربط بين الاسم والعنوان يتيح لك تتبع أي اتصال لاحق بذلك العنوان.'},
+ {id:5,st:2,t:'single',q:'في تفاصيل الحزمة 1 ظهر العنوان <code>00:0c:29:aa:01:42</code>. ضمن أي طبقة يقع؟',
+  o:['Ethernet (طبقة الربط)','Internet Protocol (طبقة الشبكة)','User Datagram Protocol (طبقة النقل)','Domain Name System (طبقة التطبيق)'],c:[0],
+  e:'عنوان MAC يخص طبقة الربط (Ethernet) ويعمل داخل الشبكة المحلية فقط، ويتغير عند كل قفزة. أما التوجيه بين الشبكات فيعتمد على عناوين IP في الطبقة التالية.'},
+ {id:6,st:3,t:'single',q:'أي مرشح يعرض كل الحزم المتجهة إلى الوجهة المشبوهة فقط؟',
+  o:['<code>dns</code>','<code>udp.port == 53</code>','<code>ip.dst == 198.51.100.66</code>','<code>ip.src == 10.20.5.42</code>'],c:[2],
+  e:'المرشح <code>ip.dst == 198.51.100.66</code> يحصر العرض في ما أُرسل إلى الوجهة المشبوهة وحدها، فتظهر لك أنماط الاتصال بها دون ضجيج بقية الحركة. أما <code>ip.src == 10.20.5.42</code> فيعرض كل ما أرسله المضيف إلى أي وجهة.'},
+ {id:7,st:3,t:'single',q:'عند تطبيق المرشح <code>dns</code> في المختبر، كم حزمة ظهرت من الإجمالي؟',
+  o:['6 من 18','18 من 18','12 من 18','2 من 18'],c:[0],
+  e:'المرشح <code>dns</code> أظهر الحزم 1 و2 و6 و7 و12 و17، أي 6 من 18. الحزم الاثنتا عشرة الباقية ليست DNS، فتحتاج إلى مرشحات أخرى مثل <code>http</code> و<code>tcp.flags.syn</code> و<code>tcp.port == 8080</code> لقراءتها.'},
+ {id:8,st:3,t:'single',q:'أي مرشح يعزل جلسة تنزيل الملف التي جرت على المنفذ البديل؟',
+  o:['<code>udp.port == 53</code>','<code>dns</code>','<code>ip.src == 10.20.5.42</code>','<code>tcp.port == 8080</code>'],c:[3],
+  e:'المرشح <code>tcp.port == 8080</code> يعرض أي حزمة TCP يكون أحد منفذيها 8080، فيعزل الجلسة على المنفذ البديل. أما <code>udp.port == 53</code> فخاص بحركة DNS، و<code>ip.src == 10.20.5.42</code> يعرض كل ما أرسله المضيف لا الجلسة وحدها.'},
+ {id:9,st:3,t:'single',q:'لماذا يمكن قراءة مسار الطلب <code>/agent/install</code> عند استخدام المرشح <code>http</code>؟',
+  o:['لأن المنفذ 8080 يكشف المحتوى دائماً مهما كان البروتوكول','لأن HTTP ينقل الطلب دون تشفير، فيظهر الفعل (GET) والمسار','لأن TLS يفك التشفير تلقائياً أثناء الالتقاط','لأن DNS يحتفظ بمسارات الملفات المطلوبة'],c:[1],
+  e:'HTTP يرسل الطلب نصاً مقروءاً، فيظهر الفعل <code>GET</code> والمسار <code>/agent/install</code>. لو كان الاتصال عبر TLS على المنفذ 443 لرأيت العناوين والمنافذ والأحجام فقط، دون المسار أو المحتوى.'},
+ {id:10,st:3,t:'single',q:'ماذا يفيدك المرشح <code>tcp.flags.syn</code> في هذه القضية؟',
+  o:['يكشف بدايات اتصالات TCP، فتعرف الوجهات والمنافذ التي حاول المضيف الاتصال بها','يعرض محتوى الملفات المنقولة','يعرض أسماء النطاقات المطلوبة','يعرض عناوين MAC للأجهزة'],c:[0],
+  e:'حزمة SYN هي أول خطوة في مصافحة TCP، فتكشف أي وجهة ومنفذ حاول المضيف فتح اتصال معه. تكرار SYN نحو <code>22</code> و<code>445</code> على المضيف الخارجي نفسه يشبه فحصاً للمنافذ. ملاحظة: في Wireshark الحقيقي يشمل <code>tcp.flags.syn</code> أيضاً حزم SYN-ACK، وللبدايات فقط يُستخدم <code>tcp.flags.syn == 1 &amp;&amp; tcp.flags.ack == 0</code>.'},
+ {id:11,st:4,t:'multi',q:'علّم كل المؤشرات التي تستحق المتابعة. بعض الخيارات نشاط معتاد (مشتتات).',
+  o:['جلسة TLS إلى <code>104.16.0.10:443</code> (CDN معتاد)','استعلام DNS عن <code>update-secure-login.example.test</code>','طلب ARP للبوابة <code>10.20.5.1</code>','محاولات SYN متتالية نحو المنفذين 22 و445 على المضيف الخارجي نفسه','استعلام DNS عن <code>www.microsoft.com</code>','طلب HTTP <code>GET /agent/install</code> على المنفذ 8080','استعلامات DNS داخلية لـ <code>portal.horizon-labs.example</code>','استجابة <code>application/octet-stream</code> من مضيف غير مألوف'],c:[1,3,5,7],
+  e:'المؤشرات الأربعة: النطاق الموحي بالثقة، وتنزيل ملف تثبيت عبر HTTP على منفذ بديل، واستجابة ثنائية من مضيف غير مألوف، وSYN متكرر نحو منفذي الإدارة ومشاركة الملفات على وجهة خارجية واحدة. أما ARP للبوابة وTLS إلى CDN وDNS لنطاق المؤسسة ولـ <code>www.microsoft.com</code> فنشاط معتاد. المؤشر يُحكم عليه بسياقه واجتماعه مع غيره.'},
+ {id:12,st:4,t:'single',q:'لماذا يُعدّ طلب ARP للبوابة <code>10.20.5.1</code> نشاطاً معتاداً وليس مؤشراً مشبوهاً؟',
+  o:['لأنه يحمل حمولة مشفرة','لأن البوابة خارج الشبكة المحلية','لأنه الآلية التي يعرف بها المضيف عنوان MAC للبوابة قبل أي اتصال بما وراء الشبكة المحلية','لأن ARP لا يُستخدم في الشبكات الحديثة'],c:[2],
+  e:'ARP هو الآلية التي يعرف بها المضيف عنوان MAC للبوابة قبل أي اتصال بما وراء الشبكة المحلية، فهو يسبق أي تصفح عادي. يصبح ARP محل شك فقط عند ظهور ردود متضاربة على العنوان نفسه، وهذا ليس ضمن مؤشرات هذا السيناريو.'},
+ {id:13,st:4,t:'single',q:'المنفذ <code>8080</code> ظهر في طلب التنزيل. كيف تتعامل معه تحليلياً؟',
+  o:['هو منفذ خبيث دائماً','لا قيمة له في التحليل','يستخدمه المهاجمون وحدهم','منفذ بديل مشروع في الغالب، والمشبوه هو اجتماعه مع HTTP غير مشفر وتنزيل ملف تثبيت من وجهة غير مألوفة'],c:[3],
+  e:'8080 منفذ بديل تستعمله كثير من خوادم الويب المشروعة، فلا يكفي وحده دليلاً. ما يرفع الاشتباه هو اجتماعه مع HTTP غير مشفر وطلب ملف تثبيت (<code>/agent/install</code>) من وجهة غير مألوفة.'},
+ {id:14,st:4,t:'single',q:'أي ترتيب منطقي يربط الأدلة بصورة صحيحة؟',
+  o:['SYN نحو 22 و445 ← DNS للنطاق ← تنزيل <code>/agent/install</code>','DNS للنطاق ← تنزيل <code>/agent/install</code> عبر 8080 ← استجابة ثنائية ← SYN نحو 22 و445','تنزيل <code>/agent/install</code> ← DNS للنطاق ← SYN نحو 22 و445','ARP للبوابة ← TLS إلى CDN ← تنزيل <code>/agent/install</code> ← DNS للنطاق'],c:[1],
+  e:'DNS يسبق الاتصال بالاسم بالضرورة، ثم يأتي التنزيل واستجابته، ثم محاولات الاتصال بالمنفذين 22 و445. هذا الربط يرفع الاشتباه أكثر من أي حزمة منفردة. تحقق من أزمنة حزم HTTP وSYN في المختبر لتثبيت الترتيب الدقيق في تقريرك.'},
+ {id:15,st:5,t:'single',q:'ما الإجراء الدفاعي المتوافق مع الأدلة؟',
+  o:['تجاهل النشاط لأنه حدث عبر HTTP وليس HTTPS فقط','مسح كل أجهزة الشركة فوراً دون مراجعة الحزم','عزل المحطة منطقياً قدر الصلاحيات، وحظر الوجهة <code>198.51.100.66</code> ومسار التحميل، وجمع الأدلة لمزيد من التحليل','إضافة <code>update-secure-login.example.test</code> إلى قائمة التحديثات الرسمية فوراً دون تحقق'],c:[2],
+  e:'العزل المنطقي يوقف الاتصال والانتشار المحتمل، وحظر <code>198.51.100.66</code> ومسار التحميل يقطع الوجهة، وجمع الأدلة يحفظ ما يلزم للتحقيق. الخيارات الأخرى مرفوضة: تجاهل النشاط لأنه HTTP يغفل أن نقل الملفات دون تشفير هو الخطر نفسه، والمسح الشامل استجابة مفرطة، وإضافة النطاق للتحديثات الرسمية دون تحقق تمنح الثقة لمصدر مجهول.'},
+ {id:16,st:5,t:'single',q:'لماذا يُرفض خيار «مسح كل أجهزة الشركة فوراً دون مراجعة الحزم»؟',
+  o:['لأنه يعطل العمل ويتلف الأدلة قبل تحديد نطاق الحادثة','لأن الأجهزة الأخرى محمية بالتشفير تلقائياً','لأن المسح غير ممكن تقنياً في الشبكات المؤسسية','لأن أنظمة الحماية تمنع المسح دائماً'],c:[0],
+  e:'الاستجابة يجب أن تتناسب مع الأدلة. المسح الشامل يعطل العمل في كل مكان ويتلف الأدلة قبل أن يُعرف نطاق الحادثة، بينما الأدلة هنا تشير إلى محطة واحدة ووجهة واحدة.'}
+];
+Q.forEach(function(q){q.key='q'+q.id;});
+
+var EV=[
+ ['النطاق update-secure-login',function(t){return /update-secure-login/i.test(t);}],
+ ['العنوان 198.51.100.66',function(t){return /198\.51\.100\.66/.test(t);}],
+ ['المنفذ 8080 أو المسار agent/install',function(t){return /8080|agent\/install/i.test(t);}],
+ ['المنفذان 22 و445',function(t){return /\b22\b/.test(t)&&/\b445\b/.test(t);}],
+ ['application/octet-stream',function(t){return /octet-stream/i.test(t);}],
+ ['ذكر النشاط المعتاد',function(t){return /(معتاد|طبيعي|ARP|104\.16\.0\.10|microsoft|portal\.horizon)/i.test(t);}],
+ ['رقم حزمة',function(t){return /(الحزمة|حزمة|الحزم|packet|#)\s*\d+/i.test(t);}],
+ ['الإجراء: عزل أو حظر',function(t){return /(عزل|حظر)/.test(t);}]
+];
+var evidence=function(t){return EV.map(function(e){return {l:e[0],ok:e[1](t||'')};});};
+
+var S={name:'',nid:'',report:'',a:{}};
+function load(){try{var r=localStorage.getItem(LS);if(r){var o=JSON.parse(r);if(o&&typeof o==='object'){S.name=String(o.name||'');S.nid=String(o.nid||'');S.report=String(o.report||'');S.a=(o.a&&typeof o.a==='object')?o.a:{};}}}catch(e){}}
+function save(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}}
+function st(id){return S.a[id]||(S.a[id]={p:[],c:false});}
+function normId(v){return String(v||'').replace(/[٠-٩]/g,function(d){return String('٠١٢٣٤٥٦٧٨٩'.indexOf(d));}).replace(/[۰-۹]/g,function(d){return String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d));}).replace(/\D/g,'');}
+function fmt(ms){try{return new Date(ms).toLocaleString('ar-u-nu-latn',{dateStyle:'medium',timeStyle:'short'});}catch(e){return new Date(ms).toISOString();}}
+
+function qHTML(q){
+  var s=st(q.id), done=s.c, multi=q.t==='multi';
+  var opts=q.o.map(function(o,k){
+    var picked=s.p.indexOf(k)>-1, right=q.c.indexOf(k)>-1, cls='opt', tag='';
+    if(done){
+      if(picked&&right){cls+=' ok';tag='✓ صحيح';}
+      else if(picked&&!right){cls+=' no';tag='✗ اختيار خاطئ';}
+      else if(!picked&&right){cls+=' miss';tag=multi?'← كان يجب اختياره':'← الإجابة الصحيحة';}
+    }
+    return '<label class="'+cls+'"><input type="'+(multi?'checkbox':'radio')+'" name="q'+q.id+'" value="'+k+'"'+(picked?' checked':'')+(done?' disabled':'')+'><span class="opt-t">'+o+'</span><span class="opt-s">'+tag+'</span></label>';
+  }).join('');
+  var ok=done&&same(s.p,q.c);
+  return '<article class="q'+(done?' done':'')+'" id="q-'+q.id+'" data-id="'+q.id+'">'+
+    '<div class="q-h"><span class="q-n">'+q.id+'</span><h3>'+q.q+'</h3></div>'+
+    '<p class="q-hint">'+(multi?'اختر كل الإجابات الصحيحة':'اختر إجابة واحدة')+'</p>'+
+    '<div class="opts">'+opts+'</div>'+
+    (done?'<div class="q-act"><span class="verdict '+(ok?'ok':'no')+'">'+(ok?'✓ إجابة صحيحة':'✗ إجابة غير صحيحة')+'</span></div><div class="expl"><b>الشرح العلمي</b>'+q.e+'</div>'
+         :'<div class="q-act"><button class="btn" type="button" data-check="'+q.id+'"'+(s.p.length?'':' disabled')+'>تحقق من الإجابة</button></div>')+
+  '</article>';
+}
+function stageHTML(s){
+  return '<section class="stage" id="stage-'+s.n+'" aria-labelledby="sh-'+s.n+'"><header class="stage-h"><span class="stage-n">'+s.n+'</span><div><h2 id="sh-'+s.n+'">'+s.t+'</h2><p>'+s.d+'</p></div></header>'+(s.x||'')+Q.filter(function(q){return q.st===s.n;}).map(qHTML).join('')+'</section>';
+}
+function renderQuiz(){$('#quiz').innerHTML=STAGES.map(stageHTML).join('');}
+
+function picks(){var m={};Q.forEach(function(q){var s=st(q.id);if(s.c)m[q.key]=s.p.slice().sort(function(a,b){return a-b;});});return m;}
+function scoreOf(pk){return Q.filter(function(q){return Array.isArray(pk[q.key])&&same(pk[q.key],q.c);}).length;}
+function levelText(ok,total){var p=ok/total;return p>=0.9?'ممتاز. فهمك لمنهجية التحليل متين.':p>=0.7?'جيد. راجع شروح الأسئلة التي أخطأت فيها.':'يحتاج مراجعة. أعد قراءة الشروح ثم أعد المحاولة.';}
+
+function refresh(){
+  var pk=picks(), done=Object.keys(pk).length, ok=scoreOf(pk), n=Q.length;
+  $('#progText').textContent='تم التحقق من '+done+' من '+n;
+  $('#progScore').textContent='الدرجة '+ok+' / '+n;
+  $('#progBar').style.width=Math.round(done/n*100)+'%';
+  $('#resNum').textContent=ok; $('#resTot').textContent='/ '+n;
+  $('#resLevel').textContent=done<n?'أكمل التحقق من كل الأسئلة لتظهر الخلاصة.':levelText(ok,n);
+  $('#evChips').innerHTML=evidence(S.report).map(function(e){return '<span class="'+(e.ok?'on':'')+'">'+(e.ok?'✓ ':'')+'<bdi>'+esc(e.l)+'</bdi></span>';}).join('');
+}
+
+var CAP={dl:null,db:null,uid:null,admin:false};
+var T={rows:[]};
+var capsReady=null;
+function setMsg(text,kind,list){
+  var el=$('#actMsg'); el.className='msg'+(kind?' '+kind:'');
+  el.textContent=text||'';
+  if(list&&list.length){var ul=document.createElement('ul');list.forEach(function(t){var li=document.createElement('li');li.textContent=t;ul.appendChild(li);});el.appendChild(ul);}
+}
+function validate(){
+  var miss=[], name=S.name.trim().replace(/\s+/g,' '), nid=normId(S.nid);
+  if(name.split(' ').length<2||name.length<5)miss.push({t:'اكتب اسمك الكامل (كلمتان على الأقل).',el:'fName'});
+  if(!/^\d{5,15}$/.test(nid))miss.push({t:'رقم الهوية: أرقام فقط، من 5 إلى 15 رقماً.',el:'fId'});
+  var left=Q.filter(function(q){return !st(q.id).c;}).length;
+  if(left)miss.push({t:'بقي '+left+' سؤالاً لم تتحقق منه.',el:'quiz'});
+  if(S.report.trim().length<40)miss.push({t:'اكتب التقرير الموجز (40 حرفاً على الأقل).',el:'report'});
+  return {miss:miss,name:name,nid:nid};
+}
+function guard(){
+  var v=validate();
+  if(v.miss.length){
+    setMsg('أكمل ما يلي قبل المتابعة:','err',v.miss.map(function(m){return m.t;}));
+    var el=document.getElementById(v.miss[0].el); if(el){el.scrollIntoView({block:'center'}); if(el.focus&&el.tagName!=='DIV')try{el.focus({preventScroll:true});}catch(e){}}
+    return null;
+  }
+  return v;
+}
+function record(v){return {lab:LAB,name:v.name,nid:v.nid,picks:picks(),report:S.report.trim(),savedAt:Date.now()};}
+
+function reportHTML(rec){
+  var pk=rec.picks||{}, sc=scoreOf(pk), n=Q.length, evs=evidence(rec.report||''), evn=evs.filter(function(e){return e.ok;}).length;
+  var qs=Q.map(function(q){
+    var p=pk[q.key], done=Array.isArray(p), right=done&&same(p,q.c);
+    var lst=function(a){return a.length?'<ul class="rp-l">'+a.map(function(k){return '<li>'+q.o[k]+'</li>';}).join('')+'</ul>':'<ul class="rp-l"><li>—</li></ul>';};
+    return '<div class="rp-q"><div class="rp-qh">'+q.id+'. '+q.q+'</div>'+
+      '<div class="rp-st '+(done?(right?'rp-ok':'rp-no'):'rp-na')+'">'+(done?(right?'✓ إجابة صحيحة':'✗ إجابة غير صحيحة'):'لم تُسجَّل إجابة')+'</div>'+
+      (done?'<div class="rp-k">إجابة المتدرب</div>'+lst(p):'')+
+      (done&&!right?'<div class="rp-k">الإجابة الصحيحة</div>'+lst(q.c):'')+
+      '<div class="rp-ex">'+q.e+'</div></div>';
+  }).join('');
+  return '<div class="rp" dir="rtl" lang="ar">'+
+    '<div class="rp-lab">'+LAB+'</div><h1>حل مختبر تحليل حركة مرور الشبكة</h1>'+
+    '<div class="rp-sub">مستكشف الحزم التدريبي · قضية Horizon Labs — المضيف FIN-WK-07</div>'+
+    '<table><tr><th>اسم المتدرب</th><td>'+esc(rec.name)+'</td><th>رقم الهوية</th><td><bdi>'+esc(rec.nid)+'</bdi></td></tr>'+
+    '<tr><th>الدرجة</th><td><b>'+sc+' / '+n+'</b></td><th>التاريخ</th><td>'+esc(fmt(rec.savedAt))+'</td></tr></table>'+
+    '<h2>الأسئلة والإجابات</h2>'+qs+
+    '<h2>التقرير الموجز</h2><div class="rp-box">'+esc(rec.report||'—')+'</div>'+
+    '<h2>تغطية الأدلة في التقرير ('+evn+' من '+evs.length+')</h2><div class="rp-ev">'+evs.map(function(e){return '<span class="'+(e.ok?'on':'')+'">'+(e.ok?'✓ ':'')+'<bdi>'+esc(e.l)+'</bdi></span>';}).join('')+'</div>'+
+    '<div class="rp-foot">أُنشئ هذا الملف تلقائياً من صفحة الاختبار التفاعلي. تقييم التقرير الكتابي يتم بواسطة المعلم.</div></div>';
+}
+async function makePdf(rec){
+  var host=$('#pdfHost'); host.innerHTML=reportHTML(rec);
+  try{ if(document.fonts&&document.fonts.ready)await document.fonts.ready; }catch(e){}
+  var el=host.firstElementChild;
+  try{
+    return await html2pdf().set({
+      margin:[10,10,12,10], image:{type:'jpeg',quality:0.95},
+      html2canvas:{scale:2,backgroundColor:'#ffffff',scrollY:0,windowWidth:794},
+      jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+      pagebreak:{mode:['css','legacy'],avoid:['.rp-q','h2']}
+    }).from(el).outputPdf('blob');
+  } finally { host.innerHTML=''; }
+}
+async function savePdf(rec,btn){
+  await capsReady;
+  if(!CAP.dl){setMsg('حفظ الملفات غير متاح في هذا العرض. افتح الصفحة داخل claude.ai للتحميل.','err');return;}
+  var old=btn.textContent; btn.disabled=true; btn.textContent='جارٍ إنشاء الملف…'; setMsg('');
+  try{
+    if(typeof html2pdf==='undefined')throw {code:'lib',message:'تعذّر تحميل مكتبة PDF.'};
+    var blob=await makePdf(rec);
+    var res=await CAP.dl.save({filename:'wireshark-lab-01-'+rec.nid+'.pdf',data:blob});
+    setMsg(res&&res.status==='saved'?'تم حفظ ملف PDF.':'تم تسليم الملف.','ok');
+  }catch(e){
+    if(e&&e.code==='declined')setMsg('أُلغي الحفظ. اضغط الزر مرة أخرى للمحاولة.');
+    else setMsg('تعذّر إنشاء الملف أو حفظه'+(e&&e.message?': '+e.message:'.'),'err');
+  }finally{btn.disabled=false;btn.textContent=old;}
+}
+async function onPdf(){var v=guard();if(!v)return;await savePdf(record(v),$('#btnPdf'));}
+async function onSend(){
+  var v=guard();if(!v)return;
+  await capsReady;
+  var btn=$('#btnSend');
+  if(!CAP.db||!CAP.uid){setMsg('الإرسال المباشر غير متاح في هذا العرض (يلزم تسجيل الدخول داخل claude.ai). نزّل ملف PDF وسلّمه للمعلم.','err');return;}
+  btn.disabled=true;
+  try{
+    var r=record(v);
+    await CAP.db.collection('submissions').doc(CAP.uid).set(r);
+    setMsg('تم إرسال حلّك إلى المعلم في '+fmt(r.savedAt)+'. يمكنك إعادة الإرسال لتحديثه.','ok');
+  }catch(e){
+    if(e&&e.code==='invalid_argument')setMsg('حسابك لا يملك صلاحية الإرسال. اطلب من المعلم منحك دور «مساهم» في مشاركة الصفحة، أو نزّل ملف PDF وسلّمه مباشرة.','err');
+    else if(e&&e.code==='quota_exceeded')setMsg('امتلأت سعة تخزين الصفحة. أبلغ المعلم.','err');
+    else setMsg('تعذّر الإرسال'+(e&&e.code?' ('+e.code+')':'')+'. حاول لاحقاً أو سلّم ملف PDF.','err');
+  }finally{btn.disabled=false;}
+}
+function summaryText(){
+  var pk=picks(), ok=scoreOf(pk), v=S.name.trim()||'—', id=normId(S.nid)||'—';
+  return 'نتيجة اختبار '+LAB+'\nالاسم: '+v+'\nرقم الهوية: '+id+'\nالدرجة: '+ok+' / '+Q.length+'\nالأسئلة المُجاب عنها: '+Object.keys(pk).length+'\nتغطية الأدلة في التقرير: '+evidence(S.report).filter(function(e){return e.ok;}).length+' / '+EV.length;
+}
+async function onCopy(){
+  var t=summaryText(), box=$('#copyBox');
+  try{await navigator.clipboard.writeText(t);setMsg('تم نسخ الملخص.','ok');box.hidden=true;}
+  catch(e){box.hidden=false;box.value=t;box.focus();box.select();setMsg('انسخ الملخص من الحقل أدناه.');}
+}
+var resetArmed=false,resetTimer=null;
+function onReset(){
+  var b=$('#btnReset');
+  if(!resetArmed){resetArmed=true;b.textContent='اضغط مرة أخرى للتأكيد';resetTimer=setTimeout(function(){resetArmed=false;b.textContent='إعادة الاختبار';},4000);return;}
+  clearTimeout(resetTimer);resetArmed=false;b.textContent='إعادة الاختبار';
+  S.a={};S.report='';save();$('#report').value='';renderQuiz();refresh();setMsg('بدأت اختباراً جديداً. بقي اسمك ورقم هويتك كما هما.');
+  window.scrollTo({top:0});
+}
+
+function renderTeacher(snap){
+  var rows=snap.docs.map(function(d){var x=d.data()||{};return {id:d.id,rec:x};});
+  T.rows=rows;
+  var body=$('#tBody');
+  body.innerHTML=rows.map(function(r,i){
+    var x=r.rec,pk=x.picks||{},sc=scoreOf(pk),ev=evidence(x.report||'').filter(function(e){return e.ok;}).length;
+    return '<tr><td>'+esc(x.name||'—')+'</td><td class="n"><bdi>'+esc(x.nid||'—')+'</bdi></td><td class="n">'+sc+' / '+Q.length+'</td><td class="n">'+ev+' / '+EV.length+'</td><td>'+esc(x.savedAt?fmt(x.savedAt):'—')+'</td><td><button class="btn ghost sm" type="button" data-pdf="'+i+'">PDF</button></td></tr>';
+  }).join('');
+  $('#tNote').textContent=rows.length?('عدد الإرسالات: '+rows.length):'لا توجد إرسالات بعد.';
+}
+function startTeacher(){
+  $('#teacher').hidden=false;
+  var timer=setTimeout(function(){$('#tNote').textContent='لم تصل البيانات بعد. تحقق من الاتصال.';},10000);
+  try{
+    CAP.db.collection('submissions').orderBy('savedAt','desc').limit(300).onSnapshot(function(s){clearTimeout(timer);renderTeacher(s);},function(e){clearTimeout(timer);$('#tNote').textContent='تعذّر تحميل الإرسالات'+(e&&e.code?' ('+e.code+')':'')+'.';});
+  }catch(e){clearTimeout(timer);$('#tNote').textContent='تعذّر تحميل الإرسالات.';}
+}
+async function initCaps(){
+  if(!(window.claude&&window.claude.use))return;
+  try{CAP.dl=await window.claude.use('downloads');}catch(e){}
+  try{CAP.db=await window.claude.use('db');}catch(e){}
+  try{
+    var u=await window.claude.use('user');
+    if(u){CAP.uid=await u.id();CAP.admin=await u.canEdit();}
+  }catch(e){}
+  if(CAP.db&&CAP.admin)startTeacher();
+}
+
+function init(){
+  load();
+  $('#fName').value=S.name;$('#fId').value=S.nid;$('#report').value=S.report;
+  renderQuiz();refresh();
+  $('#fName').addEventListener('input',function(e){S.name=e.target.value;save();});
+  $('#fId').addEventListener('input',function(e){S.nid=e.target.value;save();});
+  $('#report').addEventListener('input',function(e){S.report=e.target.value;save();refresh();});
+  var quiz=$('#quiz');
+  quiz.addEventListener('change',function(e){
+    var inp=e.target.closest('input[name^="q"]');if(!inp)return;
+    var card=inp.closest('.q'),id=+card.dataset.id,q=Q.filter(function(x){return x.id===id;})[0],s=st(id);
+    var v=+inp.value;
+    if(q.t==='multi'){var i=s.p.indexOf(v);if(inp.checked&&i<0)s.p.push(v);if(!inp.checked&&i>-1)s.p.splice(i,1);}
+    else s.p=[v];
+    var b=card.querySelector('[data-check]');if(b)b.disabled=s.p.length===0;
+    save();
+  });
+  quiz.addEventListener('click',function(e){
+    var b=e.target.closest('[data-check]');if(!b)return;
+    var id=+b.dataset.check,q=Q.filter(function(x){return x.id===id;})[0],s=st(id);
+    if(!s.p.length)return;
+    s.c=true;save();
+    var card=document.getElementById('q-'+id);card.outerHTML=qHTML(q);refresh();
+  });
+  $('#btnPdf').addEventListener('click',onPdf);
+  $('#btnSend').addEventListener('click',onSend);
+  $('#btnCopy').addEventListener('click',onCopy);
+  $('#btnReset').addEventListener('click',onReset);
+  $('#tBody').addEventListener('click',function(e){
+    var b=e.target.closest('[data-pdf]');if(!b)return;
+    var r=T.rows[+b.dataset.pdf];if(!r)return;
+    savePdf({lab:LAB,name:String(r.rec.name||''),nid:String(r.rec.nid||''),picks:r.rec.picks||{},report:String(r.rec.report||''),savedAt:r.rec.savedAt||Date.now()},b);
+  });
+  capsReady=initCaps();
+}
+init();
+})();
+</script>
+
+</body></html>
