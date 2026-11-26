@@ -1003,7 +1003,6 @@
         async function submitEnrollment(event) {
             event.preventDefault();
 
-            // 1. جلب المستخدم الحالي
             const { data: { user } } = await supabaseClient.auth.getUser();
             if (!user) {
                 displayMessage('يجب تسجيل الدخول أولاً لإتمام التسجيل في الدورة.', 'error');
@@ -1013,7 +1012,6 @@
                 return;
             }
 
-            // 2. جلب معرف المسار (الدورة)
             const courseSelect = document.getElementById('selectedCourse');
             const courseId = courseSelect.value;
 
@@ -1023,7 +1021,6 @@
                 return;
             }
 
-            // 3. التحقق من الموافقة على الشروط
             const agreeTermsCheckbox = document.getElementById('agreeTerms');
             if (!agreeTermsCheckbox.checked) {
                 displayMessage('الرجاء الموافقة على الشروط والأحكام وسياسة الخصوصية للمتابعة.', 'error');
@@ -1031,7 +1028,6 @@
                 return;
             }
 
-            // 4. إظهار مؤشر التحميل
             const submitButton = document.querySelector('#enrollmentForm button[type="submit"]');
             const originalText = submitButton.innerHTML;
             submitButton.disabled = true;
@@ -1039,59 +1035,51 @@
             submitButton.classList.add('loading');
 
             try {
-                // للمستخدمين الجدد (الذين لم يكملوا بياناتهم بعد) نحدث البروفايل
-                const { data: profileData, error: profileFetchError } = await supabaseClient
+                const { data: profileData } = await supabaseClient
                     .from('user_profile')
                     .select('full_name, phone, track, student_type')
                     .eq('user_id', user.id)
                     .maybeSingle();
-                
-                // إذا كانت البيانات غير مكتملة (مستخدم جديد لم يسبق له إدخال البيانات)
-                const needsProfileUpdate = !profileData || !profileData.full_name || !profileData.phone || !profileData.track;
-                
-                if (needsProfileUpdate && profileSetupFields && profileSetupFields.style.display !== 'none') {
-                    // المستخدم جديد ويجب تحديث بياناته
+
+                const needsProfileUpdate =
+                    !profileData || !profileData.full_name || !profileData.phone;
+
+                if (needsProfileUpdate && profileSetupFields &&
+                    profileSetupFields.style.display !== 'none') {
+
                     const fullName = fullNameInput ? fullNameInput.value.trim() : '';
                     const phone = phoneInput ? phoneInput.value.trim() : '';
-                    const track = userTrackSelect ? userTrackSelect.value : 'general';
-                    const studentType = studentTypeSelect ? studentTypeSelect.value : 'skill_dev';
-                    
+
                     if (!fullName || !phone) {
                         displayMessage('يرجى إدخال الاسم الكامل ورقم الهاتف.', 'error');
-                        submitButton.disabled = false;
-                        submitButton.innerHTML = originalText;
-                        submitButton.classList.remove('loading');
                         return;
                     }
-                    
-                    await updateUserProfile(user.id, {
+
+                    const profileUpdated = await updateUserProfile(user.id, {
                         full_name: fullName,
-                        phone: phone,
-                        track: track,
-                        student_type: studentType
+                        phone: phone
                     });
+
+                    if (!profileUpdated) {
+                        displayMessage('تعذر حفظ بيانات الاسم والهاتف. يرجى المحاولة لاحقاً.', 'error');
+                        return;
+                    }
                 }
-                
-                // 5. الإدراج في جدول enrollments
-                const { error } = await supabaseClient
-                    .from('enrollments')
-                    .insert([
-                        { 
-                            user_id: user.id, 
-                            course_id: courseId,
-                            completion_status: 'not_started'
-                        }
-                    ]);
+
+                const { error } = await supabaseClient.rpc(
+                    'enroll_self_in_course',
+                    { p_course_id: courseId }
+                );
 
                 if (error) {
                     if (error.code === '23505') {
                         displayMessage('أنت مسجل بالفعل في هذا المسار!', 'error');
                     } else {
-                        console.error("Error:", error.message);
+                        console.error("Enrollment RPC error:", error);
                         displayMessage('حدث خطأ أثناء التسجيل. يرجى المحاولة لاحقاً.', 'error');
                     }
                 } else {
-                    displayMessage('🎉 تم تسجيلك في المسار بنجاح! سيتم توجيهك إلى لوحة الطالب.', 'success');
+                    displayMessage('🎉 تم تأكيد تسجيلك في المسار بنجاح! سيتم توجيهك إلى لوحة الطالب.', 'success');
                     setTimeout(() => {
                         window.location.href = "../dashboards/student.html";
                     }, 2000);

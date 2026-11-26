@@ -1,130 +1,126 @@
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
 const supabase = createClient(
-    "https://suvpaunulhqfoclepwoz.supabase.co", 
+    "https://suvpaunulhqfoclepwoz.supabase.co",
     "sb_publishable_owtViRnQVEiBN3J3yQtpbw_cq-vwR7b"
 );
 
+const ROLE_ROUTES = {
+    admin: "/dashboards/admin.html",
+    instructor: "/dashboards/instructor.html",
+    student: "/dashboards/student.html"
+};
+
+async function getMyRole() {
+    const { data, error } = await supabase.rpc("get_my_role");
+
+    if (error) {
+        console.error("تعذر التحقق من دور المستخدم:", error.message);
+        return null;
+    }
+
+    const role = typeof data === "string" ? data.toLowerCase() : null;
+    return Object.prototype.hasOwnProperty.call(ROLE_ROUTES, role)
+        ? role
+        : null;
+}
+
+function applyGuestUI() {
+    document.querySelectorAll(".member-only").forEach(el => {
+        el.style.display = "none";
+    });
+    document.querySelectorAll(".guest-only").forEach(el => {
+        el.style.display = "block";
+    });
+}
+
+function applyMemberUI() {
+    document.querySelectorAll(".guest-only").forEach(el => {
+        el.style.display = "none";
+    });
+    document.querySelectorAll(".member-only").forEach(el => {
+        el.style.display = "block";
+    });
+}
+
 async function handleAccessControl() {
     const path = window.location.pathname;
-    const isAuthPage = path.includes('login.html') || path.includes('signup.html');
-    const isDashboard = path.includes('/dashboards/');
+    const isAuthPage =
+        path.includes("login.html") || path.includes("signup.html");
+    const isDashboard = path.includes("/dashboards/");
 
-    // جلب الجلسة الحالية
-    const { data: { session } } = await supabase.auth.getSession();
-    const user = session?.user;
+    const { data, error } = await supabase.auth.getSession();
 
-    // --- 1. حالة الضيف (Guest) ---
+    if (error) {
+        console.error("تعذر قراءة جلسة المستخدم:", error.message);
+    }
+
+    const user = data?.session?.user;
+
     if (!user) {
         applyGuestUI();
+
         if (isDashboard) {
-            // إذا كان في دشبورد وهو ضيف، يطرد لصفحة اللوجن
-            window.location.href = "/login.html"; 
+            window.location.replace("/login.html");
         }
         return;
     }
 
-    // --- 2. حالة المسجل (Member) ---
-    
-    // أ: إذا كان في صفحة اللوجن وهو مسجل أصلاً -> وجهه فوراً لدشبورده
-    if (isAuthPage) {
-        await redirectToDashboard(user);
+    if (isAuthPage || isDashboard) {
+        const role = await getMyRole();
+
+        if (!role) {
+            console.error("لا يوجد دور صالح لهذا الحساب.");
+            window.location.replace("/index.html");
+            return;
+        }
+
+        const correctRoute = ROLE_ROUTES[role];
+
+        if (isAuthPage || (isDashboard && !path.endsWith(correctRoute.split("/").pop()))) {
+            window.location.replace(correctRoute);
+            return;
+        }
+    }
+
+    applyMemberUI();
+}
+
+window.logout = async function () {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+        console.error("تعذر تسجيل الخروج:", error.message);
         return;
     }
 
-    // ب: إذا كان داخل الدشبورد -> تأكد أن دوره يسمح له بالتواجد في هذه الصفحة تحديداً
-    if (isDashboard) {
-        await verifyDashboardRole(user, path);
-    }
-
-    // ج: تحديث الواجهة (إخفاء/إظهار أزرار)
-    applyMemberUI(user);
-}
-
-// دالة التوجيه الذكي
-async function redirectToDashboard(user) {
-    const { data: profile } = await supabase
-        .from("user_profile")
-        .select("role")
-        .eq("user_id", user.id)
-        .single();
-
-    const role = profile?.role || 'student';
-
-    if (role === 'admin') window.location.href = "/dashboards/admin.html";
-    else if (role === 'instructor') window.location.href = "/dashboards/instructor.html";
-    else window.location.href = "/dashboards/student.html";
-}
-
-// دالة حماية الدشبوردات من دخول أدوار خاطئة (مثلاً طالب يدخل للأدمن)
-async function verifyDashboardRole(user, path) {
-    const { data: profile } = await supabase
-        .from("user_profile")
-        .select("role")
-        .eq("user_id", user.id)
-        .single();
-    
-    const role = profile?.role || 'student';
-
-    if (path.includes('admin.html') && role !== 'admin') {
-        window.location.href = "/dashboards/student.html";
-    }
-    if (path.includes('instructor.html') && role === 'student') {
-        window.location.href = "/dashboards/student.html";
-    }
-}
-
-function applyGuestUI() {
-    document.querySelectorAll('.member-only').forEach(el => el.style.display = 'none');
-    document.querySelectorAll('.guest-only').forEach(el => el.style.display = 'block');
-}
-
-function applyMemberUI(user) {
-    document.querySelectorAll('.guest-only').forEach(el => el.style.display = 'none');
-    document.querySelectorAll('.member-only').forEach(el => el.style.display = 'block');
-}
-
-// دالة تسجيل الخروج (أضفتها لك لتكون جاهزة لربطها بأي زر)
-window.logout = async function() {
-    await supabase.auth.signOut();
     window.location.href = "/index.html";
-}
+};
 
-document.addEventListener('DOMContentLoaded', handleAccessControl);
+document.addEventListener("DOMContentLoaded", handleAccessControl);
 
+// زر الدعوة إلى المسارات التعليمية
+document.addEventListener("DOMContentLoaded", () => {
+    const ctaBtn = document.getElementById("main-cta-btn");
+    let currentUser = null;
 
-
-
-
-
-document.addEventListener('DOMContentLoaded', () => {
-    const ctaBtn = document.getElementById('main-cta-btn');
-    
-    // جلب بيانات المستخدم من التخزين المحلي
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-
-    if (ctaBtn) {
-        ctaBtn.addEventListener('click', (e) => {
-            e.preventDefault(); // منع الانتقال العشوائي
-
-            if (currentUser) {
-                // حالة 1: المستخدم مسجل دخول فعلاً
-                // نوجهه مباشرة إلى المسارات التعليمية
-                window.location.href = './pathways/index.html';
-            } else {
-                // حالة 2: المستخدم ضيف (غير مسجل)
-                // نوجهه لصفحة التسجيل أولاً لإنشاء حساب
-                window.location.href = './academy/enrollment.html';
-            }
-        });
+    try {
+        currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    } catch {
+        currentUser = null;
     }
-    
 
-    // (اختياري) تغيير نص الزر إذا كان مسجلاً ليكون أكثر احترافية
-    if (currentUser && ctaBtn) {
-        ctaBtn.textContent = 'تابع رحلتك التعليمية';
+    if (!ctaBtn) return;
+
+    ctaBtn.addEventListener("click", event => {
+        event.preventDefault();
+
+        window.location.href = currentUser
+            ? "./pathways/index.html"
+            : "./academy/enrollment.html";
+    });
+
+    if (currentUser) {
+        ctaBtn.textContent = "تابع رحلتك التعليمية";
     }
 });
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="main.js"></script>

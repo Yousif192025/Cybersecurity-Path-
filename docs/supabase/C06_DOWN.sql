@@ -1,0 +1,111 @@
+-- ============================================================================
+-- C06 — CyberPath Production Remediation DOWN / Rollback
+-- Status: BLOCKED — NO EXECUTABLE ROLLBACK APPROVED
+-- Scope: Proposed rollback for C05
+--
+-- CRITICAL:
+-- This file intentionally contains no executable rollback statements.
+-- A rollback that guesses previous policies, grants, functions, or triggers
+-- could weaken security or destroy valid Production configuration.
+--
+-- Expected database effect: NONE.
+-- Do not execute this file.
+-- ============================================================================
+
+-- 1. WHY EXECUTABLE ROLLBACK IS BLOCKED
+--
+-- C05 has not been applied.
+-- Therefore, there is no verified post-C05 state to reverse.
+--
+-- A safe rollback requires exact pre-change definitions and ACLs.
+-- The historical audit is not a substitute for a fresh pre-change snapshot.
+--
+-- Required evidence:
+--   * RLS enabled and forced state for every affected table.
+--   * Complete policy definitions, including roles, USING, and WITH CHECK.
+--   * Table-level ACLs.
+--   * Column-level ACLs.
+--   * Function definitions, signatures, owners, language, and security mode.
+--   * Function EXECUTE ACLs.
+--   * Trigger definitions, enabled states, and dependencies.
+--   * Relevant default privileges and object owners.
+--   * Verified backup and documented restoration procedure.
+
+-- 2. REQUIRED SNAPSHOT LOCATION
+--
+-- Store snapshots under:
+--   docs/supabase/
+--
+-- Required snapshot artifacts:
+--   C06_PRE_RLS_STATE.sql
+--   C06_PRE_POLICIES.sql
+--   C06_PRE_TABLE_GRANTS.sql
+--   C06_PRE_COLUMN_GRANTS.sql
+--   C06_PRE_FUNCTION_DEFS.sql
+--   C06_PRE_FUNCTION_ACL.sql
+--   C06_PRE_TRIGGERS.sql
+--   C06_PRE_DEFAULT_PRIVILEGES.sql
+--
+-- These files must be generated from the actual target database by an
+-- authorized operator and reviewed before any Production change.
+--
+-- Do not fabricate snapshots from old reports or this design package.
+
+-- 3. ROLLBACK DESIGN REQUIREMENTS
+--
+-- After C05 has been validated in an isolated environment, a real rollback
+-- must be authored from the captured pre-change state.
+--
+-- It must:
+--   * Restore the exact previous RLS enabled/forced state.
+--   * Restore the exact previous policy definitions.
+--   * Restore table and column ACLs without broadening access.
+--   * Restore exact function definitions, owners, and EXECUTE ACLs.
+--   * Restore affected trigger definitions and enabled states.
+--   * Account for dependencies and object ownership.
+--   * Be safe to run transactionally where PostgreSQL permits.
+--   * Stop on unexpected schema or state differences.
+--   * Avoid dropping unrelated policies, functions, triggers, or grants.
+--
+-- A generic GRANT ALL or CREATE POLICY USING (true) is not an acceptable
+-- rollback strategy.
+
+-- 4. VALIDATION REQUIREMENTS
+--
+-- The rollback must be tested in an isolated database:
+--   1. Capture a baseline snapshot.
+--   2. Apply the validated C05 candidate.
+--   3. Verify the intended post-migration state.
+--   4. Execute the rollback.
+--   5. Re-capture the same catalog state.
+--   6. Compare the restored state with the baseline.
+--   7. Explain every intentional difference.
+--   8. Verify data integrity and application smoke tests.
+--
+-- The rollback is not accepted merely because the SQL exits successfully.
+-- Catalog equivalence and application behavior must be evidenced.
+
+-- 5. PRODUCTION RESTORE IS A SEPARATE RECOVERY PATH
+--
+-- A database backup restore is not interchangeable with a transactional
+-- DOWN migration.
+--
+-- Any restore must be performed by an authorized operator using a verified
+-- recovery procedure and an approved recovery point.
+--
+-- Never restore a Production backup into a shared or unrelated environment.
+-- Never expose backup contents, credentials, or sensitive records.
+
+-- 6. CURRENT ACCEPTANCE
+--
+-- C06 status: BLOCKED.
+-- Executable rollback: NOT PROVIDED.
+-- Isolated rollback test: NOT RUN.
+-- Production changes: NONE.
+--
+-- C05 must remain disabled until a complete rollback is authored,
+-- reviewed, and successfully tested in isolation.
+
+-- ============================================================================
+-- END C06 — NO EXECUTABLE SQL
+-- ============================================================================

@@ -1,0 +1,274 @@
+-- ============================================================================
+-- C05 — CyberPath Production Remediation UP Migration
+-- Status: DRAFT / NOT APPROVED / NOT EXECUTABLE
+-- Target: Existing CyberPath Supabase Production project
+--
+-- IMPORTANT:
+-- This file is a remediation specification, NOT an executable migration.
+-- The execution gate below deliberately aborts the transaction.
+--
+-- Do not remove the gate or execute this file until:
+--   1. Exact Production schema and ACLs have been revalidated.
+--   2. C06 contains a complete executable rollback based on verified snapshots.
+--   3. C07 passes against an isolated representative database.
+--   4. C08 prerequisites and runbook are accepted.
+--   5. Separate explicit Production approval has been obtained.
+-- ============================================================================
+
+BEGIN;
+
+DO $gate$
+BEGIN
+    RAISE EXCEPTION
+        'C05 BLOCKED: draft migration is intentionally disabled. '
+        'Do not execute on Production or any shared database.';
+END
+$gate$;
+
+-- ============================================================================
+-- The following sections describe the intended migration.
+-- They are comments only and must not be uncommented as a batch.
+-- Each section requires schema review and isolated validation.
+-- ============================================================================
+
+-- SECTION 1 — PRE-CHANGE SNAPSHOTS
+--
+-- Before any change, capture and verify:
+--   * RLS enabled/forced state for:
+--       public.user_profile
+--       public.enrollments
+--       public.learning_progress
+--       public.courses
+--       public.lessons
+--   * All policies on those five tables, including expressions and roles.
+--   * Table-level privileges for PUBLIC, anon, authenticated, service_role.
+--   * Column-level privileges for the same grantees.
+--   * Function definitions, owners, SECURITY DEFINER status, search_path,
+--     signatures, and EXECUTE ACLs.
+--   * Trigger definitions and enabled states on affected tables.
+--   * Relevant default privileges for each object owner.
+--
+-- Snapshot files must be stored under docs/supabase/.
+-- Do not rely on the old audit export as a substitute for current snapshots.
+
+-- SECTION 2 — POLICY TARGET
+--
+-- Intended target for public.user_profile:
+--   * RLS enabled.
+--   * Authenticated users may SELECT only their own profile.
+--   * No direct client INSERT, UPDATE, or DELETE.
+--   * No client policy may permit role or academic-link changes.
+--
+-- Intended target for public.enrollments:
+--   * RLS enabled.
+--   * Authenticated users may SELECT only their own enrollment rows.
+--   * No direct client INSERT, UPDATE, or DELETE.
+--
+-- Intended target for public.learning_progress:
+--   * RLS enabled.
+--   * Authenticated users may SELECT only their own progress rows.
+--   * Self-reported progress writes occur only through the approved RPC.
+--   * Trusted completion writes occur only through the trusted server path.
+--
+-- Intended target for public.courses and public.lessons:
+--   * RLS enabled.
+--   * Public SELECT remains available for open learning content.
+--   * Client-side INSERT, UPDATE, and DELETE are not permitted.
+--
+-- Do not implement a policy using USING (true) or WITH CHECK (true)
+-- on profile, enrollment, or progress data.
+
+-- SECTION 3 — POLICY REPLACEMENT
+--
+-- A future migration may replace policies on the five in-scope tables.
+-- Before dropping any policy, compare its exact definition with the approved
+-- policy inventory and record its intended disposition.
+--
+-- Do not blindly drop policies based only on table name.
+-- Do not modify policies on tables outside the approved scope.
+--
+-- Policy expressions must derive ownership from auth.uid() and must not trust
+-- a client-supplied user_id as the identity of the caller.
+
+-- SECTION 4 — TABLE AND COLUMN PRIVILEGES
+--
+-- The intended client privilege model is:
+--
+--   PUBLIC:
+--     No direct privileges on private profile, enrollment, or progress data.
+--
+--   anon:
+--     SELECT only on public courses and lessons, subject to RLS.
+--     No direct access to profile, enrollment, or progress data.
+--
+--   authenticated:
+--     SELECT only on the caller's profile, enrollments, and progress,
+--     subject to RLS.
+--     SELECT on public courses and lessons.
+--     No direct client writes to the five in-scope tables.
+--
+--   service_role:
+--     Explicitly reviewed server-side privileges only.
+--     Never expose service_role credentials to browser code.
+--
+-- The final migration must inspect and address both table-level and
+-- column-level ACLs. REVOKE ALL ON TABLE alone is not sufficient proof that
+-- column-level grants have been removed.
+--
+-- Verify effective privileges using:
+--   has_table_privilege(...)
+--   has_column_privilege(...)
+--
+-- Verify PUBLIC separately because it is represented by grantee OID 0
+-- in ACL data.
+--
+-- Do not assume historical Production grants are the desired target.
+-- Do not grant TRUNCATE, REFERENCES, TRIGGER, or MAINTAIN without a documented
+-- requirement and explicit approval.
+
+-- SECTION 5 — FUNCTION CONTRACTS
+--
+-- ensure_user_profile():
+--   * Lookup only.
+--   * Uses authenticated identity from trusted context.
+--   * Returns only the caller's existing profile.
+--   * Does not create, claim, or modify profiles.
+--   * Missing profile produces profile_requires_provisioning.
+--
+-- report_lesson_activity():
+--   * Authenticated self-reported progress only.
+--   * Caller identity must be derived from auth.uid().
+--   * Cannot update another user's progress.
+--   * Rejects 100 when reserved for trusted completion.
+--   * Must not grant certificates, exam passes, or entitlements.
+--
+-- trust_set_lesson_progress():
+--   * Server-side trusted operation only.
+--   * EXECUTE denied to PUBLIC, anon, and authenticated.
+--   * EXECUTE granted only to the approved server-side role.
+--   * Validates target user, lesson, and 0–100 progress range.
+--
+-- Before replacing any function, verify its exact signature and overloads.
+-- SECURITY DEFINER functions require a reviewed owner and fixed safe
+-- search_path. A fixed search_path alone does not make a function safe.
+--
+-- Explicitly review EXECUTE ACLs for each signature. Do not use broad
+-- default EXECUTE assumptions.
+
+-- SECTION 6 — TRIGGER REVIEW
+--
+-- handle_student_linking():
+--   * Email local-part matching is not acceptable academic verification.
+--   * Must not automatically claim or link an academic profile.
+--   * Replacement requires the independently verified workflow in C03.
+--
+-- on_auth_user_created:
+--   * Capture exact trigger definition and dependencies before any change.
+--   * Do not remove or replace it until signup and profile provisioning
+--     behavior has been tested in isolation.
+--
+-- enroll_student_in_path_courses():
+--   * Resolve the ambiguous LIMIT 1 learning-path selection.
+--   * Confirm the product requirement and deterministic selection rule.
+--   * Confirm enrollment semantics before changing the trigger.
+--
+-- log_role_changes():
+--   * Audit only; not an authorization control.
+--   * Review SECURITY DEFINER ownership, search_path, and sensitive logging.
+--
+-- No trigger change is authorized by this draft.
+
+-- SECTION 7 — REQUIRED POST-MIGRATION ASSERTIONS
+--
+-- A validated migration must prove:
+--   * RLS is enabled on all five in-scope tables.
+--   * No unauthorized permissive policy remains.
+--   * anon cannot read private profile, enrollment, or progress rows.
+--   * Authenticated users cannot read another user's private rows.
+--   * Authenticated users cannot directly modify protected profile fields.
+--   * Authenticated users cannot directly write protected enrollment rows.
+--   * Authenticated users cannot directly write trusted progress values.
+--   * Public SELECT on courses and lessons remains available.
+--   * Column-level privileges do not bypass the intended table ACL model.
+--   * Function EXECUTE privileges match the approved C02/C04 matrix.
+--   * service_role is not exposed to client-side application code.
+--   * Existing data integrity and foreign-key relationships remain valid.
+--
+-- These assertions must be executed and evidenced in an isolated environment
+-- before Production approval.
+
+-- SECTION 8 — DEFAULT PRIVILEGES
+--
+-- Default privileges remain an external blocker.
+-- The previous audit identified broad default privileges for anon,
+-- authenticated, postgres, and service_role.
+--
+-- Do not modify ALTER DEFAULT PRIVILEGES in this migration until:
+--   * Actual object owners are confirmed.
+--   * Current default ACLs are captured.
+--   * Future table/function/sequence requirements are documented.
+--   * The effect on existing application behavior is tested.
+--   * A matching rollback is available.
+--
+-- Existing object ACL remediation does not automatically remediate
+-- default privileges for future objects.
+
+-- SECTION 9 — COMPLETION REQUIREMENTS
+--
+-- C05 cannot be marked READY until:
+--   * C06 provides an executable, evidence-backed rollback.
+--   * C07 passes all automated isolated tests.
+--   * Required manual backend/PostgREST checks pass.
+--   * C08 runbook is complete and approved.
+--   * C09 risks and blockers are dispositioned.
+--   * C10 acceptance report records actual test evidence.
+--   * Separate explicit Production approval is recorded.
+--
+-- No Production SQL has been executed by creating this document.
+
+ROLLBACK;
+
+-- ============================================================================
+-- END C05 DRAFT
+-- Expected database effect: NONE.
+-- The deliberate exception aborts the transaction before any migration work.
+-- ============================================================================
+
+
+-- ============================================================================
+-- REVIEW ADDENDUM — SENSITIVE PROFILE READ BOUNDARY
+-- Status: DESIGN REQUIREMENT — NOT IMPLEMENTED OR PRODUCTION-APPROVED
+-- ============================================================================
+--
+-- RLS row isolation does not provide column-level confidentiality.
+-- A policy that permits a user to SELECT their own user_profile row may
+-- still expose every selectable column in that row.
+--
+-- In particular, national_id, student_number, role, institutional
+-- verification state, and other security-sensitive attributes must not
+-- become ordinary client-readable fields merely because the row belongs
+-- to the authenticated caller.
+--
+-- Before defining any authenticated SELECT grant:
+--   1. Inspect the exact Production table definition and column ACLs.
+--   2. Define an explicit allowlist of ordinary profile fields.
+--   3. Choose and review a safe projection or dedicated read interface.
+--   4. Ensure the interface cannot expose sensitive fields through
+--      wildcard selection, composite-row returns, or nested API relations.
+--   5. Review function/view ownership, security mode, dependencies,
+--      RLS interaction, and effective privileges.
+--   6. Verify own-user and cross-user behavior through the actual API path.
+--
+-- Do not grant unrestricted table SELECT on user_profile as a shortcut.
+-- Do not assume column grants alone are safe without checking table-level
+-- grants, inherited privileges, views, functions, and API exposure.
+--
+-- ensure_user_profile() must not return the complete user_profile row
+-- to ordinary client callers.
+--
+-- The exact allowlist and interface remain unresolved until the actual
+-- schema and application response contract are reviewed.
+--
+-- Expected database effect: NONE. Documentation only.
+-- No SQL, DDL, DML, GRANT, REVOKE, or Production authorization is granted.
+-- ============================================================================

@@ -1,0 +1,408 @@
+-- ============================================================================
+-- C07 — CyberPath Security Validation
+-- Status: TEST SPECIFICATION / NOT EXECUTED
+-- Target: Isolated non-Production database only
+--
+-- IMPORTANT:
+-- This file is a validation specification.
+-- It is not an executable test suite yet.
+-- Do not execute on Production.
+--
+-- C05 remains disabled and C06 remains blocked.
+-- Actual tests require a verified schema and isolated test fixtures.
+-- ============================================================================
+
+-- 0. EXECUTION SAFETY GATE
+--
+-- No test fixtures are inserted by this document.
+-- No roles, policies, grants, functions, or triggers are modified.
+-- No Production connection is authorized.
+--
+-- Before converting this specification into executable tests:
+--   * Confirm the isolated database is not Production.
+--   * Confirm the exact schema and constraints.
+--   * Confirm test roles and auth.uid() simulation.
+--   * Confirm fixture cleanup and transaction rollback behavior.
+--   * Confirm C05 candidate and C06 rollback are available.
+
+-- ============================================================================
+-- 1. CATALOG AND RLS VALIDATION
+-- ============================================================================
+
+-- Required tables:
+--   public.user_profile
+--   public.enrollments
+--   public.learning_progress
+--   public.courses
+--   public.lessons
+
+-- Required evidence for each table:
+--   * Table exists.
+--   * RLS enabled.
+--   * RLS forced state recorded.
+--   * Complete policy list captured.
+--   * Table-level ACL captured.
+--   * Column-level ACL captured.
+--
+-- Acceptance:
+--   RLS must be enabled on all five in-scope tables.
+--   No unexpected permissive policy may remain.
+--   No client privilege may bypass the intended RLS model.
+
+-- ============================================================================
+-- 2. ANONYMOUS ACCESS TESTS
+-- ============================================================================
+
+-- A1 — Public learning content
+--
+-- Role: anon
+-- Expected:
+--   SELECT on public.courses is allowed for public content.
+--   SELECT on public.lessons is allowed for public content.
+--   RLS must not expose unpublished or restricted content if such
+--   publication controls exist.
+--
+-- Do not invent a publication column.
+-- First establish the actual publication model from the schema.
+
+-- A2 — Private learner data
+--
+-- Role: anon
+-- Tables:
+--   public.user_profile
+--   public.enrollments
+--   public.learning_progress
+--
+-- Expected:
+--   Direct access is denied, or no private rows are visible.
+--   A permission error is an acceptable denial.
+--   A successful query returning zero rows is acceptable only when the
+--   test proves that matching fixture rows exist and are hidden.
+--
+-- The test must distinguish permission denial from an empty test dataset.
+
+-- ============================================================================
+-- 3. AUTHENTICATED USER ISOLATION
+-- ============================================================================
+
+-- A3 — Own-row and cross-user isolation
+--
+-- Create two synthetic users in an isolated database:
+--   User A
+--   User B
+--
+-- Create verified fixture rows for both users in:
+--   user_profile
+--   enrollments
+--   learning_progress
+--
+-- Also create any required NULL-owner fixture only if the actual schema
+-- permits it and its foreign-key constraints are satisfied.
+--
+-- Under User A's authenticated context, prove:
+--   * User A can read User A's permitted rows.
+--   * User A cannot read User B's private rows.
+--   * User A cannot read unowned rows.
+--
+-- Repeat under User B's context.
+--
+-- Assertions must verify fixture counts before testing visibility.
+-- A zero-row result without confirmed fixtures is not a passing test.
+--
+-- All synthetic fixtures must be rolled back or safely removed.
+
+-- ============================================================================
+-- 4. PROFILE AND ROLE PROTECTION
+-- ============================================================================
+
+-- A4 — Direct role escalation
+--
+-- Role: authenticated User A
+-- Attempt:
+--   Change the caller's user_profile.role to admin.
+--
+-- Expected:
+--   The operation is denied.
+--   The stored role remains unchanged.
+--
+-- The test must verify both the denial and the unchanged stored value.
+-- A failed UPDATE alone is insufficient if the role was already changed
+-- through another path.
+
+-- A5 — ensure_user_profile()
+--
+-- Role: authenticated User A
+-- Existing profile:
+--   The function returns only User A's existing profile.
+--
+-- Missing profile:
+--   The function raises or returns the documented
+--   profile_requires_provisioning condition.
+--
+-- Expected:
+--   The function does not create a profile.
+--   The function does not claim an unlinked profile.
+--   The function does not match by email or email local-part.
+--
+-- Verify the exact function signature before writing the executable test.
+-- Do not assume unverified output column names.
+
+-- ============================================================================
+-- 5. SELF-REPORTED LEARNING PROGRESS
+-- ============================================================================
+
+-- A6 — report_lesson_activity()
+--
+-- Role: authenticated User A
+--
+-- Valid test:
+--   Submit an allowed self-reported progress value, such as 45.
+--   Verify exactly the intended User A progress record changed.
+--
+-- Invalid completion test:
+--   Submit 100 when 100 is reserved for trusted completion.
+--
+-- Expected:
+--   The operation rejects the reserved value.
+--   No progress row is incorrectly marked as trusted completion.
+--
+-- Cross-user test:
+--   Attempt to submit progress for User B.
+--
+-- Expected:
+--   The operation rejects the request or derives User A from auth.uid()
+--   and never modifies User B's record.
+
+-- ============================================================================
+-- 6. TRUSTED PROGRESS PATH
+-- ============================================================================
+
+-- A7 — Authenticated denial
+--
+-- Role: authenticated
+-- Attempt to execute trust_set_lesson_progress().
+--
+-- Expected:
+--   EXECUTE is denied.
+--
+-- A8 — Server-side trusted operation
+--
+-- Role: service_role in an isolated backend test environment
+--
+-- Verify:
+--   * The exact intended function signature is executable.
+--   * Valid progress is accepted.
+--   * Invalid progress outside 0..100 is rejected.
+--   * The intended user and lesson are updated.
+--   * Audit behavior is correct.
+--
+-- SET ROLE service_role in psql is only a database-role test.
+-- It does not prove the actual application server or PostgREST integration.
+--
+-- A separate isolated backend test must prove that:
+--   * The service credential exists only on the server.
+--   * The browser cannot obtain or use the service credential.
+--   * The server invokes only the approved trusted operation.
+--   * Ordinary authenticated requests cannot reach that privileged path.
+
+-- ============================================================================
+-- 7. ACADEMIC IDENTITY LINKING
+-- ============================================================================
+
+-- M1 — Email local-part
+-- An email local-part matching a student number must not link a profile.
+--
+-- M2 — Email address
+-- An email match alone must not link an academic profile.
+--
+-- M3 — Student identifier
+-- Knowledge or submission of another student's number must not prove
+-- ownership of that academic record.
+--
+-- M4 — Existing link conflict
+-- A record linked to User A cannot be claimed by User B.
+--
+-- M5 — Concurrent requests
+-- Two concurrent linking requests cannot claim the same academic record.
+--
+-- M6 — Failed verification
+-- Failed or ambiguous verification must leave the existing link unchanged.
+--
+-- M7 — Auth signup
+-- Creating an Auth user must not silently claim an academic profile.
+--
+-- These tests require the approved independent institutional verification
+-- workflow described in C03. Until that workflow exists, academic self-service
+-- linking remains blocked.
+
+-- ============================================================================
+-- 8. TRIGGER VALIDATION
+-- ============================================================================
+
+-- T1 — handle_student_linking()
+-- Confirm email-local-part matching cannot create an academic link.
+--
+-- T2 — on_auth_user_created
+-- Confirm signup does not silently claim an existing academic profile.
+--
+-- T3 — enroll_student_in_path_courses()
+-- Confirm path selection is deterministic and follows an approved rule.
+-- Confirm ambiguous matches do not create arbitrary enrollment.
+--
+-- T4 — log_role_changes()
+-- Confirm ordinary users cannot change roles and audit records cannot be
+-- modified by unauthorized users.
+--
+-- All trigger tests require exact pre-change definitions and dependencies.
+
+-- ============================================================================
+-- 9. DEFAULT PRIVILEGES
+-- ============================================================================
+
+-- D1 — Capture default privileges for actual object owners.
+-- D2 — Verify future tables do not receive unintended client privileges.
+-- D3 — Verify future functions do not receive unintended EXECUTE privileges.
+-- D4 — Verify sequence privileges are limited to documented requirements.
+--
+-- Default privilege changes must have their own reviewed rollback.
+-- C05 does not currently remediate default privileges.
+
+-- ============================================================================
+-- 10. ROLLBACK VALIDATION
+-- ============================================================================
+
+-- R1 — Capture baseline catalog snapshots.
+-- R2 — Apply the validated C05 candidate in isolation.
+-- R3 — Verify all intended post-migration assertions.
+-- R4 — Execute the completed C06 rollback.
+-- R5 — Re-capture the same catalog state.
+-- R6 — Compare restored state with baseline.
+-- R7 — Explain every intentional difference.
+-- R8 — Verify application smoke tests and data integrity.
+--
+-- C06 currently has no executable rollback.
+-- Therefore this section is BLOCKED and cannot pass.
+
+-- ============================================================================
+-- 11. ACCEPTANCE MATRIX
+-- ============================================================================
+
+-- A1-A8: NOT RUN
+-- M1-M7: NOT RUN
+-- T1-T4: NOT RUN
+-- D1-D4: NOT RUN
+-- R1-R8: BLOCKED
+--
+-- No test result may be marked PASS without captured execution evidence.
+-- Expected denial is a successful security outcome, but the test harness
+-- must also verify that the protected data remained unchanged.
+
+-- ============================================================================
+-- 12. FINAL STATUS
+-- ============================================================================
+
+-- C07 status: TEST SPECIFICATION ONLY.
+-- Automated test execution: NOT RUN.
+-- Manual backend validation: NOT RUN.
+-- Rollback validation: BLOCKED BY C06.
+-- Production validation: NOT AUTHORIZED.
+--
+-- C05 must remain disabled until C06 and C07 are complete and accepted.
+
+-- ============================================================================
+-- END C07
+-- ============================================================================
+
+-- ## Review Addendum — Extended Validation Requirements X1–X6
+--
+-- These are test specifications only. They are not executable SQL and have NOT been run.
+--
+-- - X1 — Schema and function privileges: inspect schema USAGE and every function signature and effective EXECUTE ACL for PUBLIC, anon, authenticated, and service_role.
+-- - X2 — Column and sequence privileges: inspect column-level ACLs and sequence privileges, including any sequence used by scoped tables.
+-- - X3 — Sensitive profile fields: verify that `national_id` and `student_number` are not exposed through own-row or cross-user reads unless explicitly approved.
+-- - X4 — Concurrency and idempotency: test simultaneous progress updates, repeated requests, and duplicate enrollment attempts; verify deterministic final state.
+-- - X5 — Privileged server path: verify service_role credentials are never returned to or embedded in browser-visible code, responses, or public routes. Exercise the actual server-side authorization path in an isolated environment.
+-- - X6 — Publication boundary: verify anon can read approved public content but cannot read drafts, unpublished content, or private course material.
+--
+-- Additional assertions:
+--
+-- - A denied write must be followed by a read proving the stored value remained unchanged.
+-- - Cross-user tests must use distinct real test identities in a representative isolated auth context.
+-- - Test both expected denial and expected success paths.
+-- - Do not treat SET ROLE service_role as proof of backend integration.
+-- - Record environment, date, method, expected result, actual result, and reviewer for every test.
+--
+-- Status: NOT RUN. This addendum does not authorize Production execution.
+
+
+-- ============================================================================
+-- REVIEW ADDENDUM — TEST CONTEXT AND FIXTURE SAFETY
+-- Status: TEST SPECIFICATION ONLY — NOT RUN
+-- ============================================================================
+--
+-- 1. AUTHENTICATION CONTEXT
+--
+-- Do not assume that arbitrary set_config() values reproduce Supabase
+-- authentication or auth.uid() behavior.
+--
+-- Before relying on an authenticated test context:
+--   * Inspect the installed Supabase auth.uid() implementation and version.
+--   * Use the supported isolated Auth/PostgREST test mechanism.
+--   * Verify the effective database role and JWT claim context together.
+--   * Prove that User A and User B resolve to distinct expected identities.
+--   * Record the exact test harness and its limitations.
+--
+-- SET ROLE alone does not establish an authenticated API request.
+-- A hand-crafted GUC alone does not establish a valid signed JWT.
+--
+-- 2. AUTH FIXTURE CREATION
+--
+-- Do not insert directly into auth.users unless the isolated environment's
+-- exact schema, mandatory fields, triggers, and supported fixture method
+-- have been reviewed and approved.
+--
+-- Prefer the supported isolated Auth signup/admin fixture mechanism.
+-- Capture and review any Auth trigger side effects, including profile
+-- provisioning, linking, and automatic enrollment.
+--
+-- Never run fixture creation against Production.
+--
+-- 3. PROFILE FIXTURE CONSTRAINTS
+--
+-- Do not create NULL-owner user_profile fixtures unless the actual schema
+-- permits them and all primary-key, NOT NULL, unique, and foreign-key
+-- constraints have been inspected.
+--
+-- Fixture setup must prove that both test users and all expected rows exist
+-- before evaluating RLS visibility. A zero-row result without verified
+-- fixtures is inconclusive, not a passing isolation test.
+--
+-- 4. FUNCTION CONTRACTS
+--
+-- Do not assume report_lesson_activity() rounds, floors, clamps, or stores
+-- numeric values in a particular way. Inspect its exact signature,
+-- implementation, constraints, and documented contract first.
+--
+-- Do not assert an exact row count or percentage transformation until
+-- uniqueness constraints, conflict behavior, and function implementation
+-- have been verified.
+--
+-- Do not assume ensure_user_profile() return columns or missing-profile
+-- behavior without inspecting the exact function definition and caller.
+--
+-- 5. TEST EXECUTION AND EVIDENCE
+--
+-- Each test must distinguish:
+--   * setup failure,
+--   * authentication-context failure,
+--   * expected permission denial,
+--   * unexpected successful write,
+--   * and successful verification that protected state is unchanged.
+--
+-- Use isolated synthetic identities and data only.
+-- Verify cleanup or transaction rollback independently.
+-- Do not report PASS from a script exit code alone.
+--
+-- All tests remain NOT RUN until their prerequisites and actual contracts
+-- are verified. This addendum does not authorize Production execution.
+-- ============================================================================

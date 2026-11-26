@@ -1,0 +1,445 @@
+-- =============================================================================
+-- B1 UP — corrected for live DB (safe apply candidate)
+-- Scope: enrollments, learning_progress, courses, lessons + progress/enroll RPCs
+-- HARD EXCLUSIONS:
+--   * public.user_profile policies/grants (B0 permanent)
+--   * public.get_my_role() (B0 permanent)
+--   * auth.users / handle_student_linking
+--   * Academic enrollment triggers (not dropped)
+--   * ALTER DEFAULT PRIVILEGES
+--   * DELETE of historical learning_progress (including user_id IS NULL)
+-- Client writes: SECURITY DEFINER RPCs only. No browser admin escalation.
+-- App JS is NOT modified by this SQL package (patches are examples only).
+-- =============================================================================
+
+BEGIN;
+
+-- ----- 1) Remove only the known unsafe legacy enrollments policy -----
+-- Preserve every unrelated policy. Remove only unconditional ALL policies
+-- on enrollments that grant access to PUBLIC.
+DO $$
+DECLARE pol record;
+BEGIN
+  FOR pol IN
+    SELECT p.polname
+    FROM pg_policy p
+    JOIN pg_class c ON c.oid = p.polrelid
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public'
+      AND c.relname = 'enrollments'
+      AND p.polcmd = '*'
+      AND p.polpermissive
+      AND btrim(COALESCE(pg_get_expr(p.polqual, p.polrelid), ''), '() ') = 'true'
+      AND btrim(
+            COALESCE(
+              pg_get_expr(p.polwithcheck, p.polrelid),
+              pg_get_expr(p.polqual, p.polrelid),
+              ''
+            ),
+            '() '
+          ) = 'true'
+      AND (
+        p.polroles = '{}'::oid[]
+        OR p.polroles && ARRAY[
+          0::oid,
+          (SELECT oid FROM pg_roles WHERE rolname = 'anon'),
+          (SELECT oid FROM pg_roles WHERE rolname = 'authenticated')
+        ]::oid[]
+      )
+  LOOP
+    EXECUTE format(
+      'DROP POLICY %I ON public.enrollments',
+      pol.polname
+    );
+  END LOOP;
+
+  IF EXISTS (
+    SELECT 1
+    FROM pg_policy p
+    JOIN pg_class c ON c.oid = p.polrelid
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public'
+      AND c.relname = 'enrollments'
+      AND p.polcmd = '*'
+      AND p.polpermissive
+      AND btrim(COALESCE(pg_get_expr(p.polqual, p.polrelid), ''), '() ') = 'true'
+      AND btrim(
+            COALESCE(
+              pg_get_expr(p.polwithcheck, p.polrelid),
+              pg_get_expr(p.polqual, p.polrelid),
+              ''
+            ),
+            '() '
+          ) = 'true'
+      AND (
+        p.polroles = '{}'::oid[]
+        OR p.polroles && ARRAY[
+          0::oid,
+          (SELECT oid FROM pg_roles WHERE rolname = 'anon'),
+          (SELECT oid FROM pg_roles WHERE rolname = 'authenticated')
+        ]::oid[]
+      )
+  ) THEN
+    RAISE EXCEPTION 'Unsafe permissive enrollments policy remains; B1 aborted';
+  END IF;
+END $$;
+
+-- Recreate only policies owned by this B1 package.
+DROP POLICY IF EXISTS enrollments_select_own ON public.enrollments;
+DROP POLICY IF EXISTS learning_progress_select_own ON public.learning_progress;
+DROP POLICY IF EXISTS courses_select_public ON public.courses;
+DROP POLICY IF EXISTS lessons_select_public ON public.lessons;
+
+-- ----- 2) Enable RLS -----
+ALTER TABLE public.enrollments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.learning_progress ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.courses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.lessons ENABLE ROW LEVEL SECURITY;
+
+-- ----- 3) Policies -----
+CREATE POLICY enrollments_select_own ON public.enrollments
+  FOR SELECT TO authenticated
+  USING (user_id IS NOT NULL AND user_id = (SELECT auth.uid()));
+
+CREATE POLICY learning_progress_select_own ON public.learning_progress
+  FOR SELECT TO authenticated
+  USING (user_id IS NOT NULL AND user_id = (SELECT auth.uid()));
+
+CREATE POLICY courses_select_public ON public.courses
+  FOR SELECT TO anon, authenticated
+  USING (true);
+
+CREATE POLICY lessons_select_public ON public.lessons
+  FOR SELECT TO anon, authenticated
+  USING (true);
+
+-- ----- 4) Table ACL -----
+REVOKE ALL ON TABLE public.enrollments FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON TABLE public.learning_progress FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON TABLE public.courses FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON TABLE public.lessons FROM PUBLIC, anon, authenticated;
+
+GRANT SELECT ON TABLE public.enrollments TO authenticated;
+GRANT SELECT ON TABLE public.learning_progress TO authenticated;
+GRANT SELECT ON TABLE public.courses TO anon, authenticated;
+GRANT SELECT ON TABLE public.lessons TO anon, authenticated;
+
+-- Column ACL: strip client write privileges on all four tables;
+-- strip column-level SELECT for anon/PUBLIC on enrollments & learning_progress
+-- (table-level SELECT on courses/lessons for anon remains intentional).
+DO $$
+DECLARE r record;
+BEGIN
+  -- anon/authenticated: INSERT/UPDATE/DELETE on any of the four tables
+  FOR r IN
+    SELECT table_name, column_name, grantee, privilege_type
+    FROM information_schema.column_privileges
+    WHERE table_schema = 'public'
+      AND table_name IN ('enrollments','learning_progress','courses','lessons')
+      AND grantee IN ('anon','authenticated')
+      AND privilege_type IN ('INSERT','UPDATE','DELETE')
+  LOOP
+    EXECUTE format(
+      'REVOKE %s (%I) ON TABLE public.%I FROM %I',
+      r.privilege_type, r.column_name, r.table_name, r.grantee
+    );
+  END LOOP;
+
+  -- PUBLIC: INSERT/UPDATE/DELETE on any of the four
+  FOR r IN
+    SELECT table_name, column_name, privilege_type
+    FROM information_schema.column_privileges
+    WHERE table_schema = 'public'
+      AND table_name IN ('enrollments','learning_progress','courses','lessons')
+      AND grantee = 'PUBLIC'
+      AND privilege_type IN ('INSERT','UPDATE','DELETE')
+  LOOP
+    EXECUTE format(
+      'REVOKE %s (%I) ON TABLE public.%I FROM PUBLIC',
+      r.privilege_type, r.column_name, r.table_name
+    );
+  END LOOP;
+
+  -- anon/PUBLIC: column SELECT on enrollments & learning_progress only
+  FOR r IN
+    SELECT table_name, column_name, grantee
+    FROM information_schema.column_privileges
+    WHERE table_schema = 'public'
+      AND table_name IN ('enrollments','learning_progress')
+      AND grantee IN ('anon','PUBLIC')
+      AND privilege_type = 'SELECT'
+  LOOP
+    IF r.grantee = 'PUBLIC' THEN
+      EXECUTE format(
+        'REVOKE SELECT (%I) ON TABLE public.%I FROM PUBLIC',
+        r.column_name, r.table_name
+      );
+    ELSE
+      EXECUTE format(
+        'REVOKE SELECT (%I) ON TABLE public.%I FROM %I',
+        r.column_name, r.table_name, r.grantee
+      );
+    END IF;
+  END LOOP;
+END $$;
+
+-- ----- 5) Triggers: NOT modified (academic enrollment triggers remain) -----
+
+-- ----- 6) RPCs -----
+-- Locking select: PostgreSQL requires LIMIT before FOR UPDATE.
+
+CREATE OR REPLACE FUNCTION public.report_lesson_activity(
+  p_lesson_id uuid,
+  p_self_reported_percentage numeric
+)
+RETURNS public.learning_progress
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+DECLARE
+  uid uuid := auth.uid();
+  v_course uuid;
+  pct integer;
+  rec public.learning_progress;
+  lock_key bigint;
+BEGIN
+  IF uid IS NULL THEN
+    RAISE EXCEPTION 'not authenticated';
+  END IF;
+  IF p_lesson_id IS NULL THEN
+    RAISE EXCEPTION 'lesson_id required';
+  END IF;
+  IF p_self_reported_percentage IS NULL
+     OR p_self_reported_percentage < 0
+     OR p_self_reported_percentage >= 100 THEN
+    RAISE EXCEPTION 'self-reported percentage must be in [0, 100)';
+  END IF;
+  pct := FLOOR(p_self_reported_percentage)::integer;
+
+  SELECT l.course_id INTO v_course
+  FROM public.lessons l
+  WHERE l.lesson_id = p_lesson_id;
+  IF v_course IS NULL THEN
+    RAISE EXCEPTION 'invalid lesson';
+  END IF;
+
+  lock_key := hashtextextended(uid::text || ':' || p_lesson_id::text, 0);
+  PERFORM pg_advisory_xact_lock(lock_key);
+
+  SELECT * INTO rec
+  FROM public.learning_progress
+  WHERE user_id = uid
+    AND lesson_id = p_lesson_id
+  ORDER BY progress_id
+  LIMIT 1
+  FOR UPDATE;
+
+  IF FOUND THEN
+    UPDATE public.learning_progress SET
+      course_id = v_course,
+      completion_percentage = GREATEST(COALESCE(completion_percentage, 0), pct),
+      last_accessed = now()
+    WHERE progress_id = rec.progress_id
+      AND user_id = uid
+    RETURNING * INTO rec;
+    RETURN rec;
+  END IF;
+
+  INSERT INTO public.learning_progress (
+    user_id, course_id, lesson_id, completion_percentage, last_accessed
+  ) VALUES (
+    uid, v_course, p_lesson_id, pct, now()
+  )
+  RETURNING * INTO rec;
+  RETURN rec;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.trust_set_lesson_progress(
+  p_user_id uuid,
+  p_lesson_id uuid,
+  p_completion_percentage numeric
+)
+RETURNS public.learning_progress
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+DECLARE
+  v_course uuid;
+  pct integer;
+  rec public.learning_progress;
+  lock_key bigint;
+BEGIN
+  IF p_user_id IS NULL OR p_lesson_id IS NULL THEN
+    RAISE EXCEPTION 'user_id and lesson_id required';
+  END IF;
+  IF p_completion_percentage IS NULL THEN
+    RAISE EXCEPTION 'completion_percentage must not be null';
+  END IF;
+  IF p_completion_percentage < 0 OR p_completion_percentage > 100 THEN
+    RAISE EXCEPTION 'completion_percentage must be in [0, 100]';
+  END IF;
+  IF p_completion_percentage <> trunc(p_completion_percentage) THEN
+    RAISE EXCEPTION 'completion_percentage must be a whole number';
+  END IF;
+  pct := p_completion_percentage::integer;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM public.user_profile up WHERE up.user_id = p_user_id
+  ) THEN
+    RAISE EXCEPTION 'target user profile not found';
+  END IF;
+
+  SELECT l.course_id INTO v_course
+  FROM public.lessons l
+  WHERE l.lesson_id = p_lesson_id;
+  IF v_course IS NULL THEN
+    RAISE EXCEPTION 'target lesson not found';
+  END IF;
+
+  lock_key := hashtextextended(p_user_id::text || ':' || p_lesson_id::text, 0);
+  PERFORM pg_advisory_xact_lock(lock_key);
+
+  SELECT * INTO rec
+  FROM public.learning_progress
+  WHERE user_id = p_user_id
+    AND lesson_id = p_lesson_id
+  ORDER BY progress_id
+  LIMIT 1
+  FOR UPDATE;
+
+  IF FOUND THEN
+    UPDATE public.learning_progress SET
+      course_id = v_course,
+      completion_percentage = pct,
+      last_accessed = now()
+    WHERE progress_id = rec.progress_id
+      AND user_id = p_user_id
+    RETURNING * INTO rec;
+    RETURN rec;
+  END IF;
+
+  INSERT INTO public.learning_progress (
+    user_id, course_id, lesson_id, completion_percentage, last_accessed
+  ) VALUES (
+    p_user_id, v_course, p_lesson_id, pct, now()
+  )
+  RETURNING * INTO rec;
+  RETURN rec;
+END;
+$$;
+
+-- Self-enroll condition: authenticated caller + course row exists in public.courses.
+-- Does NOT check publish flags (none assumed without proven column).
+-- Does NOT grant academic entitlements, admin, or instructor rights.
+-- Does NOT expand table INSERT privileges to the client (DEFINER only).
+CREATE OR REPLACE FUNCTION public.enroll_self_in_course(p_course_id uuid)
+RETURNS public.enrollments
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+DECLARE
+  uid uuid := auth.uid();
+  rec public.enrollments;
+BEGIN
+  IF uid IS NULL THEN
+    RAISE EXCEPTION 'not authenticated';
+  END IF;
+
+  IF p_course_id IS NULL THEN
+    RAISE EXCEPTION 'course_id required';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM public.courses c WHERE c.course_id = p_course_id
+  ) THEN
+    RAISE EXCEPTION 'course not found';
+  END IF;
+
+  INSERT INTO public.enrollments (user_id, course_id)
+  VALUES (uid, p_course_id)
+  ON CONFLICT (user_id, course_id) DO NOTHING;
+
+  SELECT * INTO rec
+  FROM public.enrollments e
+  WHERE e.user_id = uid
+    AND e.course_id = p_course_id
+  ORDER BY e.enrollment_id
+  LIMIT 1;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'enrollment could not be retrieved';
+  END IF;
+
+  RETURN rec;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.report_lesson_activity(uuid, numeric)
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.report_lesson_activity(uuid, numeric)
+  TO authenticated;
+
+REVOKE ALL ON FUNCTION public.enroll_self_in_course(uuid)
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.enroll_self_in_course(uuid)
+  TO authenticated;
+
+REVOKE ALL ON FUNCTION public.trust_set_lesson_progress(uuid, uuid, numeric)
+  FROM PUBLIC, anon, authenticated;
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'service_role') THEN
+    RAISE EXCEPTION 'service_role missing';
+  END IF;
+  EXECUTE 'GRANT EXECUTE ON FUNCTION public.trust_set_lesson_progress(uuid, uuid, numeric) TO service_role';
+END $$;
+
+-- ----- 7) Gates -----
+DO $$
+BEGIN
+  IF has_table_privilege('anon', 'public.enrollments', 'SELECT') THEN
+    RAISE EXCEPTION 'B1 gate fail: anon can SELECT enrollments';
+  END IF;
+  IF has_table_privilege('authenticated', 'public.learning_progress', 'INSERT') THEN
+    RAISE EXCEPTION 'B1 gate fail: authenticated can INSERT learning_progress';
+  END IF;
+  IF has_table_privilege('authenticated', 'public.learning_progress', 'UPDATE') THEN
+    RAISE EXCEPTION 'B1 gate fail: authenticated can UPDATE learning_progress';
+  END IF;
+  IF has_table_privilege('authenticated', 'public.enrollments', 'INSERT') THEN
+    RAISE EXCEPTION 'B1 gate fail: authenticated can INSERT enrollments';
+  END IF;
+  IF NOT has_table_privilege('anon', 'public.courses', 'SELECT') THEN
+    RAISE EXCEPTION 'B1 gate fail: anon cannot SELECT courses';
+  END IF;
+  IF NOT has_table_privilege('anon', 'public.lessons', 'SELECT') THEN
+    RAISE EXCEPTION 'B1 gate fail: anon cannot SELECT lessons';
+  END IF;
+  IF has_function_privilege(
+       'authenticated',
+       'public.trust_set_lesson_progress(uuid,uuid,numeric)',
+       'EXECUTE'
+     ) THEN
+    RAISE EXCEPTION 'B1 gate fail: authenticated can EXECUTE trust_set';
+  END IF;
+  IF NOT has_function_privilege(
+       'authenticated',
+       'public.report_lesson_activity(uuid,numeric)',
+       'EXECUTE'
+     ) THEN
+    RAISE EXCEPTION 'B1 gate fail: authenticated missing report_lesson_activity';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_proc p
+    JOIN pg_namespace n ON n.oid = p.pronamespace
+    WHERE n.nspname = 'public' AND p.proname = 'get_my_role' AND p.prosecdef
+  ) THEN
+    RAISE EXCEPTION 'B1 gate fail: get_my_role missing or not SECURITY DEFINER';
+  END IF;
+END $$;
+
+COMMIT;

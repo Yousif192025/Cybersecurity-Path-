@@ -32,9 +32,9 @@ function friendlyError(err) {
 }
 
 const DESTINATIONS = {
-  student: "/dashboards/student.html",
-  instructor: "/dashboards/instructor.html",
-  admin: "/dashboards/admin.html",
+  student: "/academy/control/",
+  instructor: "/academy/control/",
+  admin: "/academy/control/",
 };
 
 /** أدوار حساب مسجّلة فقط — الزائر ليس دورًا في قاعدة البيانات */

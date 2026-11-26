@@ -334,9 +334,10 @@ window.handleStudentEnrollment = async function(courseId) {
         console.error("❌ معرف المقرر غير صالح");
         return;
     }
-    
+
     try {
         const { data: { user } } = await sb.auth.getUser();
+
         if (!user) {
             if (typeof window.showToast === 'function') {
                 window.showToast("🛑 يجب تسجيل الدخول أولاً", "error");
@@ -345,52 +346,31 @@ window.handleStudentEnrollment = async function(courseId) {
             }
             return;
         }
-        
+
         if (typeof window.showLoader === 'function') window.showLoader();
-        
-        // التحقق من التسجيل المسبق
-        const { data: existing } = await sb
-            .from("enrollments")
-            .select("course_id")
-            .eq("user_id", user.id)
-            .eq("course_id", courseId)
-            .maybeSingle();
-        
-        if (existing) {
-            if (typeof window.showToast === 'function') {
-                window.showToast("ℹ️ أنت مسجل بالفعل في هذا المقرر", "info");
-            }
-            if (typeof window.hideLoader === 'function') window.hideLoader();
-            return;
-        }
-        
-        // إدراج سجل جديد
-        const { error } = await sb.from("enrollments").insert({
-            user_id: user.id,
-            course_id: courseId,
-            completion_status: 'in_progress',
-            completion_percentage: 0
+
+        const { error } = await sb.rpc("enroll_self_in_course", {
+            p_course_id: courseId
         });
-        
+
         if (typeof window.hideLoader === 'function') window.hideLoader();
-        
+
         if (error) {
             console.error("❌ خطأ في التسجيل:", error);
             if (typeof window.showToast === 'function') {
-                window.showToast(`❌ تعذر الالتحاق: ${error.message}`, 'error');
+                window.showToast(`❌ تعذر الالتحاق: ${error.message}`, "error");
             }
             return;
         }
-        
+
         if (typeof window.showToast === 'function') {
-            window.showToast("🎉 تم تسجيلك في المقرر بنجاح!", "success");
+            window.showToast("🎉 تم تأكيد تسجيلك في المقرر!", "success");
         }
-        
-        // تحديث الواجهة
+
         await window.fetchAndRenderStudentCourses();
         await window.fetchAndRenderStudentProgressTable();
         await window.updateStudentStats();
-        
+
     } catch (err) {
         if (typeof window.hideLoader === 'function') window.hideLoader();
         console.error("❌ خطأ في التسجيل:", err);
