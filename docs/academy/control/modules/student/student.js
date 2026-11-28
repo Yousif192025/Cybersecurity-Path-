@@ -1,9 +1,9 @@
-﻿export function init({ supabase, root, role }) {
+export function init({ supabase, root, role }) {
   if (!root) {
     throw new Error("Student module requires a root element.");
   }
 
-  // S0: لا توجد استدعاءات لبيانات تعليمية في هذه المرحلة.
+  // P0: واجهة شخصية صادقة دون بيانات تعليمية غير مرتبطة.
   void supabase;
   void role;
 
@@ -22,11 +22,11 @@
   eyebrow.textContent = "مساحة الطالب";
 
   const title = document.createElement("h1");
-  title.textContent = "مرحباً بك في رحلتك التعليمية";
+  title.textContent = "مرحباً بك في مساحتك التعليمية";
 
   const intro = document.createElement("p");
   intro.textContent =
-    "استكشف مسارات الأمن السيبراني، وطوّر مهاراتك، وتابع فرص التعلم المتاحة في الأكاديمية.";
+    "هنا ستجد تجربتك التعليمية الشخصية. يمكنك الآن مواصلة الاستكشاف والتعلم من خدمات الأكاديمية المتاحة.";
 
   header.append(eyebrow, title, intro);
 
@@ -36,11 +36,11 @@
 
   const learningTitle = document.createElement("h2");
   learningTitle.id = "learning-state-title";
-  learningTitle.textContent = "تعلّمك يبدأ من هنا";
+  learningTitle.textContent = "مساحتك الشخصية قيد التجهيز";
 
   const learningText = document.createElement("p");
   learningText.textContent =
-    "عرض تقدمك ودوراتك المسجل فيها غير متاح حالياً؛ لم يتم ربط مصادر بيانات التعلم الشخصية بعد.";
+    "نعمل على ربط ملفك التعليمي وتسجيلاتك بمصادر البيانات المعتمدة. ستظهر هنا معلوماتك وتقدمك عندما تصبح جاهزة، ولن نعرض بيانات غير مكتملة أو تجريبية.";
 
   learning.append(learningTitle, learningText);
 
@@ -50,32 +50,30 @@
 
   const resourcesTitle = document.createElement("h2");
   resourcesTitle.id = "resources-title";
-  resourcesTitle.textContent = "استكشف الأكاديمية";
+  resourcesTitle.textContent = "تابع رحلتك في الأكاديمية";
 
   const nav = document.createElement("nav");
   nav.className = "student-resource-links";
-  nav.setAttribute("aria-label", "الأقسام التعليمية");
+  nav.setAttribute("aria-label", "خدمات الأكاديمية");
 
   const links = [
-    ["/academy/traincourses/", "الدورات التدريبية", "اكتشف الدورات المتاحة للتعلم"],
-    ["/academy/career-paths/", "المسارات المهنية", "تعرّف على تخصصات الأمن السيبراني"],
-    ["/academy/certifications/", "الشهادات الاحترافية", "استكشف الشهادات ومتطلباتها"],
-    ["/academy/quizzes/", "الاختبارات", "اختبر معلوماتك ومعرفتك"],
-    ["/academy/workshops/", "ورش العمل", "استكشف الأنشطة وورش العمل"],
-    ["/academy/guidance/", "الإرشاد الأكاديمي", "احصل على التوجيه والمساعدة"],
+    ["/academy/career-paths/", "المسارات المهنية", "استكشف تخصصات ومسارات الأمن السيبراني"],
+    ["/academy/labs/", "المختبرات", "تدرّب عملياً في بيئات المختبرات"],
+    ["/academy/quizzes/", "الاختبارات", "راجع معلوماتك واختبر معرفتك"],
+    ["/academy/guidance/", "الإرشاد", "اطّلع على موارد التوجيه والدعم"],
   ];
 
   for (const [href, label, hint] of links) {
     const a = document.createElement("a");
     a.href = href;
 
-    const s1 = document.createElement("span");
-    s1.textContent = label;
+    const name = document.createElement("span");
+    name.textContent = label;
 
-    const s2 = document.createElement("span");
-    s2.textContent = hint;
+    const description = document.createElement("span");
+    description.textContent = hint;
 
-    a.append(s1, s2);
+    a.append(name, description);
     nav.append(a);
   }
 
